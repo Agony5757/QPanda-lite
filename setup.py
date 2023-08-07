@@ -144,21 +144,21 @@ class CMakeBuild(build_ext):
 
         
 setup(
-    name = "pymahjong",
-    version = "1.0.3",
+    name = "qpandalite",
+    version = "0.1.0",
     author = "Agony",
     author_email = "chenzhaoyun@iai.ustc.edu.cn",
-    description= "A Japanese Mahjong environment for decision AI research.",
+    description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",
     long_description = readme,
     long_description_content_type="text/markdown",
-    ext_modules=[CMakeExtension("pymahjong")],
+    ext_modules=[CMakeExtension("qpandalite")],
     cmdclass={"build_ext": CMakeBuild},
     project_urls={
-        "Source Code": "https://github.com/Agony5757/mahjong",
+        "Source Code": "https://github.com/Agony5757/QPanda-Lite.git",
     },
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-    packages = ['pymahjong'],
-    install_requires=['numpy', 'gym'],
+    packages = find_packages(),
+    install_requires=['numpy'],
     zip_safe = False,
-    python_requires='>=3.6',    
+    python_requires='>=3.7',    
 )

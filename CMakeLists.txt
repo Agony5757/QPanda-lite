@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(QPandaLite)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/src
                     ${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/ThirdParty
                     ${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/ThirdParty/pybind11
                     ${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/ThirdParty/fmt/include

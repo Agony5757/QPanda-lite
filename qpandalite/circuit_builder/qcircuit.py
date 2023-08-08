@@ -8,15 +8,13 @@ import warnings
 from .basic_gates import *
 
 def _check_qubit_overflow(qubits, n):    
-    '''
-    Check if any qubit in qubits (list) is overflow.
+    '''Check if any qubit in qubits (list) is overflow.
     
     Args:
-        qubits : list
-        n : int
-    Return:
-        True (if ok)
-        or False (if overflow)
+        qubits (list):
+        n (int):
+    Returns:
+        bool: True (if ok) or False (if overflow)
     '''
     for qubit in qubits:
         if qubit >= n:
@@ -25,11 +23,10 @@ def _check_qubit_overflow(qubits, n):
     return True
 
 def _check_qubit_key(qubit_key: str):
-    '''
-    check if qubit_key match ''q+any integer'' format (q1, q2, etc.) 
-    Return:
-        int : if the qubit_key is available, return this qubit
-        or None : if not match this style.
+    '''check if qubit_key match ''q+any integer'' format (q1, q2, etc.) 
+    
+    Returns:
+        int : if the qubit_key is available, return this qubit; or None : if not match this style.
     '''
     if not qubit_key.startswith('q'):
         return None
@@ -41,26 +38,34 @@ def _check_qubit_key(qubit_key: str):
         return None
 
 class Circuit:
+    '''Quantum circuit.
+
+    Args:
+        n_qubit (int) : number of qubits in the circuit
+        name (str, optional) : the name of this circuit
+
+    Notes:
+        A template of circuit object. By assigning the qubit, we can create a concrete insertable circuit.    
+        The qubit/cbit in the gate template is represented by {q1}/{q2}/{q3}... instead of q1/q2/q3.
+        It allows users to format the gate template and assign it to the circuit.
+
+    Examples:
+        .. code-block:: python
+
+            toffoli = GateTemplate(n_qubit = 3)
+            # (... some definitions)
+            toffoli_123   = toffoli.assign(q1 = 1, q2 = 2, q3 = 3) # to assign the corresponding qubits, returning a 'Gate'
+            toffoli_214   = toffoli.assign(q1 = 2, q2 = 1, q3 = 4) # to assign the corresponding qubits, returning a 'Gate'
+            toffoli_fix_1 = toffoli.assign(q1 = 1) # to assign partially, returning another 'GateTemplate'
+
+            c = Circuit()
+            c.gate(toffoli_123)                             # good
+            c.gate(toffoli)                                 # bad, because it is not fully converted to a gate
+            c.gate(toffoli_fix_1.format(q2 = 2, q3 = 3))    # good
+                
     '''
-    A template of circuit object. By assigning the qubit, we can create a concrete insertable circuit.    
-    The qubit/cbit in the gate template is represented by {q1}/{q2}/{q3}... instead of q1/q2/q3.
-    It allows users to format the gate template and assign it to the circuit.
 
-    Example:
-
-    toffoli = GateTemplate(n_qubit = 3)
-        (... some definitions)
-    toffoli_123   = toffoli.assign(q1 = 1, q2 = 2, q3 = 3) # to assign the corresponding qubits, returning a 'Gate'
-    toffoli_214   = toffoli.assign(q1 = 2, q2 = 1, q3 = 4) # to assign the corresponding qubits, returning a 'Gate'
-    toffoli_fix_1 = toffoli.assign(q1 = 1) # to assign partially, returning another 'GateTemplate'
-
-    c = Circuit()
-    c.gate(toffoli_123)                             # good
-    c.gate(toffoli)                                 # bad, because it is not fully converted to a gate
-    c.gate(toffoli_fix_1.format(q2 = 2, q3 = 3))    # good
-    '''
-
-    def __init__(self, n_qubit = None, name = None):
+    def __init__(self, n_qubit = None, name = None):        
         self.n_qubit = n_qubit
         self.gate_list = []
         if not name:
@@ -96,7 +101,13 @@ class Circuit:
     def _parse_qubit_map_from_kwargs(self, **kwargs):
         '''
         Implementation of assign (kwargs case).
-        '''        
+
+        Raises:
+            RuntimeError: Error in parsing kwargs
+
+        Returns:
+            dict: qubit map
+        '''
         keys = kwargs.keys()
         qubit_map = dict()
         for key in keys:
@@ -127,7 +138,50 @@ class Circuit:
         
         return qubit_map
 
-    def assign(self, *args, **kwargs):        
+    def assign(self, *args, **kwargs):  
+        '''Reassign the qubits with the given input.
+
+        Args:
+            n_qubit (int, optional): The number of qubits in the newly generated circuit.
+            args (list, optional): A given qubit list in *args form.
+            kwargs (optional): A kwarg dict like (q1=1, q2=3, q3=2)
+
+        Raises:
+            RuntimeError: Cannot assign an unlimited circuit. (when self.n_qubit is None)
+            RuntimeError: Cannot shrink circuit size. (when self.n_qubit > n_qubit)
+            
+        Returns:
+            BigGate: Return a new BigGate instance.
+
+        Examples:
+            Three types of inputs are accepted.
+
+            List-arg-type:
+
+            .. code-block:: python
+
+                c = BigGate()
+                # some definitions ...
+                c.assign(1,2,3)
+                
+            List-type:
+
+            .. code-block:: python
+
+                c = BigGate()
+                # some definitions ...
+                c.assign([1,2,3])
+                
+            Kwargs-type:
+
+            .. code-block:: python
+
+                c = BigGate()
+                # some definitions ...
+                c.assign(q0=1,q1=2,q2=3)
+
+            The above three types share the same semantic.
+        '''
         if self.n_qubit is None:
             # unlimited circuit, it may not be assignable.
             raise RuntimeError('Cannot assign an unlimited circuit.')
@@ -151,8 +205,7 @@ class Circuit:
         return ret
             
     def _append_gate(self, gate_object : Gate):
-        '''
-        add gate to the quantum circuit.
+        '''add gate to the quantum circuit.
         '''
         if self.n_qubit is None:
             # unlimited mode
@@ -169,12 +222,9 @@ class Circuit:
         self.gate_list.append(gate_object)
 
     def _append_circuit(self, new_circuit):
-        '''
-        Connect two circuits.
-
-        Note: 
-            When the append circuit is another object, it modifies self without affecting new_circuit.
-            When the append circuit is self, it appends a copy of self.
+        '''Connect two circuits.
+        When the append circuit is another object, it modifies self without affecting new_circuit.
+        When the append circuit is self, it appends a copy of self.
         '''
         if id(new_circuit) == id(self):
             # check if self-appending
@@ -190,8 +240,7 @@ class Circuit:
             self.gate_list.append(gate)
 
     def append(self, object):
-        '''
-        Append an object (Gate/Circuit)
+        '''Append an object (Gate/Circuit)
         '''
         if isinstance(object, BigGate):
             self._append_gate(object)
@@ -239,7 +288,47 @@ class BigGate(Circuit) :
     def involved_qubits(self) -> list:
         return self.assigned_qubits
 
-    def assign(self, *args, **kwargs):
+    def assign(self, *args, **kwargs):        
+        '''Reassign the qubits with the given input.
+
+        Args:
+            n_qubit (int, optional): The number of qubits in the newly generated circuit.
+            args (list, optional): A given qubit list in *args form.
+            kwargs (optional): A kwarg dict like (q1=1, q2=3, q3=2)
+
+        Raises:
+            RuntimeError: Cannot assign an unlimited circuit. (when self.n_qubit is None)
+            RuntimeError: Cannot shrink circuit size. (when self.n_qubit > n_qubit)
+            
+        Returns:
+            Circuit: Return a new Circuit instance.
+
+        Examples:
+            Three types of inputs are accepted.
+
+            List-arg-type:
+
+            .. code-block:: python
+
+                c = Circuit()
+                c.assign(1,2,3)
+                
+            List-type:
+
+            .. code-block:: python
+
+                c = Circuit()
+                c.assign([1,2,3])
+                
+            Kwargs-type:
+
+            .. code-block:: python
+
+                c = Circuit()
+                c.assign(q0=1,q1=2,q2=3)
+
+            The above three types share the same semantic.
+        '''
         ret = super().assign(*args, **kwargs)
         ret.n_qubit = self.n_qubit
         ret.is_abstract = False
@@ -260,8 +349,7 @@ class BigGate(Circuit) :
         
         return ret
 class QProg:
-    '''
-    An abstract representation of a quantum circuit.
+    '''An abstract representation of a quantum circuit.
     Attributes:
         - n_qubit : number of qubits
         - n_cbit : number of cbits
@@ -269,11 +357,10 @@ class QProg:
     '''
 
     def __init__(self, n_qubit = 1, n_cbit = 0):
-        '''
-        Constructing an empty circuit.
+        '''Constructing an empty circuit.
         Args:
-            n_qubit : number of qubits
-            n_cbit : number of cbits
+            n_qubit (int): number of qubits
+            n_cbit (int): number of cbits
         '''
         self.n_qubit = n_qubit
         self.n_cbit = n_cbit
@@ -297,8 +384,7 @@ class QProg:
         
 
     def to_originir(self) -> str:
-        '''
-        Convert to originir
+        '''Convert to originir
         '''
         pass
         

@@ -151,8 +151,8 @@ setup(
     description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",
     long_description = readme,
     long_description_content_type="text/markdown",
-    ext_modules=[CMakeExtension("qpandalite")],
-    cmdclass={"build_ext": CMakeBuild},
+    #ext_modules=[CMakeExtension("qpandalite")],
+    #cmdclass={"build_ext": CMakeBuild},
     project_urls={
         "Source Code": "https://github.com/Agony5757/QPanda-Lite.git",
     },

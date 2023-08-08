@@ -146,7 +146,7 @@ class Circuit:
             ret.n_qubit = n_qubit
         else:
             # use the unlimited mode as default
-            ret.n_qubit = None
+            ret.n_qubit = self.n_qubit
 
         return ret
             
@@ -212,6 +212,9 @@ class BigGate(Circuit) :
             raise RuntimeError('You must name a BigGate')
         super().__init__(n_qubit, name)
 
+        # Here, n_qubit only specifies the qubit range in definition
+        # It does not affect the assigned_qubits
+
         # start from an abstract definition
         self.is_abstract = True
         self.assigned_qubits = []
@@ -238,10 +241,6 @@ class BigGate(Circuit) :
 
     def assign(self, *args, **kwargs):
         ret = super().assign(*args, **kwargs)
-        # if ret.n_qubit is not None:
-        #     # do not want to handle this. you cannot increase qubit number
-        #     raise RuntimeError('Do not assign extra qubits when assigning BigGate')
-        
         ret.n_qubit = self.n_qubit
         ret.is_abstract = False
 

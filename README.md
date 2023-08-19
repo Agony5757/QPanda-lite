@@ -34,8 +34,11 @@ git clone https://github.com/Agony5757/QPanda-lite.git
 python setup.py
 ```
 
+### Build the docs
+Will be released in the future.
+
 ### pip
-Not supported yet.
+Will be supported in the future.
 
 ## Usage
 

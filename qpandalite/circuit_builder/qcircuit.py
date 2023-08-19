@@ -65,33 +65,63 @@ class Circuit:
                 
     '''
 
-    def __init__(self, n_qubit = None, name = None):        
-        self.n_qubit = n_qubit
+    def __init__(self, name = None):   
         self.gate_list = []
         if not name:
-            self.name = hex(id(self))
+            self.name = None
         else:
             self.name = name
 
-    def _to_string(self) -> str:       
+        self.involved_qubits = []
+        self.fragment = False
+        self.expand = True
+        self.mapping = None
+
+    def circuit_str(self) -> str:       
         ret = '' 
-        if self.n_qubit is None:
-            ret += '# n_qubit : Unlimited\n'
-        else:
-            ret += '# n_qubit : {}\n'.format(self.n_qubit)
-        
         for gate in self.gate_list:
             ret += '{};\n'.format(gate)
         return ret
-
+    
     def __repr__(self) -> str:
-        ret = '---{:^25s}---\n'.format(f'Circuit {self.name}')
-        ret += self._to_string()
+        if self.fragment:
+            if not self.name:
+                raise RuntimeError('Fatal: Unexpected noname fragment.')
+            ret = '---{:^25s}---\n'.format(f'Fragment {self.name}')
+            ret += self.circuit_str()
+        elif not self.expand:
+            if self.mapping:
+                if self.name:
+                    ret = f'{self.name} qubit_mapping: {self.mapping}'
+                else:
+                    ret = f'{hex(id(self.name))} qubit_mapping: {self.mapping}'
+            else:
+                if self.name:
+                    ret = f'{self.name} q{self.involved_qubits}'
+                else:
+                    ret = f'{hex(id(self.name))} q{self.involved_qubits}'
+
+        else:
+            ret = self.circuit_str()
         return ret
+    
+    def _check_qubit_map(self, qubit_map):
+        for qubit in self.involved_qubits:
+            if qubit not in qubit_map:
+                return False
+            
+        return True
+
 
     def assign_by_map(self, qubit_map):
-        ret = Circuit()
+        ret = Circuit(self.name)
 
+        if not self._check_qubit_map(qubit_map):
+            raise RuntimeError('Qubit map does not cover all involved qubits. '
+                               'Every involved qubits must be a key in qubit_map.\n' 
+                               f'Expect: {ret.involved_qubits}, Get: {qubit_map}')
+        ret.mapping = qubit_map
+        
         for gate in self.gate_list:
             assigned_gate = gate.assign_by_map(qubit_map)
             ret._append_gate(assigned_gate)
@@ -182,9 +212,6 @@ class Circuit:
 
             The above three types share the same semantic.
         '''
-        if self.n_qubit is None:
-            # unlimited circuit, it may not be assignable.
-            raise RuntimeError('Cannot assign an unlimited circuit.')
         if len(args) > 0:
             # _assign_list mode
             qubit_map = self._parse_qubit_map_from_list(*args)
@@ -193,161 +220,104 @@ class Circuit:
             qubit_map = self._parse_qubit_map_from_kwargs(**kwargs)
 
         ret = self.assign_by_map(qubit_map)
-        if 'n_qubit' in kwargs:
-            n_qubit = kwargs['n_qubit']
-            if n_qubit < self.n_qubit:
-                raise RuntimeError('Cannot shrink circuit size (self.n_qubit > n_qubit(input) {} > {})'.format(self.n_qubit, n_qubit))
-            ret.n_qubit = n_qubit
-        else:
-            # use the unlimited mode as default
-            ret.n_qubit = self.n_qubit
-
         return ret
             
     def _append_gate(self, gate_object : Gate):
-        '''add gate to the quantum circuit.
+        '''Add gate to the quantum circuit.
         '''
-        if self.n_qubit is None:
-            # unlimited mode
-            self.gate_list.append(gate_object) 
-            return  
-
         # check overflow
         qubits = gate_object.involved_qubits()
-        if not _check_qubit_overflow(qubits, self.n_qubit):
-            raise RuntimeError('All qubits must be within the range'
-                            '(involved_qubits: {}, n_qubits: {})'
-                            .format(qubits, self.n_qubit))  
               
         self.gate_list.append(gate_object)
+        for qubit in qubits:
+            if qubit not in self.involved_qubits:
+                self.involved_qubits.append(qubit)
 
-    def _append_circuit(self, new_circuit):
+    def _append_circuit(self, new_circuit, expand = True):
         '''Connect two circuits.
         When the append circuit is another object, it modifies self without affecting new_circuit.
         When the append circuit is self, it appends a copy of self.
         '''
+        if isinstance(new_circuit, Fragment):
+            raise RuntimeError('Append a fragment circuit without assigning qubits.')
+
         if id(new_circuit) == id(self):
             # check if self-appending
             new_circuit = deepcopy(new_circuit)
 
-        # set to the maximum number
-        if self.n_qubit is None or new_circuit.n_qubit is None:
-            self.n_qubit = None
-        else:
-            self.n_qubit = max(self.n_qubit, new_circuit.n_qubit)
-        
-        for gate in new_circuit.gate_list:
-            self.gate_list.append(gate)
+        for qubit in new_circuit.involved_qubits:
+            if qubit not in self.involved_qubits:
+                self.involved_qubits.append(qubit)
 
-    def append(self, object):
+        if expand or new_circuit.expand:
+            for gate in new_circuit.gate_list:
+                self.gate_list.append(gate)
+        else:
+            self.gate_list.append(new_circuit)
+
+    def append(self, object, **kwargs):
         '''Append an object (Gate/Circuit)
         '''
-        if isinstance(object, BigGate):
-            self._append_gate(object)
-        elif isinstance(object, Circuit):
-            self._append_circuit(object)
+        if isinstance(object, Circuit):
+            if 'expand' in kwargs:
+                expand = kwargs['expand']
+            else:
+                expand = False
+            self._append_circuit(object, expand)
         elif isinstance(object, Gate):
             self._append_gate(object)
         else:
             raise NotImplementedError
 
-    def rx(self, qubit, angle):
+    def rx(self, qubit, angle):    
+        '''Append a Rx gate
+
+        Args:
+            qubit (int, str): the qubit id
+            angle (float, str): the angle
+
+        Returns:
+            Circuit: self
+        '''
         self._append_gate(Rx(qubit, angle))
         return self
 
-class BigGate(Circuit) : 
-    def __init__(self, n_qubit = None, name = None):
-        if not name:
-            raise RuntimeError('You must name a BigGate')
-        super().__init__(n_qubit, name)
-
-        # Here, n_qubit only specifies the qubit range in definition
-        # It does not affect the assigned_qubits
-
-        # start from an abstract definition
-        self.is_abstract = True
-        self.assigned_qubits = []
-    
-    def __repr__(self):
-        if self.is_abstract:
-            ret = '---{:^25s}---\n'.format(f'BigGate {self.name} (Definition)')
-            ret += self._to_string()
-        else:
-            ret = f'{self.name} q{self.assigned_qubits}'
-        return ret
-     
-    def assign_by_map(self, qubit_map):
-        ret = BigGate(n_qubit = None, name = self.name)
-
-        for gate in self.gate_list:
-            assigned_gate = gate.assign_by_map(qubit_map)
-            ret._append_gate(assigned_gate)
-        
-        return ret   
-    
-    def involved_qubits(self) -> list:
-        return self.assigned_qubits
-
-    def assign(self, *args, **kwargs):        
-        '''Reassign the qubits with the given input.
+    def ry(self, qubit, angle):   
+        '''Append a Ry gate
 
         Args:
-            n_qubit (int, optional): The number of qubits in the newly generated circuit.
-            args (list, optional): A given qubit list in *args form.
-            kwargs (optional): A kwarg dict like (q1=1, q2=3, q3=2)
+            qubit (int, str): the qubit id
+            angle (float, str): the angle
 
-        Raises:
-            RuntimeError: Cannot assign an unlimited circuit. (when self.n_qubit is None)
-            RuntimeError: Cannot shrink circuit size. (when self.n_qubit > n_qubit)
-            
         Returns:
-            Circuit: Return a new Circuit instance.
-
-        Examples:
-            Three types of inputs are accepted.
-
-            List-arg-type:
-
-            .. code-block:: python
-
-                c = Circuit()
-                c.assign(1,2,3)
-                
-            List-type:
-
-            .. code-block:: python
-
-                c = Circuit()
-                c.assign([1,2,3])
-                
-            Kwargs-type:
-
-            .. code-block:: python
-
-                c = Circuit()
-                c.assign(q0=1,q1=2,q2=3)
-
-            The above three types share the same semantic.
+            Circuit: self
         '''
-        ret = super().assign(*args, **kwargs)
-        ret.n_qubit = self.n_qubit
-        ret.is_abstract = False
+        self._append_gate(Ry(qubit, angle))
+        return self
 
-        if len(args) > 0:
-            # list mode
-            qubit_map = self._parse_qubit_map_from_list(*args)
-        else:
-            # kwargs mode
-            qubit_map = self._parse_qubit_map_from_kwargs(**kwargs)
-        
-        for i in range(ret.n_qubit):
-            if i in qubit_map:
-                ret.assigned_qubits.append(qubit_map[i])
-            else:
-                raise RuntimeWarning('The assign-map does not cover all qubits.')
-                ret.append(None)
-        
+    def rz(self, qubit, angle):   
+        '''Append a Rz gate
+
+        Args:
+            qubit (int, str): the qubit id
+            angle (float, str): the angle
+
+        Returns:
+            Circuit: self
+        '''
+        self._append_gate(Rz(qubit, angle))
+
+class Fragment(Circuit):
+    def __init__(self, name):
+        super().__init__(name)
+        self.fragment = True
+        self.expand = False
+
+    def assign(self, *args, **kwargs):
+        ret = super().assign(*args, **kwargs)
+        ret.expand = False
         return ret
+
 class QProg:
     '''An abstract representation of a quantum circuit.
     Attributes:

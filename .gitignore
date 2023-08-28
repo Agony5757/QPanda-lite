@@ -154,3 +154,11 @@ cython_debug/
 # VS/vscode
 .vscode/
 .vs/
+
+# output path
+quafu_online_info_verify/
+origin_online_info_verify/
+history/
+test/make_online_config/
+originq_online_config.json
+quafu_online_config.json

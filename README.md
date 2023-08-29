@@ -41,7 +41,12 @@ Developing. Unstable.
 
 ```
 git clone https://github.com/Agony5757/QPanda-lite.git
-python setup.py
+
+# Either for development
+python setup.py develop
+
+# Or for installation
+python setup.py install
 ```
 
 ### Build the docs

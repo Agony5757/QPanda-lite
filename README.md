@@ -1,5 +1,7 @@
 # QPanda-lite
 
+[![Documentation Status](https://readthedocs.org/projects/qpanda-lite/badge/?version=latest)](https://qpanda-lite.readthedocs.io/en/latest/?badge=latest)
+      
 QPanda: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplication
 
 QPanda-lite *should be* a simple, easy, and transparent python-native version for QPanda.
@@ -121,4 +123,4 @@ print(len(state))
 You should install with QPandaLiteCpp before importing <font face ='consolas' style="background:#F5F5F5">qpandalite.simulator  </font>
 
 ## Documentation
-Stay tuned.
+[Readthedocs: https://qpanda-lite.readthedocs.io/](https://qpanda-lite.readthedocs.io/)

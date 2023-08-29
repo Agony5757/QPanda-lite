@@ -3,13 +3,13 @@ from qpandalite import create_originq_online_config
 if __name__ == '__main__':
 
     # The originq qpilot login state token
-    token = 'DAD349A30FCC4748'
+    token = ''
 
     # The url for submitting the task
-    submit_url = 'https://10.10.7.99:10080/task/realQuantum/run'
+    submit_url = ''
 
     # The url for querying the task     
-    query_url = 'http://10.10.7.99:5000/test-api//management/query/taskinfo'
+    query_url = ''
     
     # The maximum task group size, representing the maximum number of 
     # quantum circuits contained in a single task. (default = 200)

@@ -5,7 +5,7 @@ from qpandalite.task.originq import *
 
 if __name__ == '__main__':
 
-    savepath = Path.cwd() / 'online_info_verify'
+    savepath = Path.cwd() / 'origin_online_info_verify'
     # savepath = Path.cwd() / 'history' / 'online_info_verify_20230828-225536'
 
     online_info = load_all_online_info(savepath = savepath)

@@ -1,3 +1,4 @@
+import time
 import requests
 from pathlib import Path
 import os
@@ -49,7 +50,11 @@ def parse_response_body(response_body):
 
         # task_result
         task_result = response_body['taskResult']
-        task_result = json.loads(task_result)
+        try:
+            task_result = json.loads(task_result)
+        except json.decoder.JSONDecodeError as e:
+            raise RuntimeError('Error when parsing the response task_result. '
+                               f'task_result = {task_result}')
         ret['result'] = task_result
 
         return ret
@@ -63,25 +68,26 @@ def parse_response_body(response_body):
         return ret
 
 def query_by_taskid(taskid, url = default_query_url):
-    '''Query circuit status by taskid
+    '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
         taskid (str): The taskid.
         url (str, optional): The querying URL. Defaults to default_query_url.
 
     Raises:
-        RuntimeError: Taskid invalid.
-        RuntimeError: URL invalid.
+        ValueError: Taskid invalid.
+        ValueError: URL invalid.
+        RuntimeError: Error when querying.
 
     Returns:
         Dict[str, dict]: The status and the result
             status : success | failed | running
-            result (when success): 
+            result (when success): List[Dict[str,list]]
             result (when failed): {'errcode': str, 'errinfo': str}
             result (when running): N/A
     '''    
-    if not taskid: raise RuntimeError('Task id ??')
-    if not url: raise RuntimeError('URL invalid.')
+    if not taskid: raise ValueError('Task id ??')
+    if not url: raise ValueError('URL invalid.')
     
     # construct request_body for task query
     request_body = dict()
@@ -102,6 +108,48 @@ def query_by_taskid(taskid, url = default_query_url):
     taskinfo = parse_response_body(response_body)
 
     return taskinfo
+
+def query_by_taskid_sync(taskid, 
+                         interval = 2.0, 
+                         timeout = 60.0, 
+                         url = default_query_url):    
+    '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
+  
+    Args:
+        taskid (str): The taskid.
+        interval (float): Interval time between two queries. (in seconds)
+        url (str, optional): The querying URL. Defaults to default_query_url.
+
+    Raises:
+        RuntimeError: Taskid invalid.
+        RuntimeError: URL invalid.
+        TimeoutError: Timeout reached
+
+    Returns:
+        Dict[str, dict]: The status and the result
+            status : success | failed | running
+            result (when success): List[Dict[str,list]]
+            result (when failed): {'errcode': str, 'errinfo': str}
+            result (when running): N/A
+    '''    
+    starttime = time.time()
+    while True:
+        now = time.time()
+        if now - starttime > timeout:
+            raise TimeoutError(f'Reach the maximum timeout.')
+        
+        time.sleep(interval)
+
+        taskinfo = query_by_taskid(taskid, url)
+        if taskinfo['status'] == 'running':
+            continue
+        if taskinfo['status'] == 'success':
+            result = taskinfo['result']
+            return result
+        if taskinfo['status'] == 'failed':
+            errorinfo = taskinfo['result']
+            raise RuntimeError(f'Failed to execute, errorinfo = {errorinfo}')
+        
 
 def submit_task(circuit = None, 
                 task_name = None, 
@@ -210,14 +258,14 @@ def submit_task_group(circuits = None,
         savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
 
     Raises:
-        RuntimeError: Circuit not input
+        ValueError: Circuit not input
         RuntimeError: Circuit number exceeds the default_task_group_size
         RuntimeError: Error when submitting the task
 
     Returns:
         int: The taskid of this taskgroup
     '''
-    if not circuits: raise RuntimeError('circuit ??')
+    if not circuits: raise ValueError('circuit ??')
     if len(circuits) > default_task_group_size:
         raise RuntimeError(f'Circuit group size too large. '
                            f'(Expect: <= {default_task_group_size}, Get: {len(circuits)})')
@@ -255,7 +303,6 @@ def submit_task_group(circuits = None,
         task_id = response_body['taskId']
         ret = {'taskid': task_id, 'taskname': task_name}
     except Exception as e:
-        print(response_body)
         raise RuntimeError(f'Error in submit_task. The response body is corrupted. '
                            f'Response body: {response_body}')
 
@@ -287,7 +334,7 @@ def query_all_task(url = default_query_url, savepath = None):
         if not os.path.exists(savepath / '{}.txt'.format(taskid)):
             taskinfo = query_by_taskid(taskid=taskid, url=url)
             if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
-                write_taskinfo(savepath, taskid, taskinfo)
+                write_taskinfo(taskid, taskinfo, savepath)
                 finished += 1
         else:
             finished += 1

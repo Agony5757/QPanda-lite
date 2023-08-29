@@ -47,16 +47,15 @@ H q[59]
 MEASURE q[59],c[2]
 MEASURE q[60],c[0]
 '''.strip()
-# Expect result like: {"key":["00","01","10","11"],"value":[450,485,29,36]}
+# Expect result like: {"key":["10","00","11","01"],"value":[446,469,41,44]}
 # Ideal result: ["00", "01"]
 
 
 if __name__ == '__main__':
     circuits = [circuit_1, circuit_2, circuit_3, circuit_4]
-    response = submit_task_group(circuits, 
-                                shots=1000, 
-                                task_name='Verify', 
-                                measurement_amend=False, 
-                                circuit_optimize=True,
-                                auto_mapping=False,
-                                savepath = Path.cwd() / 'origin_online_info_verify')
+    taskid = submit_task_group(circuits, shots=1000, task_name='Verify', 
+        measurement_amend=False, 
+        circuit_optimize=True,
+        auto_mapping=False,
+        savepath = Path.cwd() / 'origin_online_info_verify')
+    print(f'taskid: {taskid}')

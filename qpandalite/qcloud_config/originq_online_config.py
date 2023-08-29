@@ -15,7 +15,7 @@ def create_originq_online_config(default_token = None,
     if not default_query_url:
         raise RuntimeError('You should input the querying url (url 2).')
 
-    if not isinstance(default_task_group_size):
+    if not isinstance(default_task_group_size, int):
         raise RuntimeError('Task group size (default_task_group_size) must be a number.')
 
     default_online_config = {

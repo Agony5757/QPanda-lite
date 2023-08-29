@@ -53,9 +53,10 @@ MEASURE q[60],c[0]
 
 if __name__ == '__main__':
     circuits = [circuit_1, circuit_2, circuit_3, circuit_4]
-    taskid = submit_task_group(circuits, shots=1000, task_name='Verify', 
-        measurement_amend=False, 
-        circuit_optimize=True,
-        auto_mapping=False,
-        savepath = Path.cwd() / 'origin_online_info_verify')
-    print(f'taskid: {taskid}')
+    for circuit in circuits:
+        taskid = submit_task(circuit, shots=1000, task_name='Verify', 
+            measurement_amend=False, 
+            circuit_optimize=True,
+            auto_mapping=False,
+            savepath = Path.cwd() / 'origin_online_info_verify')
+        print(f'taskid: {taskid}')

@@ -14,6 +14,9 @@ import os
 import sys
 import pathlib
 sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'qpandalite'))
+sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'task'))
+sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'task' / 'originq'))
+sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'task' / 'quafu'))
 
 # -- Project information -----------------------------------------------------
 

@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 import json
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import warnings
 
 from ..task_utils import *
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -15,8 +16,12 @@ try:
     default_query_url = default_online_config['default_query_url']
     default_task_group_size = default_online_config['default_task_group_size']
 except:
-    raise ImportError('originq_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
+    default_token = ''
+    default_submit_url = ''
+    default_query_url = ''
+    default_task_group_size = 0
+    warnings.warn('originq_online_config.json is not found. '
+                  'It should be always placed at current working directory (cwd).')
 
 
 def parse_response_body(response_body):
@@ -66,7 +71,7 @@ def query_by_taskid(taskid, url = default_query_url):
 
     Raises:
         RuntimeError: Taskid invalid.
-        RuntimeError: _description_
+        RuntimeError: URL invalid.
 
     Returns:
         Dict[str, dict]: The status and the result
@@ -76,6 +81,7 @@ def query_by_taskid(taskid, url = default_query_url):
             result (when running): N/A
     '''    
     if not taskid: raise RuntimeError('Task id ??')
+    if not url: raise RuntimeError('URL invalid.')
     
     # construct request_body for task query
     request_body = dict()

@@ -1,3 +1,4 @@
+import warnings
 import requests
 from pathlib import Path
 import os
@@ -13,7 +14,8 @@ try:
         default_online_config = json.load(fp)
     default_token = default_online_config['default_token']
 except:
-    raise ImportError('quafu_online_config.json is not found. '
+    default_token = ''
+    warnings.warn('quafu_online_config.json is not found. '
                       'It should be always placed at current working directory (cwd).')
 
 class Translation_OriginIR_to_QuafuCircuit:

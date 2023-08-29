@@ -57,18 +57,33 @@ There are several ways to use QPanda-lite now.
 
 #### Step 1. Create online config
 
-Refer to [qcloud_config_template/make_originq_online_config.py](qcloud_config_template/make_originq_online_config.py)
+Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/originq_template.py)
+
+- Input the necessary information (token, urls, group_size) to call <font face ='consolas' style="background:#F5F5F5">create_originq_online_config</font>
+- You will have the <font face ='consolas' style="background:#F5F5F5">originq_online_config.json</font> in your cwd.
+- Now you can submit task to the online chip!
+- (Note: if you fail to submit task, replace the token with the newest in json or this template and rerun.)
 
 #### Step 2. Create the circuit and run
 
 Refer to [test/verify_real_chip_bitsequence_origin](test/verify_real_chip_bitsequence_origin)
 
+- Step 0: Create the online config and import the originq module like this: <font face ='consolas' style="background:#F5F5F5">from qpandalite.task.originq import *</font>
+- Step 1: Prepare circuits written in OriginIR format (as <font face ='consolas' style="background:#F5F5F5">List[str]</font>)
+- Step 2: Call <font face ='consolas' style="background:#F5F5F5">submit_task_group</font> and you will find the taskid is recorded to the <font face ='consolas' style="background:#F5F5F5">savepath</font> (Note: the upper limit count for quantum circuits is <font face ='consolas' style="background:#F5F5F5">default_task_group_size</font>)
+- Step 3: Use <font face ='consolas' style="background:#F5F5F5">load_all_online_info</font> to load all taskids (as well as your taskname)
+- Step 4: Use <font face ='consolas' style="background:#F5F5F5">query_all_task</font> to fetch the data from the platform. If not finished, it will not be fetched and return without waiting.
+- Step 4.1: Use <font face ='consolas' style="background:#F5F5F5">query_by_taskid</font> to fetch the data from the platform. If not finished, it will not be fetched and return without waiting.
+
 ### Circuit run on Quafu Device 
 
 #### Step 1. Create online config
 
-Refer to [qcloud_config_template/make_quafu_online_config.py](qcloud_config_template/make_quafu_online_config.py)
+Refer to [qcloud_config_template/quafu_template.py](qcloud_config_template/quafu_template.py)
 
+- Input the necessary information (token, urls, group_size) to call <font face ='consolas' style="background:#F5F5F5">create_quafu_online_config</font>
+- You will have the <font face ='consolas' style="background:#F5F5F5">quafu_online_config.json</font> in your cwd.
+- Now you can submit task to the online chip!
 #### Step 2. Create the circuit and run
 
 Refer to [test/verify_real_chip_bitsequence_quafu](test/verify_real_chip_bitsequence_quafu)
@@ -97,7 +112,9 @@ print(len(state))
 
 # Expect output: 32
 ```
-- Note: Have ImportError? (ImportError:qpandalite is not install with QPandaLiteCpp): You should install with QPandaLiteCpp before importing qpandalite.simulator  
+
+#### Note: Have ImportError? <font face ='consolas' style="background:#F5F5F5">ImportError:qpandalite is not install with QPandaLiteCpp</font>. 
+You should install with QPandaLiteCpp before importing <font face ='consolas' style="background:#F5F5F5">qpandalite.simulator  </font>
 
 ## Documentation
 Stay tuned.

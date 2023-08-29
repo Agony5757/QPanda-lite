@@ -205,18 +205,23 @@ def submit_task_group(circuits = None,
 
     return task_id
 
- 
 def query_all_task(url = default_query_url, savepath = None): 
     if not savepath:
         savepath = Path.cwd() / 'online_info'
     
     online_info = load_all_online_info(savepath)
+    task_count = len(online_info)
+    finished = 0
     for task in online_info:
         taskid = task['taskid']
         if not os.path.exists(savepath / '{}.txt'.format(taskid)):
             taskinfo = query_by_taskid(taskid=taskid, url=url)
             if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
                 write_taskinfo(savepath, taskid, taskinfo)
+                finished += 1
+        else:
+            finished += 1
+    return finished, task_count
         
 if __name__ == '__main__':
     make_savepath()

@@ -19,7 +19,19 @@ except:
                       'It should be always placed at current working directory (cwd).')
 
 
-def parse_query_circuit(response_body):
+def parse_response_body(response_body):
+    '''Parse response body (in query_by_taskid)
+
+    Args:
+        response_body (Dict): The response body returned by the server.
+
+    Returns:
+        Dict: The parsed dict containing these fields:
+            - taskid
+            - taskname
+            - status 
+            - result (not always)
+    '''
 
     ret = dict()
     ret['taskid'] = response_body['taskId']
@@ -45,16 +57,24 @@ def parse_query_circuit(response_body):
         ret['status'] = 'running'
         return ret
 
-def query_by_taskid(taskid = None, url = default_query_url):
-    '''query_circuit_status
+def query_by_taskid(taskid, url = default_query_url):
+    '''Query circuit status by taskid
+  
+    Args:
+        taskid (str): The taskid.
+        url (str, optional): The querying URL. Defaults to default_query_url.
+
+    Raises:
+        RuntimeError: Taskid invalid.
+        RuntimeError: _description_
 
     Returns:
-        - {'status': str, 'result': dict}
-        status : success | failed | running
-        result (when success): 
-        result (when failed): {'errcode': str, 'errinfo': str}
-        result (when running): N/A
-    '''
+        Dict[str, dict]: The status and the result
+            status : success | failed | running
+            result (when success): 
+            result (when failed): {'errcode': str, 'errinfo': str}
+            result (when running): N/A
+    '''    
     if not taskid: raise RuntimeError('Task id ??')
     
     # construct request_body for task query
@@ -66,14 +86,14 @@ def query_by_taskid(taskid = None, url = default_query_url):
     response = requests.post(url=url, data=request_body, verify = False)
     status_code = response.status_code
     if status_code != 200:
-        print(response)
-        print(response.text)
-        raise RuntimeError('Error in query_circuit_status')
+        raise RuntimeError(f'Error in query_by_taskid. '
+                           'The returned status code is not 200.'
+                           f' Response: {response.text}')
     
     text = response.text
     response_body = json.loads(text)
 
-    taskinfo = parse_query_circuit(response_body)
+    taskinfo = parse_response_body(response_body)
 
     return taskinfo
 
@@ -89,10 +109,27 @@ def submit_task(circuit = None,
                 url = default_submit_url,
                 savepath = Path.cwd() / 'online_info'
 ):
-    '''submit_task
+    '''submit taskgroup
+
+    Args:
+        circuits (str): A quantum circuit to be submitted. 
+        task_name (str, optional): The name of the task. Defaults to None.
+        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
+        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
+        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
+        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
+        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
+        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
+        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
+        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
+        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
+
+    Raises:
+        RuntimeError: Circuit not input
+        RuntimeError: Error when submitting the task
 
     Returns:
-        - dict : {'status': task_status, 'taskid': task_id}
+        int: The taskid of this taskgroup
     '''
     if not circuit: raise RuntimeError('circuit ??')
 
@@ -119,9 +156,8 @@ def submit_task(circuit = None,
     response = requests.post(url=url, data=request_body, verify = False)
     status_code = response.status_code
     if status_code != 200:
-        print(response)
-        print(response.text)
-        raise RuntimeError('Error in submit_task')
+        raise RuntimeError(f'Error in submit_task. The returned status code is not 200.'
+                           f' Response: {response.text}')
     
     try:
         text = response.text
@@ -131,7 +167,8 @@ def submit_task(circuit = None,
         ret = {'taskid': task_id, 'taskname': task_name}
     except Exception as e:
         print(response_body)
-        raise e
+        raise RuntimeError(f'Error in submit_task. The response body is corrupted. '
+                           f'Response body: {response_body}')
 
     if savepath:
         make_savepath(savepath)
@@ -151,10 +188,28 @@ def submit_task_group(circuits = None,
                 url = default_submit_url,
                 savepath = Path.cwd() / 'online_info'
 ):
-    '''submit_task
+    '''submit taskgroup
+
+    Args:
+        circuits (List[str]): A list of quantum circuits to be submitted. 
+        task_name (str, optional): The name of the task. Defaults to None.
+        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
+        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
+        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
+        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
+        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
+        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
+        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
+        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
+        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
+
+    Raises:
+        RuntimeError: Circuit not input
+        RuntimeError: Circuit number exceeds the default_task_group_size
+        RuntimeError: Error when submitting the task
 
     Returns:
-        - dict : {'status': task_status, 'taskid': task_id}
+        int: The taskid of this taskgroup
     '''
     if not circuits: raise RuntimeError('circuit ??')
     if len(circuits) > default_task_group_size:
@@ -184,9 +239,8 @@ def submit_task_group(circuits = None,
     response = requests.post(url=url, data=request_body, verify = False)
     status_code = response.status_code
     if status_code != 200:
-        print(response)
-        print(response.text)
-        raise RuntimeError('Error in submit_task')
+        raise RuntimeError(f'Error in submit_task. The returned status code is not 200.'
+                           f' Response: {response.text}')
     
     try:
         text = response.text
@@ -196,7 +250,8 @@ def submit_task_group(circuits = None,
         ret = {'taskid': task_id, 'taskname': task_name}
     except Exception as e:
         print(response_body)
-        raise e
+        raise RuntimeError(f'Error in submit_task. The response body is corrupted. '
+                           f'Response body: {response_body}')
 
     if savepath:
         make_savepath(savepath)
@@ -206,6 +261,15 @@ def submit_task_group(circuits = None,
     return task_id
 
 def query_all_task(url = default_query_url, savepath = None): 
+    '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
+
+    Args:
+        url (str, optional): The url for querying. Defaults to default_query_url.
+        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath for loading the online info. Defaults to None.
+
+    Returns:
+        tuple[int,int]: Two integers (finished task count, all task count)
+    '''
     if not savepath:
         savepath = Path.cwd() / 'online_info'
     

@@ -4,6 +4,14 @@ import os
 import json
 
 def load_circuit(basepath = None):
+    '''Load all quantum circuits under the basepath.
+
+    Args:
+        basepath (PathLikeObject(str, pathlib.Path, etc...), optional): The path to the circuits. Defaults to None.
+
+    Returns:
+        List[str]: The loaded quantum circuits.
+    '''
     circuits = dict()
     if not basepath:
         basepath = Path.cwd() / 'output_circuits'
@@ -19,6 +27,14 @@ def load_circuit(basepath = None):
     return circuits
 
 def load_circuit_group(path = None):
+    '''Load circuit group from the grouped circuit file.
+
+    Args:
+        path (PathLikeObject(str, pathlib.Path, etc...), optional): The path to the circuit file. Defaults to None.
+
+    Returns:
+        List[str]: The loaded quantum circuits.
+    '''
     circuits = dict()
     if not path:
         path = Path.cwd() / 'output_circuits' / 'originir.txt'
@@ -35,6 +51,11 @@ def load_circuit_group(path = None):
     return circuits
 
 def make_savepath(savepath = None):    
+    '''Make the savepath
+
+    Args:
+        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to None.
+    '''
     if not savepath:
         savepath = Path.cwd() / 'online_info'
 
@@ -46,6 +67,14 @@ def make_savepath(savepath = None):
             pass
 
 def load_all_online_info(savepath = None): 
+    '''Load all online info under the savepath
+
+    Args:
+        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to None.
+
+    Returns:
+        List[Dict]: A list of online infos
+    '''
     if not savepath:
         savepath = Path.cwd() / 'online_info'
     online_info = []
@@ -58,6 +87,13 @@ def load_all_online_info(savepath = None):
     return online_info       
 
 def write_taskinfo(taskid, taskinfo, savepath = None):
+    '''Write the task into the online info.
+
+    Args:
+        taskid (int): The taskid
+        taskinfo (Dict): The taskinfo needed to be saved correponding to the taskid (as a single file)
+        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to None.
+    '''
     if not savepath:
         savepath = Path.cwd() / 'online_info'
     with open(savepath / '{}.txt'.format(taskid), 'w') as fp:

@@ -4,6 +4,9 @@ QPanda: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A
 
 QPanda-lite *should be* a simple, easy, and transparent python-native version for QPanda.
 
+## Status
+Developing. Unstable.
+
 ## Design principles
 
 - A clear, and tranparent way to assemble/execute a quantum program
@@ -69,11 +72,12 @@ Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/ori
 Refer to [test/verify_real_chip_bitsequence_origin](test/verify_real_chip_bitsequence_origin)
 
 - Step 0: Create the online config and import the originq module like this: <font face ='consolas' style="background:#F5F5F5">from qpandalite.task.originq import *</font>
-- Step 1: Prepare circuits written in OriginIR format (as <font face ='consolas' style="background:#F5F5F5">List[str]</font>)
-- Step 2: Call <font face ='consolas' style="background:#F5F5F5">submit_task_group</font> and you will find the taskid is recorded to the <font face ='consolas' style="background:#F5F5F5">savepath</font> (Note: the upper limit count for quantum circuits is <font face ='consolas' style="background:#F5F5F5">default_task_group_size</font>)
-- Step 3: Use <font face ='consolas' style="background:#F5F5F5">load_all_online_info</font> to load all taskids (as well as your taskname)
-- Step 4: Use <font face ='consolas' style="background:#F5F5F5">query_all_task</font> to fetch the data from the platform. If not finished, it will not be fetched and return without waiting.
-- Step 4.1: Use <font face ='consolas' style="background:#F5F5F5">query_by_taskid</font> to fetch the data from the platform. If not finished, it will not be fetched and return without waiting.
+- Step 1.1: Prepare circuits written in OriginIR format (as <font face ='consolas' style="background:#F5F5F5">List[str]</font>)
+- Step 1.2: Call <font face ='consolas' style="background:#F5F5F5">submit_task_group</font> and you will find the taskid is recorded to the <font face ='consolas' style="background:#F5F5F5">savepath</font> (Note: the upper limit count for quantum circuits is <font face ='consolas' style="background:#F5F5F5">default_task_group_size</font>)
+- Step 2.1: Use <font face ='consolas' style="background:#F5F5F5">load_all_online_info</font> to load all taskids (as well as your taskname)
+- Step 2.2: Use <font face ='consolas' style="background:#F5F5F5">query_all_task</font> to fetch the data from the platform. If not finished, it will not be fetched and return without waiting.
+- Step 2.3: Use <font face ='consolas' style="background:#F5F5F5">query_by_taskid</font> is also available for fetching a single task result. It will return without waiting if the task is not finished.
+- Step 3: Delete / move the online_info(savepath) folder to restore everything.
 
 ### Circuit run on Quafu Device 
 

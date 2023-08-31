@@ -49,7 +49,6 @@ def parse_response_body(response_body):
         # successfully finished !
         ret['status'] = 'success'
 
-        print(response_body)
         # task_result
         task_result = response_body['taskResult']
         try:
@@ -232,7 +231,7 @@ def _submit_task(circuit = None,
         task_id = response_body['taskId']
         ret = {'taskid': task_id, 'taskname': task_name}
     except Exception as e:
-        print(response_body)
+        # print(response_body)
         raise RuntimeError(f'Error in submit_task. The response body is corrupted. '
                            f'Response body: {response_body}')
 

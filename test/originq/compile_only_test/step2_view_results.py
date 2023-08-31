@@ -38,7 +38,5 @@ if __name__ == '__main__':
             
             compiled_prog = taskinfo["compiled_prog"]
             print(compiled_prog)
-            # for prog in compiled_prog:
-            #     print(f'Compiled: {prog}')
 
             

@@ -37,6 +37,7 @@ if __name__ == '__main__':
                 continue
             
             compiled_prog = taskinfo["compiled_prog"]
-            print(compiled_prog)
+            print(compiled_prog[0])
+            
 
             

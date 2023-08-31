@@ -59,15 +59,7 @@ def parse_response_body(response_body):
         ret['result'] = task_result
         
         compiled_prog = response_body['compile_output_prog']
-        # compiled_prog = json.loads(compiled_prog)
-        
-        # print(response_body)
-        # try:
-        #     compiled_prog = [json.loads(prog) for prog in compiled_prog]
-        # except json.decoder.JSONDecodeError as e:
-        #     raise RuntimeError('Error when parsing the response compiled_prog. '
-        #                        f'compiled_prog = {compiled_prog}')
-        ret['compiled_prog'] = compiled_prog
+        ret['compiled_prog'] = json.loads(compiled_prog)
         return ret
     elif task_status == '4':
         ret['status'] = 'failed'

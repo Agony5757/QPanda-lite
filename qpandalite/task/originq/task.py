@@ -328,7 +328,7 @@ def _submit_task_group(circuits = None,
 
     return task_id
 
-def submit_task(
+def submit_task_old(
     circuit, 
     task_name = None, 
     tasktype = None, 
@@ -341,7 +341,8 @@ def submit_task(
     url = default_submit_url,
     savepath = Path.cwd() / 'online_info'
 ):
-    '''submit a single circuit
+    ''' !!!! DEPRECATED !!!!
+    submit a single circuit
 
     Note:
         Actual implementation is _submit_task_group
@@ -385,8 +386,8 @@ def submit_task(
         savepath = savepath
     )
 
-def submit_task_group(
-    circuits, 
+def submit_task(
+    circuit, 
     task_name = None, 
     tasktype = None, 
     chip_id = 72,
@@ -398,7 +399,7 @@ def submit_task_group(
     url = default_submit_url,
     savepath = Path.cwd() / 'online_info'
 ):
-    '''submit a single circuit
+    '''submit circuits or a single circuit
 
     Note:
         Actual implementation is _submit_task_group
@@ -407,7 +408,7 @@ def submit_task_group(
         If wanting compile_only=True, use submit_task_compile_only()
 
     Args:
-        circuits (List[str]): Quantum circuits to be submitted. 
+        circuits (str or List[str]): Quantum circuit(s) to be submitted. 
         task_name (str, optional): The name of the task. Defaults to None.
         tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
         chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
@@ -426,20 +427,43 @@ def submit_task_group(
     Returns:
         int: The taskid of this taskgroup
     '''
-    return _submit_task_group(
-        circuits = circuits, 
-        task_name = task_name, 
-        tasktype = tasktype, 
-        chip_id = chip_id,
-        shots = shots,
-        circuit_optimize = circuit_optimize,
-        measurement_amend = measurement_amend,
-        auto_mapping = auto_mapping,
-        compile_only=False,
-        specified_block = specified_block,
-        url = url,
-        savepath = savepath
-    )
+
+    if isinstance(circuit, list):
+        for c in circuit:
+            if not isinstance(circuit, str):
+                raise ValueError('Input is not a valid circuit list (a.k.a List[str]).')
+
+        return _submit_task_group(
+            circuits = circuit, 
+            task_name = task_name, 
+            tasktype = tasktype, 
+            chip_id = chip_id,
+            shots = shots,
+            circuit_optimize = circuit_optimize,
+            measurement_amend = measurement_amend,
+            auto_mapping = auto_mapping,
+            compile_only=False,
+            specified_block = specified_block,
+            url = url,
+            savepath = savepath
+        )
+    elif isinstance(circuit, str):
+        return _submit_task_group(
+            circuits = [circuit], 
+            task_name = task_name, 
+            tasktype = tasktype, 
+            chip_id = chip_id,
+            shots = shots,
+            circuit_optimize = circuit_optimize,
+            measurement_amend = measurement_amend,
+            auto_mapping = auto_mapping,
+            compile_only=False,
+            specified_block = specified_block,
+            url = url,
+            savepath = savepath
+        )
+    else:
+        raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')
 
 def submit_task_compile_only(
     circuit, 
@@ -479,6 +503,9 @@ def submit_task_compile_only(
         int: The taskid of this taskgroup
     '''
 
+    if not isinstance(circuit):
+        raise ValueError('Input is not a valid originir string.')
+
     return _submit_task_group(
         circuits = [circuit], 
         task_name = task_name, 
@@ -516,8 +543,6 @@ def query_all_task(url = default_query_url, savepath = None):
         else:
             finished += 1
     return finished, task_count
-
-
 
 if __name__ == '__main__':
     make_savepath()

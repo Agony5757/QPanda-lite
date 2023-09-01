@@ -4,7 +4,7 @@ import json
 import os
 from pathlib import Path
 from qpandalite.task.originq import *
-
+from step1_submit_circuit import savepath
 
 def format_result(compiled_prog):
     prog = json.loads(compiled_prog)
@@ -52,7 +52,6 @@ def format_result(compiled_prog):
 
 
 def create_time_line_table(layer_dict, qubit_list, time_line):
-
     time_line_table = pd.DataFrame(columns=time_line, index=['qubit ' + str(i) for i in qubit_list])
 
     for layer, gates in layer_dict.items():
@@ -69,13 +68,14 @@ def create_time_line_table(layer_dict, qubit_list, time_line):
     return time_line_table
 
 
-def plot_time_line(compiled_prog, taskid):
+def plot_time_line(compiled_prog, taskid, 
+                   figure_save_path = Path.cwd() / 'timeline_plot'):
     format_prog, qubit_list, time_line = format_result(compiled_prog)
     time_line_table = create_time_line_table(format_prog, qubit_list, time_line)
     depth = len(time_line)
-    split_table = depth//20 + 1
+    split_table = depth // 20 + 1
     width = min(20, depth)
-    for i in range(1, split_table+1):
+    for i in range(1, split_table + 1):
         plt.figure(figsize=(width, len(qubit_list)/2))
         plt.axis('off')
         cmap = {'RPhi': 'blue', 'CZ': 'red', 'idle': 'white', 'Measure': 'black'}
@@ -91,15 +91,15 @@ def plot_time_line(compiled_prog, taskid):
                           rowLabels=time_line_table.index,
                           loc='center',
                           cellColours=cellColours)
-        figure_save_path = 'timeline_plot'
+        
         if not os.path.exists(figure_save_path):
             os.mkdir(figure_save_path)
-        plt.savefig(os.path.join(figure_save_path, taskid+' timeline {}.png'.format(i)))
-        plt.show()
+        plt.savefig(figure_save_path / f'{taskid} timeline {i}.png')
+        # plt.show()
 
+figure_save_path = Path.cwd() / 'timeline_plot'
 
 if __name__ == '__main__':
-    savepath = Path.cwd() / 'origin_online_info_verify'
     online_info = load_all_online_info(savepath=savepath)
     query_all_task(savepath=savepath)
 
@@ -131,7 +131,8 @@ if __name__ == '__main__':
                 continue
 
             compiled_prog = taskinfo["compiled_prog"][0]
-            plot_time_line(compiled_prog, taskid)
+            plot_time_line(compiled_prog, taskid, 
+                           figure_save_path=figure_save_path)
             # new_prog, qubit_list, time_line = format_result(compiled_prog)
             # transformed_prog.append(new_prog)
             # time_line_table_list.append(create_time_line_table(new_prog, qubit_list, time_line))

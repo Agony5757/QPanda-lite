@@ -49,6 +49,8 @@ MEASURE q[53], c[3]
 MEASURE q[54], c[4]
 '''.strip()
 
+savepath = Path.cwd() / 'origin_online_info_verify'
+
 if __name__ == '__main__':
     circuit = circuit_1
 
@@ -57,4 +59,4 @@ if __name__ == '__main__':
         circuit_optimize=True,
         auto_mapping=False,
         task_name='CompileOnlyTest', 
-        savepath = Path.cwd() / 'origin_online_info_verify')
+        savepath = savepath)

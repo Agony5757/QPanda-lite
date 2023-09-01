@@ -160,6 +160,7 @@ quafu_online_info_verify/
 origin_online_info_verify/
 test/make_online_config/
 history/
+online_info/
 originq_online_config.json
 quafu_online_config.json
 qcloud_config_template/originq_template.py

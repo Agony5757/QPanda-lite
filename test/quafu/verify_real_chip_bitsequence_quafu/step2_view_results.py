@@ -33,15 +33,16 @@ if __name__ == '__main__':
             with open(savepath / f'{taskid}.txt') as fp:            
                 taskinfo = json.load(fp)
 
-            if taskinfo['status'] == 'failed':
+            # if taskinfo['status'] == 'failed':
+            if taskinfo['status'] in [3, 4]:
                 continue
             
-            result_list = taskinfo["result"]
+            result_list = taskinfo["res"]
 
-            for result in result_list:
-                keys = result['key']
-                values = result['value']
-                result_dict = {keys[i]:values[i] for i in range(len(keys))}                
-                print(f'Task Result: {result_dict}')
-
+            # for result in result_list:
+                # keys = result['key']
+                # values = result['value']
+                # result_dict = {keys[i]:values[i] for i in range(len(keys))}
+                # print(f'Task Result: {result_dict}')
+            print(f'Task Result: {result_list}')
             

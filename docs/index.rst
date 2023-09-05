@@ -51,11 +51,10 @@ C++量子线路模拟器支持（可选）
 从pip安装
 --------------
 将在未来支持。
+
 .. code-block:: bash
 
    pip install qpandalite
-
-  
 
 
 模块

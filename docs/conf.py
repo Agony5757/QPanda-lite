@@ -13,10 +13,13 @@
 import os
 import sys
 import pathlib
-sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'qpandalite'))
-sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'task'))
-sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'task' / 'originq'))
-sys.path.insert(0, os.path.abspath(pathlib.Path.cwd().parent / 'task' / 'quafu'))
+parent_path = pathlib.Path(__file__).resolve().parent.parent
+
+sys.path.insert(0, os.path.abspath(parent_path))
+sys.path.insert(0, os.path.abspath(parent_path / 'qpandalite'))
+sys.path.insert(0, os.path.abspath(parent_path / 'task'))
+sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'originq'))
+sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'quafu'))
 
 # -- Project information -----------------------------------------------------
 

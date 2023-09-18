@@ -78,7 +78,7 @@ def plot_time_line(compiled_prog, taskid):
     for i in range(1, split_table+1):
         plt.figure(figsize=(width, len(qubit_list)/2))
         plt.axis('off')
-        cmap = {'RPhi': 'blue', 'CZ': 'red', 'idle': 'white', 'Measure': 'black'}
+        cmap = {'RPhi': 'blue', 'CZ': 'red', 'idle': 'white', 'Measure': 'gray'}
 
         if i*20 < depth:
             values = time_line_table.values[:, (i-1)*20:i*20]

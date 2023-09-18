@@ -77,7 +77,13 @@ class Translation_OriginIR_to_QuafuCircuit:
             operation, q = Translation_OriginIR_to_QuafuCircuit.handle_1q(line)
         elif line.startswith('CZ'):
             operation, q = Translation_OriginIR_to_QuafuCircuit.handle_2q(line)
+        elif line.startswith('CNOT'):
+            operation, q = Translation_OriginIR_to_QuafuCircuit.handle_2q(line)
         elif line.startswith('RX'):
+            operation, q, parameter = Translation_OriginIR_to_QuafuCircuit.handle_1q1p(line)
+        elif line.startswith('RY'):
+            operation, q, parameter = Translation_OriginIR_to_QuafuCircuit.handle_1q1p(line)
+        elif line.startswith('RZ'):
             operation, q, parameter = Translation_OriginIR_to_QuafuCircuit.handle_1q1p(line)
         elif line.startswith('MEASURE'):
             operation = 'MEASURE'
@@ -91,12 +97,18 @@ class Translation_OriginIR_to_QuafuCircuit:
     def reconstruct_qasm(qc: quafu.QuantumCircuit, operation, qubit, cbit, parameter):
         if operation == 'RX':
             qc.rx(int(qubit), parameter)
+        elif operation == 'RY':
+            qc.ry(int(qubit), parameter)
+        elif operation == 'RZ':
+            qc.rz(int(qubit), parameter)
         elif operation == 'H':
             qc.h(int(qubit))
         elif operation == 'X':
             qc.x(int(qubit))
         elif operation == 'CZ':
             qc.cz(int(qubit[0]), int(qubit[1]))
+        elif operation == 'CNOT':
+            qc.cnot(int(qubit[0]), int(qubit[1]))
         elif operation == 'MEASURE':
             qc.measure([int(qubit)], [int(cbit)])
         elif operation == None:

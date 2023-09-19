@@ -58,7 +58,7 @@ def parse_response_body(response_body):
                                f'task_result = {task_result}')
         ret['result'] = task_result
         
-        compiled_prog = response_body['compile_output_prog']
+        compiled_prog = response_body['without_compensate_prog']
         ret['compiled_prog'] = json.loads(compiled_prog)
         return ret
     elif task_status == '4':
@@ -421,7 +421,7 @@ def submit_task(
 
     if isinstance(circuit, list):
         for c in circuit:
-            if not isinstance(circuit, str):
+            if not isinstance(c, str):
                 raise ValueError('Input is not a valid circuit list (a.k.a List[str]).')
 
         return _submit_task_group(

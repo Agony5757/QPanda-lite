@@ -37,7 +37,6 @@ def calculate_pass(result):
 if __name__ == '__main__':
 
     savepath = Path.cwd() / 'ibm_online_info_verify'
-    # savepath = Path.cwd() / 'history' / ''
     not_finished = []
 
     z_prob = []

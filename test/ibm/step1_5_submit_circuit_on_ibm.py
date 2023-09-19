@@ -2,7 +2,11 @@ import os
 import pyqpanda as pq
 import numpy as np
 import json
+import qiskit
+import qiskit_ibm_provider
 from pathlib import Path
+
+from qpandalite.task.ibm import submit_task
 
 # provider = IBMProvider()
 
@@ -80,16 +84,15 @@ def ising_simulation_time(num, J, n, t, theta=np.pi/2, noise=0, save='', paralle
 
 
 def submit_single_circuit(qasm):
-    qc = QuantumCircuit.from_qasm_str(qasm)
-    backend = provider.get_backend('ibm_nairobi')
-    qc = transpile(qc, coupling_map=[[0, 1], [1, 0], [1, 2], [1, 3], [2, 1], [3, 1], [3, 5], [4, 5], [5, 3], [5, 4],
+    qc = qiskit.QuantumCircuit.from_qasm_str(qasm)
+    backend = qiskit_ibm_provider.provider.get_backend('ibm_nairobi')
+    qc = qiskit.transpile(qc, coupling_map=[[0, 1], [1, 0], [1, 2], [1, 3], [2, 1], [3, 1], [3, 5], [4, 5], [5, 3], [5, 4],
                                      [5, 6], [6, 5]], backend=backend, optimization_level=3)
     job = backend.run(qc)
     jobid = job.job_id()
     result = job.result()
     result = dict(result.get_counts())
     return result, jobid
-
 
 def generate_xy_circuit_different_time(qubit_number, layer, evolve_time_list):
     initial_theta = np.pi

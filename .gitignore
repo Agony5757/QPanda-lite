@@ -167,3 +167,4 @@ quafu_online_config.json
 ibm_online_config.json
 qcloud_config_template/originq_template.py
 qcloud_config_template/quafu_template.py
+qcloud_config_template/ibm_template.py

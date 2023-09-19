@@ -30,10 +30,13 @@ Developing. Unstable.
  - Python >= 3.7
 
 #### Optional for quafu execution
- - pyquafu (manually install via pip : **pip install pyquafu**)
+manually install via pip : 
+ - pyquafu (**pip install pyquafu**)
 #### Optional for qiskit execution
- - qiskit (manually install via pip : **pip install qiskit**) and
- - qiskit-ibm-provider (**pip install qiskit-ibm-provider**)
+manually install via pip : 
+ - qiskit (**pip install qiskit**) and
+ - qiskit-ibm-provider (**pip install qiskit-ibm-provider**) and
+ - qiskit-ibmq-provider (**pip install qiskit-ibmq-provider**)
 
 #### Optional for C++ simulator
  - CMake >= 3.1

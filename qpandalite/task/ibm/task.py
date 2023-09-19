@@ -2,14 +2,9 @@ import json
 import os
 from pathlib import Path
 import warnings
-# from qiskit import IBMQ, QuantumCircuit, execute, transpile
 import qiskit
-# from qiskit_ibm_provider import IBMProvider
 import qiskit_ibm_provider
-
 from qpandalite.task.task_utils import write_taskinfo
-
-provider = qiskit_ibm_provider.IBMProvider(instance='ibm-q/open/main')
 
 try:
     with open('ibm_online_config.json', 'r') as fp:
@@ -17,9 +12,8 @@ try:
     default_token = default_online_config['default_token']
     qiskit.IBMQ.enable_account(default_token)
     qiskit_ibm_provider.IBMProvider.save_account(default_token)
-    #IBMQ.enable_account('c3d3da0c74dc1a77d194557c2a0fa969b5f1b2fc000b2f75f7181dc05e3816aa5a85ad05f48ba1606a9ca8a17f61e7c2d8c5b8182910be719f29252e66b1045c')
-    #IBMProvider.save_account('c3d3da0c74dc1a77d194557c2a0fa969b5f1b2fc000b2f75f7181dc05e3816aa5a85ad05f48ba1606a9ca8a17f61e7c2d8c5b8182910be719f29252e66b1045c')
-
+    provider = qiskit_ibm_provider.IBMProvider(instance='ibm-q/open/main')
+    
 except:
     default_token = ''
     default_submit_url = ''

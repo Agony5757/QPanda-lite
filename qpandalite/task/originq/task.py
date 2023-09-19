@@ -503,7 +503,7 @@ def submit_task_compile_only(
         int: The taskid of this taskgroup
     '''
 
-    if not isinstance(circuit):
+    if not isinstance(circuit, str):
         raise ValueError('Input is not a valid originir string.')
 
     return _submit_task_group(

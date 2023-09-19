@@ -2,6 +2,19 @@ import json
 import os
 from pathlib import Path
 from qpandalite.task.quafu import *
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def calculate_final_probability(result, reverse=False):
+    z = 0
+    for key, value in result.items():
+        if reverse:
+            key = key[::-1]
+        if key[-1] == '1':
+            z += value
+    return z/1000
+
 
 if __name__ == '__main__':
 
@@ -27,22 +40,37 @@ if __name__ == '__main__':
             print(f'  taskid:{taskid}, taskname:{taskname}')
         print(f'Unfinished: {len(not_finished)}')
     else:
-        for task in online_info:
+        z_prob = []
+        total_z_prob = []
+        correct_prob = []
+
+        z_prob_theory = []
+        total_z_prob_theory = []
+        correct_prob_theory = []
+
+        with open(savepath / 'theory result.json', 'r') as f:
+            theory_result = json.load(f)
+
+        for i, task in enumerate(online_info):
             taskid = task['taskid']
             print(f'Taskid: {taskid}')
             with open(savepath / f'{taskid}.txt') as fp:            
                 taskinfo = json.load(fp)
 
-            # if taskinfo['status'] == 'failed':
             if taskinfo['status'] in [3, 4]:
                 continue
             
             result_dict = taskinfo["res"]
+            result_dict = json.loads(result_dict)
+            theory_result_dict = theory_result[taskid]
 
-            # for result in result_list:
-                # keys = result['key']
-                # values = result['value']
-                # result_dict = {keys[i]:values[i] for i in range(len(keys))}
-                # print(f'Task Result: {result_dict}')
             print(f'Task Result: {result_dict}')
+
+            z_prob.append(calculate_final_probability(result_dict))
+            z_prob_theory.append(calculate_final_probability(theory_result_dict, reverse=True))
+
+        plt.scatter(z_prob_theory, z_prob, label='final z prob')
+        # plt.scatter(total_z_prob_theory, total_z_prob, label='total z prob')
+        plt.legend()
+        plt.show()
             

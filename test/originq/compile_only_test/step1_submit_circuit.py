@@ -54,8 +54,11 @@ savepath = Path.cwd() / 'origin_online_info_verify'
 if __name__ == '__main__':
     circuit = circuit_1
 
+    token = get_token('035147B99D20486AACAAF5F270B9F161')
+    # print(token)
+    #
     taskid = submit_task_compile_only(
-        circuit, 
+        circuit,
         circuit_optimize=True,
         auto_mapping=False,
         task_name='CompileOnlyTest', 

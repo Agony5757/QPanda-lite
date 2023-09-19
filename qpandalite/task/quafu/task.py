@@ -7,6 +7,7 @@ import urllib
 import quafu
 import re
 
+from qpandalite.originir.parser import OriginIR_Parser
 from ..task_utils import load_all_online_info, write_taskinfo
 
 try:
@@ -18,81 +19,7 @@ except:
     warnings.warn('quafu_online_config.json is not found. '
                       'It should be always placed at current working directory (cwd).')
 
-class Translation_OriginIR_to_QuafuCircuit:
-
-    regexp_1q = re.compile(r'^([A-Z]+) *q\[(\d+)\]$')
-    regexp_2q = re.compile(r'^([A-Z]+) *q\[(\d+)\], *q\[(\d+)\]$')
-    regexp_1q1p = re.compile(r'^([A-Z]+) *q\[(\d+)\], *\((-?\d+(.\d*)?)\)$')
-    regexp_meas = re.compile(r'^MEASURE q\[(\d+)\], *c\[(\d+)\]$')
-    
-    @staticmethod
-    def handle_1q(line):
-        matches = Translation_OriginIR_to_QuafuCircuit.regexp_1q.match(line)
-        operation = matches.group(1)
-        q = matches.group(2)
-        return operation, q
-
-    @staticmethod
-    def handle_2q(line):
-        matches = Translation_OriginIR_to_QuafuCircuit.regexp_2q.match(line)
-        operation = matches.group(1)
-        q1 = matches.group(2)
-        q2 = matches.group(3)
-
-        return operation, [q1, q2]
-
-    @staticmethod
-    def handle_1q1p(line):
-        matches = Translation_OriginIR_to_QuafuCircuit.regexp_1q1p.match(line)
-        operation = matches.group(1)
-        q = matches.group(2)
-        parameter = float(matches.group(3))
-        return operation, q, parameter
-
-    @staticmethod
-    def handle_measure(line):
-        matches = Translation_OriginIR_to_QuafuCircuit.regexp_meas.match(line)
-        q = matches.group(1)
-        c = matches.group(2)
-
-        return q, c
-
-    @staticmethod
-    def parse_line(line):
-        q = None
-        c = None
-        operation = None
-        parameter = None
-        if not line:
-            pass 
-        elif line.startswith('QINIT'):
-            q = int(line.strip().split()[1])
-            operation = 'QINIT'
-        elif line.startswith('CREG'):
-            c = int(line.strip().split()[1])
-            operation = 'CREG'
-        elif line.startswith('H'):
-            operation, q = Translation_OriginIR_to_QuafuCircuit.handle_1q(line)
-        elif line.startswith('X'):
-            operation, q = Translation_OriginIR_to_QuafuCircuit.handle_1q(line)
-        elif line.startswith('CZ'):
-            operation, q = Translation_OriginIR_to_QuafuCircuit.handle_2q(line)
-        elif line.startswith('CNOT'):
-            operation, q = Translation_OriginIR_to_QuafuCircuit.handle_2q(line)
-        elif line.startswith('RX'):
-            operation, q, parameter = Translation_OriginIR_to_QuafuCircuit.handle_1q1p(line)
-        elif line.startswith('RY'):
-            operation, q, parameter = Translation_OriginIR_to_QuafuCircuit.handle_1q1p(line)
-        elif line.startswith('RZ'):
-            operation, q, parameter = Translation_OriginIR_to_QuafuCircuit.handle_1q1p(line)
-        elif line.startswith('MEASURE'):
-            operation = 'MEASURE'
-            q, c = Translation_OriginIR_to_QuafuCircuit.handle_measure(line)
-        else:
-            raise NotImplementedError(f'A invalid line: {line}.')      
-        
-        return operation, q, c, parameter
-
+class Translation_OriginIR_to_QuafuCircuit(OriginIR_Parser):
     @staticmethod
     def reconstruct_qasm(qc: quafu.QuantumCircuit, operation, qubit, cbit, parameter):
         if operation == 'RX':
@@ -122,15 +49,15 @@ class Translation_OriginIR_to_QuafuCircuit:
         return qc
 
     @staticmethod
-    def translate(originir) -> quafu.QuantumCircuit:
+    def translate(originir):
         lines = originir.splitlines()
         qc : quafu.QuantumCircuit = None
         for line in lines:
-            operation, qubit, cbit, parameter = Translation_OriginIR_to_QuafuCircuit.parse_line(line)
+            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line)
             if operation == 'QINIT':
                 qc = quafu.QuantumCircuit(qubit)
-                continue            
-            qc = Translation_OriginIR_to_QuafuCircuit.reconstruct_qasm(qc, operation, qubit, cbit, parameter)
+                continue
+            qc = OriginIR_Parser.reconstruct_qasm(qc, operation, qubit, cbit, parameter)
         
         return qc
     

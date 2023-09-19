@@ -96,4 +96,30 @@ namespace qpandalite{
             }
         }
     }
+
+    dtype Simulator::get_prob(const std::map<size_t, int> &measure_qubits)
+    {
+        double prob = 0;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            for (auto &&[qid, qstate] : measure_qubits)
+            {
+                if ((measure_qubits >> qid) != qstate)
+                    break;
+            }
+            prob += abs_sqr(state[i]);
+        }
+        return prob;
+    }
+
+    dtype Simulator::get_prob(size_t qn, int qstate)
+    {
+        double prob = 0;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((measure_qubits >> qn) == qstate) 
+                prob += abs_sqr(state[i]);
+        }
+        return prob;
+    }
 }

@@ -1,8 +1,8 @@
 import time
 import qpandalite.task.originq as origin
 
-q1 = 59
-q2 = 60
+q1 = 52
+q2 = 53
 
 circuit_template = '''
 QINIT 72

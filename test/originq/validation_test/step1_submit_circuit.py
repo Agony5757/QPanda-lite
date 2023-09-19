@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     taskid = originq.submit_task_group(test_circuits, 
                                        task_name='Validation', 
-                                       shots=1000, 
+                                       shots=10000, 
                                        measurement_amend=False)
     print(f'Taskid = {taskid}')
     

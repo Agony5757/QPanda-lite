@@ -2,10 +2,10 @@ import json
 import os
 from pathlib import Path
 from qpandalite.task.originq import *
+from step1_submit_circuit import savepath
 
 if __name__ == '__main__':
 
-    savepath = Path.cwd() / 'origin_online_info_verify'
     # savepath = Path.cwd() / 'history' / 'online_info_verify_20230828-225536'
 
     online_info = load_all_online_info(savepath = savepath)
@@ -37,8 +37,7 @@ if __name__ == '__main__':
                 continue
             
             compiled_prog = taskinfo["compiled_prog"]
-            print(compiled_prog)
-            # for prog in compiled_prog:
-            #     print(f'Compiled: {prog}')
+            print(compiled_prog[0])
+            
 
             

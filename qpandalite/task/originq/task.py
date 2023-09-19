@@ -49,7 +49,6 @@ def parse_response_body(response_body):
         # successfully finished !
         ret['status'] = 'success'
 
-        print(response_body)
         # task_result
         task_result = response_body['taskResult']
         try:
@@ -60,15 +59,7 @@ def parse_response_body(response_body):
         ret['result'] = task_result
         
         compiled_prog = response_body['compile_output_prog']
-        # compiled_prog = json.loads(compiled_prog)
-        
-        # print(response_body)
-        # try:
-        #     compiled_prog = [json.loads(prog) for prog in compiled_prog]
-        # except json.decoder.JSONDecodeError as e:
-        #     raise RuntimeError('Error when parsing the response compiled_prog. '
-        #                        f'compiled_prog = {compiled_prog}')
-        ret['compiled_prog'] = compiled_prog
+        ret['compiled_prog'] = json.loads(compiled_prog)
         return ret
     elif task_status == '4':
         ret['status'] = 'failed'
@@ -232,7 +223,7 @@ def _submit_task(circuit = None,
         task_id = response_body['taskId']
         ret = {'taskid': task_id, 'taskname': task_name}
     except Exception as e:
-        print(response_body)
+        # print(response_body)
         raise RuntimeError(f'Error in submit_task. The response body is corrupted. '
                            f'Response body: {response_body}')
 

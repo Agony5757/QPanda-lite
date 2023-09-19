@@ -194,7 +194,8 @@ def query_by_taskid(taskid):
     elif res_dict["status"] in [3,4]:
         return 'Failed'
         
-    results = json.loads(res_dict['raw'])
+    # results = json.loads(res_dict['raw'])
+    results = res_dict
     return results
 
 def query_all_task(savepath = None): 
@@ -209,6 +210,8 @@ def query_all_task(savepath = None):
             if ret is None:
                 continue
             elif ret == 'Failed':
-                write_taskinfo(savepath, taskid, {})
+                # write_taskinfo(savepath, taskid, {})
+                write_taskinfo(taskid, taskinfo={}, savepath=savepath)
             else:                
-                write_taskinfo(savepath, taskid, ret)
+                # write_taskinfo(savepath, taskid, ret)
+                write_taskinfo(taskid, taskinfo=ret, savepath=savepath)

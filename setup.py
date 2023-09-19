@@ -178,7 +178,10 @@ setup(
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
     packages = find_packages(),
     install_requires=['numpy',
-                      'requests'],
+                      'requests',
+                      'pandas',
+                      'matplotlib',
+                      'seaborn'],
     zip_safe = False,
     python_requires='>=3.7',    
 )

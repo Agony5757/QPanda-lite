@@ -1,8 +1,22 @@
-from setuptools import setup, Extension, find_packages
+from setuptools import Distribution, setup, Extension, find_packages
+import setuptools
 from setuptools.command.build_ext import build_ext
 import os
 import subprocess
 import sys
+
+BUILD_WITH_CPP = False
+
+# see if user passes any args to the setup
+filtered_args = []
+for i, arg in enumerate(sys.argv):
+    if arg == '--has-cpp':
+        BUILD_WITH_CPP = True
+        print('Build with c++ support.')
+    else:
+        filtered_args.append(arg)
+
+sys.argv = filtered_args
 
 with open("README.md", 'r', encoding = 'utf-8') as fp:
     readme = fp.read()
@@ -141,8 +155,13 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
+if BUILD_WITH_CPP:
+    ext_modules = [CMakeExtension("qpandalite")]
+    cmdclass = {"build_ext": CMakeBuild}
+else:
+    ext_modules = []
+    cmdclass = {}
 
-        
 setup(
     name = "qpandalite",
     version = "0.1.0",
@@ -151,8 +170,8 @@ setup(
     description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",
     long_description = readme,
     long_description_content_type="text/markdown",
-    #ext_modules=[CMakeExtension("qpandalite")],
-    #cmdclass={"build_ext": CMakeBuild},
+    ext_modules=ext_modules,
+    cmdclass=cmdclass,
     project_urls={
         "Source Code": "https://github.com/Agony5757/QPanda-Lite.git",
     },

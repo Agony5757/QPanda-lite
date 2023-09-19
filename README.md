@@ -31,6 +31,9 @@ Developing. Unstable.
 
 #### Optional for quafu execution
  - pyquafu (manually install via pip : **pip install pyquafu**)
+#### Optional for qiskit execution
+ - qiskit (manually install via pip : **pip install qiskit**) and
+ - qiskit-ibm-provider (**pip install qiskit-ibm-provider**)
 
 #### Optional for C++ simulator
  - CMake >= 3.1
@@ -39,14 +42,31 @@ Developing. Unstable.
 
 ### Build from source
 
+#### A minimum version
+```bash
+# Clone the code
+git clone https://github.com/Agony5757/QPanda-lite.git
+cd QPanda-lite
+
+# install
+python setup.py install
+```
+
+#### For development
 ```
 git clone https://github.com/Agony5757/QPanda-lite.git
+cd QPanda-lite
 
-# Either for development
+# install
 python setup.py develop
+```
+#### With C++ enabled (quantum circuit simulator written in C++)
+```
+git clone https://github.com/Agony5757/QPanda-lite.git
+cd QPanda-lite
 
-# Or for installation
-python setup.py install
+# install
+python setup.py install --has-cpp
 ```
 
 ### Build the docs

@@ -158,10 +158,12 @@ cython_debug/
 # output path
 quafu_online_info_verify/
 origin_online_info_verify/
+ibm_online_info_verify/
 history/
 test/make_online_config/
 test/originq/compile_only_test/timeline_plot
 originq_online_config.json
 quafu_online_config.json
+ibm_online_config.json
 qcloud_config_template/originq_template.py
 qcloud_config_template/quafu_template.py

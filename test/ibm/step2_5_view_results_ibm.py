@@ -33,37 +33,6 @@ def calculate_pass(result):
             total_z += value
     return total_z / 4000
 
-def query_by_taskid(taskid):
-    job = provider.retrieve_job(taskid)
-    status = job.status()
-    result = dict(job.result().get_counts())
-    taskinfo = {'result': result}
-    return taskinfo
-
-
-def write_taskinfo(taskid, taskinfo, savepath=None):
-    if not savepath:
-        savepath = Path.cwd() / 'ibm online_info'
-    with open(savepath / '{}.txt'.format(taskid), 'w') as fp:
-        json.dump(taskinfo.copy(), fp)
-
-
-def query_all_task(savepath=None):
-    if not savepath:
-        savepath = Path.cwd() / 'ibm_online_info_verify'
-    online_info_path = Path.cwd() / 'ibm_online_info'
-    online_info = []
-    with open(savepath / 'ibm online_info.txt', 'r') as fp:
-        lines = fp.read().strip().splitlines()
-        for line in lines:
-            online_info.append(json.loads(line))
-    for task in online_info:
-        taskid = task['taskid']
-        print(taskid)
-        if not os.path.exists(savepath / '{}.txt'.format(taskid)):
-            ret = query_by_taskid(taskid).copy()
-            write_taskinfo(taskid, taskinfo=ret, savepath=savepath)
-
 
 if __name__ == '__main__':
 

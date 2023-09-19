@@ -17,7 +17,18 @@ namespace py = pybind11;
 PYBIND11_MODULE(QPandaLitePy, m)
 {
 	m.doc() = "[Module QPandaLitePy]";
-	m.def("init_n_qubit", &qpandalite::init_n_qubit);
+	py::class_<qpandalite::Simulator>(m, "Simulator")
+		.def(py::init<>())
+		.def_readonly("total_qubit", &qpandalite::Simulator::total_qubit)
+		.def_readonly("state", &qpandalite::Simulator::state)
+		.def("init_n_qubit", &qpandalite::Simulator::init_n_qubit)
+		.def("hadamard", &qpandalite::Simulator::hadamard)
+		.def("u22", &qpandalite::Simulator::u22)
+		.def("x", &qpandalite::Simulator::x)
+		.def("z", &qpandalite::Simulator::z)
+		.def("cz", &qpandalite::Simulator::cz)
+		.def("cnot", &qpandalite::Simulator::cnot)
+		;
 }
 
 #ifdef __GNUC__

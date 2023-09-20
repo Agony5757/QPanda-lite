@@ -163,7 +163,7 @@ namespace qpandalite{
             }
             if (qstate != 0 && qstate != 1)
             {
-                auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", state, qn);
+                auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
                 ThrowInvalidArgument(errstr);
             }
         }
@@ -190,7 +190,7 @@ namespace qpandalite{
         }
         if (qstate != 0 && qstate != 1)
         {
-            auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", state, qn);
+            auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
             ThrowInvalidArgument(errstr);
         }
 

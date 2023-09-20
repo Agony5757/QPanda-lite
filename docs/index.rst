@@ -15,6 +15,7 @@
    qpandalite.task.originq
    qpandalite.task.quafu
    qpandalite.simulator
+   :ref:`modindex`
 
 
 What is QPanda-lite?

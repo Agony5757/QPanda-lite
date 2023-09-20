@@ -23,9 +23,10 @@ namespace qpandalite {
     struct Simulator
     { 
         static constexpr size_t max_qubit_num = 30;
-        size_t total_qubit;
+        size_t total_qubit = 0;
         std::vector<complex_t> state;
 
+        void _assert_input_qubit(size_t qn);
         void init_n_qubit(size_t nqubit);
         void hadamard(size_t qn);
         void u22(size_t qn, const std::array<complex_t, 4> &unitary);

@@ -1,10 +1,23 @@
 #include "simulator.h"
 
 namespace qpandalite{
+
+    void Simulator::_assert_input_qubit(size_t qn)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+    }
+
     void Simulator::init_n_qubit(size_t nqubit)
     {
         if (nqubit > max_qubit_num)
-            ThrowRuntimeError(fmt::format("Exceed max_qubit_num (nqubit = {}, limit = {})", nqubit, max_qubit_num));
+        {
+            auto errstr = fmt::format("Exceed max_qubit_num (nqubit = {}, limit = {})", nqubit, max_qubit_num);
+            ThrowInvalidArgument(errstr);
+        }
 
         state = std::vector<complex_t>(pow2(nqubit), 0);
         state[0] = 1;
@@ -13,6 +26,7 @@ namespace qpandalite{
 
     void Simulator::hadamard(size_t qn)
     {
+        _assert_input_qubit(qn);
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if ((i >> qn) & 1) continue;

@@ -7,7 +7,7 @@ from typing_extensions import override
 class Simulator:
     def __init__(self) -> None: 
         '''Create a simulator instance (implemented by C++).
-        The simulator has two accessible variables: total_qubit and state.
+        The simulator has two accessible variables: ``total_qubit'' and ``state''.
         total_qubit is initialized with init_n_qubit method.
         state represents the quantum state, which can be modified by calling the gate method.
         '''

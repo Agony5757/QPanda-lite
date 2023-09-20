@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.abspath(parent_path / 'originir'))
 sys.path.insert(0, os.path.abspath(parent_path / 'task'))
 sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'originq'))
 sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'quafu'))
+sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'ibm'))
 
 # -- Project information -----------------------------------------------------
 

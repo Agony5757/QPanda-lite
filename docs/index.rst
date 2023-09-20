@@ -11,6 +11,11 @@
    :maxdepth: 2
    :caption: Contents:
 
+   qpandalite.task
+   qpandalite.task.originq
+   qpandalite.task.quafu
+   qpandalite.simulator
+
 
 What is QPanda-lite?
 ==========================

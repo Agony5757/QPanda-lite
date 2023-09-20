@@ -1,10 +1,11 @@
-import qpandalite.simulator as qsim
+import qpandalite.simulator.simulator as qsim
 
 sim = qsim.Simulator()
 
 sim.init_n_qubit(6)
 print(len(sim.state))
 print(sim.state)
+print(sim.total_qubit)
 
 sim.hadamard(0)
 sim.cnot(0,1)

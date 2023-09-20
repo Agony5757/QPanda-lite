@@ -2,15 +2,6 @@
 
 namespace qpandalite{
 
-    void Simulator::_assert_input_qubit(size_t qn)
-    {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
-    }
-
     void Simulator::init_n_qubit(size_t nqubit)
     {
         if (nqubit > max_qubit_num)
@@ -26,7 +17,12 @@ namespace qpandalite{
 
     void Simulator::hadamard(size_t qn)
     {
-        _assert_input_qubit(qn);
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if ((i >> qn) & 1) continue;
@@ -46,6 +42,12 @@ namespace qpandalite{
 
     void Simulator::x(size_t qn)
     {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if ((i >> qn) & 1)
@@ -57,6 +59,12 @@ namespace qpandalite{
 
     void Simulator::z(size_t qn)
     {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if ((i >> qn) & 1)
@@ -68,6 +76,17 @@ namespace qpandalite{
     
     void Simulator::u22(size_t qn, const std::array<complex_t, 4> &unitary)
     {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+        if (!_assert_u22(unitary))
+        {
+            auto errstr = fmt::format("Input is not a unitary.");
+            ThrowInvalidArgument(errstr);
+        }
+        
         complex_t u00 = unitary[0];
         complex_t u01 = unitary[1];
         complex_t u10 = unitary[2];
@@ -91,6 +110,17 @@ namespace qpandalite{
 
     void Simulator::cz(size_t qn1, size_t qn2)
     {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if (((i >> qn1) & 1) && ((i >> qn2) & 1))
@@ -102,6 +132,17 @@ namespace qpandalite{
 
     void Simulator::cnot(size_t controller, size_t target)
     {
+        if (controller >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, controller = {})", total_qubit, controller);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target = {})", total_qubit, target);
+            ThrowInvalidArgument(errstr);
+        }
+
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if (((i >> controller) & 1) && ((i >> target) & 1))
@@ -113,6 +154,20 @@ namespace qpandalite{
 
     dtype Simulator::get_prob_map(const std::map<size_t, int> &measure_qubits)
     {
+        for (auto &&[qn, qstate] : measure_qubits)
+        {
+            if (qn >= total_qubit)
+            {
+                auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+                ThrowInvalidArgument(errstr);
+            }
+            if (qstate != 0 && qstate != 1)
+            {
+                auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", state, qn);
+                ThrowInvalidArgument(errstr);
+            }
+        }
+
         double prob = 0;
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
@@ -128,6 +183,17 @@ namespace qpandalite{
 
     dtype Simulator::get_prob(size_t qn, int qstate)
     {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qstate != 0 && qstate != 1)
+        {
+            auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", state, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
         double prob = 0;
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {

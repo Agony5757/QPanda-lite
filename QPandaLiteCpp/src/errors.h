@@ -9,7 +9,7 @@
 #define ThrowInvalidArgument(errinfo) throw_invalid_argument((errinfo), __LINE__, __FILE__, __FUNCTION__)
 #define ThrowOutOfRange(errinfo) throw_out_of_range((errinfo), __LINE__, __FILE__, __FUNCTION__)
 
-inline void throw_runtime_error(const std::string &errinfo, int lineno, const char* filename, const char* funcname)
+inline auto throw_runtime_error(const std::string &errinfo, int lineno, const char* filename, const char* funcname)
 {
     throw std::runtime_error(
         fmt::format(

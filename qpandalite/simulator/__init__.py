@@ -1,4 +1,5 @@
 import warnings
+from simulator import Simulator
 
 try:
     from QPandaLitePy import *

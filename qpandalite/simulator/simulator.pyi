@@ -47,6 +47,22 @@ class Simulator:
         '''
         ...
 
+    def x(self, qn : int) -> None:
+        '''X gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    def z(self, qn : int) -> None:
+        '''Z gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
     def u22(self, qn : int, unitary : List[complex]) -> None:
         '''Any 2*2 unitary.
 

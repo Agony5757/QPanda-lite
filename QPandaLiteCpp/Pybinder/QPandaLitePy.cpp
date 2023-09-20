@@ -28,6 +28,8 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("z", &qpandalite::Simulator::z)
 		.def("cz", &qpandalite::Simulator::cz)
 		.def("cnot", &qpandalite::Simulator::cnot)
+		.def("get_prob", &qpandalite::Simulator::get_prob)
+		.def("get_prob", &qpandalite::Simulator::get_prob_map)
 		;
 }
 

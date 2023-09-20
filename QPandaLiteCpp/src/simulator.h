@@ -4,6 +4,7 @@
 #include <complex>
 #include <iostream>
 #include <vector>
+#include <map>
 
 #include "errors.h"
 
@@ -33,7 +34,7 @@ namespace qpandalite {
         void cz(size_t qn1, size_t qn2);
         void cnot(size_t controller, size_t target);
 
-        void get_prob(const std::map<size_t, int> &measure_qubits);
-        void get_prob(size_t qn, int state);
+        dtype get_prob_map(const std::map<size_t, int> &measure_qubits);
+        dtype get_prob(size_t qn, int state);
     };
 }

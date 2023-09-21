@@ -130,7 +130,7 @@ if __name__ == '__main__':
             if taskinfo['status'] == 'failed':
                 continue
 
-            compiled_prog = taskinfo["compiled_prog"][0]
+            compiled_prog = taskinfo["timeline"][0]
             plot_time_line(compiled_prog, taskid, 
                            figure_save_path=figure_save_path)
             # new_prog, qubit_list, time_line = format_result(compiled_prog)

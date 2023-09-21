@@ -49,16 +49,11 @@ MEASURE q[53], c[3]
 MEASURE q[54], c[4]
 '''.strip()
 
-savepath = Path.cwd() / 'origin_online_info_verify'
+savepath = Path.cwd() / 'online_info'
 
 if __name__ == '__main__':
-    circuit = circuit_1
-
-    token = get_token('035147B99D20486AACAAF5F270B9F161')
-    # print(token)
-    #
     taskid = submit_task_compile_only(
-        circuit,
+        circuit_1,
         circuit_optimize=True,
         auto_mapping=False,
         task_name='CompileOnlyTest', 

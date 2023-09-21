@@ -52,9 +52,9 @@ if __name__ == '__main__':
     test_circuits.append(W(qubit_number, True))
     test_circuits.append(W(qubit_number, False))
 
-    taskid = originq.submit_task_group(test_circuits, 
-                                       task_name='Validation', 
-                                       shots=10000, 
-                                       measurement_amend=False)
+    taskid = originq.submit_task(test_circuits, 
+                                 task_name='Validation', 
+                                 shots=10000, 
+                                 measurement_amend=False)
     print(f'Taskid = {taskid}')
     

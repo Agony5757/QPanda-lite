@@ -39,7 +39,7 @@ def parse_response_body(response_body):
             - compiled_prog 
             - result (not always)
     '''
-
+    # print(response_body)
     ret = dict()
     ret['taskid'] = response_body['taskId']
     ret['taskname'] = response_body['taskDescribe']
@@ -59,7 +59,13 @@ def parse_response_body(response_body):
         ret['result'] = task_result
         
         compiled_prog = response_body['without_compensate_prog']
+        #print(type(compiled_prog))
         ret['compiled_prog'] = json.loads(compiled_prog)
+        timelines = response_body['compile_output_prog']
+        timelines_ret = []
+        for timeline in timelines:
+            timelines_ret.append(json.loads(timeline))
+        ret['timeline'] = timelines_ret
         return ret
     elif task_status == '4':
         ret['status'] = 'failed'

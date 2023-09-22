@@ -6,8 +6,6 @@ from step1_submit_circuit import savepath
 
 if __name__ == '__main__':
 
-    # savepath = Path.cwd() / 'history' / 'online_info_verify_20230828-225536'
-
     online_info = load_all_online_info(savepath = savepath)
     query_all_task(savepath = savepath)
 

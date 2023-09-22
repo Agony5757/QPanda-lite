@@ -6,7 +6,7 @@ from step1_submit_circuit import savepath
 from step3_plot_timeline import figure_save_path
 
 datetime_str = datetime.datetime.now().strftime(r'%Y%m%d-%H%M%S')
-    
+
 history_path = Path.cwd() / 'history' / f'origin_online_info_verify_{datetime_str}'
 
 if os.path.exists(savepath):

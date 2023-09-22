@@ -164,7 +164,7 @@ MEASURE q[48],c[5]
 '''.strip()
 
 circuits = [circuit_1, circuit_2, circuit_3, circuit_4, circuit_5, 
-            circuit_6, circuit_7, circuit_8, circuit_9, circuit_10] * 10
+            circuit_6, circuit_7, circuit_8, circuit_9, circuit_10]
 
 if __name__ == '__main__':
     

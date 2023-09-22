@@ -70,7 +70,7 @@ def load_all_online_info(savepath = None):
     '''Load all online info under the savepath
 
     Args:
-        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to None.
+        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to Path.cwd() / 'online_info'.
 
     Returns:
         List[Dict]: A list of online infos
@@ -85,6 +85,22 @@ def load_all_online_info(savepath = None):
             online_info.append(json.loads(line))
 
     return online_info       
+
+def get_last_taskid(savepath = None):
+    '''Load the last taskid under the savepath
+
+    Args:
+        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to Path.cwd() / 'online_info'.
+    '''
+    if not savepath:
+        savepath = Path.cwd() / 'online_info'
+
+    with open(savepath / 'online_info.txt', 'r') as fp:
+        lines = fp.read().strip().splitlines()
+        last_task = json.loads(lines[-1])
+    
+    return last_task['taskid']
+
 
 def write_taskinfo(taskid, taskinfo, savepath = None):
     '''Write the task into the online info.

@@ -3,6 +3,7 @@ import qpandalite.task.originq as originq
 from pathlib import Path
 
 available_qubits = [45,46,52,53,54,48]
+savepath = Path.cwd() / 'validation_test_online_info'
 
 # simple circuits
 def ghz(qubit_number, init=0):

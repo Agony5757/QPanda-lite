@@ -9,14 +9,43 @@ import warnings
 from ..task_utils import *
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+def get_token(pilot_api, login_url):
+    request_body = dict()
+    request_body['apiKey'] = pilot_api
+    request_body = json.dumps(request_body)
+    response = requests.post(url=login_url, data=request_body, verify=False)
+    status_code = response.status_code
+    if status_code != 200:
+        raise RuntimeError(f'Error in get_token. '
+                           'The returned status code is not 200.'
+                           f' Response: {response.text}')
+
+    text = response.text
+    response = json.loads(text)
+    token = response['token']
+    try:
+        with open('originq_online_config.json', 'r') as fp:
+            default_online_config = json.load(fp)
+        default_online_config['default_token'] = token
+        with open('originq_online_config.json', 'w') as fp:
+            json.dump(default_online_config, fp)
+    except:
+        warnings.warn('originq_online_config.json is not found. '
+                      'It should be always placed at current working directory (cwd).')
+
+    return token
+
 try:
     with open('originq_online_config.json', 'r') as fp:
         default_online_config = json.load(fp)
-    default_token = default_online_config['default_token']
+    default_login_apitoken = default_online_config['default_login_apitoken']
+    default_login_url = default_online_config['default_login_url']    
+    default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
     default_submit_url = default_online_config['default_submit_url']
     default_query_url = default_online_config['default_query_url']
     default_task_group_size = default_online_config['default_task_group_size']
-except:
+except Exception as e:
+    raise e
     default_token = ''
     default_submit_url = ''
     default_query_url = ''
@@ -58,9 +87,9 @@ def parse_response_body(response_body):
                                f'task_result = {task_result}')
         ret['result'] = task_result
         
-        compiled_prog = response_body['without_compensate_prog']
-        #print(type(compiled_prog))
-        ret['compiled_prog'] = json.loads(compiled_prog)
+        # compiled_prog = response_body['without_compensate_prog']
+        # print(type(compiled_prog))
+        # ret['compiled_prog'] = json.loads(compiled_prog)
         timelines = response_body['compile_output_prog']
         timelines_ret = []
         for timeline in timelines:

@@ -31,6 +31,9 @@ class OriginIR_Simulator:
         elif operation == 'CZ':
             self.simulator.cz(self.qubit_mapping[int(qubit[0])], 
                               self.qubit_mapping[int(qubit[1])])
+        elif operation == 'ISWAP':
+            self.simulator.iswap(self.qubit_mapping[int(qubit[0])], 
+                                self.qubit_mapping[int(qubit[1])])
         elif operation == 'CNOT':
             self.simulator.cnot(self.qubit_mapping[int(qubit[0])], 
                                 self.qubit_mapping[int(qubit[1])])

@@ -136,6 +136,37 @@ namespace qpandalite{
         }
     }
 
+    void Simulator::iswap(size_t qn1, size_t qn2)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn1 == qn2)
+        {
+            auto errstr = fmt::format("qn1 = qn2");
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
+            {
+                std::swap(state[i], state[i + pow2(qn1) - pow2(qn2)]);
+                state[i] *= 1i;
+                state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+            }
+
+        }
+    }
+
     void Simulator::cnot(size_t controller, size_t target)
     {
         if (controller >= total_qubit)

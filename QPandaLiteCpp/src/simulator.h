@@ -81,6 +81,7 @@ namespace qpandalite {
         void x(size_t qn);
         void z(size_t qn);
         void cz(size_t qn1, size_t qn2);
+        void iswap(size_t qn1, size_t qn2);
         void cnot(size_t controller, size_t target);
         void rx(size_t qn, double angle);
         void ry(size_t qn, double angle);

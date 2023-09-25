@@ -84,6 +84,14 @@ class Simulator:
             q2 (int): The second qubit.
         '''
     
+    def iswap(self, q1 : int, q2 : int) -> None:
+        '''iSWAP gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+
     def cnot(self, controller : int, target : int) -> None:
         '''CNOT gate.
 

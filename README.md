@@ -76,7 +76,11 @@ python setup.py install --has-cpp
 Will be released in the future.
 
 ### pip
-Will be supported in the future.
+
+For python 3.8 to 3.10
+```
+pip install qpandalite
+```
 
 ## Examples
 
@@ -134,28 +138,37 @@ c.rx(1, angle = 0.1)
 print(c)
 ```
 
-### Circuit simulation (unfinished)
+### Circuit simulation
 
-Refer to [test/draft_test/simulator_test.py](test/draft_test/simulator_test.py)
+Refer to [test/draft_test/originir_simulator_test.py](test/draft_test/originir_simulator_test.py)
 
 ```python
+
 import qpandalite.simulator as qsim
 
-sim = qsim.Simulator()
+sim = qsim.OriginIR_Simulator(reverse_key=False)
 
-sim.init_n_qubit(6)
-print(len(sim.state))
+originir = '''
+QINIT 72
+CREG 2
+RY q[45],(0.9424777960769379)
+RY q[46],(0.9424777960769379)
+CZ q[45],q[46]
+RY q[45],(-0.25521154)
+RY q[46],(0.26327053)
+X q[46]
+MEASURE q[45],c[0]
+MEASURE q[46],c[2]
+MEASURE q[52],c[1]
+'''
+
+res = sim.simulate(originir)
+print(res)
 print(sim.state)
 
-sim.hadamard(0)
-sim.cnot(0,1)
-sim.cnot(1,3)
-sim.cnot(0,2)
-sim.cnot(1,4)
-sim.cnot(3,5)
-print(sim.state)
-
-# Expect output: 32
+# Expect output: 
+# [0.23218757036469517, 0.04592184582945769, 0.0, 0.0, 0.6122094271102275, 0.10968115669561962, 0.0, 0.0]
+# [(0.4818584546987789+0j), (-0.21429383059121812+0j), (0.7824381298928546+0j), (0.33118145584500897+0j), 0j, 0j, 0j, 0j]
 ```
 
 #### Note: Have ImportError? <font face ='consolas' style="background:#F5F5F5">ImportError:qpandalite is not install with QPandaLiteCpp</font>. 

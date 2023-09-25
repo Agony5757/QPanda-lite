@@ -35,7 +35,7 @@ Programming Language :: Python :: 3.9
 Programming Language :: Python :: 3.10
 Programming Language :: Python :: 3.11
 Programming Language :: Python :: 3 :: Only
-Topic :: Scientific/Engineering :: Artificial Intelligence
+Topic :: Scientific/Engineering :: Quantum Computing
 Operating System :: Microsoft :: Windows
 Operating System :: POSIX
 Operating System :: Unix
@@ -164,7 +164,7 @@ else:
 
 setup(
     name = "qpandalite",
-    version = "0.1.4",
+    version = "0.1.5",
     author = "Agony",
     author_email = "chenzhaoyun@iai.ustc.edu.cn",
     description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",

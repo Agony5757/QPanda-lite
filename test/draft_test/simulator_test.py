@@ -1,3 +1,4 @@
+import math
 import qpandalite.simulator as qsim
 
 sim = qsim.Simulator()
@@ -19,3 +20,16 @@ print(sim.get_prob(1, 0))
 sim.z(1)
 print(sim.state)
 print(sim.get_prob(1, 0))
+
+sim.init_n_qubit(6)
+sim.rphi(0, 0, math.pi)
+sim.rphi(1, 0, math.pi)
+sim.rphi180(2, 0)
+sim.rphi(3, 0, math.pi / 2)
+sim.rphi90(4, 0)
+print(sim.state)
+print(sim.pmeasure(0))
+print(sim.pmeasure(1))
+print(sim.pmeasure(2))
+print(sim.pmeasure(3))
+print(sim.pmeasure(4))

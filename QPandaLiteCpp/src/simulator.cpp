@@ -74,7 +74,7 @@ namespace qpandalite{
         }
     }
     
-    void Simulator::u22(size_t qn, const std::array<complex_t, 4> &unitary)
+    void Simulator::u22(size_t qn, const u22_t &unitary)
     {
         if (qn >= total_qubit)
         {
@@ -120,6 +120,12 @@ namespace qpandalite{
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
             ThrowInvalidArgument(errstr);
         }
+        if (qn1 == qn2)
+        {
+            auto errstr = fmt::format("qn1 = qn2");
+            ThrowInvalidArgument(errstr);
+        }
+
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
@@ -142,6 +148,11 @@ namespace qpandalite{
             auto errstr = fmt::format("Exceed total (total_qubit = {}, target = {})", total_qubit, target);
             ThrowInvalidArgument(errstr);
         }
+        if (controller == target)
+        {
+            auto errstr = fmt::format("controller = target");
+            ThrowInvalidArgument(errstr);
+        }
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
@@ -150,6 +161,108 @@ namespace qpandalite{
                 std::swap(state[i], state[i - pow2(target)]);
             }
         }
+    }
+
+    void Simulator::rx(size_t qn, double angle)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        // Rx 
+        using namespace std::literals::complex_literals;
+        u22_t unitary = {cos(angle / 2), -sin(angle / 2) * 1i,
+                         -sin(angle / 2) * 1i, cos(angle / 2)};
+
+        u22(qn, unitary);
+    }
+
+    void Simulator::ry(size_t qn, double angle)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        u22_t unitary = {cos(angle / 2), -sin(angle / 2),
+                         sin(angle / 2), cos(angle / 2)};
+
+        u22(qn, unitary);
+    }
+
+    void Simulator::rz(size_t qn, double angle)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i >> qn) & 1)
+            {
+                state[i] *= std::complex(cos(angle), -sin(angle));
+            }
+        }
+    }
+
+    void Simulator::rphi90(size_t qn, double phi)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        u22_t unitary;
+        unitary[0] = INVSQRT2;
+        unitary[1] = INVSQRT2 * -1i * std::complex(cos(phi), -sin(phi));
+        unitary[2] = INVSQRT2 * -1i * std::complex(cos(phi), sin(phi));
+        unitary[3] = INVSQRT2;
+
+        u22(qn, unitary);
+    }
+
+    void Simulator::rphi180(size_t qn, double phi)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        u22_t unitary;
+        unitary[0] = 0;
+        unitary[1] = -1i * std::complex(cos(phi), -sin(phi));
+        unitary[2] = -1i * std::complex(cos(phi), sin(phi));
+        unitary[3] = 0;
+
+        u22(qn, unitary);        
+    }
+
+    void Simulator::rphi(size_t qn, double phi, double theta)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        u22_t unitary;
+        unitary[0] = cos(theta / 2);
+        unitary[1] = -1i * sin(theta / 2) * std::complex(cos(phi), -sin(phi));
+        unitary[2] = -1i * sin(theta / 2) * std::complex(cos(phi), sin(phi));
+        unitary[3] = cos(theta / 2);
+
+        u22(qn, unitary);    
     }
 
     dtype Simulator::get_prob_map(const std::map<size_t, int> &measure_qubits)
@@ -202,4 +315,50 @@ namespace qpandalite{
         }
         return prob;
     }
+
+    std::vector<dtype> Simulator::pmeasure_list(const std::vector<size_t> &measure_list)
+    {
+        if (measure_list.size() > total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_list size = {})", total_qubit, measure_list.size());
+            ThrowInvalidArgument(errstr);
+        }
+        std::map<size_t, size_t> qlist;
+        for (size_t i = 0; i < measure_list.size(); ++i)
+        {
+            size_t qn = measure_list[i];
+            if (qn >= total_qubit)
+            {
+                auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_qubit = {})", total_qubit, qn);
+                ThrowInvalidArgument(errstr);
+            }
+            if (qlist.find(qn) != qlist.end())
+            {
+                auto errstr = fmt::format("Duplicate measure qubit ({})", qn);
+                ThrowInvalidArgument(errstr);
+            }
+            qlist.insert({qn,i});
+        }
+
+        std::vector<dtype> ret;
+        ret.resize(pow2(measure_list.size()));
+        
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            size_t meas_idx = 0;
+            for (auto &&[qn, j] : qlist)
+            {
+                // put "digit qn" of i to "digit j"
+                meas_idx += (((i >> qn) & 1) << j);
+            }
+            ret[meas_idx] += abs_sqr(state[i]);
+        }
+        return ret;
+    }
+
+    std::vector<dtype> Simulator::pmeasure(size_t measure_qubit)
+    {
+        return pmeasure_list(std::vector{measure_qubit});
+    }
+
 }

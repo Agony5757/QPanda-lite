@@ -1,4 +1,8 @@
 '''Interface for quantum circuit simulator written in C++
+
+Note:
+    You can find implementation at QPandaLiteCpp/src/simulator.cpp. The python interface is implemented by pybind11, which can be found at QPandaLiteCpp/Pybinder/QPandaLitePy.cpp.
+
 '''
 from typing import Mapping, List
 from typing_extensions import override
@@ -70,16 +74,7 @@ class Simulator:
             qn (int): The gate qubit.
             unitary (List[complex]): A list with 4 complex elements, representing u00, u01, u10, u11 respectively.
         '''
-        ...
-
-    def cnot(self, controller : int, target : int) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ...       
+        ...   
 
     def cz(self, q1 : int, q2 : int) -> None:
         '''CNOT gate.
@@ -89,6 +84,70 @@ class Simulator:
             q2 (int): The second qubit.
         '''
     
+    def cnot(self, controller : int, target : int) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ...    
+
+    def rx(self, qn : int, angle : float) -> None:
+        '''Rx gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def ry(self, qn : int, angle : float) -> None:
+        '''Ry gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def rz(self, qn : int, angle : float) -> None:
+        '''Rz gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def rphi90(self, qn : int, phi : float) -> None:
+        '''Rphi90 gate (pi/2 pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi180(self, qn : int, phi : float) -> None:
+        '''Rphi180 gate (pi pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi(self, qn : int, phi : float, theta: float) -> None:
+        '''Rphi gate.
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+            theta (float): The rotation angle.
+        '''
+        ...
+
     @override
     def get_prob(self, measure_qubit : int, measure_state : int ) -> float:
         '''Measure
@@ -114,4 +173,27 @@ class Simulator:
         '''
         ...
 
+    @override
+    def pmeasure(self, measure_qubit: int) -> List[float]:
+        '''Measure one qubit and get the prob list.
+
+        Args:
+            measure_qubit (List[int]): Measure qubits
+
+        Returns:
+            List[Float]: Probability of 0 and 1
+        '''
+        ...
+
+    @override
+    def pmeasure(self, measure_qubit : List[int]) -> List[float]:
+        '''Measure many qubits and get the prob list.
+
+        Args:
+            measure_qubit (List[int]): Measure qubits
+
+        Returns:
+            List[Float]: Probability of 000... to 111...
+        '''
+        ...
     

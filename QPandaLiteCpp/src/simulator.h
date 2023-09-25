@@ -4,6 +4,7 @@
 #include <complex>
 #include <iostream>
 #include <vector>
+#include <set>
 #include <map>
 
 #include "errors.h"
@@ -70,19 +71,27 @@ namespace qpandalite {
 
     struct Simulator
     { 
-        static constexpr size_t max_qubit_num = 30;
+        static inline size_t max_qubit_num = 30;
         size_t total_qubit = 0;
         std::vector<complex_t> state;
 
         void init_n_qubit(size_t nqubit);
         void hadamard(size_t qn);
-        void u22(size_t qn, const std::array<complex_t, 4> &unitary);
+        void u22(size_t qn, const u22_t &unitary);
         void x(size_t qn);
         void z(size_t qn);
         void cz(size_t qn1, size_t qn2);
         void cnot(size_t controller, size_t target);
+        void rx(size_t qn, double angle);
+        void ry(size_t qn, double angle);
+        void rz(size_t qn, double angle);
+        void rphi90(size_t qn, double phi);
+        void rphi180(size_t qn, double phi);
+        void rphi(size_t qn, double phi, double theta);
 
         dtype get_prob_map(const std::map<size_t, int> &measure_qubits);
         dtype get_prob(size_t qn, int state);
+        std::vector<dtype> pmeasure_list(const std::vector<size_t> &measure_list);
+        std::vector<dtype> pmeasure(size_t measure_qubit);
     };
 }

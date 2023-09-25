@@ -4,12 +4,6 @@
 from typing import List, Dict, Union, Optional
 import numpy as np
 
-def shots2prob(measured_result : dict, total_shots = None):
-    if not total_shots:
-        total_shots = np.sum(list(measured_result.values()))
-
-    return {k : measured_result[k] / total_shots for k in measured_result}
-
 def _calculate_expectation_dict(
     measured_result : Dict[str, float], 
     h : str, 
@@ -49,6 +43,18 @@ def calculate_expectation(
     measured_result : Union[Dict[str, float], List[float]], 
     hamiltonian : Union[List[str], str]
 ):
+    '''Calculate expectation from measured results.
+
+    Args:
+        measured_result (Union[Dict[str, float], List[float]]): The result in keyvalue or list format
+        hamiltonian (Union[List[str], str]): A Hamiltonian string (only containing Z or I) with matched size. Or a list of Hamiltonian
+
+    Raises:
+        ValueError: Invalid arguments.
+
+    Returns:
+        float or List[float]: The expectation(s) corresponding to given Hamiltonian(s)
+    '''
     if isinstance(hamiltonian, list):
         return [calculate_expectation(measured_result, h) for h in hamiltonian]
     

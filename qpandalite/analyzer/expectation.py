@@ -33,7 +33,7 @@ def _calculate_expectation_list(
 
     for j, p in enumerate(measured_result):                
         for i in range(nqubit):
-            if (h[i] == 'Z' or h[i] == 'z') and ((j >> i) & 1):
+            if (h[i] == 'Z' or h[i] == 'z') and ((j >> (nqubit - i - 1)) & 1):
                 p *= -1
         exp += p     
 
@@ -73,3 +73,20 @@ def calculate_expectation(
         return _calculate_expectation_list(measured_result, hamiltonian, nqubit)
     else:
         raise ValueError('measured_result must be a Dict or a List.')
+
+if __name__ == '__main__':
+    from result_adapter import convert_originq_result
+
+    result = {'key': ['001','010','100'], 'value': [10, 20, 9970]}
+    kvresult = convert_originq_result(result, 
+                                    style='keyvalue', 
+                                    prob_or_shots='prob', 
+                                    reverse_key=False)
+    
+    print(calculate_expectation(kvresult, ['IIZ', 'IZI', 'ZII', 'ZZZ']))
+    
+    listresult = convert_originq_result(result, 
+                                    style='list', 
+                                    prob_or_shots='prob', 
+                                    reverse_key=False)
+    print(calculate_expectation(listresult, ['IIZ', 'IZI', 'ZII', 'ZZZ']))

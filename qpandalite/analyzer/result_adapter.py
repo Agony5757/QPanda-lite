@@ -1,6 +1,7 @@
 '''Result Adapter
 '''
 
+from copy import deepcopy
 import numpy as np
 from typing import Dict
 
@@ -23,12 +24,11 @@ def convert_originq_result(key_value_result : Dict[str, int],
     Returns:
         Dict/List: Adapted format given by arguments. 
     '''
-    keys = key_value_result['key']
+    keys = deepcopy(key_value_result['key'])
     if reverse_key:
         for i in range(len(keys)):
             keys[i] = keys[i][::-1]
-
-    values = key_value_result['value']
+    values = deepcopy(key_value_result['value'])
 
     if prob_or_shots == 'prob':
         total_shots = np.sum(values)
@@ -60,4 +60,47 @@ def kv2list(kv_result : dict):
     for k in kv_result:
         ret[int(k, 2)] = kv_result[k]
 
-    return kv_result
+    return ret
+
+if __name__ == '__main__':
+
+    result = {'key': ['001','010','100'], 'value': [10, 20, 9970]}
+    print(convert_originq_result(result, 
+                                 style='keyvalue', 
+                                 prob_or_shots='prob', 
+                                 reverse_key=True))
+    
+    print(convert_originq_result(result, 
+                                 style='list', 
+                                 prob_or_shots='prob', 
+                                 reverse_key=True))
+    
+    print(convert_originq_result(result, 
+                                 style='keyvalue', 
+                                 prob_or_shots='shots', 
+                                 reverse_key=True))
+    
+    print(convert_originq_result(result, 
+                                 style='list', 
+                                 prob_or_shots='shots', 
+                                 reverse_key=True))
+    
+    print(convert_originq_result(result, 
+                                 style='keyvalue', 
+                                 prob_or_shots='prob', 
+                                 reverse_key=False))
+    
+    print(convert_originq_result(result, 
+                                 style='list', 
+                                 prob_or_shots='prob', 
+                                 reverse_key=False))
+    
+    print(convert_originq_result(result, 
+                                 style='keyvalue', 
+                                 prob_or_shots='shots', 
+                                 reverse_key=False))
+    
+    print(convert_originq_result(result, 
+                                 style='list', 
+                                 prob_or_shots='shots', 
+                                 reverse_key=False))

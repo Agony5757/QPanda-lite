@@ -9,6 +9,12 @@ class OriginIR_Simulator:
         self.qubit_mapping = dict()
         self.reverse_key = reverse_key
 
+    def _clear(self):
+        self.qubit_num = 0
+        self.simulator = Simulator()
+        self.measure_qubit = []
+        self.qubit_mapping = dict()
+
     def simulate_gate(self, operation, qubit, cbit, parameter):
         if operation == 'RX':
             self.simulator.rx(self.qubit_mapping[int(qubit)], parameter)
@@ -70,6 +76,7 @@ class OriginIR_Simulator:
     def simulate(self, originir):
         # extract the actual used qubit, and build qubit mapping
         # like q45 -> 0, q46 -> 1, etc..
+        self._clear()
         self.extract_actual_used_qubits(originir)
         self.simulator.init_n_qubit(len(self.qubit_mapping))
 
@@ -85,3 +92,7 @@ class OriginIR_Simulator:
 
         prob_list = self.simulator.pmeasure(measure_qubit)
         return prob_list
+    
+    @property
+    def state(self):
+        return self.simulator.state

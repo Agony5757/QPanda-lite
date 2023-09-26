@@ -357,11 +357,11 @@ def _submit_task_group(circuits = None,
     if len(circuits) > default_task_group_size:
         groups = []
         group = []
-        for circuit_name in circuits:
+        for circuit in circuits:
             if len(group) >= default_task_group_size:
                 groups.append(group)
                 group = []
-            group.append(circuits[circuit_name])
+            group.append(circuit)
         if group:
             groups.append(group)
 

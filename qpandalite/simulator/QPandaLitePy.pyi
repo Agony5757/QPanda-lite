@@ -58,6 +58,22 @@ class Simulator:
             qn (int): The gate qubit.
         '''
         ...
+    
+    def sx(self, qn : int) -> None:
+        '''SX gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
+    def y(self, qn : int) -> None:
+        '''Y gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
 
     def z(self, qn : int) -> None:
         '''Z gate.
@@ -83,7 +99,8 @@ class Simulator:
             q1 (int): The first qubit.
             q2 (int): The second qubit.
         '''
-    
+        ...
+
     def iswap(self, q1 : int, q2 : int) -> None:
         '''iSWAP gate.
 
@@ -91,6 +108,16 @@ class Simulator:
             q1 (int): The first qubit.
             q2 (int): The second qubit.
         '''
+        ...
+
+    def xy(self, q1 : int, q2 : int) -> None:
+        '''XX+YY gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
 
     def cnot(self, controller : int, target : int) -> None:
         '''CNOT gate.

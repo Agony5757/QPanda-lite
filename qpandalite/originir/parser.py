@@ -51,45 +51,49 @@ class OriginIR_Parser:
 
     @staticmethod
     def parse_line(line):
-        q = None
-        c = None
-        operation = None
-        parameter = None
-        if not line:
-            pass 
-        elif line.startswith('QINIT'):
-            q = int(line.strip().split()[1])
-            operation = 'QINIT'
-        elif line.startswith('CREG'):
-            c = int(line.strip().split()[1])
-            operation = 'CREG'
-        elif line.startswith('H'):
-            operation, q = OriginIR_Parser.handle_1q(line)
-        elif line.startswith('X'):
-            operation, q = OriginIR_Parser.handle_1q(line)
-        elif line.startswith('Z'):
-            operation, q = OriginIR_Parser.handle_1q(line)
-        elif line.startswith('CZ'):
-            operation, q = OriginIR_Parser.handle_2q(line)
-        elif line.startswith('ISWAP'):
-            operation, q = OriginIR_Parser.handle_2q(line)
-        elif line.startswith('CNOT'):
-            operation, q = OriginIR_Parser.handle_2q(line)
-        elif line.startswith('RX'):
-            operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-        elif line.startswith('RY'):
-            operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-        elif line.startswith('RZ'):
-            operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-        elif line.startswith('Rphi'):
-            operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
-        elif line.startswith('MEASURE'):
-            operation = 'MEASURE'
-            q, c = OriginIR_Parser.handle_measure(line)
-        else:
-            raise NotImplementedError(f'A invalid line: {line}.')      
         
-        return operation, q, c, parameter
+        try:
+            q = None
+            c = None
+            operation = None
+            parameter = None
+            if not line:
+                pass 
+            elif line.startswith('QINIT'):
+                q = int(line.strip().split()[1])
+                operation = 'QINIT'
+            elif line.startswith('CREG'):
+                c = int(line.strip().split()[1])
+                operation = 'CREG'
+            elif line.startswith('H'):
+                operation, q = OriginIR_Parser.handle_1q(line)
+            elif line.startswith('X'):
+                operation, q = OriginIR_Parser.handle_1q(line)
+            elif line.startswith('Z'):
+                operation, q = OriginIR_Parser.handle_1q(line)
+            elif line.startswith('CZ'):
+                operation, q = OriginIR_Parser.handle_2q(line)
+            elif line.startswith('ISWAP'):
+                operation, q = OriginIR_Parser.handle_2q(line)
+            elif line.startswith('CNOT'):
+                operation, q = OriginIR_Parser.handle_2q(line)
+            elif line.startswith('RX'):
+                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            elif line.startswith('RY'):
+                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            elif line.startswith('RZ'):
+                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            elif line.startswith('Rphi'):
+                operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+            elif line.startswith('MEASURE'):
+                operation = 'MEASURE'
+                q, c = OriginIR_Parser.handle_measure(line)
+            else:
+                raise NotImplementedError(f'A invalid line: {line}.')      
+            
+            return operation, q, c, parameter
+        except AttributeError as e:
+            raise RuntimeError(f'Error when parsing the line: {line}')
     
 if __name__ == '__main__':
     matches = OriginIR_Parser.regexp_1q2p.match('Rphi q[45], (-1.1,1.2)')

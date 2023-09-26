@@ -1,4 +1,5 @@
 import time
+from typing import List, Union
 import requests
 from pathlib import Path
 import os
@@ -105,7 +106,7 @@ def parse_response_body(response_body):
         ret['status'] = 'running'
         return ret
 
-def query_by_taskid(taskid, url = default_query_url):
+def query_by_taskid_single(taskid : str, url = default_query_url):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
@@ -145,6 +146,53 @@ def query_by_taskid(taskid, url = default_query_url):
 
     taskinfo = parse_response_body(response_body)
 
+    return taskinfo
+
+def query_by_taskid(taskid : Union[List[str],str], 
+                    url = default_query_url):
+    '''Query circuit status by taskid (Async). This function will return without waiting.
+  
+    Args:
+        taskid (str): The taskid.
+        url (str, optional): The querying URL. Defaults to default_query_url.
+
+    Raises:
+        ValueError: Taskid invalid.
+        ValueError: URL invalid.
+        RuntimeError: Error when querying.
+
+    Returns:
+        Dict[str, dict]: The status and the result
+            status : success | failed | running
+            result (when success): List[Dict[str,list]]
+            result (when failed): {'errcode': str, 'errinfo': str}
+            result (when running): N/A
+    '''    
+    if not taskid: raise ValueError('Task id ??')
+    
+    if isinstance(taskid, list):
+        taskinfo = dict()
+        taskinfo['status'] = 'success'
+        taskinfo['result'] = []
+        for taskid_i in taskid:
+            taskinfo_i = query_by_taskid_single(taskid_i, url)
+            if taskinfo_i['status'] == 'failed':
+                # if any task is failed, then this group is failed.
+                taskinfo['status'] = 'failed'
+                break
+            elif taskinfo_i['status'] == 'running':
+                # if any task is running, then set to running
+                taskinfo['status'] = 'running'
+            if taskinfo_i['status'] == 'success':                
+                if taskinfo['status'] == 'success':
+                    # update if task is successfully finished (so far)
+                    taskinfo['result'].extend(taskinfo_i['result'])
+            
+    elif isinstance(taskid, str):
+        taskinfo = query_by_taskid_single(taskid, url)
+    else:
+        raise ValueError('Invalid Taskid')
+    
     return taskinfo
 
 def query_by_taskid_sync(taskid, 
@@ -307,8 +355,31 @@ def _submit_task_group(circuits = None,
     '''
     if not circuits: raise ValueError('circuit ??')
     if len(circuits) > default_task_group_size:
-        raise RuntimeError(f'Circuit group size too large. '
-                           f'(Expect: <= {default_task_group_size}, Get: {len(circuits)})')
+        groups = []
+        group = []
+        for circuit_name in circuits:
+            if len(group) >= default_task_group_size:
+                groups.append(group)
+                group = []
+            group.append(circuits[circuit_name])
+        if group:
+            groups.append(group)
+
+        return [_submit_task_group(group, 
+                '{}_{}'.format(task_name, i), 
+                tasktype, 
+                chip_id,
+                shots,
+                circuit_optimize,
+                measurement_amend,
+                auto_mapping,
+                compile_only,
+                specified_block,
+                url,
+                savepath) for i, group in enumerate(groups)]
+
+        # raise RuntimeError(f'Circuit group size too large. '
+        #                    f'(Expect: <= {default_task_group_size}, Get: {len(circuits)})')
 
     # construct request_body for task query
     request_body = dict()
@@ -342,15 +413,9 @@ def _submit_task_group(circuits = None,
         response_body = json.loads(text)
         task_status = response_body['taskState']
         task_id = response_body['taskId']
-        ret = {'taskid': task_id, 'taskname': task_name}
     except Exception as e:
         raise RuntimeError(f'Error in submit_task. The response body is corrupted. '
                            f'Response body: {response_body}')
-
-    if savepath:
-        make_savepath(savepath)
-        with open(savepath / 'online_info.txt', 'a') as fp:
-            fp.write(json.dumps(ret) + '\n')
 
     return task_id
 
@@ -459,7 +524,7 @@ def submit_task(
             if not isinstance(c, str):
                 raise ValueError('Input is not a valid circuit list (a.k.a List[str]).')
 
-        return _submit_task_group(
+        taskid = _submit_task_group(
             circuits = circuit, 
             task_name = task_name, 
             tasktype = tasktype, 
@@ -474,7 +539,7 @@ def submit_task(
             savepath = savepath
         )
     elif isinstance(circuit, str):
-        return _submit_task_group(
+        taskid = _submit_task_group(
             circuits = [circuit], 
             task_name = task_name, 
             tasktype = tasktype, 
@@ -490,6 +555,14 @@ def submit_task(
         )
     else:
         raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')
+    
+    ret = {'taskid': taskid, 'taskname': task_name}
+    if savepath:
+        make_savepath(savepath)
+        with open(savepath / 'online_info.txt', 'a') as fp:
+            fp.write(json.dumps(ret) + '\n')
+
+    return taskid
 
 def submit_task_compile_only(
     circuit, 
@@ -561,13 +634,29 @@ def query_all_task(url = default_query_url, savepath = None):
     finished = 0
     for task in online_info:
         taskid = task['taskid']
-        if not os.path.exists(savepath / '{}.txt'.format(taskid)):
-            taskinfo = query_by_taskid(taskid=taskid, url=url)
-            if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
-                write_taskinfo(taskid, taskinfo, savepath)
+
+        if isinstance(taskid, list):
+            status = 'finished'
+            for taskid_i in taskid:
+                if not os.path.exists(savepath / '{}.txt'.format(taskid)):
+                    taskinfo = query_by_taskid(taskid_i, url)
+                    if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
+                        write_taskinfo(taskid_i, taskinfo, savepath)
+                    else:
+                        status = 'unfinished'
+            if status == 'finished':
+                finished += 1
+
+        elif isinstance(taskid, str):
+            if not os.path.exists(savepath / '{}.txt'.format(taskid)):
+                taskinfo = query_by_taskid(taskid, url)
+                if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
+                    write_taskinfo(taskid, taskinfo, savepath)
+                    finished += 1
+            else:
                 finished += 1
         else:
-            finished += 1
+            raise RuntimeError('Invalid Taskid.')
     return finished, task_count
 
 if __name__ == '__main__':

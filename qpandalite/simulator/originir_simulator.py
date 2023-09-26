@@ -50,6 +50,8 @@ class OriginIR_Simulator:
             pass
         elif operation == 'CREG':
             pass
+        elif operation == 'BARRIER':
+            pass
         else:
             raise RuntimeError('Unknown OriginIR operation. '
                                f'Operation: {operation}.')

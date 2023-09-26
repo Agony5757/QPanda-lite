@@ -1,4 +1,5 @@
 import time
+from typing import List, Union
 import qpandalite.simulator as sim
 from pathlib import Path
 import os
@@ -8,6 +9,8 @@ import hashlib
 
 from ..task_utils import *
 
+default_task_group_size = 200
+
 def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
     if not os.path.exists(dummy_path):
         os.makedirs(dummy_path)
@@ -16,7 +19,10 @@ def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
         with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
             pass
 
-def _write_dummy_cache(taskid, taskname, results, dummy_path = Path.cwd() / 'dummy_server'):
+def _write_dummy_cache(taskid, 
+                       taskname, 
+                       results, 
+                       dummy_path = Path.cwd() / 'dummy_server'):
     with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
         result_body = {
             'taskid' : taskid,
@@ -53,7 +59,20 @@ def _submit_task_group(
 ):
     # make dummy cache
     _create_dummy_cache(dummy_path)
+    if len(circuits) > default_task_group_size:
+        groups = []
+        group = []
+        for circuit in circuits:
+            if len(group) >= default_task_group_size:
+                groups.append(group)
+                group = []
+            group.append(circuit)
+        if group:
+            groups.append(group)
 
+        return [_submit_task_group(group, 
+                '{}_{}'.format(task_name, i), 
+                shots, savepath, dummy_path) for i, group in enumerate(groups)]
     # generate taskid
     taskid = _random_taskid()
     results = []
@@ -70,12 +89,6 @@ def _submit_task_group(
         results.append({'key':key, 'value': value})
     
     _write_dummy_cache(taskid, task_name, results, dummy_path)
-
-    ret = {'taskid': taskid, 'taskname': task_name}
-    if savepath:
-        make_savepath(savepath)
-        with open(savepath / 'online_info.txt', 'a') as fp:
-            fp.write(json.dumps(ret) + '\n')
 
     return taskid
 
@@ -94,7 +107,7 @@ def submit_task(
             if not isinstance(c, str):
                 raise ValueError('Input is not a valid circuit list (a.k.a List[str]).')
 
-        return _submit_task_group(
+        taskid = _submit_task_group(
             circuits = circuit, 
             task_name = task_name, 
             shots = shots,
@@ -102,7 +115,7 @@ def submit_task(
             dummy_path = dummy_path
         )
     elif isinstance(circuit, str):
-        return _submit_task_group(
+        taskid = _submit_task_group(
             circuits = [circuit], 
             task_name = task_name, 
             shots = shots,
@@ -111,8 +124,17 @@ def submit_task(
         )
     else:
         raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')
+        
+    ret = {'taskid': taskid, 'taskname': task_name}
+    if savepath:
+        make_savepath(savepath)
+        with open(savepath / 'online_info.txt', 'a') as fp:
+            fp.write(json.dumps(ret) + '\n')
 
-def query_by_taskid(taskid, dummy_path = Path.cwd() / 'dummy_server'):
+    return taskid
+
+def query_by_taskid(taskid : Union[List[str],str], 
+                    dummy_path = Path.cwd() / 'dummy_server'):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
@@ -133,7 +155,29 @@ def query_by_taskid(taskid, dummy_path = Path.cwd() / 'dummy_server'):
     '''    
     if not taskid: raise ValueError('Task id ??')
     
-    taskinfo = _load_dummy_cache(taskid, dummy_path)
+    if isinstance(taskid, list):
+        taskinfo = dict()
+        taskinfo['status'] = 'success'
+        taskinfo['result'] = []
+        for taskid_i in taskid:
+            taskinfo_i = _load_dummy_cache(taskid_i, dummy_path)
+            if taskinfo_i['status'] == 'failed':
+                # if any task is failed, then this group is failed.
+                taskinfo['status'] = 'failed'
+                break
+            elif taskinfo_i['status'] == 'running':
+                # if any task is running, then set to running
+                taskinfo['status'] = 'running'
+            if taskinfo_i['status'] == 'success':                
+                if taskinfo['status'] == 'success':
+                    # update if task is successfully finished (so far)
+                    taskinfo['result'].extend(taskinfo_i['result'])
+            
+    elif isinstance(taskid, str):
+        taskinfo = _load_dummy_cache(taskid, dummy_path)
+    else:
+        raise ValueError('Invalid Taskid')
+    
     return taskinfo
 
 def query_by_taskid_sync(taskid, 
@@ -197,13 +241,29 @@ def query_all_task(dummy_path = Path.cwd() / 'dummy_server',
     finished = 0
     for task in online_info:
         taskid = task['taskid']
-        if not os.path.exists(savepath / '{}.txt'.format(taskid)):
-            taskinfo = query_by_taskid(taskid, dummy_path)
-            if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
-                write_taskinfo(taskid, taskinfo, savepath)
+
+        if isinstance(taskid, list):
+            status = 'finished'
+            for taskid_i in taskid:
+                if not os.path.exists(savepath / '{}.txt'.format(taskid)):
+                    taskinfo = query_by_taskid(taskid_i, dummy_path)
+                    if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
+                        write_taskinfo(taskid_i, taskinfo, savepath)
+                    else:
+                        status = 'unfinished'
+            if status == 'finished':
+                finished += 1
+
+        elif isinstance(taskid, str):
+            if not os.path.exists(savepath / '{}.txt'.format(taskid)):
+                taskinfo = query_by_taskid(taskid, dummy_path)
+                if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
+                    write_taskinfo(taskid, taskinfo, savepath)
+                    finished += 1
+            else:
                 finished += 1
         else:
-            finished += 1
+            raise RuntimeError('Invalid Taskid.')
     return finished, task_count
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ def _calculate_expectation_dict(
     exp = 0
     for result in measured_result:
         if len(result) != nqubit:
-            raise ValueError('The Hamiltonian must have the same size with the measured result')
+            raise ValueError('The Hamiltonian must have the same size with the measured result.')
         
         p = measured_result[result]
         for i in range(nqubit):
@@ -29,7 +29,7 @@ def _calculate_expectation_list(
     
     exp = 0
     if len(measured_result) != 2 ** nqubit:
-        raise ValueError('The Hamiltonian must have the same size with the measured result')
+        raise ValueError('The Hamiltonian must have the same size with the measured result.')
 
     for j, p in enumerate(measured_result):                
         for i in range(nqubit):

@@ -57,7 +57,7 @@ class Translation_OriginIR_to_QuafuCircuit(OriginIR_Parser):
             if operation == 'QINIT':
                 qc = quafu.QuantumCircuit(qubit)
                 continue
-            qc = OriginIR_Parser.reconstruct_qasm(qc, operation, qubit, cbit, parameter)
+            qc = Translation_OriginIR_to_QuafuCircuit.reconstruct_qasm(qc, operation, qubit, cbit, parameter)
         
         return qc
     

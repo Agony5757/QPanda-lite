@@ -64,7 +64,7 @@ class OriginIR_Simulator:
     def extract_actual_used_qubits(self, originir):
         lines = originir.splitlines()
         for line in lines:
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line)
+            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
             
             if not operation: continue
             if operation == 'QINIT': continue
@@ -85,9 +85,10 @@ class OriginIR_Simulator:
 
         lines = originir.splitlines()
         for line in lines:            
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line)
+            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
             self.simulate_gate(operation, qubit, cbit, parameter)
         
+        self.qubit_num = len(self.qubit_mapping)
         measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)
         measure_qubit = []
         for qubit in measure_qubit_cbit:

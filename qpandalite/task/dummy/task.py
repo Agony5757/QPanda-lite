@@ -12,6 +12,11 @@ from ..task_utils import *
 default_task_group_size = 200
 
 def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
+    '''Create simulation storage for dummy simulation server.
+
+    Args:
+        dummy_path (str or Path, optional): Path for dummy storage. Defaults to Path.cwd()/'dummy_server'.
+    '''
     if not os.path.exists(dummy_path):
         os.makedirs(dummy_path)
 
@@ -22,7 +27,19 @@ def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
 def _write_dummy_cache(taskid, 
                        taskname, 
                        results, 
-                       dummy_path = Path.cwd() / 'dummy_server'):
+                       dummy_path = Path.cwd() / 'dummy_server'):  
+    '''Write simulation results to dummy server.
+
+    Args:
+        taskid (str): Taskid.
+        taskname (str): Task name.
+        results (List[Dict[str, List[float]]]): A list of simulation results. Example: [{'key':['001', '101'], 'value':[100, 100]}]
+        dummy_path (str or Path, optional): Path for dummy storage. Defaults to Path.cwd()/'dummy_server'.
+    '''
+
+    if not os.path.exists(dummy_path):
+        os.makedirs(dummy_path)
+
     with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
         result_body = {
             'taskid' : taskid,
@@ -33,7 +50,19 @@ def _write_dummy_cache(taskid,
 
         fp.write(json.dumps(result_body) + '\n')
 
-def _load_dummy_cache(taskid, dummy_path = Path.cwd() / 'dummy_server'):
+def _load_dummy_cache(taskid, dummy_path = Path.cwd() / 'dummy_server'):        
+    '''Write simulation results to dummy server.
+
+    Args:
+        taskid (str): Taskid.
+        dummy_path (str or Path, optional): Path for dummy storage. Defaults to Path.cwd()/'dummy_server'.
+
+    Returns:
+    '''
+
+    if not os.path.exists(dummy_path):
+        os.makedirs(dummy_path)
+
     with open(dummy_path / 'dummy_result.jsonl', 'r') as fp:
         lines = fp.read().strip().splitlines()
         for line in lines[::-1]:
@@ -43,11 +72,15 @@ def _load_dummy_cache(taskid, dummy_path = Path.cwd() / 'dummy_server'):
             
     raise ValueError(f'Taskid {taskid} is not found. This is impossible in dummy server mode.') 
 
-def _random_taskid():
+def _random_taskid() -> str:
+    '''Create a dummy taskid for every task.
+
+    Returns:
+        str: Taskid.
+    '''
     n = random.random()
     md5 = hashlib.md5()
     md5.update(f"{n:.7f}".encode('utf-8'))
-    # print(md5.hexdigest())
     return md5.hexdigest()
 
 def _submit_task_group(
@@ -60,6 +93,7 @@ def _submit_task_group(
     # make dummy cache
     _create_dummy_cache(dummy_path)
     if len(circuits) > default_task_group_size:
+        # list of circuits
         groups = []
         group = []
         for circuit in circuits:
@@ -70,9 +104,11 @@ def _submit_task_group(
         if group:
             groups.append(group)
 
+        # recursively call, and return a list of taskid
         return [_submit_task_group(group, 
                 '{}_{}'.format(task_name, i), 
                 shots, savepath, dummy_path) for i, group in enumerate(groups)]
+    
     # generate taskid
     taskid = _random_taskid()
     results = []
@@ -82,12 +118,14 @@ def _submit_task_group(
         n_qubits = simulator.qubit_num
         key = []
         value = []
-        # get shots
+
+        # get shots from probability list
         for i, meas_result in enumerate(prob_result):
             key.append(bin(i)[2:].zfill(n_qubits))
             value.append(meas_result * shots)
         results.append({'key':key, 'value': value})
     
+    # write cache, ready for loading results
     _write_dummy_cache(taskid, task_name, results, dummy_path)
 
     return taskid
@@ -99,7 +137,7 @@ def submit_task(
     savepath = Path.cwd() / 'online_info',
     dummy_path = Path.cwd() / 'dummy_server'
 ):   
-    '''submit circuits or a single circuit'
+    '''submit circuits or a single circuit
     '''
     
     if isinstance(circuit, list):
@@ -139,7 +177,7 @@ def query_by_taskid(taskid : Union[List[str],str],
   
     Args:
         taskid (str): The taskid.
-        url (str, optional): The querying URL. Defaults to default_query_url.
+        dummy_path (str or Path, optional): Path for dummy storage. Defaults to Path.cwd()/'dummy_server'.
 
     Raises:
         ValueError: Taskid invalid.
@@ -180,16 +218,17 @@ def query_by_taskid(taskid : Union[List[str],str],
     
     return taskinfo
 
-def query_by_taskid_sync(taskid, 
-                         interval = 2.0, 
-                         timeout = 60.0, 
+def query_by_taskid_sync(taskid : Union[str, List[str]], 
+                         interval : float = 2.0, 
+                         timeout : float  = 60.0, 
                          dummy_path = Path.cwd() / 'dummy_server'):    
     '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
   
     Args:
         taskid (str): The taskid.
         interval (float): Interval time between two queries. (in seconds)
-        url (str, optional): The querying URL. Defaults to default_query_url.
+        timeout (float): Interval time between two queries. (in seconds)
+        dummy_path (str or Path, optional): Path for dummy storage. Defaults to Path.cwd()/'dummy_server'.
 
     Raises:
         RuntimeError: Taskid invalid.

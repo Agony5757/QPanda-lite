@@ -1,5 +1,11 @@
 from qpandalite.originir.parser import OriginIR_Parser
-from qpandalite.simulator import Simulator
+
+try:
+    from qpandalite.simulator import Simulator
+except ImportError as e:
+    # warning has been emitted in __init__.py
+    pass
+
 
 class OriginIR_Simulator:    
     def __init__(self, reverse_key = False):

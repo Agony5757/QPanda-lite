@@ -51,7 +51,6 @@ class OriginIR_Parser:
 
     @staticmethod
     def parse_line(line):
-      main
         
         try:
             q = None
@@ -67,7 +66,7 @@ class OriginIR_Parser:
                 c = int(line.strip().split()[1])
                 operation = 'CREG'
             elif line.startswith('H'):
-              operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('X'):
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('SX'):

@@ -1,6 +1,10 @@
 import time
 from typing import List, Union
 import qpandalite.simulator as sim
+try:
+    from qpandalite.simulator import OriginIR_Simulator
+except ImportError as e:
+    raise ImportError('You must install QPandaLiteCpp to enable the simulation.')
 from pathlib import Path
 import os
 import random
@@ -9,7 +13,15 @@ import hashlib
 
 from ..task_utils import *
 
-default_task_group_size = 200
+try:
+    with open('originq_online_config.json', 'r') as fp:
+        default_online_config = json.load(fp)
+    available_qubits = default_online_config['available_qubits']
+    available_topology = default_online_config['available_topology']
+    default_task_group_size = default_online_config['task_group_size']
+except Exception as e:
+    raise ImportError('originq_online_config.json is not found. '
+                      'It should be always placed at current working directory (cwd).')
 
 def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
     '''Create simulation storage for dummy simulation server.
@@ -85,8 +97,9 @@ def _random_taskid() -> str:
 
 def _submit_task_group(
     circuits, 
-    task_name, 
+    task_name,
     shots,
+    auto_mapping,
     savepath,
     dummy_path
 ):
@@ -114,7 +127,12 @@ def _submit_task_group(
     results = []
     for circuit in circuits:
         simulator = sim.OriginIR_Simulator()
-        prob_result = simulator.simulate(circuit)
+        if auto_mapping:
+            prob_result = simulator.simulate(circuit)
+        else:
+            prob_result = simulator.simulate(circuit, 
+                                            available_qubits=available_qubits,
+                                            available_topology=available_topology)
         n_qubits = simulator.qubit_num
         key = []
         value = []
@@ -134,6 +152,7 @@ def submit_task(
     circuit, 
     task_name = None, 
     shots = 1000,
+    auto_mapping = False,
     savepath = Path.cwd() / 'online_info',
     dummy_path = Path.cwd() / 'dummy_server'
 ):   
@@ -149,6 +168,7 @@ def submit_task(
             circuits = circuit, 
             task_name = task_name, 
             shots = shots,
+            auto_mapping = auto_mapping,
             savepath = savepath,
             dummy_path = dummy_path
         )
@@ -157,6 +177,7 @@ def submit_task(
             circuits = [circuit], 
             task_name = task_name, 
             shots = shots,
+            auto_mapping = auto_mapping,
             savepath = savepath,
             dummy_path = dummy_path
         )

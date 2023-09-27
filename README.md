@@ -52,7 +52,7 @@ git clone https://github.com/Agony5757/QPanda-lite.git
 cd QPanda-lite
 
 # install
-python setup.py install
+python setup.py install --no-cpp
 ```
 
 #### For development
@@ -69,7 +69,7 @@ git clone https://github.com/Agony5757/QPanda-lite.git
 cd QPanda-lite
 
 # install
-python setup.py install --has-cpp
+python setup.py install
 ```
 
 ### Build the docs

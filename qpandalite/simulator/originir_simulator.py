@@ -1,3 +1,4 @@
+from typing import List, Tuple
 from qpandalite.originir.parser import OriginIR_Parser
 
 try:
@@ -84,16 +85,54 @@ class OriginIR_Simulator:
             else:
                 self._add_used_qubit(int(qubit))
 
-    def simulate(self, originir):
+    def check_topology(self, available_qubits : List[int] = None):
+        
+        used_qubits = list(self.qubit_mapping.keys())
+        
+        # check qubits
+        for used_qubit in used_qubits:
+            if used_qubit not in available_qubits:                
+                raise ValueError('A invalid qubit is used. '
+                                 f'Available qubits: {available_qubits}\n'
+                                 f'Used: {used_qubit}.')
+
+    def simulate(self, 
+                 originir, 
+                 available_qubits : List[int] = None, 
+                 available_topology : List[List[int]] = None):
+        '''Simulate originir.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+            available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
+            available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
+
+        Returns:
+            _type_: _description_
+        '''
         # extract the actual used qubit, and build qubit mapping
         # like q45 -> 0, q46 -> 1, etc..
         self._clear()
         self.extract_actual_used_qubits(originir)
+
+        if available_qubits:
+            self.check_topology(available_qubits)
+
         self.simulator.init_n_qubit(len(self.qubit_mapping))
 
         lines = originir.splitlines()
-        for line in lines:            
+        for i, line in enumerate(lines):            
             operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
+            if isinstance(qubit, list) and available_topology:
+                if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
+                                                    'The dummy server does not support either. '
+                                                    'You should consider decomposite it.')
+                if ([qubit[0], qubit[1]] not in available_topology) and \
+                   ([qubit[1], qubit[0]] not in available_topology):
+                    raise ValueError(f'Unsupported topology in line {i} ({line}).')
+
             self.simulate_gate(operation, qubit, cbit, parameter)
         
         self.qubit_num = len(self.qubit_mapping)

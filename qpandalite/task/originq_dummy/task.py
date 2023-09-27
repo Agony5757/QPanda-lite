@@ -13,7 +13,15 @@ import hashlib
 
 from ..task_utils import *
 
-default_task_group_size = 200
+try:
+    with open('originq_online_config.json', 'r') as fp:
+        default_online_config = json.load(fp)
+    available_qubits = default_online_config['available_qubits']
+    available_topology = default_online_config['available_topology']
+    default_task_group_size = default_online_config['task_group_size']
+except Exception as e:
+    raise ImportError('originq_online_config.json is not found. '
+                      'It should be always placed at current working directory (cwd).')
 
 def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
     '''Create simulation storage for dummy simulation server.

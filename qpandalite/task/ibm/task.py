@@ -15,12 +15,8 @@ try:
     provider = qiskit_ibm_provider.IBMProvider(instance='ibm-q/open/main')
     
 except:
-    default_token = ''
-    default_submit_url = ''
-    default_query_url = ''
-    default_task_group_size = 0
-    warnings.warn('ibm_online_config.json is not found. '
-                  'It should be always placed at current working directory (cwd).')
+    raise ImportError('ibm_online_config.json is not found. '
+                      'It should be always placed at current working directory (cwd).')
     
 def submit_task(circuit,
                 task_name=None,

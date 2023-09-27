@@ -27,7 +27,7 @@ def get_token(pilot_api, login_url):
     try:
         with open('originq_online_config.json', 'r') as fp:
             default_online_config = json.load(fp)
-        default_online_config['default_token'] = token
+        default_online_config['state_token'] = token
         with open('originq_online_config.json', 'w') as fp:
             json.dump(default_online_config, fp)
     except:
@@ -39,20 +39,15 @@ def get_token(pilot_api, login_url):
 try:
     with open('originq_online_config.json', 'r') as fp:
         default_online_config = json.load(fp)
-    default_login_apitoken = default_online_config['default_login_apitoken']
-    default_login_url = default_online_config['default_login_url']    
+    default_login_apitoken = default_online_config['login_apitoken']
+    default_login_url = default_online_config['login_url']    
     default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
-    default_submit_url = default_online_config['default_submit_url']
-    default_query_url = default_online_config['default_query_url']
-    default_task_group_size = default_online_config['default_task_group_size']
+    default_submit_url = default_online_config['submit_url']
+    default_query_url = default_online_config['query_url']
+    default_task_group_size = default_online_config['task_group_size']
 except Exception as e:
-    raise e
-    default_token = ''
-    default_submit_url = ''
-    default_query_url = ''
-    default_task_group_size = 0
-    warnings.warn('originq_online_config.json is not found. '
-                  'It should be always placed at current working directory (cwd).')
+    raise ImportError('originq_online_config.json is not found. '
+                      'It should be always placed at current working directory (cwd).')
 
 
 def parse_response_body(response_body):

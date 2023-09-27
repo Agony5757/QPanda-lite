@@ -5,129 +5,133 @@ Author: Agony5757
 '''
 from copy import deepcopy
 
-class Gate:
-    def __init__(self):
-        pass
 
-    def __repr__(self) -> str:
-        pass
+'''Old codes
+'''
+if False:
+    class Gate:
+        def __init__(self):
+            pass
 
-    def is_parametric(self) -> bool:
-        pass
+        def __repr__(self) -> str:
+            pass
 
-    def involved_qubits(self) -> list:
-        pass
+        def is_parametric(self) -> bool:
+            pass
 
-    def assign_by_map(self, qubit_map):
-        pass
+        def involved_qubits(self) -> list:
+            pass
 
-class SingleQubitRotation(Gate):
-    def __init__(self, qubit, angle = 0):
-        if isinstance(angle, str):
-            self.parametric_angle = True
-        elif isinstance(angle, float):
-            self.parametric_angle = False
-        elif isinstance(angle, int):
-            self.parametric_angle = False
-        else:
-            raise RuntimeError(f'Cannot handle input (angle = {angle})')
+        def assign_by_map(self, qubit_map):
+            pass
 
-        if isinstance(qubit, str):
-            self.parametric_qubit = True
-        elif isinstance(qubit, int):
-            self.parametric_qubit = False
-        else:
-            raise RuntimeError(f'Cannot handle input (qubit = {qubit})')
+    class SingleQubitRotation(Gate):
+        def __init__(self, qubit, angle = 0):
+            if isinstance(angle, str):
+                self.parametric_angle = True
+            elif isinstance(angle, float):
+                self.parametric_angle = False
+            elif isinstance(angle, int):
+                self.parametric_angle = False
+            else:
+                raise RuntimeError(f'Cannot handle input (angle = {angle})')
 
-        self.qubit = qubit
-        self.angle = angle
-        self.gate_type = '[Abstract]SingleQubitRotation'
+            if isinstance(qubit, str):
+                self.parametric_qubit = True
+            elif isinstance(qubit, int):
+                self.parametric_qubit = False
+            else:
+                raise RuntimeError(f'Cannot handle input (qubit = {qubit})')
 
-    def is_parametric_angle(self) -> bool:
-        '''Return whether angle is parametric (not determined).
-        A parametric angle is represented by a str.
+            self.qubit = qubit
+            self.angle = angle
+            self.gate_type = '[Abstract]SingleQubitRotation'
 
-        Returns:
-            bool: True if parametric. False if it is concrete.
-        '''
-        return self.parametric_angle
-    
-    def is_parametric_qubit(self) -> bool:
-        '''Return whether qubit is parametric (not determined).
+        def is_parametric_angle(self) -> bool:
+            '''Return whether angle is parametric (not determined).
+            A parametric angle is represented by a str.
 
-        Returns:
-            bool: True if parametric. False if it is concrete.
-        '''
-        return self.parametric_qubit
+            Returns:
+                bool: True if parametric. False if it is concrete.
+            '''
+            return self.parametric_angle
+        
+        def is_parametric_qubit(self) -> bool:
+            '''Return whether qubit is parametric (not determined).
 
-    def is_parametric(self) -> bool:
-        '''Return whether this gate is parametric gate. 
-        Parametric gate: either qubit or angle is parametric.
+            Returns:
+                bool: True if parametric. False if it is concrete.
+            '''
+            return self.parametric_qubit
 
-        Returns:
-            bool: True if parametric. False if it is concrete.
-        '''
-        return self.is_parametric_angle() or self.is_parametric_qubit()
+        def is_parametric(self) -> bool:
+            '''Return whether this gate is parametric gate. 
+            Parametric gate: either qubit or angle is parametric.
 
-    def __repr__(self) -> str:  
-        return "{}({}) q[{}]".format(self.gate_type, self.angle, self.qubit)
+            Returns:
+                bool: True if parametric. False if it is concrete.
+            '''
+            return self.is_parametric_angle() or self.is_parametric_qubit()
 
-    def involved_qubits(self) -> list:
-        '''Return the involved qubit of this gate.
+        def __repr__(self) -> str:  
+            return "{}({}) q[{}]".format(self.gate_type, self.angle, self.qubit)
 
-        Returns:
-            list: the list of involved qubits.
-        '''
-        return [self.qubit]
-    
-    def assign_by_map(self, qubit_map):
-        '''Replace the qubit id by assigning the qubit map.
+        def involved_qubits(self) -> list:
+            '''Return the involved qubit of this gate.
 
-        Args:
-            qubit_map (dict): Python dict. Key: before replacement; Value: after replacement
+            Returns:
+                list: the list of involved qubits.
+            '''
+            return [self.qubit]
+        
+        def assign_by_map(self, qubit_map):
+            '''Replace the qubit id by assigning the qubit map.
 
-        Raises:
-            RuntimeError: Raise when qubit_map does not contain the corresponding qubit.
+            Args:
+                qubit_map (dict): Python dict. Key: before replacement; Value: after replacement
 
-        Returns:
-            Gate: the same type as "self"
-        '''
-        obj = deepcopy(self)
-        if self.qubit not in qubit_map:     
-            raise RuntimeError('Assign failed. Involved qubit: {}, qubit_map: {}'.format(self.qubit, qubit_map))
-        obj.qubit = qubit_map[self.qubit]
-        return obj
+            Raises:
+                RuntimeError: Raise when qubit_map does not contain the corresponding qubit.
 
-class Rx(SingleQubitRotation):
-    def __init__(self, qubit, angle = 0.0):
-        '''Create Rx gate object
+            Returns:
+                Gate: the same type as "self"
+            '''
+            obj = deepcopy(self)
+            if self.qubit not in qubit_map:     
+                raise RuntimeError('Assign failed. Involved qubit: {}, qubit_map: {}'.format(self.qubit, qubit_map))
+            obj.qubit = qubit_map[self.qubit]
+            return obj
 
-        Args:
-            qubit (int): the qubit id
-            angle (float, optional): the rotation angle. Defaults to 0.0.
-        '''
-        super().__init__(qubit, angle)
-        self.gate_type = 'Rx'
+    class Rx(SingleQubitRotation):
+        def __init__(self, qubit, angle = 0.0):
+            '''Create Rx gate object
 
-class Ry(SingleQubitRotation):
-    def __init__(self, qubit, angle = 0):
-        '''Create Ry gate object
+            Args:
+                qubit (int): the qubit id
+                angle (float, optional): the rotation angle. Defaults to 0.0.
+            '''
+            super().__init__(qubit, angle)
+            self.gate_type = 'Rx'
 
-        Args:
-            qubit (int): the qubit id
-            angle (float, optional): the rotation angle. Defaults to 0.0.
-        '''
-        super().__init__(self, qubit, angle)
-        self.gate_type = 'Ry'
+    class Ry(SingleQubitRotation):
+        def __init__(self, qubit, angle = 0):
+            '''Create Ry gate object
 
-class Rz(SingleQubitRotation):
-    def __init__(self, qubit, angle = 0):
-        '''Create Rz gate object
+            Args:
+                qubit (int): the qubit id
+                angle (float, optional): the rotation angle. Defaults to 0.0.
+            '''
+            super().__init__(self, qubit, angle)
+            self.gate_type = 'Ry'
 
-        Args:
-            qubit (int): the qubit id
-            angle (float, optional): the rotation angle. Defaults to 0.0.
-        '''
-        super().__init__(self, qubit, angle)
-        self.gate_type = 'Rz'
+    class Rz(SingleQubitRotation):
+        def __init__(self, qubit, angle = 0):
+            '''Create Rz gate object
+
+            Args:
+                qubit (int): the qubit id
+                angle (float, optional): the rotation angle. Defaults to 0.0.
+            '''
+            super().__init__(self, qubit, angle)
+            self.gate_type = 'Rz'
 

@@ -97,8 +97,9 @@ def _random_taskid() -> str:
 
 def _submit_task_group(
     circuits, 
-    task_name, 
+    task_name,
     shots,
+    auto_mapping,
     savepath,
     dummy_path
 ):
@@ -126,7 +127,12 @@ def _submit_task_group(
     results = []
     for circuit in circuits:
         simulator = sim.OriginIR_Simulator()
-        prob_result = simulator.simulate(circuit)
+        if auto_mapping:
+            prob_result = simulator.simulate(circuit)
+        else:
+            prob_result = simulator.simulate(circuit, 
+                                            available_qubits=available_qubits,
+                                            available_topology=available_topology)
         n_qubits = simulator.qubit_num
         key = []
         value = []
@@ -146,6 +152,7 @@ def submit_task(
     circuit, 
     task_name = None, 
     shots = 1000,
+    auto_mapping = False,
     savepath = Path.cwd() / 'online_info',
     dummy_path = Path.cwd() / 'dummy_server'
 ):   
@@ -161,6 +168,7 @@ def submit_task(
             circuits = circuit, 
             task_name = task_name, 
             shots = shots,
+            auto_mapping = auto_mapping,
             savepath = savepath,
             dummy_path = dummy_path
         )
@@ -169,6 +177,7 @@ def submit_task(
             circuits = [circuit], 
             task_name = task_name, 
             shots = shots,
+            auto_mapping = auto_mapping,
             savepath = savepath,
             dummy_path = dummy_path
         )

@@ -129,8 +129,8 @@ class OriginIR_Simulator:
                 if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
                                                     'The dummy server does not support either. '
                                                     'You should consider decomposite it.')
-                if ([qubit[0], qubit[1]] not in available_topology) and \
-                   ([qubit[1], qubit[0]] not in available_topology):
+                if ([int(qubit[0]), int(qubit[1])] not in available_topology) and \
+                   ([int(qubit[1]), int(qubit[0])] not in available_topology):
                     raise ValueError(f'Unsupported topology in line {i} ({line}).')
 
             self.simulate_gate(operation, qubit, cbit, parameter)

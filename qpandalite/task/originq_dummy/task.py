@@ -120,7 +120,10 @@ def _submit_task_group(
         # recursively call, and return a list of taskid
         return [_submit_task_group(group, 
                 '{}_{}'.format(task_name, i), 
-                shots, savepath, dummy_path) for i, group in enumerate(groups)]
+                shots, 
+                auto_mapping,
+                savepath, 
+                dummy_path) for i, group in enumerate(groups)]
     
     # generate taskid
     taskid = _random_taskid()

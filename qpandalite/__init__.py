@@ -1,6 +1,11 @@
 from .circuit_builder import Circuit
 from .originir import OriginIR_Parser
-from .simulator import OriginIR_Simulator
+try:
+    from .simulator import OriginIR_Simulator
+except:
+    # warning has been omitted in the submodule.
+    pass
+
 from .analyzer import convert_originq_result, calculate_expectation, shots2prob, kv2list
 from .qcloud_config.originq_online_config import create_originq_online_config
 from .qcloud_config.quafu_online_config import create_quafu_online_config

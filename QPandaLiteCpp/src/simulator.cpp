@@ -237,7 +237,7 @@ namespace qpandalite{
         {
             if ((i >> qn) & 1)
             {
-                state[i] *= std::complex(cos(angle), -sin(angle));
+                state[i] *= std::complex(cos(angle), sin(angle));
             }
         }
     }

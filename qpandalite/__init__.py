@@ -1,4 +1,4 @@
-from .circuit_builder import *
+from .circuit_builder import Circuit
 from .originir import OriginIR_Parser
 from .simulator import OriginIR_Simulator
 from .analyzer import convert_originq_result, calculate_expectation, shots2prob, kv2list

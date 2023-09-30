@@ -1,5 +1,6 @@
 import time
 from typing import List, Union
+import warnings
 import qpandalite.simulator as sim
 try:
     from qpandalite.simulator import OriginIR_Simulator
@@ -20,8 +21,11 @@ try:
     available_topology = default_online_config['available_topology']
     default_task_group_size = default_online_config['task_group_size']
 except Exception as e:
-    raise ImportError('originq_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
+    warnings.warn(ImportWarning('originq_online_config.json is not found. '
+                'It should be always placed at current working directory (cwd).'))
+    available_qubits = []
+    available_topology = []
+    default_task_group_size = 200
 
 def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
     '''Create simulation storage for dummy simulation server.
@@ -154,12 +158,18 @@ def _submit_task_group(
 def submit_task(
     circuit, 
     task_name = None, 
+    tasktype = None, # dummy parameter
+    chip_id = None, # dummy parameter
     shots = 1000,
+    circuit_optimize = True, # dummy parameter
+    measurement_amend = False, # dummy parameter
     auto_mapping = False,
+    specified_block = None, # dummy parameter
     savepath = Path.cwd() / 'online_info',
+    url = None, # dummy parameter
     dummy_path = Path.cwd() / 'dummy_server'
 ):   
-    '''submit circuits or a single circuit
+    '''submit circuits or a single circuit (DUMMY)
     '''
     
     if isinstance(circuit, list):
@@ -245,6 +255,7 @@ def query_by_taskid(taskid : Union[List[str],str],
 def query_by_taskid_sync(taskid : Union[str, List[str]], 
                          interval : float = 2.0, 
                          timeout : float  = 60.0, 
+                         retry : int = 0,
                          dummy_path = Path.cwd() / 'dummy_server'):    
     '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
   
@@ -272,8 +283,6 @@ def query_by_taskid_sync(taskid : Union[str, List[str]],
         if now - starttime > timeout:
             raise TimeoutError(f'Reach the maximum timeout.')
         
-        time.sleep(interval)
-
         taskinfo = query_by_taskid(taskid, dummy_path=dummy_path)
         if taskinfo['status'] == 'running':
             continue
@@ -284,6 +293,7 @@ def query_by_taskid_sync(taskid : Union[str, List[str]],
             errorinfo = taskinfo['result']
             raise RuntimeError(f'Failed to execute, errorinfo = {errorinfo}')
         
+        time.sleep(interval)
 
 def query_all_task(dummy_path = Path.cwd() / 'dummy_server', 
                    savepath = None): 

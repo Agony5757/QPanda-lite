@@ -117,7 +117,7 @@ class OriginIR_Simulator:
         self._clear()
         self.extract_actual_used_qubits(originir)
 
-        if available_qubits:
+        if available_qubits is not None:
             self.check_topology(available_qubits)
 
         self.simulator.init_n_qubit(len(self.qubit_mapping))
@@ -125,7 +125,7 @@ class OriginIR_Simulator:
         lines = originir.splitlines()
         for i, line in enumerate(lines):            
             operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
-            if isinstance(qubit, list) and available_topology:
+            if isinstance(qubit, list) and (available_topology is not None):
                 if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
                                                     'The dummy server does not support either. '
                                                     'You should consider decomposite it.')

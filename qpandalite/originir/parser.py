@@ -11,7 +11,7 @@ class OriginIR_Parser:
     rbracket = r'\)'
     parameter = r'(-?\d+(\.\d*)?([eE][-+]?\d+)?)'
     regexp_1q_str = '^' + opname + blank + qid + '$'
-    regexp_2q_str = '^' + opname + blank + qid + blank + comma + qid + '$'
+    regexp_2q_str = '^' + opname + blank + qid + blank + comma + blank + qid + '$'
     regexp_1q1p_str = ('^' + 
                         opname + blank + 
                         qid + blank +  
@@ -159,6 +159,14 @@ if __name__ == '__main__':
     print(matches.group(7)) #
     print(matches.group(8)) #
     
+    
+    print(OriginIR_Parser.regexp_2q_str)
+    matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')
+    print(matches.group(0)) 
+    print(matches.group(1)) # CNOT
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # 46
+
     print(OriginIR_Parser.regexp_measure_str)
     matches = OriginIR_Parser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
     print(matches.group(0))

@@ -3,9 +3,10 @@
 
 from copy import deepcopy
 import numpy as np
-from typing import Dict
+from typing import Dict, Union, List
 
-def convert_originq_result(key_value_result : Dict[str, int], 
+def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
+                                                    Dict[str, int]], 
                            style = 'keyvalue', 
                            prob_or_shots = 'prob',
                            reverse_key = False):
@@ -24,6 +25,10 @@ def convert_originq_result(key_value_result : Dict[str, int],
     Returns:
         Dict/List: Adapted format given by arguments. 
     '''
+
+    if isinstance(key_value_result, list):
+        return [convert_originq_result(result) for result in key_value_result]
+
     keys = deepcopy(key_value_result['key'])
     if reverse_key:
         for i in range(len(keys)):

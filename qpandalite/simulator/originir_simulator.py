@@ -140,7 +140,6 @@ class OriginIR_Simulator:
         measure_qubit = []
         for qubit in measure_qubit_cbit:
             measure_qubit.append(qubit[0])
-
         prob_list = self.simulator.pmeasure(measure_qubit)
         return prob_list
     

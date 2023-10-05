@@ -30,6 +30,16 @@ class Circuit:
         header = self.make_header()
         measure = self.make_measure()
         return header + self.circuit_str + measure
+    
+    @property
+    def originir(self):
+        header = self.make_header()
+        measure = self.make_measure()
+        return header + self.circuit_str + measure
+    
+    @property
+    def qasm(self):
+        raise NotImplementedError('QASM support will be released in future.')
 
     def record_qubit(self, *qubits):
         for qubit in qubits:
@@ -100,6 +110,7 @@ class Circuit:
         c.max_qubit = max(c.used_qubit_list)
 
         return c
+
 
 if __name__ == '__main__':
     import qpandalite

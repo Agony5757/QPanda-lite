@@ -97,21 +97,20 @@ There are several ways to use QPanda-lite now.
 Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/originq_template.py)
 
 - Input the necessary information (token, urls, group_size) to call <font face ='consolas' style="background:#F5F5F5">create_originq_online_config</font>
-- You will have the <font face ='consolas' style="background:#F5F5F5">originq_online_config.json</font> in your cwd.
+- You will have the <font face ='consolas' style="background:#F5F5F5">originq_online_config.json</font> in your current working directory (cwd).
 - Now you can submit task to the online chip!
-- (Note: if you fail to submit task, replace the token with the newest in json or this template and rerun.)
 
-#### Step 2. Create the circuit and run
+#### Step 1.1 (Optional). Use originq_dummy
 
-Refer to [test/verify_real_chip_bitsequence_origin](test/verify_real_chip_bitsequence_origin)
+Dummy server is used to emulate the behavior of an online-avaiable quantum computing server, without really accessing the system but with your local computer to simulate the quantum circuit.
 
-- Step 0: Create the online config and import the originq module like this: <font face ='consolas' style="background:#F5F5F5">from qpandalite.task.originq import *</font>
-- Step 1.1: Prepare circuits written in OriginIR format (as <font face ='consolas' style="background:#F5F5F5">List[str]</font>)
-- Step 1.2: Call <font face ='consolas' style="background:#F5F5F5">submit_task_group</font> and you will find the taskid is recorded to the <font face ='consolas' style="background:#F5F5F5">savepath</font> (Note: the upper limit count for quantum circuits is <font face ='consolas' style="background:#F5F5F5">default_task_group_size</font>)
-- Step 2.1: Use <font face ='consolas' style="background:#F5F5F5">load_all_online_info</font> to load all taskids (as well as your taskname)
-- Step 2.2: Use <font face ='consolas' style="background:#F5F5F5">query_all_task</font> to fetch the data from the platform. If not finished, it will not be fetched and return without waiting.
-- Step 2.3: Use <font face ='consolas' style="background:#F5F5F5">query_by_taskid</font> is also available for fetching a single task result. It will return without waiting if the task is not finished.
-- Step 3: Delete / move the online_info(savepath) folder to restore everything.
+- Input the necessary information (available_qubits and available_topology) to call <font face ='consolas' style="background:#F5F5F5">create_originq_dummy_config</font>.
+
+- If you want both mode, use <font face ='consolas' style="background:#F5F5F5">create_originq_config</font> and inputting all needed information.
+
+#### Step 2. Create the circuits and run
+
+Refer to [test/demo](test/demo)
 
 ### Circuit run on Quafu Device 
 
@@ -122,20 +121,21 @@ Refer to [qcloud_config_template/quafu_template.py](qcloud_config_template/quafu
 - Input the necessary information (token, urls, group_size) to call <font face ='consolas' style="background:#F5F5F5">create_quafu_online_config</font>
 - You will have the <font face ='consolas' style="background:#F5F5F5">quafu_online_config.json</font> in your cwd.
 - Now you can submit task to the online chip!
+
 #### Step 2. Create the circuit and run
 
-Refer to [test/verify_real_chip_bitsequence_quafu](test/verify_real_chip_bitsequence_quafu)
+Todo.
 
-### Circuit build (unfinished)
+### Circuit build
 
-Refer to [test/draft_test/circuit_builder_test.py](test/draft_test/circuit_builder_test.py)
+Refer to [test/demo](test/demo)
 
 ```python
 from qpandalite import Circuit
 
-c = Circuit('hello')
-c.rx(1, angle = 0.1)
-print(c)
+c = Circuit()
+c.rx(1, 0.1)
+print(c.circuit)
 ```
 
 ### Circuit simulation

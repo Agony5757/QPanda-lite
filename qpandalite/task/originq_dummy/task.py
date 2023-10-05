@@ -32,7 +32,7 @@ class DummyCacheContainer:
         self.cached_results = dict()
     
     def write_dummy_cache(self, taskid, result_body):
-        if taskid in self.cached_reuslts:
+        if taskid in self.cached_results:
             raise ValueError('Impossible to have same taskid in the same cache container.')
     
         self.cached_results[taskid] = result_body
@@ -169,10 +169,11 @@ def _submit_task_group(
         key = []
         value = []
 
-        # get shots from probability list
+        # get probs from probability list
+        # Note: originq server will directly produce prob list instead of shots list.
         for i, meas_result in enumerate(prob_result):
-            key.append(bin(i)[2:].zfill(n_qubits))
-            value.append(meas_result * shots)
+            key.append(bin(i)[2:].zfill(len(simulator.measure_qubit)))
+            value.append(meas_result)
         results.append({'key':key, 'value': value})
     
     # write cache, ready for loading results
@@ -185,7 +186,7 @@ def submit_task(
     task_name = None, 
     tasktype = None, # dummy parameter
     chip_id = None, # dummy parameter
-    shots = 1000,
+    shots = 1000, # dummy parameter. Note: originq server will directly output prob instead of shots.
     circuit_optimize = True, # dummy parameter
     measurement_amend = False, # dummy parameter
     auto_mapping = False,
@@ -205,7 +206,7 @@ def submit_task(
         taskid = _submit_task_group(
             circuits = circuit, 
             task_name = task_name, 
-            shots = shots,
+            shots = 0,
             auto_mapping = auto_mapping,
             savepath = savepath,
             dummy_path = dummy_path
@@ -214,7 +215,7 @@ def submit_task(
         taskid = _submit_task_group(
             circuits = [circuit], 
             task_name = task_name, 
-            shots = shots,
+            shots = 0,
             auto_mapping = auto_mapping,
             savepath = savepath,
             dummy_path = dummy_path

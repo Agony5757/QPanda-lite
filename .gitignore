@@ -168,3 +168,4 @@ qcloud_config_template/ibm_template.py
 test/make_online_config/
 history/
 online_info/
+dummy_server/

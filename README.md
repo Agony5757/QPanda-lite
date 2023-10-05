@@ -1,6 +1,7 @@
 # QPanda-lite
 
 [![Documentation Status](https://readthedocs.org/projects/qpanda-lite/badge/?version=latest)](https://qpanda-lite.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/qpandalite.svg)](https://badge.fury.io/py/qpandalite)
       
 QPanda: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplication
 

@@ -27,6 +27,24 @@ except Exception as e:
     available_topology = []
     default_task_group_size = 200
 
+class DummyCacheContainer:
+    def __init__(self) -> None:
+        self.cached_results = dict()
+    
+    def write_dummy_cache(self, taskid, result_body):
+        if taskid in self.cached_reuslts:
+            raise ValueError('Impossible to have same taskid in the same cache container.')
+    
+        self.cached_results[taskid] = result_body
+    
+    def load_dummy_cache(self, taskid):
+        if taskid in self.cached_results:
+            return self.cached_results[taskid]        
+        else:
+            return None
+
+dummy_cache_container = DummyCacheContainer()
+
 def _create_dummy_cache(dummy_path = Path.cwd() / 'dummy_server'):
     '''Create simulation storage for dummy simulation server.
 
@@ -66,6 +84,8 @@ def _write_dummy_cache(taskid,
 
         fp.write(json.dumps(result_body) + '\n')
 
+    dummy_cache_container.write_dummy_cache(taskid, result_body)
+
 def _load_dummy_cache(taskid, dummy_path = Path.cwd() / 'dummy_server'):        
     '''Write simulation results to dummy server.
 
@@ -74,11 +94,16 @@ def _load_dummy_cache(taskid, dummy_path = Path.cwd() / 'dummy_server'):
         dummy_path (str or Path, optional): Path for dummy storage. Defaults to Path.cwd()/'dummy_server'.
 
     Returns:
+        result (Dict): The result which emulates the results produced by query_by_taskid
     '''
 
     if not os.path.exists(dummy_path):
         os.makedirs(dummy_path)
 
+    result = dummy_cache_container.load_dummy_cache(taskid)
+    if result is not None:
+        return result
+    
     with open(dummy_path / 'dummy_result.jsonl', 'r') as fp:
         lines = fp.read().strip().splitlines()
         for line in lines[::-1]:

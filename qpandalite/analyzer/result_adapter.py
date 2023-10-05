@@ -13,7 +13,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     '''OriginQ result general adapter. Return adapted format given by the arguments. 
 
     Args:
-        key_value_result (Dict[str, int]): The raw result produced by machine.
+        key_value_result (Dict[str, int] or a list of Dict[str, int]): The raw result produced by machine.
         style (str): Accepts "keyvalue" or "list". Defaults to 'keyvalue'.
         prob_or_shots (str): Accepts "prob" or "shots". Defaults to 'prob'.
         reverse_key (bool, optional): Reverse the key (Change endian). Defaults to False.
@@ -23,7 +23,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
         ValueError: prob_or_shots is not "prob" or "shots"
 
     Returns:
-        Dict/List: Adapted format given by arguments. 
+        Dict/List: Adapted format given by arguments, or a list corresponding to the "List" input.
     '''
 
     if isinstance(key_value_result, list):
@@ -50,7 +50,8 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     else:
         raise ValueError('style only accepts "keyvalue" or "list".')
 
-def shots2prob(measured_result : dict, total_shots = None):
+def shots2prob(measured_result : Dict[str, int], 
+               total_shots = None):
     if not total_shots:
         total_shots = np.sum(list(measured_result.values()))
 

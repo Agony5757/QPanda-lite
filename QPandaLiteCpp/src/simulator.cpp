@@ -57,6 +57,26 @@ namespace qpandalite{
         }
     }
 
+    void Simulator::y(size_t qn)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i >> qn) & 1)
+            {
+                std::swap(state[i], state[i - pow2(qn)]);
+                state[i - pow2(qn)] *= -1i;
+                state[i] *= 1i;
+            }
+        }
+    }
+
     void Simulator::z(size_t qn)
     {
         if (qn >= total_qubit)
@@ -167,6 +187,37 @@ namespace qpandalite{
         }
     }
 
+    void Simulator::xy(size_t qn1, size_t qn2)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn1 == qn2)
+        {
+            auto errstr = fmt::format("qn1 = qn2");
+            ThrowInvalidArgument(errstr);
+        }
+
+        using namespace std::literals::complex_literals;
+        // TODO
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
+            {
+                std::swap(state[i], state[i + pow2(qn1) - pow2(qn2)]);
+                state[i] *= 1i;
+                state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+            }
+
+        }
+    }
     void Simulator::cnot(size_t controller, size_t target)
     {
         if (controller >= total_qubit)
@@ -206,6 +257,24 @@ namespace qpandalite{
         using namespace std::literals::complex_literals;
         u22_t unitary = {cos(angle / 2), -sin(angle / 2) * 1i,
                          -sin(angle / 2) * 1i, cos(angle / 2)};
+
+        u22(qn, unitary);
+    }
+
+
+    void Simulator::sx(size_t qn)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        u22_t unitary;
+        unitary[0] = 0.5 * std::complex<double>(1, 1);
+        unitary[1] = 0.5 * std::complex<double>(1, -1);
+        unitary[2] = 0.5 * std::complex<double>(1, -1);
+        unitary[3] = 0.5 * std::complex<double>(1, 1);
 
         u22(qn, unitary);
     }

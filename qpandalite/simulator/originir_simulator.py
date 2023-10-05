@@ -33,6 +33,10 @@ class OriginIR_Simulator:
             self.simulator.hadamard(self.qubit_mapping[int(qubit)])
         elif operation == 'X':
             self.simulator.x(self.qubit_mapping[int(qubit)])
+        elif operation == 'SX':
+            self.simulator.sx(self.qubit_mapping[int(qubit)])
+        elif operation == 'Y':
+            self.simulator.y(self.qubit_mapping[int(qubit)])
         elif operation == 'Z':
             self.simulator.z(self.qubit_mapping[int(qubit)])
         elif operation == 'CZ':
@@ -40,6 +44,9 @@ class OriginIR_Simulator:
                               self.qubit_mapping[int(qubit[1])])
         elif operation == 'ISWAP':
             self.simulator.iswap(self.qubit_mapping[int(qubit[0])], 
+                                self.qubit_mapping[int(qubit[1])])
+        elif operation == 'XY':
+            self.simulator.xy(self.qubit_mapping[int(qubit[0])], 
                                 self.qubit_mapping[int(qubit[1])])
         elif operation == 'CNOT':
             self.simulator.cnot(self.qubit_mapping[int(qubit[0])], 

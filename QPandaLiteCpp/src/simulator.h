@@ -80,8 +80,11 @@ namespace qpandalite {
         void u22(size_t qn, const u22_t &unitary);
         void x(size_t qn);
         void z(size_t qn);
+        void y(size_t qn);
+        void sx(size_t qn);
         void cz(size_t qn1, size_t qn2);
         void iswap(size_t qn1, size_t qn2);
+        void xy(size_t qn1, size_t qn2);
         void cnot(size_t controller, size_t target);
         void rx(size_t qn, double angle);
         void ry(size_t qn, double angle);

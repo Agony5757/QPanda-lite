@@ -104,11 +104,17 @@ class OriginIR_Parser:
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('X'):
                 operation, q = OriginIR_Parser.handle_1q(line)
+            elif line.startswith('SX'):
+                operation, q = OriginIR_Parser.handle_1q(line)
+            elif line.startswith('Y'):
+                operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('Z'):
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('CZ'):
                 operation, q = OriginIR_Parser.handle_2q(line)
             elif line.startswith('ISWAP'):
+                operation, q = OriginIR_Parser.handle_2q(line)
+            elif line.startswith('XY'):
                 operation, q = OriginIR_Parser.handle_2q(line)
             elif line.startswith('CNOT'):
                 operation, q = OriginIR_Parser.handle_2q(line)

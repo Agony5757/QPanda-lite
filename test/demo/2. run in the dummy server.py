@@ -64,8 +64,7 @@ def build_circuit(mapping):
     c = c.remapping(mapping)
     return c.circuit
 
-if __name__ == '__main__':
-
+def demo_2():
     # Note that this 'create config' only needs to be executed once. You will see your originq_online_config.json in your current working directory.
     qpandalite.create_originq_dummy_config(
         available_qubits=[10, 11, 12, 13],
@@ -119,3 +118,7 @@ if __name__ == '__main__':
     if task_status_and_result['status'] == 'success':
         result = task_status_and_result['result']
         print(result)
+
+
+if __name__ == '__main__':
+    demo_2()

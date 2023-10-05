@@ -31,8 +31,8 @@ def build_circuit(mapping):
     c = c.remapping(mapping)
     return c.circuit
 
-if __name__ == '__main__':
-
+def demo_3():
+    
     mapping = {0 : 10, 1: 11, 2: 12, 3: 13}
     circuit = build_circuit(mapping)
     taskid = originq.submit_task(circuit, shots = 1000, task_name='some test')
@@ -57,3 +57,6 @@ if __name__ == '__main__':
             for result in results]
     print(exps)
 
+
+if __name__ == '__main__':
+    demo_3()

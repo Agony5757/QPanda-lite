@@ -1,4 +1,6 @@
-from qpandalite import create_originq_online_config
+from qpandalite import (create_originq_online_config,
+                        create_originq_dummy_config,
+                        create_originq_config)
 
 if __name__ == '__main__':
 
@@ -24,10 +26,11 @@ if __name__ == '__main__':
     # quantum circuits contained in a single task. (default = 200)
     task_group_size = 200
 
-    create_originq_online_config(login_apitoken = apitoken, 
-                                 login_url = login_url,
-                                 submit_url = submit_url, 
-                                 query_url = query_url, 
-                                 available_qubits = available_qubits,
-                                 available_topology = available_topology,
-                                 task_group_size = task_group_size)
+    # see also create_originq_online_config and create_originq_dummy_config
+    create_originq_config(login_apitoken = apitoken, 
+                          login_url = login_url,
+                          submit_url = submit_url, 
+                          query_url = query_url, 
+                          available_qubits = available_qubits,
+                          available_topology = available_topology,
+                          task_group_size = task_group_size)

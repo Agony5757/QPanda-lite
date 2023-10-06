@@ -93,6 +93,17 @@ There are several ways to use QPanda-lite now.
 
 ### Circuit run on OriginQ Device 
 
+
+| Function  | Code sample | Explanation | 
+|----------------|--------------|--------------|
+| "Import" the platform | import qpandalite.task.originq as originq  | This importing is independent from "import qpandalite". Available platforms are under qpandalite.task
+| Prepare the account |  | See [qcloud_config_template](qcloud_config_template)
+| Task submission | taskid = originq.submit_task(circuits)| Circuits is str or List[str]. Returned taskid can be either list or one str, depending on the number of inputting circuits. All returns are native python data structures. |   
+| Query (synchronously)  |  results = originq.query_by_taskid_sync(taskid) | Inputting the taskid by the return of submit_task. The results are always a list (even if you only submit one circuit). All returns are native python data structures. |
+| Query (asynchronously)  | status_and_result = originq.query_by_taskid(taskid)  | Inputting taskid is exactly the same with the taskid. This will immediately return without waiting. Use status_and_result['status'] to see if the computing is finished; use status_and_result['result'] to view results (the same with Query (synchronously), always being a list). All returns are native python data structures. |
+| Handle measurement result | results = originq.convert_originq_result(results, style = 'keyvalue', prob_or_shots = 'prob') | Convert the raw data to a more human-friendly format. Style includes "keyvalue" and "list", prob_or_shots includes "prob" and "shots". When inputting a list, the output is also a list corresponding to all inputs. All returns are native python data structures. |
+| Calculate expectation | exps = [calculate_expectation(result, ['ZII', 'IZI', 'IIZ']) for result in results] | Calculate the Z/I expectations accroding to the measurement results. Note that it only accepts the diagonal Hamiltonians. The hamiltonians can be a list, where the output is also a list. However, the input "result" cannot be a list.|
+
 #### Step 1. Create online config
 
 Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/originq_template.py)
@@ -136,8 +147,19 @@ from qpandalite import Circuit
 
 c = Circuit()
 c.rx(1, 0.1)
+c.cnot(1, 0)
+measure(0, 1, 2, 3)
 print(c.circuit)
 ```
+
+| Function  | Code sample | Explanation | 
+|----------------|--------------|--------------|
+| Circuit initialization | c = qpandalite.Circuit() |    
+| Qubit/cbit initialization | | No need to specify the number |   
+| Gate (like CNOT)    |  c.cnot(1,2)  | Directly use the qubit number |   
+| Measure | c.measure(0,1,2)    | Directly use the qubit number (no support mid-circuit measurement) |   
+| Remap | c = c.remapping({0:10, 1:11, 2:12}) | Input a python dict to indicate the mapping. It creates a new Circuit object. |
+| Output as str | c.circuit / c.originir | Return a python str |
 
 ### Circuit simulation
 

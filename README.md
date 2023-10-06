@@ -83,15 +83,15 @@ For python 3.8 to 3.10
 pip install qpandalite
 ```
 
-## Examples
+## Tutorials
 
 There are several ways to use QPanda-lite now.
 
-- Circuit building (not supported now)
-- Circuit simulation (not supported now)
-- Run circuit on several backends
+- Circuit building
+- Run circuit on several backends / dummies (classical-simulation backends)
+- Circuit simulation
 
-### Circuit build
+### 1. Circuit build
 
 Refer to [test/demo](test/demo)
 
@@ -114,7 +114,7 @@ print(c.circuit)
 | Remap | c = c.remapping({0:10, 1:11, 2:12}) | Input a python dict to indicate the mapping. It creates a new Circuit object. |
 | Output as str | c.circuit / c.originir | Return a python str |
 
-### Circuit run on OriginQ Device 
+### 2. Circuit run on Quantum Devices / Dummies
 
 
 | Function  | Code sample | Explanation | 
@@ -127,6 +127,7 @@ print(c.circuit)
 | Handle measurement result | results = originq.convert_originq_result(results, style = 'keyvalue', prob_or_shots = 'prob') | Convert the raw data to a more human-friendly format. Style includes "keyvalue" and "list", prob_or_shots includes "prob" and "shots". When inputting a list, the output is also a list corresponding to all inputs. All returns are native python data structures. |
 | Calculate expectation | exps = [calculate_expectation(result, ['ZII', 'IZI', 'IIZ']) for result in results] | Calculate the Z/I expectations accroding to the measurement results. Note that it only accepts the diagonal Hamiltonians. The hamiltonians can be a list, where the output is also a list. However, the input "result" cannot be a list.|
 
+### 2.1 OriginQ
 #### Step 1. Create online config
 
 Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/originq_template.py)
@@ -147,7 +148,7 @@ Dummy server is used to emulate the behavior of an online-avaiable quantum compu
 
 Refer to [test/demo](test/demo)
 
-### Circuit run on Quafu Device 
+### 2.2 Circuit run on Quafu Device 
 
 #### Step 1. Create online config
 
@@ -161,12 +162,15 @@ Refer to [qcloud_config_template/quafu_template.py](qcloud_config_template/quafu
 
 Todo.
 
-### Circuit simulation
+### 2.3 Circuit run on IBM Device 
+
+Todo.
+
+### 3. Circuit simulation
 
 Refer to [test/draft_test/originir_simulator_test.py](test/draft_test/originir_simulator_test.py)
 
 ```python
-
 import qpandalite.simulator as qsim
 
 sim = qsim.OriginIR_Simulator(reverse_key=False)
@@ -194,8 +198,5 @@ print(sim.state)
 # [(0.4818584546987789+0j), (-0.21429383059121812+0j), (0.7824381298928546+0j), (0.33118145584500897+0j), 0j, 0j, 0j, 0j]
 ```
 
-#### Note: Have ImportError? <font face ='consolas' style="background:#F5F5F5">ImportError:qpandalite is not install with QPandaLiteCpp</font>. 
-You should install with QPandaLiteCpp before importing <font face ='consolas' style="background:#F5F5F5">qpandalite.simulator  </font>
-
-## Documentation
+## Documentation (not finished)
 [Readthedocs: https://qpanda-lite.readthedocs.io/](https://qpanda-lite.readthedocs.io/)

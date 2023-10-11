@@ -6,6 +6,7 @@ Author: Agony5757
 
 from typing import Dict
 from copy import deepcopy
+import re
 
 class Circuit:
     def __init__(self) -> None:
@@ -13,6 +14,11 @@ class Circuit:
         self.circuit_str = ''
         self.max_qubit = 0
         self.measure_list = []
+        self.circuit_info = {
+            'qubits': 0,
+            'gates': {},
+            'measurements': []
+        }
 
     def make_header(self):
         ret = 'QINIT {}\n'.format(self.max_qubit + 1)
@@ -111,6 +117,33 @@ class Circuit:
 
         return c
 
+    def analyze_circuit(self):
+        """Analyze the stored circuit_str and update circuit_info."""
+
+        qinit_pattern = re.compile(r"QINIT (\d+)")
+        gate_pattern = re.compile(r"(\w+) q\[(\d+)\](?:, q\[(\d+)\])?")
+        measure_pattern = re.compile(r"MEASURE q\[(\d+)\], c\[(\d+)\]")
+
+        for line in self.circuit_str.strip().split("\n"):
+            # Match QINIT
+            match = qinit_pattern.match(line)
+            if match:
+                self.circuit_info['qubits'] = int(match.group(1))
+                continue
+
+            # Match gates
+            match = gate_pattern.match(line)
+            if match:
+                gate = match.group(1)
+                self.circuit_info['gates'][gate] = self.circuit_info['gates'].get(gate, 0) + 1
+                continue
+
+            # Match MEASURE
+            match = measure_pattern.match(line)
+            if match:
+                qubit = int(match.group(1))
+                output = int(match.group(2))
+                self.circuit_info['measurements'].append({'qubit': qubit, 'output': f'c[{output}]'})
 
 if __name__ == '__main__':
     import qpandalite
@@ -120,12 +153,18 @@ if __name__ == '__main__':
     c.cnot(0, 1)
     c.cnot(1, 2)
     c.cnot(2, 3)
+    c.x(3)
+    c.y(2)
+    c.cz(2, 3)
+    c.rx(0, 3.1415926)
     c.measure(0,1,2,3)
     c = c.remapping({0:45, 1:46, 2:52, 3:53})
-    print(c.circuit)
-    qsim = sim.OriginIR_Simulator()
-    result = qsim.simulate(c.circuit)
-    print(result)
+    # print(c.circuit)
+    c.analyze_circuit()
+    print(c.circuit_info)
+    # qsim = sim.OriginIR_Simulator()
+    # result = qsim.simulate(c.circuit)
+    # print(result)
 
 '''Old codes
 '''

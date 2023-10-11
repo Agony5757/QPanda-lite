@@ -58,6 +58,10 @@ class OriginIR_Simulator:
             # In fact, I don't know the real implementation
             # This is a guessed implementation.
             self.measure_qubit.append((self.qubit_mapping[int(qubit)], int(cbit)))
+        elif operation == 'CONTROL':
+            print("simulate_gate control")
+        elif operation == 'ENDCONTROL':
+            print("simulate_gate endcontrol")
         elif operation == None:
             pass
         elif operation == 'QINIT':
@@ -130,7 +134,7 @@ class OriginIR_Simulator:
         self.simulator.init_n_qubit(len(self.qubit_mapping))
 
         lines = originir.splitlines()
-        for i, line in enumerate(lines):            
+        for i, line in enumerate(lines):          
             operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
             if isinstance(qubit, list) and (available_topology is not None):
                 if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '

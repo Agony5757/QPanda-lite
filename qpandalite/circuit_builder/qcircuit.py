@@ -86,12 +86,12 @@ class Circuit:
                 self.used_qubit_list.append(qubit)
                 self.max_qubit = max(self.max_qubit, qubit)
 
-    def h(self, qn):
+    def h(self, qn) -> None:
         self.circuit_str += 'H q[{}]\n'.format(qn)
         self.record_qubit(qn)
 
     def x(self, qn) -> None:
-        self.circuit_str += 'X q[{}]\n'.format(qn)
+        self.circuit_str += 'X q[{}]\n'.format(qn)    
         self.record_qubit(qn)
 
     def y(self, qn) -> None:
@@ -214,29 +214,29 @@ if __name__ == '__main__':
     import qpandalite.simulator as sim
     c = Circuit()
     c.h(0)
-    c.cnot(0, 1)
-    c.cnot(1, 2)
-    c.cnot(2, 3)
-
-    c.x(3)
-    c.y(2)
-    c.cz(2, 3)
-    c.rx(0, 3.1415926)
+    c.x(1)
+    # c.x(3)
+    # c.y(2)
+    # c.cz(2, 3)
+    # c.rx(0, 3.1415926)
 
     with c.control(0):
-        with c.dagger():
-            c.x(3)
-            c.y(2)
+        c.x(1)
 
 
-    c.measure(0,1,2,3)
-    c = c.remapping({0:45, 1:46, 2:52, 3:53})
+    # c.measure(0,1,2,3)
+    # c = c.remapping({0:45, 1:46, 2:52, 3:53})
+
+    c.measure(0,1)
+    c = c.remapping({0:45, 1:46})
+
     # print(c.circuit)
-    c.analyze_circuit()
-    print(c.circuit_info)
-    # qsim = sim.OriginIR_Simulator()
-    # result = qsim.simulate(c.circuit)
-    # print(result)
+    # c.analyze_circuit()
+    # print(c.circuit_info)
+    qsim = sim.OriginIR_Simulator()
+
+    result = qsim.simulate(c.circuit)
+    print(result)
 
 '''Old codes
 '''

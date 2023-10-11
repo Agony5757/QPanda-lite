@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from qpandalite.originir.parser import OriginIR_Parser
+from qpandalite.originir.originir_line_parser import OriginIR_Parser
 
 try:
     from qpandalite.simulator import Simulator

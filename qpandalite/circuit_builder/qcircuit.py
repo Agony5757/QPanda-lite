@@ -8,6 +8,39 @@ from typing import Dict
 from copy import deepcopy
 import re
 
+class CircuitControlContext:        
+    def __init__(self, c, control_list):
+        self.c = c
+        self.control_list = control_list
+
+    def _qubit_list(self):
+        ret = ''
+        for q in self.control_list:
+            ret += f'q[{q}], '
+
+        ret = ret[:-2]
+        return ret
+    
+    def __enter__(self):
+        ret = 'CONTROL ' + self._qubit_list() + '\n'
+        c.circuit_str += ret        
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):        
+        ret = 'ENDCONTROL ' + self._qubit_list() + '\n'
+        c.circuit_str += ret
+
+class CircuitDagContext:      
+    def __init__(self, c):
+        self.c = c
+
+    def __enter__(self):
+        ret = 'DAGGER\n'
+        c.circuit_str += ret        
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):        
+        ret = 'ENDDAGGER\n'
+        c.circuit_str += ret
+
 class Circuit:
     def __init__(self) -> None:
         self.used_qubit_list = []
@@ -94,7 +127,38 @@ class Circuit:
         self.record_qubit(q1, q2)
 
     def measure(self, *qubits):
+        self.record_qubit(*qubits)
         self.measure_list = list(qubits)
+
+    def control(self, *args):
+        c.record_qubit(*args)
+        if len(args) == 0:
+            raise ValueError('Controller qubit must not be empty.')
+        return CircuitControlContext(self, args)
+    
+    def set_control(self, *args):    
+        c.record_qubit(*args)    
+        ret = 'CONTROL '
+        for q in self.control_list:
+            ret += f'q[{q}], '
+        ret = ret[:-2] + '\n'
+        c.circuit_str += ret
+
+    def unset_control(self, *args):
+        ret = 'ENDCONTROL '
+        for q in self.control_list:
+            ret += f'q[{q}], '
+        ret = ret[:-2] + '\n'
+        c.circuit_str += ret
+
+    def dagger(self):
+        return CircuitDagContext(self)
+    
+    def set_dagger(self):
+        c.circuit_str += 'DAGGER\n'
+
+    def unset_dagger(self):
+        c.circuit_str += 'ENDDAGGER\n'
 
     def remapping(self, mapping : Dict[int, int]):
         # check if mapping is full
@@ -153,10 +217,18 @@ if __name__ == '__main__':
     c.cnot(0, 1)
     c.cnot(1, 2)
     c.cnot(2, 3)
+
     c.x(3)
     c.y(2)
     c.cz(2, 3)
     c.rx(0, 3.1415926)
+
+    with c.control(0):
+        with c.dagger():
+            c.x(3)
+            c.y(2)
+
+
     c.measure(0,1,2,3)
     c = c.remapping({0:45, 1:46, 2:52, 3:53})
     # print(c.circuit)

@@ -7,7 +7,7 @@ import urllib
 import quafu
 import re
 
-from qpandalite.originir.parser import OriginIR_Parser
+from qpandalite.originir.originir_line_parser import OriginIR_Parser
 from ..task_utils import load_all_online_info, write_taskinfo
 
 try:

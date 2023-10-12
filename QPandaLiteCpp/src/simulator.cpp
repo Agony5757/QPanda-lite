@@ -57,6 +57,27 @@ namespace qpandalite{
         }
     }
 
+    void Simulator::x(size_t target_qn, size_t control_qn)
+    {
+        if (control_qn >= total_qubit || target_qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, control = {}, target = {})", total_qubit, control_qn, target_qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            // Check if the control qubit is set to 1
+            if ((i >> control_qn) & 1)
+            {
+                // If it's set, then apply the X gate to the target qubit
+                if ((i >> target_qn) & 1)
+                {
+                    std::swap(state[i], state[i - pow2(target_qn)]);
+                }
+            }
+        }
+    }
     void Simulator::y(size_t qn)
     {
         if (qn >= total_qubit)

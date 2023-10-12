@@ -214,28 +214,31 @@ if __name__ == '__main__':
     import qpandalite.simulator as sim
     c = Circuit()
     c.h(0)
-    c.x(1)
+    # c.h(1)
+    # c.x(1)
     # c.x(3)
-    # c.y(2)
+    # c.z(0)
     # c.cz(2, 3)
     # c.rx(0, 3.1415926)
 
     with c.control(0):
         c.x(1)
+        # c.x(0)
 
 
     # c.measure(0,1,2,3)
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
 
     c.measure(0,1)
-    c = c.remapping({0:45, 1:46})
+    # c = c.remapping({0:45, 1:46})
 
-    # print(c.circuit)
+    print(c.circuit)
     # c.analyze_circuit()
     # print(c.circuit_info)
     qsim = sim.OriginIR_Simulator()
 
     result = qsim.simulate(c.circuit)
+
     print(result)
 
 '''Old codes

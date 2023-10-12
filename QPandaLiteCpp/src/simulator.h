@@ -79,6 +79,8 @@ namespace qpandalite {
         void hadamard(size_t qn);
         void u22(size_t qn, const u22_t &unitary);
         void x(size_t qn);
+        // Overloaded x function declaration with control and target qubits
+        void x(size_t target_qn, size_t control_qn);
         void z(size_t qn);
         void y(size_t qn);
         void sx(size_t qn);

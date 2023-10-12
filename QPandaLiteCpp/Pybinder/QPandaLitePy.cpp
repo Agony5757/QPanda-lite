@@ -25,7 +25,10 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("init_n_qubit", &qpandalite::Simulator::init_n_qubit)
 		.def("hadamard", &qpandalite::Simulator::hadamard)
 		.def("u22", &qpandalite::Simulator::u22)
-		.def("x", &qpandalite::Simulator::x)
+		// Bind the original x function
+    	.def("x", static_cast<void (qpandalite::Simulator::*)(size_t)>(&qpandalite::Simulator::x))
+    	// Bind the overloaded x function with control and target qubits
+    	.def("x", static_cast<void (qpandalite::Simulator::*)(size_t, size_t)>(&qpandalite::Simulator::x))
 		.def("sx", &qpandalite::Simulator::sx)
 		.def("y", &qpandalite::Simulator::y)
 		.def("z", &qpandalite::Simulator::z)

@@ -15,7 +15,7 @@ namespace qpandalite{
         total_qubit = nqubit;
     }
 
-    void Simulator::hadamard(size_t qn)
+    void Simulator::hadamard(size_t qn, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -40,7 +40,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::x(size_t qn)
+    void Simulator::x(size_t qn, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -57,7 +57,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::y(size_t qn)
+    void Simulator::y(size_t qn, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -77,7 +77,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::z(size_t qn)
+    void Simulator::z(size_t qn, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -128,7 +128,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::cz(size_t qn1, size_t qn2)
+    void Simulator::cz(size_t qn1, size_t qn2, const bool is_dagger)
     {
         if (qn1 >= total_qubit)
         {
@@ -156,7 +156,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::iswap(size_t qn1, size_t qn2)
+    void Simulator::iswap(size_t qn1, size_t qn2, const bool is_dagger)
     {
         if (qn1 >= total_qubit)
         {
@@ -180,14 +180,22 @@ namespace qpandalite{
             if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
             {
                 std::swap(state[i], state[i + pow2(qn1) - pow2(qn2)]);
-                state[i] *= 1i;
-                state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+                if(is_dagger)
+                {
+                    state[i] *= -1i;
+                    state[i + pow2(qn1) - pow2(qn2)] *= -1i;
+                }else
+                {
+                    state[i] *= 1i;
+                    state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+                }
+
             }
 
         }
     }
 
-    void Simulator::xy(size_t qn1, size_t qn2)
+    void Simulator::xy(size_t qn1, size_t qn2, const bool is_dagger)
     {
         if (qn1 >= total_qubit)
         {
@@ -212,13 +220,21 @@ namespace qpandalite{
             if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
             {
                 std::swap(state[i], state[i + pow2(qn1) - pow2(qn2)]);
-                state[i] *= 1i;
-                state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+                if(is_dagger)
+                {
+                    state[i] *= -1i;
+                    state[i + pow2(qn1) - pow2(qn2)] *= -1i;
+                }else
+                {
+                    state[i] *= 1i;
+                    state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+                }
+
             }
 
         }
     }
-    void Simulator::cnot(size_t controller, size_t target)
+    void Simulator::cnot(size_t controller, size_t target, const bool is_dagger)
     {
         if (controller >= total_qubit)
         {
@@ -245,7 +261,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::rx(size_t qn, double angle)
+    void Simulator::rx(size_t qn, double angle, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -255,14 +271,23 @@ namespace qpandalite{
 
         // Rx 
         using namespace std::literals::complex_literals;
-        u22_t unitary = {cos(angle / 2), -sin(angle / 2) * 1i,
-                         -sin(angle / 2) * 1i, cos(angle / 2)};
+        u22_t unitary;
+        if(is_dagger)
+        {
+            unitary = {cos(angle / 2), sin(angle / 2) * 1i,
+                            sin(angle / 2) * 1i, cos(angle / 2)};
+        }else
+        {
+            unitary = {cos(angle / 2), -sin(angle / 2) * 1i,
+                -sin(angle / 2) * 1i, cos(angle / 2)};
+        }
+
 
         u22(qn, unitary);
     }
 
 
-    void Simulator::sx(size_t qn)
+    void Simulator::sx(size_t qn, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -271,15 +296,25 @@ namespace qpandalite{
         }
 
         u22_t unitary;
-        unitary[0] = 0.5 * std::complex<double>(1, 1);
-        unitary[1] = 0.5 * std::complex<double>(1, -1);
-        unitary[2] = 0.5 * std::complex<double>(1, -1);
-        unitary[3] = 0.5 * std::complex<double>(1, 1);
+        if(is_dagger)
+        {
+            unitary[0] = 0.5 * std::complex<double>(1, -1);
+            unitary[2] = 0.5 * std::complex<double>(1, 1);
+            unitary[1] = 0.5 * std::complex<double>(1, 1);
+            unitary[3] = 0.5 * std::complex<double>(1, -1);
+        }else
+        {
+            unitary[0] = 0.5 * std::complex<double>(1, 1);
+            unitary[1] = 0.5 * std::complex<double>(1, -1);
+            unitary[2] = 0.5 * std::complex<double>(1, -1);
+            unitary[3] = 0.5 * std::complex<double>(1, 1);
+        }
+
 
         u22(qn, unitary);
     }
 
-    void Simulator::ry(size_t qn, double angle)
+    void Simulator::ry(size_t qn, double angle, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -288,13 +323,22 @@ namespace qpandalite{
         }
 
         using namespace std::literals::complex_literals;
-        u22_t unitary = {cos(angle / 2), -sin(angle / 2),
-                         sin(angle / 2), cos(angle / 2)};
+        u22_t unitary; 
+        if(is_dagger)
+        {
+            unitary = {cos(angle / 2), -sin(angle / 2),
+                            sin(angle / 2), cos(angle / 2)};
+        }else
+        {
+            unitary = {cos(angle / 2), sin(angle / 2),
+                    -sin(angle / 2), cos(angle / 2)};
+        }
+
 
         u22(qn, unitary);
     }
 
-    void Simulator::rz(size_t qn, double angle)
+    void Simulator::rz(size_t qn, double angle, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -311,7 +355,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::rphi90(size_t qn, double phi)
+    void Simulator::rphi90(size_t qn, double phi, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -321,15 +365,23 @@ namespace qpandalite{
 
         using namespace std::literals::complex_literals;
         u22_t unitary;
-        unitary[0] = INVSQRT2;
-        unitary[1] = INVSQRT2 * -1i * std::complex(cos(phi), -sin(phi));
-        unitary[2] = INVSQRT2 * -1i * std::complex(cos(phi), sin(phi));
-        unitary[3] = INVSQRT2;
-
+        if(is_dagger)
+        {
+            unitary[0] = INVSQRT2;
+            unitary[2] = INVSQRT2 * -1i * std::complex(-cos(phi), -sin(phi));
+            unitary[1] = INVSQRT2 * -1i * std::complex(-cos(phi), sin(phi));
+            unitary[3] = INVSQRT2;
+        }else
+        {
+            unitary[0] = INVSQRT2;
+            unitary[1] = INVSQRT2 * -1i * std::complex(cos(phi), -sin(phi));
+            unitary[2] = INVSQRT2 * -1i * std::complex(cos(phi), sin(phi));
+            unitary[3] = INVSQRT2;            
+        }
         u22(qn, unitary);
     }
 
-    void Simulator::rphi180(size_t qn, double phi)
+    void Simulator::rphi180(size_t qn, double phi, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -339,15 +391,25 @@ namespace qpandalite{
 
         using namespace std::literals::complex_literals;
         u22_t unitary;
-        unitary[0] = 0;
-        unitary[1] = -1i * std::complex(cos(phi), -sin(phi));
-        unitary[2] = -1i * std::complex(cos(phi), sin(phi));
-        unitary[3] = 0;
+        if (is_dagger)
+        {
+            unitary[0] = 0;
+            unitary[2] = -1i * std::complex(-cos(phi), -sin(phi));
+            unitary[1] = -1i * std::complex(-cos(phi), sin(phi));
+            unitary[3] = 0;
+        }else
+        {
+            unitary[0] = 0;
+            unitary[1] = -1i * std::complex(cos(phi), -sin(phi));
+            unitary[2] = -1i * std::complex(cos(phi), sin(phi));
+            unitary[3] = 0;                        
+        }
+
 
         u22(qn, unitary);        
     }
 
-    void Simulator::rphi(size_t qn, double phi, double theta)
+    void Simulator::rphi(size_t qn, double phi, double theta, const bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -357,10 +419,20 @@ namespace qpandalite{
 
         using namespace std::literals::complex_literals;
         u22_t unitary;
-        unitary[0] = cos(theta / 2);
-        unitary[1] = -1i * sin(theta / 2) * std::complex(cos(phi), -sin(phi));
-        unitary[2] = -1i * sin(theta / 2) * std::complex(cos(phi), sin(phi));
-        unitary[3] = cos(theta / 2);
+        if(is_dagger)
+        {
+            unitary[0] = cos(theta / 2);
+            unitary[2] = -1i * sin(theta / 2) * std::complex(-cos(phi), -sin(phi));
+            unitary[1] = -1i * sin(theta / 2) * std::complex(-cos(phi), sin(phi));
+            unitary[3] = cos(theta / 2);           
+        }else
+        {
+            unitary[0] = cos(theta / 2);
+            unitary[1] = -1i * sin(theta / 2) * std::complex(cos(phi), -sin(phi));
+            unitary[2] = -1i * sin(theta / 2) * std::complex(cos(phi), sin(phi));
+            unitary[3] = cos(theta / 2);
+        }
+
 
         u22(qn, unitary);    
     }

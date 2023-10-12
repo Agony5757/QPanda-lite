@@ -36,12 +36,14 @@ class OriginIR_Parser:
                         comma + blank + 
                         cid + 
                         '$')
+    regexp_barrier_str = (r'\[([0-9]+)\]')
     regexp_1q = re.compile(regexp_1q_str)
     regexp_2q = re.compile(regexp_2q_str)
     regexp_1q1p = re.compile(regexp_1q1p_str)
     regexp_1q2p = re.compile(regexp_1q2p_str)
     regexp_meas = re.compile(regexp_measure_str)
-
+    regexp_barrier = re.compile(regexp_barrier_str)
+    
     def __init__(self):
         pass
 
@@ -83,7 +85,11 @@ class OriginIR_Parser:
         q = matches.group(1)
         c = matches.group(2)
         return q, c
-
+    
+    @staticmethod
+    def handle_barrier(line):
+        matches = OriginIR_Parser.regexp_barrier.findall(line)
+        return matches
     @staticmethod
     def parse_line(line):
         
@@ -124,11 +130,16 @@ class OriginIR_Parser:
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RZ'):
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-            elif line.startswith('Rphi'):
+            elif line.startswith('RPhi'):
                 operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
             elif line.startswith('MEASURE'):
                 operation = 'MEASURE'
                 q, c = OriginIR_Parser.handle_measure(line)
+            elif line.startswith('DAGGER') or line.startswith('ENDDAGGER'):
+                operation = 'DAGGER'
+            elif line.startswith('BARRIER'):
+                operation = 'BARRIER'
+                q = OriginIR_Parser.handle_barrier(line)                    
             else:
                 raise NotImplementedError(f'A invalid line: {line}.')      
             

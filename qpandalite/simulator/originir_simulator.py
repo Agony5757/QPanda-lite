@@ -1,6 +1,5 @@
 from typing import List, Tuple
 from qpandalite.originir.originir_line_parser import OriginIR_Parser
-from copy import deepcopy
 
 try:
     from qpandalite.simulator import Simulator
@@ -33,7 +32,7 @@ class OriginIR_Simulator:
         elif operation == 'H':
             self.simulator.hadamard(self.qubit_mapping[int(qubit)])
         elif operation == 'X':
-            self.simulator.x(self.qubit_mapping[int(qubit)], cbit)
+            self.simulator.x(self.qubit_mapping[int(qubit)])
         elif operation == 'SX':
             self.simulator.sx(self.qubit_mapping[int(qubit)])
         elif operation == 'Y':
@@ -59,10 +58,6 @@ class OriginIR_Simulator:
             # In fact, I don't know the real implementation
             # This is a guessed implementation.
             self.measure_qubit.append((self.qubit_mapping[int(qubit)], int(cbit)))
-        elif operation == 'CONTROL':
-            print("simulate_gate control")
-        elif operation == 'ENDCONTROL':
-            print("simulate_gate endcontrol")
         elif operation == None:
             pass
         elif operation == 'QINIT':
@@ -135,11 +130,8 @@ class OriginIR_Simulator:
         self.simulator.init_n_qubit(len(self.qubit_mapping))
 
         lines = originir.splitlines()
-
-        controlled_operation = {}
-        current_control_qubit = None  # This keeps track of which qubit is currently being controlled
-
-        for i, line in enumerate(lines):          
+        
+        for i, line in enumerate(lines):            
             operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
             if isinstance(qubit, list) and (available_topology is not None):
                 if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
@@ -149,41 +141,7 @@ class OriginIR_Simulator:
                    ([int(qubit[1]), int(qubit[0])] not in available_topology):
                     raise ValueError(f'Unsupported topology in line {i} ({line}).')
 
-            if operation == "CONTROL":
-                current_control_qubit = qubit
-                if current_control_qubit not in controlled_operation:
-                    controlled_operation[current_control_qubit] = []
-                    # print(f"Start to collect for qubit {current_control_qubit}")
-
-            elif operation == "ENDCONTROL":
-
-                for i in range(2 ** len(self.qubit_mapping)):
-                    if ((i >> int(current_control_qubit)) & 1):
-                        # print(i)
-                        # Simulate all the collected gates for the current control qubit
-                        for op, qb, cb, param in controlled_operation[current_control_qubit]:
-                            if  ((i >> int(qb)) & 1):
-                                # print(i)
-                                # print(self.state[i])
-                                # print(self.state[i - 2**int(qb)])
-                                cb = int(current_control_qubit)
-                                self.simulate_gate(op, qb, cb, param)
-                
-                # Clear the operations for the current control qubit, 
-                # or you can keep it if you want to inspect them later
-                del controlled_operation[current_control_qubit]
-                
-                current_control_qubit = None  # Reset the control qubit
-                # print(f"End collection for qubit {qubit}")
-
-            elif current_control_qubit is not None:
-                # We're between a CONTROL and ENDCONTROL, so add the operation to the current control qubit's list
-                controlled_operation[current_control_qubit].append((operation, qubit, cbit, parameter))
-
-            else:
-                self.simulate_gate(operation, qubit, cbit, parameter)
-            # print(controlled_operation)
-        print(self.simulator.state)
+            self.simulate_gate(operation, qubit, cbit, parameter)
         
         self.qubit_num = len(self.qubit_mapping)
         measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)

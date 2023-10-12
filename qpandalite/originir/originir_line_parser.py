@@ -87,36 +87,26 @@ class OriginIR_Parser:
     @staticmethod
     def handle_control(line):
         """
-        Parses the provided line to extract qubit and control information.
-        
-        This function expects a line in the format recognized by the `regexp_meas` regular expression,
-        which typically represents a controlled gate or measurement in the OriginIR quantum language.
+        Parses the provided line to extract control qubits information and the type of control operation (CONTROL/ENDCONTROL).
 
-        Parameters:
-        - line (str): The line of OriginIR code to parse.
-        
         Returns:
-        - tuple: A tuple containing the parsed qubit (str) and control (str) information.
+        - tuple: A tuple where the first element is the control operation type ("CONTROL" or "ENDCONTROL")
+                 and the second element is a list containing the parsed control qubits.
         
-        Example:
-        >>> handle_control("Some sample OriginIR line matching regexp_meas pattern")
-        ("extracted_qubit_value", "extracted_control_value")
-
         Note:
-        This function assumes that the `regexp_meas` regular expression is defined and matches
-        the appropriate patterns in the OriginIR language.
-
-        Raises:
-        - ValueError: If the line does not match the expected format.
+        This function assumes that the `regexp_control` regular expression is defined and matches
+        the CONTROL or ENDCONTROL pattern in the OriginIR language.
         """
-        # THIS ONE IS NECESSARY FOR HANDLING MULTIPLE CONTROL. FOR SINGLE CONTROL, handle_1q IS ENOUGH.
-        matches = OriginIR_Parser.regexp_meas.match(line)
+        regexp_control = re.compile(r'^(CONTROL|ENDCONTROL)\s*((?:q\[\d+\],\s*)*q\[\d+\])')
+        matches = regexp_control.match(line)
         if not matches:
             raise ValueError("The provided line does not match the expected format.")
         
-        q = matches.group(1)
-        c = matches.group(2)
-        return q, c
+        # Extracting the operation type and multiple control qubits
+        operation_type = matches.group(1)
+        controls = [ctrl.strip() for ctrl in matches.group(2).split(",")]
+        
+        return operation_type, controls
     
     @staticmethod
     def parse_line(line):
@@ -163,9 +153,9 @@ class OriginIR_Parser:
                 operation = 'MEASURE'
                 q, c = OriginIR_Parser.handle_measure(line)
             elif line.startswith('CONTROL'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_Parser.handle_control(line)
             elif line.startswith('ENDCONTROL'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_Parser.handle_control(line)
             else:
                 print("something wrong")
                 raise NotImplementedError(f'A invalid line: {line}.')      

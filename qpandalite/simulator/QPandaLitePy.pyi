@@ -51,7 +51,7 @@ class Simulator:
         '''
         ...
 
-    def x(self, target_qn: int, control_qn: Optional[int] = None) -> None: 
+    def x(self, qn: int) -> None: 
         '''X gate.
 
         Args:

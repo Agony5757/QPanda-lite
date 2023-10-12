@@ -6,6 +6,7 @@ Author: Agony5757
 
 from typing import Dict
 from copy import deepcopy
+from qpandalite.originir.originir_line_parser import OriginIR_Parser
 import re
 
 class CircuitControlContext:        
@@ -181,6 +182,54 @@ class Circuit:
 
         return c
 
+    def unwrap(self):
+        """
+        This method is designed to process the given 'originir' and perform the 'unwrap' operation.
+
+        Returns:
+            unwrapped originir (list): List of OriginIR operations. 
+            For example, the input will be,
+            QINIT 2
+            CREG 2
+            H q[0]
+            CONTROL q[0]
+            X q[1]
+            ENDCONTROL q[0]
+            The return will be ["H q[0]", "X q[1] controlled q[0]"].
+
+            NOTE: The control version string is still undecided., the string "X q[1] controlled q[0]" is temporary.
+        Raises:
+            None
+        """
+        actual_used_operations = []
+        control_qubits_set = set()  # Using a set to manage nested/multiple CONTROL qubits uniquely
+
+        lines = self.circuit_str.splitlines()
+        for i, line in enumerate(lines):
+            operation, qubits, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
+
+            if operation == "CONTROL":
+                # Add all control qubits to the set
+                control_qubits_set.update(qubits)
+
+            elif operation == "ENDCONTROL":
+                # Discard the mentioned qubits from the set
+                for qubit in qubits:
+                    control_qubits_set.discard(qubit)
+
+            elif control_qubits_set:
+                controlled_line = line
+                controlled_line += " controlled"
+                # Sorting qubits before appending to ensure the order
+                for control_qubit in sorted(control_qubits_set, reverse=True):
+                    controlled_line += f" {control_qubit}"
+                actual_used_operations.append(controlled_line)
+
+            else:
+                actual_used_operations.append(line.strip())
+        
+        return actual_used_operations
+    
     def analyze_circuit(self):
         """Analyze the stored circuit_str and update circuit_info."""
 
@@ -214,32 +263,30 @@ if __name__ == '__main__':
     import qpandalite.simulator as sim
     c = Circuit()
     c.h(0)
-    # c.h(1)
+    c.h(1)
     # c.x(1)
     # c.x(3)
-    # c.z(0)
-    # c.cz(2, 3)
+    c.z(0)
+    c.cz(2, 3)
     # c.rx(0, 3.1415926)
 
-    with c.control(0):
+    with c.control(0, 1):
         c.x(1)
-        # c.x(0)
+        with c.control(1, 2):
+            c.z(3)
 
 
-    # c.measure(0,1,2,3)
+    c.measure(0,1,2,3)
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
 
-    c.measure(0,1)
-    # c = c.remapping({0:45, 1:46})
-
-    print(c.circuit)
+    print(c.unwrap())
     # c.analyze_circuit()
-    # print(c.circuit_info)
-    qsim = sim.OriginIR_Simulator()
+    print(c.circuit)
+    # qsim = sim.OriginIR_Simulator()
 
-    result = qsim.simulate(c.circuit)
+    # result = qsim.simulate(c.circuit)
 
-    print(result)
+    # print(result)
 
 '''Old codes
 '''

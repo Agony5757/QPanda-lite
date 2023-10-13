@@ -107,6 +107,25 @@ class OriginIR_Parser:
         controls = [ctrl.strip() for ctrl in matches.group(2).split(",")]
         
         return operation_type, controls
+
+    @staticmethod
+    def handle_dagger(line):
+        """
+        Parses the provided line to identify if it's a DAGGER or ENDDAGGER command.
+
+        Returns:
+        - str: "DAGGER" if the line is a DAGGER command, "ENDDAGGER" if it's an ENDDAGGER command,
+          None otherwise.
+        
+        Note:
+        This function identifies the DAGGER and ENDDAGGER commands in the OriginIR language.
+        """
+        if "ENDDAGGER" in line:
+            return "ENDDAGGER"
+        elif "DAGGER" in line:
+            return "DAGGER"
+        else:
+            return None
     
     @staticmethod
     def parse_line(line):
@@ -156,6 +175,10 @@ class OriginIR_Parser:
                 operation, q = OriginIR_Parser.handle_control(line)
             elif line.startswith('ENDCONTROL'):
                 operation, q = OriginIR_Parser.handle_control(line)
+            elif line.startswith('DAGGER'):
+                operation = OriginIR_Parser.handle_dagger(line)
+            elif line.startswith('ENDDAGGER'):
+                operation = OriginIR_Parser.handle_dagger(line)
             else:
                 print("something wrong")
                 raise NotImplementedError(f'A invalid line: {line}.')      

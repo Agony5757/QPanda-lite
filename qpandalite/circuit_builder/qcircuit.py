@@ -201,13 +201,17 @@ class Circuit:
         Raises:
             None
         """
+    
         actual_used_operations = []
         control_qubits_set = set()  # Using a set to manage nested/multiple CONTROL qubits uniquely
+        dagger_stack = []  # Stack to manage nested DAGGER operations
+        dagger_count = 0
 
         lines = self.circuit_str.splitlines()
         for i, line in enumerate(lines):
+            # print(line)
             operation, qubits, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
-
+            # print(operation, qubits, cbit, parameter)
             if operation == "CONTROL":
                 # Add all control qubits to the set
                 control_qubits_set.update(qubits)
@@ -217,19 +221,42 @@ class Circuit:
                 for qubit in qubits:
                     control_qubits_set.discard(qubit)
 
-            elif control_qubits_set:
-                controlled_line = line
-                controlled_line += " controlled"
-                # Sorting qubits before appending to ensure the order
-                for control_qubit in sorted(control_qubits_set, reverse=True):
-                    controlled_line += f" {control_qubit}"
-                actual_used_operations.append(controlled_line)
+            elif operation == "DAGGER":
+                # Add a new list to the stack to collect operations inside this DAGGER block
+                dagger_stack.append([])
+                dagger_count += 1
 
+            elif operation == "ENDDAGGER":
+                # Pop the latest list of operations from the dagger stack and reverse them
+                if dagger_stack:
+                    reversed_ops = dagger_stack.pop()
+                    actual_used_operations.extend(reversed_ops[::-1])
+                dagger_count -= 1
+            
             else:
-                actual_used_operations.append(line.strip())
-        
+                # This is in-between CONTROL & DAGGER, use this "else" to process strings
+                operation_line = line.strip()
+                # print(operation_line)
+                # First to check whether the operation has the control qubit(s).
+                if control_qubits_set:
+                    operation_line += " controlled"
+                    # Sorting qubits before appending to ensure the order
+                    for control_qubit in sorted(control_qubits_set, reverse=True):
+                        operation_line += f" {control_qubit}"
+                
+                if dagger_stack and (dagger_count % 2 == 1):
+                    operation_line += " dagger"
+                    dagger_stack[-1].append(operation_line)  # Add to the latest DAGGER block
+                else:
+                    actual_used_operations.append(operation_line)
+
+        # Handle remaining operations within the DAGGER blocks (if any)
+        while dagger_stack:
+            reversed_ops = dagger_stack.pop()
+            actual_used_operations.extend(reversed_ops[::-1])
+
         return actual_used_operations
-    
+        
     def analyze_circuit(self):
         """Analyze the stored circuit_str and update circuit_info."""
 
@@ -258,30 +285,61 @@ class Circuit:
                 output = int(match.group(2))
                 self.circuit_info['measurements'].append({'qubit': qubit, 'output': f'c[{output}]'})
 
+
 if __name__ == '__main__':
     import qpandalite
     import qpandalite.simulator as sim
     c = Circuit()
-    c.h(0)
-    c.h(1)
-    # c.x(1)
-    # c.x(3)
-    c.z(0)
-    c.cz(2, 3)
-    # c.rx(0, 3.1415926)
+    c.h(6)
+    c.h(7)
 
-    with c.control(0, 1):
-        c.x(1)
-        with c.control(1, 2):
-            c.z(3)
+    # Single control(Correct)
+    # with c.control(0, 1, 2):
+    #     c.x(4)
+    
+    # Single dagger(Correct)
+    # with c.dagger():
+    #     c.z(5)
+    #     c.x(10)
 
+    # Nested-dagger
+    with c.dagger():
+        c.z(2)
+        with c.dagger():
+            c.z(5)
+            c.x(10)
 
-    c.measure(0,1,2,3)
+    # Nested-control(Correct)
+    # with c.control(0,1):
+    #     c.x(2)
+    #     with c.control(4,5):
+    #         c.x(3)
+
+    # Control-dagger-nested
+    # with c.control(2):
+    #     c.x(4)
+    #     with c.dagger():
+    #         c.z(5)
+    #         c.x(10)
+    #         with c.control(0,1):
+    #             c.x(3)
+
+    # Dagger-control-nested
+    # with c.dagger():
+    #     c.z(5)
+    #     c.x(10)
+    #     with c.control(0,1):
+    #         c.x(3)
+    
+    c.h(8)
+    c.h(9)
+    c.measure(0,1,2,3,4)
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
-
+    
+    print(c.circuit)
     print(c.unwrap())
     # c.analyze_circuit()
-    print(c.circuit)
+    
     # qsim = sim.OriginIR_Simulator()
 
     # result = qsim.simulate(c.circuit)

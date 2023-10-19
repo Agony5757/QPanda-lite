@@ -290,9 +290,9 @@ if __name__ == '__main__':
     import qpandalite
     import qpandalite.simulator as sim
     c = Circuit()
-    c.h(6)
-    c.h(7)
-
+    c.h(0)
+    c.cnot(0, 1)
+    c.cnot(0, 2)  
     # Single control(Correct)
     # with c.control(0, 1, 2):
     #     c.x(4)
@@ -303,11 +303,11 @@ if __name__ == '__main__':
     #     c.x(10)
 
     # Nested-dagger
-    with c.dagger():
-        c.z(2)
-        with c.dagger():
-            c.z(5)
-            c.x(10)
+    # with c.dagger():
+    #     c.z(2)
+    #     with c.dagger():
+    #         c.z(5)
+    #         c.x(10)
 
     # Nested-control(Correct)
     # with c.control(0,1):
@@ -331,13 +331,13 @@ if __name__ == '__main__':
     #     with c.control(0,1):
     #         c.x(3)
     
-    c.h(8)
-    c.h(9)
-    c.measure(0,1,2,3,4)
+    # c.h(8)
+    # c.h(9)
+    c.measure(0,1,2)
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
     
     print(c.circuit)
-    print(c.unwrap())
+    # print(c.unwrap())
     # c.analyze_circuit()
     
     # qsim = sim.OriginIR_Simulator()

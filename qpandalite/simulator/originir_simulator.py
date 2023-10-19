@@ -130,6 +130,7 @@ class OriginIR_Simulator:
         self.simulator.init_n_qubit(len(self.qubit_mapping))
 
         lines = originir.splitlines()
+        
         for i, line in enumerate(lines):            
             operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
             if isinstance(qubit, list) and (available_topology is not None):

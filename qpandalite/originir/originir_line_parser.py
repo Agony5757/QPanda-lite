@@ -85,8 +85,50 @@ class OriginIR_Parser:
         return q, c
 
     @staticmethod
-    def parse_line(line):
+    def handle_control(line):
+        """
+        Parses the provided line to extract control qubits information and the type of control operation (CONTROL/ENDCONTROL).
+
+        Returns:
+        - tuple: A tuple where the first element is the control operation type ("CONTROL" or "ENDCONTROL")
+                 and the second element is a list containing the parsed control qubits.
         
+        Note:
+        This function assumes that the `regexp_control` regular expression is defined and matches
+        the CONTROL or ENDCONTROL pattern in the OriginIR language.
+        """
+        regexp_control = re.compile(r'^(CONTROL|ENDCONTROL)\s*((?:q\[\d+\],\s*)*q\[\d+\])')
+        matches = regexp_control.match(line)
+        if not matches:
+            raise ValueError("The provided line does not match the expected format.")
+        
+        # Extracting the operation type and multiple control qubits
+        operation_type = matches.group(1)
+        controls = [ctrl.strip() for ctrl in matches.group(2).split(",")]
+        
+        return operation_type, controls
+
+    @staticmethod
+    def handle_dagger(line):
+        """
+        Parses the provided line to identify if it's a DAGGER or ENDDAGGER command.
+
+        Returns:
+        - str: "DAGGER" if the line is a DAGGER command, "ENDDAGGER" if it's an ENDDAGGER command,
+          None otherwise.
+        
+        Note:
+        This function identifies the DAGGER and ENDDAGGER commands in the OriginIR language.
+        """
+        if "ENDDAGGER" in line:
+            return "ENDDAGGER"
+        elif "DAGGER" in line:
+            return "DAGGER"
+        else:
+            return None
+    
+    @staticmethod
+    def parse_line(line):
         try:
             q = None
             c = None
@@ -129,7 +171,16 @@ class OriginIR_Parser:
             elif line.startswith('MEASURE'):
                 operation = 'MEASURE'
                 q, c = OriginIR_Parser.handle_measure(line)
+            elif line.startswith('CONTROL'):
+                operation, q = OriginIR_Parser.handle_control(line)
+            elif line.startswith('ENDCONTROL'):
+                operation, q = OriginIR_Parser.handle_control(line)
+            elif line.startswith('DAGGER'):
+                operation = OriginIR_Parser.handle_dagger(line)
+            elif line.startswith('ENDDAGGER'):
+                operation = OriginIR_Parser.handle_dagger(line)
             else:
+                print("something wrong")
                 raise NotImplementedError(f'A invalid line: {line}.')      
             
             return operation, q, c, parameter
@@ -137,44 +188,48 @@ class OriginIR_Parser:
             raise RuntimeError(f'Error when parsing the line: {line}')
     
 if __name__ == '__main__':
-
-    print(OriginIR_Parser.regexp_1q_str)
-    matches = OriginIR_Parser.regexp_1q.match('H  q [ 45 ]')
-    print(matches.group(0))
-    print(matches.group(1)) # H
-    print(matches.group(2)) # 45
     
-    print(OriginIR_Parser.regexp_1q1p_str)
-    matches = OriginIR_Parser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
-    print(matches.group(0))
-    print(matches.group(1)) # RX
-    print(matches.group(2)) # 45
-    print(matches.group(3)) # 1.1e+3
-    print(matches.group(4)) # 
-    print(matches.group(5)) # 
+    matches = OriginIR_Parser.parse_line('CONTROL q[45]')
+    print(matches)
 
-    print(OriginIR_Parser.regexp_1q2p_str)
-    matches = OriginIR_Parser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
-    print(matches.group(0))
-    print(matches.group(1)) # Rphi
-    print(matches.group(2)) # 45
-    print(matches.group(3)) # -1.1
-    print(matches.group(4)) # 
-    print(matches.group(5)) # 
-    print(matches.group(6)) # 1.2e-5
-    print(matches.group(7)) #
-    print(matches.group(8)) #
+
+    # print(OriginIR_Parser.regexp_1q_str)
+    # matches = OriginIR_Parser.regexp_1q.match('CONTROL  q [ 45 ]')
+    # print(matches.group(0))
+    # print(matches.group(1)) # H
+    # print(matches.group(2)) # 45
+    
+    # print(OriginIR_Parser.regexp_1q1p_str)
+    # matches = OriginIR_Parser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
+    # print(matches.group(0))
+    # print(matches.group(1)) # RX
+    # print(matches.group(2)) # 45
+    # print(matches.group(3)) # 1.1e+3
+    # print(matches.group(4)) # 
+    # print(matches.group(5)) # 
+
+    # print(OriginIR_Parser.regexp_1q2p_str)
+    # matches = OriginIR_Parser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
+    # print(matches.group(0))
+    # print(matches.group(1)) # Rphi
+    # print(matches.group(2)) # 45
+    # print(matches.group(3)) # -1.1
+    # print(matches.group(4)) # 
+    # print(matches.group(5)) # 
+    # print(matches.group(6)) # 1.2e-5
+    # print(matches.group(7)) #
+    # print(matches.group(8)) #
     
     
-    print(OriginIR_Parser.regexp_2q_str)
-    matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')
-    print(matches.group(0)) 
-    print(matches.group(1)) # CNOT
-    print(matches.group(2)) # 45
-    print(matches.group(3)) # 46
+    # print(OriginIR_Parser.regexp_2q_str)
+    # matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')
+    # print(matches.group(0)) 
+    # print(matches.group(1)) # CNOT
+    # print(matches.group(2)) # 45
+    # print(matches.group(3)) # 46
 
-    print(OriginIR_Parser.regexp_measure_str)
-    matches = OriginIR_Parser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
-    print(matches.group(0))
-    print(matches.group(1)) # 45
-    print(matches.group(2)) # 11
+    # print(OriginIR_Parser.regexp_measure_str)
+    # matches = OriginIR_Parser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
+    # print(matches.group(0))
+    # print(matches.group(1)) # 45
+    # print(matches.group(2)) # 11

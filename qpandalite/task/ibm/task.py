@@ -114,29 +114,34 @@ def query_all_task(savepath = None):
 if __name__ == '__main__':
     import numpy as np
     from qiskit import QuantumCircuit
+    
+    # The quantum circuit in qiskit
+    # circ = QuantumCircuit(3)
+    # circ.sx(0)
+    # circ.iswap(0, 1)
+    # circ.cz(0, 2)
+    # circ.ccx(0, 1, 2)
+    # # Create a Quantum Circuit
+    # meas = QuantumCircuit(3, 3)
+    # meas.measure(range(3), range(3))
+    # qc = meas.compose(circ, range(3), front=True)
+    # QASM_string = qc.qasm()
+    # print(QASM_string)
 
-    circ = QuantumCircuit(3)
-
-    circ.h(0)
-    circ.cx(0, 1)
-    circ.cx(0, 2)
-
-    # Create a Quantum Circuit
-    meas = QuantumCircuit(3, 3)
-    meas.measure(range(3), range(3))
-
-    qc = meas.compose(circ, range(3), front=True)
-
-    QASM_string = qc.qasm()
-    print(QASM_string)
-
+    # The quantum circuit in OriginIR
     import qpandalite
     from qpandalite.circuit_builder.qcircuit import Circuit
     c = Circuit()
     c.h(0)
-    c.cnot(0, 1)
+    c.x(0)
+    c.y(0)
+    c.z(0)
+    c.cz(0, 1)
     c.cnot(0, 2) 
-
     c.measure(0,1,2)
-    
     print(c.circuit)
+
+    # The qasm file from previous circuit object in OriginIR
+    # now is imported into qiskit using from_qasm_str
+    origin_qc = qiskit.QuantumCircuit.from_qasm_str(c.qasm)
+    print(origin_qc.qasm())

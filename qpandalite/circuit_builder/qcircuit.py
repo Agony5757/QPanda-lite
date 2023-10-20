@@ -58,11 +58,86 @@ class Circuit:
         ret = 'QINIT {}\n'.format(self.max_qubit + 1)
         ret += 'CREG {}\n'.format(len(self.measure_list))
         return ret
-
+    
+    def make_header_qasm(self):
+        ret = "OPENQASM 2.0;\ninclude \"qelib1.inc\";\n"
+        ret += 'qreg q[{}];\n'.format(self.max_qubit + 1)
+        ret += 'creg c[{}];\n'.format(len(self.measure_list))
+        return ret
+    
     def make_measure(self):
         ret = ''
         for i, meas_qubit in enumerate(self.measure_list):
             ret += 'MEASURE q[{}], c[{}]\n'.format(meas_qubit, i)
+        return ret
+
+    def make_measure_qasm(self):
+        ret = ''
+        for i, meas_qubit in enumerate(self.measure_list):
+            ret += 'measure q[{}] -> c[{}];\n'.format(meas_qubit, i)
+        return ret   
+    
+    def make_operation_qasm(self):
+        """
+        Deal with conflicts between OpenQASM2 and OriginIR.
+        OriginIR supports gates:
+            'H':    operation, q = OriginIR_Parser.handle_1q(line)
+            'X':    operation, q = OriginIR_Parser.handle_1q(line)
+            'SX':   operation, q = OriginIR_Parser.handle_1q(line) - no support in qcircuit.py
+            'Y':    operation, q = OriginIR_Parser.handle_1q(line)
+            'Z':    operation, q = OriginIR_Parser.handle_1q(line)
+            'CZ':   operation, q = OriginIR_Parser.handle_2q(line)
+            'ISWAP':operation, q = OriginIR_Parser.handle_2q(line) - no support in qcircuit.py
+            'XY':   operation, q = OriginIR_Parser.handle_2q(line) - no support in qcircuit.py
+            'CNOT': operation, q = OriginIR_Parser.handle_2q(line)
+            'RX':   operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            'RY':   operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            'RZ':   operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            'Rphi': operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+        
+        OpenQASM2 supports gates:
+            gate h a { u2(0,pi) a; }
+            gate x a { u3(pi,0,pi) a; }
+            SX(NOT SUPPORTED)
+            gate y a { u3(pi,pi/2,pi/2) a; }
+            gate z a { u1(pi) a; }
+            ---   CZ (    SUPPORTED)---
+            ---iSWAP (NOT SUPPORTED)---
+            ---   XY (NOT SUPPORTED)---
+            gate cx c,t { CX c,t; }
+            gate rx(theta) a { u3(theta,-pi/2,pi/2) a; }
+            gate ry(theta) a { u3(theta,0,0) a; }
+            gate rz(phi) a { u1(phi) a; }
+            --- Rphi (NOT SUPPORTED)---
+
+            // 3-parameter 2-pulse single qubit gate
+            gate u3(theta,phi,lambda) q { U(theta,phi,lambda) q; }
+            // 2-parameter 1-pulse single qubit gate
+            gate u2(phi,lambda) q { U(pi/2,phi,lambda) q; }
+            // 1-parameter 0-pulse single qubit gate
+            gate u1(lambda) q { U(0,0,lambda) q; }
+            // idle gate (identity)
+            gate id a { U(0,0,0) a; }            
+            // Clifford gate: sqrt(Z) phase gate
+            gate s a { u1(pi/2) a; }
+            // Clifford gate: conjugate of sqrt(Z)
+            gate sdg a { u1(-pi/2) a; }
+            // C3 gate: sqrt(S) phase gate
+            gate t a { u1(pi/4) a; }
+            // C3 gate: conjugate of sqrt(S)
+            gate tdg a { u1(-pi/4) a; }
+
+        From OriginIR to OpenQASM2, we need to make sure that：
+        1. The operation that is not in the OpenQASM need to be specified, 
+        for example, gate iswap q0,q1 { s q0; s q1; h q0; cx q0,q1; cx q1,q0; h q1; }
+
+        2. The operation from both OpenQASM and OriginIR that has the same name will have the same behavior,
+        especially the rotation-theta. If not, some modification could be done with the help of u3, u2, u1.
+        """
+        modified_circ_str = self.circuit_str.replace('CNOT', 'cx')
+        ret= '\n'.join([line.lower() + ';' for line in modified_circ_str.split('\n') if line.strip()])
+        ret += "\n"
+        # print(self.circuit_str)
         return ret
 
     @property
@@ -79,7 +154,21 @@ class Circuit:
     
     @property
     def qasm(self):
-        raise NotImplementedError('QASM support will be released in future.')
+        """
+        Convert the OriginIR representation into OpenQASM.
+        Return the OpenQASM2 representation of our circuit.
+
+        
+        Statements are separated by semicolons. 
+        Whitespace is ignored. 
+        The language is case sensitive. 
+        Comments begin with a pair of forward slashes and end with a new line.
+
+        For self-defined gate, one should use opaque to define
+        """
+        return self.make_header_qasm() + self.make_operation_qasm() + self.make_measure_qasm()
+
+        # raise NotImplementedError('QASM support will be released in future.')
 
     def record_qubit(self, *qubits):
         for qubit in qubits:

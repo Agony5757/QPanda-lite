@@ -36,11 +36,17 @@ class OriginIR_Parser:
                         comma + blank + 
                         cid + 
                         '$')
+        
+    regexp_control_str = (r'^(CONTROL|ENDCONTROL)' +
+                          f'(({blank}{qid}{blank}{comma})*{blank}{qid}{blank})' + 
+                          '$')
+    
     regexp_1q = re.compile(regexp_1q_str)
     regexp_2q = re.compile(regexp_2q_str)
     regexp_1q1p = re.compile(regexp_1q1p_str)
     regexp_1q2p = re.compile(regexp_1q2p_str)
     regexp_meas = re.compile(regexp_measure_str)
+    regexp_control = re.compile(regexp_control_str)
 
     def __init__(self):
         pass
@@ -49,22 +55,22 @@ class OriginIR_Parser:
     def handle_1q(line):
         matches = OriginIR_Parser.regexp_1q.match(line)
         operation = matches.group(1)
-        q = matches.group(2)
+        q = int(matches.group(2))
         return operation, q
 
     @staticmethod
     def handle_2q(line):
         matches = OriginIR_Parser.regexp_2q.match(line)
         operation = matches.group(1)
-        q1 = matches.group(2)
-        q2 = matches.group(3)
+        q1 = int(matches.group(2))
+        q2 = int(matches.group(3))
         return operation, [q1, q2]
 
     @staticmethod
     def handle_1q1p(line):
         matches = OriginIR_Parser.regexp_1q1p.match(line)
         operation = matches.group(1)
-        q = matches.group(2)
+        q = int(matches.group(2))
         parameter = float(matches.group(3))
         return operation, q, parameter
 
@@ -72,7 +78,7 @@ class OriginIR_Parser:
     def handle_1q2p(line):
         matches = OriginIR_Parser.regexp_1q2p.match(line)
         operation = matches.group(1)
-        q = matches.group(2)
+        q = int(matches.group(2))
         parameter1 = float(matches.group(3))
         parameter2 = float(matches.group(6))
         return operation, q, [parameter1, parameter2]
@@ -80,8 +86,8 @@ class OriginIR_Parser:
     @staticmethod
     def handle_measure(line):
         matches = OriginIR_Parser.regexp_meas.match(line)
-        q = matches.group(1)
-        c = matches.group(2)
+        q = int(matches.group(1))
+        c = int(matches.group(2))
         return q, c
 
     @staticmethod
@@ -97,14 +103,10 @@ class OriginIR_Parser:
         This function assumes that the `regexp_control` regular expression is defined and matches
         the CONTROL or ENDCONTROL pattern in the OriginIR language.
         """
-        regexp_control = re.compile(r'^(CONTROL|ENDCONTROL)\s*((?:q\[\d+\],\s*)*q\[\d+\])')
-        matches = regexp_control.match(line)
-        if not matches:
-            raise ValueError("The provided line does not match the expected format.")
-        
+        matches = OriginIR_Parser.regexp_control.match(line)        
         # Extracting the operation type and multiple control qubits
         operation_type = matches.group(1)
-        controls = [ctrl.strip() for ctrl in matches.group(2).split(",")]
+        controls = [int(ctrl) for ctrl in matches.group(2).split(",")]
         
         return operation_type, controls
 
@@ -189,47 +191,51 @@ class OriginIR_Parser:
     
 if __name__ == '__main__':
     
-    matches = OriginIR_Parser.parse_line('CONTROL q[45]')
-    print(matches)
-
-
-    # print(OriginIR_Parser.regexp_1q_str)
-    # matches = OriginIR_Parser.regexp_1q.match('CONTROL  q [ 45 ]')
-    # print(matches.group(0))
-    # print(matches.group(1)) # H
-    # print(matches.group(2)) # 45
+    print(OriginIR_Parser.regexp_1q_str)
+    matches = OriginIR_Parser.regexp_1q.match('CONTROL  q [ 45 ]')
+    print(matches.group(0))
+    print(matches.group(1)) # H
+    print(matches.group(2)) # 45
     
-    # print(OriginIR_Parser.regexp_1q1p_str)
-    # matches = OriginIR_Parser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
-    # print(matches.group(0))
-    # print(matches.group(1)) # RX
-    # print(matches.group(2)) # 45
-    # print(matches.group(3)) # 1.1e+3
-    # print(matches.group(4)) # 
-    # print(matches.group(5)) # 
+    print(OriginIR_Parser.regexp_1q1p_str)
+    matches = OriginIR_Parser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
+    print(matches.group(0))
+    print(matches.group(1)) # RX
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # 1.1e+3
+    print(matches.group(4)) # 
+    print(matches.group(5)) # 
 
-    # print(OriginIR_Parser.regexp_1q2p_str)
-    # matches = OriginIR_Parser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
-    # print(matches.group(0))
-    # print(matches.group(1)) # Rphi
-    # print(matches.group(2)) # 45
-    # print(matches.group(3)) # -1.1
-    # print(matches.group(4)) # 
-    # print(matches.group(5)) # 
-    # print(matches.group(6)) # 1.2e-5
-    # print(matches.group(7)) #
-    # print(matches.group(8)) #
+    print(OriginIR_Parser.regexp_1q2p_str)
+    matches = OriginIR_Parser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
+    print(matches.group(0))
+    print(matches.group(1)) # Rphi
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # -1.1
+    print(matches.group(4)) # 
+    print(matches.group(5)) # 
+    print(matches.group(6)) # 1.2e-5
+    print(matches.group(7)) #
+    print(matches.group(8)) #
     
     
-    # print(OriginIR_Parser.regexp_2q_str)
-    # matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')
-    # print(matches.group(0)) 
-    # print(matches.group(1)) # CNOT
-    # print(matches.group(2)) # 45
-    # print(matches.group(3)) # 46
+    print(OriginIR_Parser.regexp_2q_str)
+    matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')
+    print(matches.group(0)) 
+    print(matches.group(1)) # CNOT
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # 46
 
-    # print(OriginIR_Parser.regexp_measure_str)
-    # matches = OriginIR_Parser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
-    # print(matches.group(0))
-    # print(matches.group(1)) # 45
-    # print(matches.group(2)) # 11
+    print(OriginIR_Parser.regexp_measure_str)
+    matches = OriginIR_Parser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
+    print(matches.group(0))
+    print(matches.group(1)) # 45
+    print(matches.group(2)) # 11
+    
+    print(OriginIR_Parser.regexp_control_str)
+    matches = OriginIR_Parser.regexp_control.match('CONTROL   q [ 45] , q[ 46]  ,  q [  999 ]')
+    print(matches.groups())
+
+    regexp_control = re.compile(r'^(CONTROL|ENDCONTROL)\s*((?:q\[\d+\],\s*)*q\[\d+\])')
+    matches = regexp_control.match('CONTROL   q[45], q[46],  q[999]')
+    print(matches.groups())

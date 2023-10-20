@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from qpandalite.originir.originir_line_parser import OriginIR_Parser
+from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 
 try:
     from qpandalite.simulator import Simulator
@@ -15,7 +15,8 @@ class OriginIR_Simulator:
         self.measure_qubit = []
         self.qubit_mapping = dict()
         self.reverse_key = reverse_key
-
+        self.parser = OriginIR_BaseParser()
+        
     def _clear(self):
         self.qubit_num = 0
         self.simulator = Simulator()
@@ -77,15 +78,10 @@ class OriginIR_Simulator:
         n = len(self.qubit_mapping)
         self.qubit_mapping[qubit] = n
 
-    def extract_actual_used_qubits(self, originir):
-        lines = originir.splitlines()
-        for line in lines:
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
-            
-            if not operation: continue
-            if operation == 'QINIT': continue
-            if not qubit: continue
-            
+    def extract_actual_used_qubits(self, program_body):
+        for (operation, qubit, cbit, parameter, 
+             dagger_flag, control_qubits_set) in program_body:
+                        
             if isinstance(qubit, list):
                 for q in qubit:
                     self._add_used_qubit(int(q))
@@ -122,7 +118,8 @@ class OriginIR_Simulator:
         # extract the actual used qubit, and build qubit mapping
         # like q45 -> 0, q46 -> 1, etc..
         self._clear()
-        self.extract_actual_used_qubits(originir)
+        self.parser.parse(originir)
+        self.extract_actual_used_qubits(self.parser.program_body)
 
         if available_qubits is not None:
             self.check_topology(available_qubits)
@@ -131,8 +128,9 @@ class OriginIR_Simulator:
 
         lines = originir.splitlines()
         
-        for i, line in enumerate(lines):            
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
+        for i, opcode in enumerate(self.parser.program_body):            
+            (operation, qubit, cbit, parameter, 
+             dagger_flag, control_qubits_set) = opcode
             if isinstance(qubit, list) and (available_topology is not None):
                 if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
                                                     'The dummy server does not support either. '

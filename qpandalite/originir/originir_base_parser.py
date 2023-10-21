@@ -187,7 +187,7 @@ class OriginIR_BaseParser:
                              'The DAGGER operation is not closed at the end of the OriginIR.')
         
 
-    def to_originir(self):
+    def to_extended_originir(self):
         ret = f'QINIT {self.n_qubit}\n'
         ret += f'CREG {self.n_cbit}\n'
         ret += '\n'.join([opcode_to_line(opcode) for opcode in self.program_body])
@@ -195,10 +195,10 @@ class OriginIR_BaseParser:
     
     @property
     def originir(self):
-        return self.to_originir()
+        return self.to_extended_originir()
 
     def __str__(self):
-        return self.to_originir()
+        return self.to_extended_originir()
 
 
 if __name__ == '__main__':
@@ -234,6 +234,6 @@ if __name__ == '__main__':
     parser.parse(originir)
 
     print(parser.program_body)
-    print(parser.to_originir())
+    print(parser.to_extended_originir())
     print(parser.raw_originir)
     print(parser.originir)

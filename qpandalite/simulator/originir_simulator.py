@@ -88,8 +88,7 @@ class OriginIR_Simulator:
             else:
                 self._add_used_qubit(int(qubit))
 
-    def check_topology(self, available_qubits : List[int] = None):
-        
+    def check_topology(self, available_qubits : List[int] = None):        
         used_qubits = list(self.qubit_mapping.keys())
         
         # check qubits
@@ -125,20 +124,31 @@ class OriginIR_Simulator:
             self.check_topology(available_qubits)
 
         self.simulator.init_n_qubit(len(self.qubit_mapping))
-
-        lines = originir.splitlines()
+        
+        lines = self.parser.originir
+        splitted_lines = lines.splitlines()
         
         for i, opcode in enumerate(self.parser.program_body):            
             (operation, qubit, cbit, parameter, 
              dagger_flag, control_qubits_set) = opcode
             if isinstance(qubit, list) and (available_topology is not None):
-                if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
-                                                    'The dummy server does not support either. '
-                                                    'You should consider decomposite it.')
+                if len(qubit) > 2:                    
+                    # i+2 because QINIT CREG are always excluded.
+                    raise ValueError('Real chip does not support gate of 3-qubit or more. '
+                                     'The dummy server does not support either. '
+                                     'You should consider decomposite it. \n'
+                                     f'Line {i + 2} ({splitted_lines[i + 2]}).')
+                
                 if ([int(qubit[0]), int(qubit[1])] not in available_topology) and \
                    ([int(qubit[1]), int(qubit[0])] not in available_topology):
-                    raise ValueError(f'Unsupported topology in line {i} ({line}).')
-
+                    # i+2 because QINIT CREG are always excluded.
+                    raise ValueError('Unsupported topology.\n'
+                                     f'Line {i + 2} ({splitted_lines[i + 2]}).')
+            if dagger_flag:
+                raise ValueError('TODO: dagger flag support needed to be added.')
+            if control_qubits_set:
+                raise ValueError('TODO: control-qubit support needed to be added.')
+            
             self.simulate_gate(operation, qubit, cbit, parameter)
         
         self.qubit_num = len(self.qubit_mapping)

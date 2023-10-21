@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 if __name__ == '__main__':
     from originir_line_parser import OriginIR_Parser
 else:
@@ -17,7 +20,7 @@ def opcode_to_line(opcode):
         ret += ' '
         ret += ', '.join([f'q[{q}]' for q in qubit])
     else:
-        ret += f'q[{qubit}]'
+        ret += f' q[{qubit}]'
 
     if parameter:
         ret += ', ('
@@ -36,7 +39,7 @@ def opcode_to_line(opcode):
         ret += 'dagger'
     
     if control_qubits_set:        
-        ret += ' ('
+        ret += ' controlled_by ('
         ret += ', '.join([f'q[{q}]' for q in control_qubits_set])
         ret += ')'
 
@@ -47,7 +50,7 @@ class OriginIR_BaseParser:
         self.n_qubit = None
         self.n_cbit = None        
         self.program_body = list()
-        self.originir = None
+        self.raw_originir = None
 
     def _extract_qinit_statement(self, lines):
         for i, line in enumerate(lines):
@@ -77,7 +80,7 @@ class OriginIR_BaseParser:
             return i + 1
 
     def parse(self, originir_str):
-        self.originir = originir_str
+        self.raw_originir = originir_str
 
         # Split into lines, and use strip() to skip the blank lines   
         lines = originir_str.strip().splitlines()
@@ -161,10 +164,20 @@ class OriginIR_BaseParser:
                     dagger_flag = False
 
                 if dagger_stacks:
-                    dagger_stacks[-1].append((operation, qubits, cbit, parameter, dagger_flag, control_qubits_set))
+                    dagger_stacks[-1].append((operation, 
+                                              qubits, 
+                                              cbit, 
+                                              parameter, 
+                                              dagger_flag, 
+                                              deepcopy(control_qubits_set)))
                 else:
-                    self.program_body.append((operation, qubits, cbit, parameter, dagger_flag, control_qubits_set))
-           
+                    self.program_body.append((operation, 
+                                              qubits, 
+                                              cbit, 
+                                              parameter, 
+                                              dagger_flag, 
+                                              deepcopy(control_qubits_set)))
+                    
         # Finally, check if all dagger and control operations are closed
         if control_qubits_set:
             raise ValueError('Parse error at end.\n'
@@ -179,6 +192,10 @@ class OriginIR_BaseParser:
         ret += f'CREG {self.n_cbit}\n'
         ret += '\n'.join([opcode_to_line(opcode) for opcode in self.program_body])
         return ret
+    
+    @property
+    def originir(self):
+        return self.to_originir()
 
     def __str__(self):
         return self.to_originir()
@@ -217,4 +234,6 @@ if __name__ == '__main__':
     parser.parse(originir)
 
     print(parser.program_body)
-    print(parser)
+    print(parser.to_originir())
+    print(parser.raw_originir)
+    print(parser.originir)

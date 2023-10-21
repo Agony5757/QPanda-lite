@@ -47,6 +47,7 @@ class OriginIR_Parser:
     regexp_1q2p = re.compile(regexp_1q2p_str)
     regexp_meas = re.compile(regexp_measure_str)
     regexp_control = re.compile(regexp_control_str)
+    regexp_qid = re.compile(qid)
 
     def __init__(self):
         pass
@@ -106,7 +107,8 @@ class OriginIR_Parser:
         matches = OriginIR_Parser.regexp_control.match(line)        
         # Extracting the operation type and multiple control qubits
         operation_type = matches.group(1)
-        controls = [int(ctrl) for ctrl in matches.group(2).split(",")]
+        qubits = OriginIR_Parser.regexp_qid.findall(matches.group(2))
+        controls = [int(ctrl) for ctrl in qubits]
         
         return operation_type, controls
 
@@ -192,7 +194,7 @@ class OriginIR_Parser:
 if __name__ == '__main__':
     
     print(OriginIR_Parser.regexp_1q_str)
-    matches = OriginIR_Parser.regexp_1q.match('CONTROL  q [ 45 ]')
+    matches = OriginIR_Parser.regexp_1q.match('H  q [ 45 ]')
     print(matches.group(0))
     print(matches.group(1)) # H
     print(matches.group(2)) # 45
@@ -234,8 +236,8 @@ if __name__ == '__main__':
     
     print(OriginIR_Parser.regexp_control_str)
     matches = OriginIR_Parser.regexp_control.match('CONTROL   q [ 45] , q[ 46]  ,  q [  999 ]')
-    print(matches.groups())
-
-    regexp_control = re.compile(r'^(CONTROL|ENDCONTROL)\s*((?:q\[\d+\],\s*)*q\[\d+\])')
-    matches = regexp_control.match('CONTROL   q[45], q[46],  q[999]')
-    print(matches.groups())
+    print(matches.group(0))
+    print(matches.group(1)) # CONTROL
+    print(matches.group(2)) #    q [ 45] , q[ 46]  ,  q [  999 ]
+    all_matches = OriginIR_Parser.regexp_qid.findall(matches.group(2))
+    print(all_matches) # ['45', '46', '999']

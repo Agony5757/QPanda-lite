@@ -210,7 +210,7 @@ def _submit_task_group(circuits=None,
     return job
 
 
-=======
+# =======
 import qiskit
 # import qiskit_ibm_provider
 from qpandalite.task.task_utils import write_taskinfo
@@ -331,7 +331,7 @@ if __name__ == '__main__':
     import numpy as np
     from qiskit import QuantumCircuit
     
-    The quantum circuit in qiskit
+    # The quantum circuit in qiskit
     # circ = QuantumCircuit(3)
     
     # circ.h(0)

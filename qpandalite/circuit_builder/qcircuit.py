@@ -65,6 +65,20 @@ class Circuit:
         ret += 'creg c[{}];\n'.format(len(self.measure_list))
         return ret
     
+    def covert_1q1p_qasm(self, line):
+
+        # Match 1-qubit operations with one parameter/ RX, RY, RZ
+        operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+
+        return f"{operation.lower()}({parameter}) q[{q}]"
+
+    def covert_1q2p_qasm(self, line):
+        from numpy import pi
+        # Match 1-qubit operations with two parameters/ Rphi
+        operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+
+        return f"u3({parameter[1]},{parameter[0]}-pi/2, -{parameter[0]}+pi/2) q[{q}]"
+
     def make_measure(self):
         ret = ''
         for i, meas_qubit in enumerate(self.measure_list):
@@ -108,10 +122,9 @@ class Circuit:
             gate rx(theta) a { u3(theta,-pi/2,pi/2) a; }
             gate ry(theta) a { u3(theta,0,0) a; }
             gate rz(phi) a { u1(phi) a; }
-            --- Rphi (NOT SUPPORTED)---
+            gate u3(theta,phi,lambda) q { U(theta,phi,lambda) q; } roughly equals to Rphi 
 
-            // 3-parameter 2-pulse single qubit gate
-            gate u3(theta,phi,lambda) q { U(theta,phi,lambda) q; }
+        
             // 2-parameter 1-pulse single qubit gate
             gate u2(phi,lambda) q { U(pi/2,phi,lambda) q; }
             // 1-parameter 0-pulse single qubit gate
@@ -133,9 +146,38 @@ class Circuit:
 
         2. The operation from both OpenQASM and OriginIR that has the same name will have the same behavior,
         especially the rotation-theta. If not, some modification could be done with the help of u3, u2, u1.
+
+            2.1 RX, RY are the same, and RZ has a phase factor difference.
         """
         modified_circ_str = self.circuit_str.replace('CNOT', 'cx')
-        ret= '\n'.join([line.lower() + ';' for line in modified_circ_str.split('\n') if line.strip()])
+
+        # Split the input string into individual lines
+        lines = modified_circ_str.split('\n')
+
+        # Create an empty list to store the transformed lines
+        transformed_lines = []
+
+        # Iterate over each line in the input
+        for line in lines:
+            # Check if the line isn't just whitespace or empty
+            if line.strip():
+                match_1q1p = OriginIR_Parser.regexp_1q1p.match(line)
+                match_1q2p = OriginIR_Parser.regexp_1q2p.match(line)
+                if match_1q1p:
+                    line = self.covert_1q1p_qasm(line)
+                if match_1q2p:
+                    line = self.covert_1q2p_qasm(line)
+
+                # Convert the line to lowercase and append a semicolon
+                new_line = line.lower() + ';'
+
+                # Add the transformed line to our list
+                transformed_lines.append(new_line)
+                # print(new_line)
+        # Join the transformed lines back into a single string
+        ret = '\n'.join(transformed_lines)
+        # modified_circ_str = self.covert_1q1p_qasm(modified_circ_str)
+        # ret= '\n'.join([line.lower() + ';' for line in modified_circ_str.split('\n') if line.strip()])
         ret += "\n"
         # print(self.circuit_str)
         return ret

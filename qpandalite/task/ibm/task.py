@@ -115,12 +115,29 @@ if __name__ == '__main__':
     import numpy as np
     from qiskit import QuantumCircuit
     
-    # The quantum circuit in qiskit
+    The quantum circuit in qiskit
     # circ = QuantumCircuit(3)
+    
+    # circ.h(0)
+    # circ.rx(0.4, 0)
+    # circ.x(0)
+    # circ.ry(0.39269908169872414, 1)
+    # circ.y(0)
+    # circ.rz(np.pi/8, 1)
+    # circ.z(0)
+    # circ.cz(0, 1)
+    # circ.cx(0, 2) 
+
     # circ.sx(0)
     # circ.iswap(0, 1)
     # circ.cz(0, 2)
     # circ.ccx(0, 1, 2)
+    # x_circuit = QuantumCircuit(2, name='Xs')
+    # x_circuit.x(range(2))
+    # xs_gate = x_circuit.to_gate()
+    # cxs_gate = xs_gate.control()
+    # circ.append(cxs_gate, [0, 1, 2])
+    
     # # Create a Quantum Circuit
     # meas = QuantumCircuit(3, 3)
     # meas.measure(range(3), range(3))
@@ -133,15 +150,37 @@ if __name__ == '__main__':
     from qpandalite.circuit_builder.qcircuit import Circuit
     c = Circuit()
     c.h(0)
+    c.rx(0, np.pi/8)
     c.x(0)
+    c.ry(1, np.pi/8)
     c.y(0)
+    c.rz(2, np.pi/8)
     c.z(0)
     c.cz(0, 1)
     c.cnot(0, 2) 
-    c.measure(0,1,2)
-    print(c.circuit)
+    c.rphi(3, np.pi/4, np.pi/3) # phi, theta
+    c.measure(0,1,2,3)
+    # print(c.circuit)
+    print(c.qasm)
+    
+    import qpandalite.simulator as sim
+    qsim = sim.OriginIR_Simulator()
 
+    result = qsim.simulate(c.circuit)
+
+    print(result)
     # The qasm file from previous circuit object in OriginIR
     # now is imported into qiskit using from_qasm_str
     origin_qc = qiskit.QuantumCircuit.from_qasm_str(c.qasm)
     print(origin_qc.qasm())
+    # Import Aer
+    from qiskit import Aer
+
+    # Run the quantum circuit on a statevector simulator backend
+    backend = Aer.get_backend('statevector_simulator')
+
+    # Create a Quantum Program for execution
+    job = backend.run(origin_qc)
+    result = job.result()
+    outputstate = result.get_statevector(origin_qc)
+    print(outputstate)

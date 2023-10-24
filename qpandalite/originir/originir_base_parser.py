@@ -25,9 +25,9 @@ def opcode_to_line(opcode):
     if parameter:
         ret += ', ('
         if isinstance(parameter, list):
-            ret += ', '.join(parameter)
+            ret += ', '.join(str(parameter))
         else:
-            ret += parameter
+            ret += str(parameter)
         ret += ')'
         
     if cbit: 

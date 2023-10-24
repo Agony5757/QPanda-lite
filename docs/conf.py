@@ -16,10 +16,12 @@ import pathlib
 parent_path = pathlib.Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, os.path.abspath(parent_path))
-sys.path.insert(0, os.path.abspath(parent_path / 'qpandalite'))
+sys.path.insert(0, os.path.abspath(parent_path / 'simulator'))
+sys.path.insert(0, os.path.abspath(parent_path / 'originir'))
 sys.path.insert(0, os.path.abspath(parent_path / 'task'))
 sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'originq'))
 sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'quafu'))
+sys.path.insert(0, os.path.abspath(parent_path / 'task' / 'ibm'))
 
 # -- Project information -----------------------------------------------------
 

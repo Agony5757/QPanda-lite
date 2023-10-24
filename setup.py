@@ -5,14 +5,14 @@ import os
 import subprocess
 import sys
 
-BUILD_WITH_CPP = False
+BUILD_WITH_CPP = True
 
 # see if user passes any args to the setup
 filtered_args = []
 for i, arg in enumerate(sys.argv):
-    if arg == '--has-cpp':
-        BUILD_WITH_CPP = True
-        print('Build with c++ support.')
+    if arg == '--no-cpp':
+        BUILD_WITH_CPP = False
+        print('Build without c++ support.')
     else:
         filtered_args.append(arg)
 
@@ -164,7 +164,7 @@ else:
 
 setup(
     name = "qpandalite",
-    version = "0.1.0",
+    version = "0.1.9",
     author = "Agony",
     author_email = "chenzhaoyun@iai.ustc.edu.cn",
     description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",

@@ -1,49 +1,138 @@
 import json
 from pathlib import Path
 
-def create_originq_online_config(default_token = None, 
-                                 default_submit_url = None, 
-                                 default_query_url = None, 
-                                 default_task_group_size = 200):    
+def create_originq_config(login_apitoken = None, 
+                                 login_url = None,
+                                 submit_url = None, 
+                                 query_url = None, 
+                                 available_qubits = None,
+                                 available_topology = None,
+                                 task_group_size = 200):    
 
-    if not default_token:
+    if not login_apitoken:
         raise RuntimeError('You should input your token.')
 
-    if not default_submit_url:
+    if not login_url:
+        raise RuntimeError('You should input the login url (url 0).')
+
+    if not submit_url:
         raise RuntimeError('You should input the submitting url (url 1).')
     
-    if not default_query_url:
+    if not query_url:
         raise RuntimeError('You should input the querying url (url 2).')
 
-    if not isinstance(default_task_group_size, int):
-        raise RuntimeError('Task group size (default_task_group_size) must be a number.')
+    if not isinstance(available_qubits, list):
+        raise RuntimeError('Available qubits must be a list.')
+
+    if not isinstance(available_topology, list):
+        raise RuntimeError('Available topology must be a list.')
+
+    if not isinstance(task_group_size, int):
+        raise RuntimeError('Task group size (task_group_size) must be a number.')
 
     default_online_config = {
-        'default_token' : default_token,
-        'default_submit_url' : default_submit_url,
-        'default_query_url': default_query_url,
-        'default_task_group_size': default_task_group_size,
+        'login_apitoken' : login_apitoken,
+        'login_url' : login_url,
+        'submit_url' : submit_url,
+        'query_url': query_url,
+        'available_qubits': available_qubits,
+        'available_topology': available_topology,
+        'task_group_size': task_group_size,
     }
 
     with open(Path.cwd() / 'originq_online_config.json', 'w') as fp:
-        json.dump(default_online_config, fp)
+        json.dump(default_online_config, fp, indent=2)
+
+def create_originq_online_config(login_apitoken = None, 
+                                 login_url = None,
+                                 submit_url = None, 
+                                 query_url = None, 
+                                 task_group_size = 200):    
+
+    if not login_apitoken:
+        raise RuntimeError('You should input your token.')
+
+    if not login_url:
+        raise RuntimeError('You should input the login url (url 0).')
+
+    if not submit_url:
+        raise RuntimeError('You should input the submitting url (url 1).')
+    
+    if not query_url:
+        raise RuntimeError('You should input the querying url (url 2).')
+
+    if not isinstance(task_group_size, int):
+        raise RuntimeError('Task group size (task_group_size) must be a number.')
+
+    default_online_config = {
+        'login_apitoken' : login_apitoken,
+        'login_url' : login_url,
+        'submit_url' : submit_url,
+        'query_url': query_url,
+        'available_qubits': None,
+        'available_topology': None,
+        'task_group_size': task_group_size,
+    }
+
+    with open(Path.cwd() / 'originq_online_config.json', 'w') as fp:
+        json.dump(default_online_config, fp, indent=2)
+
+def create_originq_dummy_config(
+    available_qubits = None,
+    available_topology = None,
+    task_group_size = 200):    
+
+    if not isinstance(available_qubits, list):
+        raise RuntimeError('Available qubits must be a list.')
+
+    if not isinstance(available_topology, list):
+        raise RuntimeError('Available topology must be a list.')
+
+    if not isinstance(task_group_size, int):
+        raise RuntimeError('Task group size (task_group_size) must be a number.')
+
+    default_online_config = {
+        'login_apitoken' : 'DUMMY',
+        'login_url' : 'DUMMY',
+        'submit_url' : 'DUMMY',
+        'query_url': 'DUMMY',
+        'available_qubits': available_qubits,
+        'available_topology': available_topology,
+        'task_group_size': task_group_size,
+    }
+
+    with open(Path.cwd() / 'originq_online_config.json', 'w') as fp:
+        json.dump(default_online_config, fp, indent=2)
+
 
 if __name__ == '__main__':
 
-    # The originq qpilot login state token
-    token = ''
+    # The originq qpilot login apitoken
+    apitoken = 'TOKEN'
+
+    # The url for logging
+    login_url = 'LOGIN_URL'
 
     # The url for submitting the task
-    submit_url = ''
+    submit_url = 'SUBMIT_URL'
 
     # The url for querying the task     
-    query_url = ''
+    query_url = 'QUERY_URL'
+
+    # Available qubits
+    available_qubits = [0, 1, 2]
+
+    # Available topology
+    available_topology = [[0, 1], [1, 2]]
     
     # The maximum task group size, representing the maximum number of 
     # quantum circuits contained in a single task. (default = 200)
     task_group_size = 200
 
-    create_originq_online_config(default_token = token, 
-                                 default_submit_url = submit_url, 
-                                 default_query_url = query_url, 
+    create_originq_online_config(login_apitoken = apitoken, 
+                                 login_url = login_url,
+                                 submit_url = submit_url, 
+                                 query_url = query_url, 
+                                 available_qubits = available_qubits,
+                                 available_topology = available_topology,
                                  task_group_size = task_group_size)

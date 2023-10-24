@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import json
 import os
 from pathlib import Path
-from qpandalite.task.originq import *
-from step1_submit_circuit import savepath
 
 def format_result(compiled_prog):
     prog = json.loads(compiled_prog)
@@ -18,10 +16,17 @@ def format_result(compiled_prog):
         gate_name = list(gate.keys())[0]
         gate_parameter = gate[gate_name]
 
-        if gate_name == 'RPhi':
+        if gate_name == 'RPhi' and gate_parameter[2] == 90.0:
+            gate_name = 'RPhi90'
             qubit = gate_parameter[0]
             angle = gate_parameter[1]
-            use_time = gate_parameter[2]
+            use_time = gate_parameter[3]
+            qubit_list.append(qubit)
+        elif gate_name == 'RPhi' and gate_parameter[2] == 180.0:
+            gate_name = 'RPhi180'
+            qubit = gate_parameter[0]
+            angle = gate_parameter[1]
+            use_time = gate_parameter[3]
             qubit_list.append(qubit)
         elif gate_name == 'CZ':
             qubit = [gate_parameter[0], gate_parameter[1]]
@@ -48,6 +53,7 @@ def format_result(compiled_prog):
             gate_layers[layer_of_gate] = []
         gate_layers[layer_of_gate].append((gate_name, qubit, angle, use_time))
         time_line.append(use_time)
+        
     return gate_layers, sorted(list(set(qubit_list))), sorted(list(set(time_line)))
 
 
@@ -78,7 +84,7 @@ def plot_time_line(compiled_prog, taskid,
     for i in range(1, split_table + 1):
         plt.figure(figsize=(width, len(qubit_list)/2))
         plt.axis('off')
-        cmap = {'RPhi': 'blue', 'CZ': 'red', 'idle': 'white', 'Measure': 'gray'}
+        cmap = {'RPhi90': 'blue', 'RPhi180': 'orange', 'CZ': 'red', 'idle': 'white', 'Measure': 'gray'}
 
         if i*20 < depth:
             values = time_line_table.values[:, (i-1)*20:i*20]
@@ -95,45 +101,4 @@ def plot_time_line(compiled_prog, taskid,
         if not os.path.exists(figure_save_path):
             os.mkdir(figure_save_path)
         plt.savefig(figure_save_path / f'{taskid} timeline {i}.png')
-        # plt.show()
-
-figure_save_path = Path.cwd() / 'timeline_plot'
-
-if __name__ == '__main__':
-    online_info = load_all_online_info(savepath=savepath)
-    query_all_task(savepath=savepath)
-
-    transformed_prog = []
-    time_line_table_list = []
-    not_finished = []
-
-    for task in online_info:
-        taskid = task['taskid']
-        taskname = '' if 'taskname' not in task else task['taskname']
-        if not os.path.exists(savepath / f'{taskid}.txt'):
-            not_finished.append({'taskid': taskid, 'taskname': taskname})
-
-    if not_finished:
-        print('Unfinished task list')
-        for task in not_finished:
-            taskid = task['taskid']
-            taskname = task['taskname'] if task['taskname'] else 'null'
-            print(f'  taskid:{taskid}, taskname:{taskname}')
-        print(f'Unfinished: {len(not_finished)}')
-    else:
-        for task in online_info:
-            taskid = task['taskid']
-            print(f'Taskid: {taskid}')
-            with open(savepath / f'{taskid}.txt') as fp:
-                taskinfo = json.load(fp)
-
-            if taskinfo['status'] == 'failed':
-                continue
-
-            compiled_prog = taskinfo["compiled_prog"][0]
-            plot_time_line(compiled_prog, taskid, 
-                           figure_save_path=figure_save_path)
-            # new_prog, qubit_list, time_line = format_result(compiled_prog)
-            # transformed_prog.append(new_prog)
-            # time_line_table_list.append(create_time_line_table(new_prog, qubit_list, time_line))
 

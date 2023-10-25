@@ -428,71 +428,46 @@ class Circuit:
                 self.circuit_info['measurements'].append({'qubit': qubit, 'output': f'c[{output}]'})
 
 
-def transform_line(line, circuit):
-    # Match the cx operation
-    match_cx = re.match(r'cx q\[(\d+)\],q\[(\d+)\];', line)
-    if match_cx:
-        qubit1, qubit2 = map(int, match_cx.groups())
-        circuit.cnot(qubit1, qubit2)
+# def transform_line(line, circuit):
+#     # Match the cx operation
+#     match_cx = re.match(r'cx q\[(\d+)\],q\[(\d+)\];', line)
+#     if match_cx:
+#         qubit1, qubit2 = map(int, match_cx.groups())
+#         circuit.cnot(qubit1, qubit2)
     
-    # Match other operations, for example, h gate
-    match_h = re.match(r'h q\[(\d+)\];', line)
-    if match_h:
-        qubit = int(match_h.group(1))
-        circuit.h(qubit)
+#     # Match other operations, for example, h gate
+#     match_h = re.match(r'h q\[(\d+)\];', line)
+#     if match_h:
+#         qubit = int(match_h.group(1))
+#         circuit.h(qubit)
     
-    # Handling measure operation
-    match_measure = re.match(r'measure q\[(\d+)\] -> c\[\d+\];', line)
-    if match_measure:
-        qubit = int(match_measure.group(1))
-        circuit.measure_list.append(qubit)
+#     # Handling measure operation
+#     match_measure = re.match(r'measure q\[(\d+)\] -> c\[\d+\];', line)
+#     if match_measure:
+#         qubit = int(match_measure.group(1))
+#         circuit.measure_list.append(qubit)
         # return None 
 
-
-def build_from_qasm_str(qasm_str):
-    """
-    The function coverts OpenQASM string into OriginIR circuit. It will create the
-    quantum circuit object given the qasm_str.
-
-    In the initilization phase, we need to notice that OriginIR-based quantum circuit
-    doe not need to specify how many qregs and cregs used. 
-    
-    Parameters:
-    - qasm_str: The quantum circuit of intersts in the OpenQASM format.
-
-    Returns:
-    - origin_qcirc: The quantum circuit of intersts in the OriginIR format. 
-    """
-    # Create an empty Circuit object
-    origincircuit = Circuit()
-
-    lines_to_remove = ["OPENQASM 2.0;", "include \"qelib1.inc\";"]
-
-
-    # Split the QASM string into lines and parse each line
-    for line in qasm_str.split("\n"):
-        if line not in lines_to_remove:
-            transform_line(line, origincircuit)
-
-    return origincircuit
 
 if __name__ == '__main__':
     import qpandalite
     import qpandalite.simulator as sim
     from qiskit import QuantumCircuit
     import numpy as np
+    import math
 
+    from qpandalite.qasm_origin import OpenQASM2_Parser
     # The quantum circuit in qiskit
     circ = QuantumCircuit(3)
     
     circ.h(0)
-    # circ.rx(0.4, 0)
-    # circ.x(0)
-    # circ.ry(0.39269908169872414, 1)
-    # circ.y(0)
-    # circ.rz(np.pi/8, 1)
-    # circ.z(0)
-    # circ.cz(0, 1)
+    circ.rx(0.4, 0)
+    circ.x(0)
+    circ.ry(3*math.pi/4, 1)
+    circ.y(0)
+    circ.rz(math.pi/3, 1)
+    circ.z(0)
+    circ.cz(0, 1)
     circ.cx(0, 2) 
 
     # circ.sx(0)
@@ -504,18 +479,22 @@ if __name__ == '__main__':
     meas.measure(range(3), range(3))
     circ = meas.compose(circ, range(3), front=True)
     qasm_string = circ.qasm()
+    print("---Circuit created using Qiskit(QASM)---")
     print(qasm_string)
-    
 
     # Create a Circuit instance from the QASM string
-    circuit_origin = build_from_qasm_str(qasm_string)
-
+    circuit_origin = OpenQASM2_Parser.build_from_qasm_str(qasm_string)
+    print("---OriginIR Circuit coverted from QASM---")
     print(circuit_origin.circuit)
-    qsim = sim.OriginIR_Simulator()
 
-    result = qsim.simulate(circuit_origin.circuit)
+    origin_qc = QuantumCircuit.from_qasm_str(circuit_origin.qasm)
+    print("---Back?---")
+    print(origin_qc.qasm())
+    # qsim = sim.OriginIR_Simulator()
 
-    print(result)
+    # result = qsim.simulate(circuit_origin.circuit)
+
+    # print(result)
     # print(circuit.circuit_str)
     # print(circuit.used_qubit_list)
     # print(circuit.max_qubit)

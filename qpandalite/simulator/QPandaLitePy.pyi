@@ -4,7 +4,7 @@ Note:
     You can find implementation at QPandaLiteCpp/src/simulator.cpp. The python interface is implemented by pybind11, which can be found at QPandaLiteCpp/Pybinder/QPandaLitePy.cpp.
 
 '''
-from typing import Mapping, List
+from typing import Mapping, List, Optional
 from typing_extensions import override
 # from numpy.typing import ArrayLike
 
@@ -51,7 +51,7 @@ class Simulator:
         '''
         ...
 
-    def x(self, qn : int, is_dagger : bool = False) -> None:
+    def x(self, qn: int) -> None: 
         '''X gate.
 
         Args:

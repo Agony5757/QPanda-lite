@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from qpandalite.originir.originir_line_parser import OriginIR_Parser
+from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 
 try:
     from qpandalite.simulator import Simulator
@@ -15,7 +15,8 @@ class OriginIR_Simulator:
         self.measure_qubit = []
         self.qubit_mapping = dict()
         self.reverse_key = reverse_key
-
+        self.parser = OriginIR_BaseParser()
+        
     def _clear(self):
         self.qubit_num = 0
         self.simulator = Simulator()
@@ -77,23 +78,17 @@ class OriginIR_Simulator:
         n = len(self.qubit_mapping)
         self.qubit_mapping[qubit] = n
 
-    def extract_actual_used_qubits(self, originir):
-        lines = originir.splitlines()
-        for line in lines:
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
-            
-            if not operation: continue
-            if operation == 'QINIT': continue
-            if not qubit: continue
-            
+    def extract_actual_used_qubits(self, program_body):
+        for (operation, qubit, cbit, parameter, 
+             dagger_flag, control_qubits_set) in program_body:
+                        
             if isinstance(qubit, list):
                 for q in qubit:
                     self._add_used_qubit(int(q))
             else:
                 self._add_used_qubit(int(qubit))
 
-    def check_topology(self, available_qubits : List[int] = None):
-        
+    def check_topology(self, available_qubits : List[int] = None):        
         used_qubits = list(self.qubit_mapping.keys())
         
         # check qubits
@@ -122,38 +117,39 @@ class OriginIR_Simulator:
         # extract the actual used qubit, and build qubit mapping
         # like q45 -> 0, q46 -> 1, etc..
         self._clear()
-        self.extract_actual_used_qubits(originir)
+        self.parser.parse(originir)
+        self.extract_actual_used_qubits(self.parser.program_body)
 
         if available_qubits is not None:
             self.check_topology(available_qubits)
 
         self.simulator.init_n_qubit(len(self.qubit_mapping))
-
-        lines = originir.splitlines()
-        dagger_flag = False
-        for i, line in enumerate(lines):
-            if line.strip() == 'DAGGER':
-                dagger_flag = True
-                end_line = ''
-                cnt = i+1
-                while end_line != 'ENDDAGGER':
-                    end_line = lines[cnt]
-                    cnt += 1
-                lines[i+1:cnt-1] = lines[i+1:cnt-1][::-1]
-                continue
-            elif line.strip() == 'ENDDAGGER':
-                dagger_flag = False
-                continue
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
+        
+        lines = self.parser.originir
+        splitted_lines = lines.splitlines()
+        
+        for i, opcode in enumerate(self.parser.program_body):            
+            (operation, qubit, cbit, parameter, 
+             dagger_flag, control_qubits_set) = opcode
             if isinstance(qubit, list) and (available_topology is not None):
-                if len(qubit) > 2: raise ValueError('Real chip does not support 3-qubit gate or more. '
-                                                    'The dummy server does not support either. '
-                                                    'You should consider decomposite it.')
+                if len(qubit) > 2:                    
+                    # i+2 because QINIT CREG are always excluded.
+                    raise ValueError('Real chip does not support gate of 3-qubit or more. '
+                                     'The dummy server does not support either. '
+                                     'You should consider decomposite it. \n'
+                                     f'Line {i + 2} ({splitted_lines[i + 2]}).')
+                
                 if ([int(qubit[0]), int(qubit[1])] not in available_topology) and \
                    ([int(qubit[1]), int(qubit[0])] not in available_topology):
-                    raise ValueError(f'Unsupported topology in line {i} ({line}).')
-
-            self.simulate_gate(operation, qubit, cbit, parameter,is_dagger=dagger_flag)
+                    # i+2 because QINIT CREG are always excluded.
+                    raise ValueError('Unsupported topology.\n'
+                                     f'Line {i + 2} ({splitted_lines[i + 2]}).')
+            if dagger_flag:
+                raise ValueError('TODO: dagger flag support needed to be added.')
+            if control_qubits_set:
+                raise ValueError('TODO: control-qubit support needed to be added.')
+            
+            self.simulate_gate(operation, qubit, cbit, parameter)
         
         self.qubit_num = len(self.qubit_mapping)
         measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)

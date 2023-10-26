@@ -15,7 +15,7 @@ namespace qpandalite{
         total_qubit = nqubit;
     }
 
-    void Simulator::hadamard(size_t qn, const bool is_dagger)
+    void Simulator::hadamard(size_t qn, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -40,7 +40,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::x(size_t qn, const bool is_dagger)
+    void Simulator::x(size_t qn, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -57,7 +57,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::y(size_t qn, const bool is_dagger)
+    void Simulator::y(size_t qn, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -77,7 +77,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::z(size_t qn, const bool is_dagger)
+    void Simulator::z(size_t qn, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -128,7 +128,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::cz(size_t qn1, size_t qn2, const bool is_dagger)
+    void Simulator::cz(size_t qn1, size_t qn2, bool is_dagger)
     {
         if (qn1 >= total_qubit)
         {
@@ -156,7 +156,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::iswap(size_t qn1, size_t qn2, const bool is_dagger)
+    void Simulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
     {
         if (qn1 >= total_qubit)
         {
@@ -195,7 +195,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::xy(size_t qn1, size_t qn2, const bool is_dagger)
+    void Simulator::xy(size_t qn1, size_t qn2, bool is_dagger)
     {
         if (qn1 >= total_qubit)
         {
@@ -234,7 +234,7 @@ namespace qpandalite{
 
         }
     }
-    void Simulator::cnot(size_t controller, size_t target, const bool is_dagger)
+    void Simulator::cnot(size_t controller, size_t target, bool is_dagger)
     {
         if (controller >= total_qubit)
         {
@@ -261,7 +261,7 @@ namespace qpandalite{
         }
     }
 
-    void Simulator::rx(size_t qn, double angle, const bool is_dagger)
+    void Simulator::rx(size_t qn, double angle, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -287,7 +287,7 @@ namespace qpandalite{
     }
 
 
-    void Simulator::sx(size_t qn, const bool is_dagger)
+    void Simulator::sx(size_t qn, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -314,7 +314,7 @@ namespace qpandalite{
         u22(qn, unitary);
     }
 
-    void Simulator::ry(size_t qn, double angle, const bool is_dagger)
+    void Simulator::ry(size_t qn, double angle, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -338,7 +338,7 @@ namespace qpandalite{
         u22(qn, unitary);
     }
 
-    void Simulator::rz(size_t qn, double angle, const bool is_dagger)
+    void Simulator::rz(size_t qn, double angle, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -349,13 +349,20 @@ namespace qpandalite{
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if ((i >> qn) & 1)
-            {
-                state[i] *= std::complex(cos(angle), sin(angle));
+            {   
+                if(is_dagger)
+                {
+                    state[i] *= std::complex(cos(angle), -sin(angle));
+                }else
+                {
+                    state[i] *= std::complex(cos(angle), sin(angle));
+                }
+                
             }
         }
     }
 
-    void Simulator::rphi90(size_t qn, double phi, const bool is_dagger)
+    void Simulator::rphi90(size_t qn, double phi, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -381,7 +388,7 @@ namespace qpandalite{
         u22(qn, unitary);
     }
 
-    void Simulator::rphi180(size_t qn, double phi, const bool is_dagger)
+    void Simulator::rphi180(size_t qn, double phi, bool is_dagger)
     {
         if (qn >= total_qubit)
         {
@@ -409,7 +416,7 @@ namespace qpandalite{
         u22(qn, unitary);        
     }
 
-    void Simulator::rphi(size_t qn, double phi, double theta, const bool is_dagger)
+    void Simulator::rphi(size_t qn, double phi, double theta, bool is_dagger)
     {
         if (qn >= total_qubit)
         {

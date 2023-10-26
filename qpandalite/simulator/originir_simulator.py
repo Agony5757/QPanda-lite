@@ -149,7 +149,7 @@ class OriginIR_Simulator:
             if control_qubits_set:
                 raise ValueError('TODO: control-qubit support needed to be added.')
             
-            self.simulate_gate(operation, qubit, cbit, parameter)
+            self.simulate_gate(operation, qubit, cbit, parameter, dagger_flag)
         
         self.qubit_num = len(self.qubit_mapping)
         measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)

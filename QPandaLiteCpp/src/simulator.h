@@ -76,22 +76,22 @@ namespace qpandalite {
         std::vector<complex_t> state;
 
         void init_n_qubit(size_t nqubit);
-        void hadamard(size_t qn, const bool is_dagger = false);
+        void hadamard(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t &unitary);
-        void x(size_t qn, const bool is_dagger = false);
-        void z(size_t qn, const bool is_dagger = false);
-        void y(size_t qn, const bool is_dagger = false);
-        void sx(size_t qn, const bool is_dagger = false);
-        void cz(size_t qn1, size_t qn2, const bool is_dagger = false);
-        void iswap(size_t qn1, size_t qn2, const bool is_dagger = false);
-        void xy(size_t qn1, size_t qn2, const bool is_dagger = false);
-        void cnot(size_t controller, size_t target, const bool is_dagger = false);
-        void rx(size_t qn, double angle, const bool is_dagger = false);
-        void ry(size_t qn, double angle, const bool is_dagger = false);
-        void rz(size_t qn, double angle, const bool is_dagger = false);
-        void rphi90(size_t qn, double phi, const bool is_dagger = false);
-        void rphi180(size_t qn, double phi, const bool is_dagger = false);
-        void rphi(size_t qn, double phi, double theta, const bool is_dagger = false);
+        void x(size_t qn, bool is_dagger = false);
+        void z(size_t qn, bool is_dagger = false);
+        void y(size_t qn, bool is_dagger = false);
+        void sx(size_t qn, bool is_dagger = false);
+        void cz(size_t qn1, size_t qn2, bool is_dagger = false);
+        void iswap(size_t qn1, size_t qn2, bool is_dagger = false);
+        void xy(size_t qn1, size_t qn2, bool is_dagger = false);
+        void cnot(size_t controller, size_t target, bool is_dagger = false);
+        void rx(size_t qn, double angle, bool is_dagger = false);
+        void ry(size_t qn, double angle, bool is_dagger = false);
+        void rz(size_t qn, double angle, bool is_dagger = false);
+        void rphi90(size_t qn, double phi, bool is_dagger = false);
+        void rphi180(size_t qn, double phi, bool is_dagger = false);
+        void rphi(size_t qn, double phi, double theta, bool is_dagger = false);
 
         dtype get_prob_map(const std::map<size_t, int> &measure_qubits);
         dtype get_prob(size_t qn, int state);

@@ -137,7 +137,7 @@ class OpenQASM2_Parser:
             elif line.startswith('ENDDAGGER'):
                 pass
             else:
-                raise NotImplementedError(f'A invalid line: {line}.')      
+                raise NotImplementedError(f'This line of OpenQASM 2 has not been supported yet: {line}.')      
             
             return None
         except AttributeError as e:

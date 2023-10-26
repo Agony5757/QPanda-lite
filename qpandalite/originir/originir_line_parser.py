@@ -95,6 +95,7 @@ class OriginIR_Parser:
     def handle_barrier(line):
         matches = OriginIR_Parser.regexp_barrier.findall(line)
         return matches
+    
     @staticmethod
     def handle_control(line):
         """
@@ -113,7 +114,6 @@ class OriginIR_Parser:
         operation_type = matches.group(1)
         qubits = OriginIR_Parser.regexp_qid.findall(matches.group(2))
         controls = [int(ctrl) for ctrl in qubits]
-        
         return operation_type, controls
 
     @staticmethod

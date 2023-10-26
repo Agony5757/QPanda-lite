@@ -24,11 +24,11 @@ class CircuitControlContext:
     
     def __enter__(self):
         ret = 'CONTROL ' + self._qubit_list() + '\n'
-        c.circuit_str += ret        
+        self.c.circuit_str += ret        
         
     def __exit__(self, exc_type, exc_val, exc_tb):        
-        ret = 'ENDCONTROL\n'
-        c.circuit_str += ret
+        ret = 'ENDCONTROL ' + self._qubit_list() + '\n'
+        self.c.circuit_str += ret
 
 class CircuitDagContext:      
     def __init__(self, c):
@@ -36,11 +36,11 @@ class CircuitDagContext:
 
     def __enter__(self):
         ret = 'DAGGER\n'
-        c.circuit_str += ret        
+        self.c.circuit_str += ret        
         
     def __exit__(self, exc_type, exc_val, exc_tb):        
         ret = 'ENDDAGGER\n'
-        c.circuit_str += ret
+        self.c.circuit_str += ret
 
 class Circuit:
     def __init__(self) -> None:
@@ -66,7 +66,6 @@ class Circuit:
         return ret
 
     def covert_1q1p_qasm(self, line):
-
         # Match 1-qubit operations with one parameter/ RX, RY, RZ
         operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
 
@@ -179,13 +178,11 @@ class Circuit:
 
                 # Add the transformed line to our list
                 transformed_lines.append(new_line)
-                # print(new_line)
+                
         # Join the transformed lines back into a single string
         ret = '\n'.join(transformed_lines)
-        # modified_circ_str = self.covert_1q1p_qasm(modified_circ_str)
-        # ret= '\n'.join([line.lower() + ';' for line in modified_circ_str.split('\n') if line.strip()])
         ret += "\n"
-        # print(self.circuit_str)
+
         return ret
 
     @property
@@ -270,34 +267,34 @@ class Circuit:
         self.measure_list = list(qubits)
 
     def control(self, *args):
-        c.record_qubit(*args)
+        self.record_qubit(*args)
         if len(args) == 0:
             raise ValueError('Controller qubit must not be empty.')
         return CircuitControlContext(self, args)
     
     def set_control(self, *args):    
-        c.record_qubit(*args)    
+        self.record_qubit(*args)    
         ret = 'CONTROL '
         for q in self.control_list:
             ret += f'q[{q}], '
         ret = ret[:-2] + '\n'
-        c.circuit_str += ret
+        self.circuit_str += ret
 
     def unset_control(self, *args):
         ret = 'ENDCONTROL '
         for q in self.control_list:
             ret += f'q[{q}], '
         ret = ret[:-2] + '\n'
-        c.circuit_str += ret
+        self.circuit_str += ret
 
     def dagger(self):
         return CircuitDagContext(self)
     
     def set_dagger(self):
-        c.circuit_str += 'DAGGER\n'
+        self.circuit_str += 'DAGGER\n'
 
     def unset_dagger(self):
-        c.circuit_str += 'ENDDAGGER\n'
+        self.circuit_str += 'ENDDAGGER\n'
 
     def remapping(self, mapping : Dict[int, int]):
         # check if mapping is full
@@ -343,97 +340,40 @@ class Circuit:
         parser = OriginIR_BaseParser()
         parser.parse(self.originir)
         return parser.to_extended_originir()
-
-        ## !!!NOTE: The following are old codes. It will be permanently changed to the current version.
-
-        # actual_used_operations = []
-        # control_qubits_set = set()  # Using a set to manage nested/multiple CONTROL qubits uniquely
-        # dagger_stack = []  # Stack to manage nested DAGGER operations
-        # dagger_count = 0
-
-        # lines = self.circuit_str.splitlines()
-        # for i, line in enumerate(lines):
-        #     # print(line)
-        #     operation, qubits, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
-        #     # print(operation, qubits, cbit, parameter)
-        #     if operation == "CONTROL":
-        #         # Add all control qubits to the set
-        #         control_qubits_set.update(qubits)
-
-        #     elif operation == "ENDCONTROL":
-        #         # Discard the mentioned qubits from the set
-        #         for qubit in qubits:
-        #             control_qubits_set.discard(qubit)
-
-        #     elif operation == "DAGGER":
-        #         # Add a new list to the stack to collect operations inside this DAGGER block
-        #         dagger_stack.append([])
-        #         dagger_count += 1
-
-        #     elif operation == "ENDDAGGER":
-        #         # Pop the latest list of operations from the dagger stack and reverse them
-        #         if dagger_stack:
-        #             reversed_ops = dagger_stack.pop()
-        #             actual_used_operations.extend(reversed_ops[::-1])
-        #         dagger_count -= 1
-            
-        #     else:
-        #         # This is in-between CONTROL & DAGGER, use this "else" to process strings
-        #         operation_line = line.strip()
-        #         # print(operation_line)
-        #         # First to check whether the operation has the control qubit(s).
-        #         if control_qubits_set:
-        #             operation_line += " controlled"
-        #             # Sorting qubits before appending to ensure the order
-        #             for control_qubit in sorted(control_qubits_set, reverse=True):
-        #                 operation_line += f" {control_qubit}"
-                
-        #         if dagger_stack and (dagger_count % 2 == 1):
-        #             operation_line += " dagger"
-        #             dagger_stack[-1].append(operation_line)  # Add to the latest DAGGER block
-        #         else:
-        #             actual_used_operations.append(operation_line)
-
-        # # Handle remaining operations within the DAGGER blocks (if any)
-        # while dagger_stack:
-        #     reversed_ops = dagger_stack.pop()
-        #     actual_used_operations.extend(reversed_ops[::-1])
-
-        # return actual_used_operations
         
     def analyze_circuit(self):
         """
-        Analyze the stored circuit_str and update circuit_info
+        Analyze the stored circuit_str and update circuit_info,
+        
+        circuit_info contain
+            'qubits': the number of qubits 
+            'gates': the types of gates, and the number of them
+            'measurements': measurement setup
         """
         parser = OriginIR_BaseParser()
         parser.parse(self.originir)
-        
-        self.circuit_info['qubits'] = parser.n_qubit
         # Now in the parser.program_body, there are lines in the form of 
         # (operation, qubits, cbit, parameter, dagger_flag, deepcopy(control_qubits_set)).
 
-        # qinit_pattern = re.compile(r"QINIT (\d+)")
-        # gate_pattern = re.compile(r"(\w+) q\[(\d+)\](?:, q\[(\d+)\])?")
-        # measure_pattern = re.compile(r"MEASURE q\[(\d+)\], c\[(\d+)\]")
-        print(self.circuit_info['qubits'])
+        self.circuit_info['qubits'] = parser.n_qubit
+        ancillary_operation = ['MEASURE']
+        
         for single_command in parser.program_body:
+            print(single_command)
             (operation, qubits, cbit, parameter, dagger_flag, control_qubits_set) = single_command
-            # # Match QINIT
-            # match = qinit_pattern.match(line)
-            # if match:
-            #     self.circuit_info['qubits'] = int(match.group(1))
-            #     continue
 
-            # # Match gates
-            # match = gate_pattern.match(line)
-            # if match:
-            #     gate = match.group(1)
-            #     self.circuit_info['gates'][gate] = self.circuit_info['gates'].get(gate, 0) + 1
-            #     continue
-
+            # Match gates
+            if operation not in ancillary_operation:
+                if dagger_flag:
+                    operation += "_dg"
+                if control_qubits_set:
+                    # Multiple-Control cases
+                    operation = 'C' * len(control_qubits_set) + operation
+                # This is to replace the Controlled-X to CNOT created by controls
+                operation = operation.replace('CX', 'CNOT')
+                self.circuit_info['gates'][operation] = self.circuit_info['gates'].get(operation, 0) + 1    
             # Match MEASURE
-            
-            if operation == "MEASURE":
+            elif operation == "MEASURE":
                 qubit = int(qubits)
                 output = int(cbit)
                 self.circuit_info['measurements'].append({'qubit': qubit, 'output': f'c[{output}]'})
@@ -465,36 +405,44 @@ class Circuit:
 if __name__ == '__main__':
     import qpandalite
     import qpandalite.simulator as sim
-    from qiskit import QuantumCircuit
+    from qiskit import QuantumCircuit, transpile
+    from qiskit.circuit.library import TdgGate, RXGate
     import numpy as np
     import math
-
+    from qiskit import BasicAer
     from qpandalite.qasm_origin import OpenQASM2_Parser
-    # # The quantum circuit in qiskit
-    # circ = QuantumCircuit(3)
+    # The quantum circuit in qiskit
+    circ = QuantumCircuit(3)
     
     # circ.h(0)
-    # circ.rx(0.4, 0)
+    # circ.rx(-0.4, 0)
     # circ.x(0)
-    # circ.ry(3*math.pi/4, 1)
+    # circ.ry(0.4, 0)
     # circ.y(0)
-    # circ.rz(math.pi/3, 1)
+    # circ.rz(math.pi/3, 1).inverse()
     # circ.z(0)
     # circ.cz(0, 1)
     # circ.cx(0, 2) 
-
-    # # circ.sx(0)
-    # # circ.iswap(0, 1)
-    # # circ.cz(0, 2)
-    # # circ.ccx(0, 1, 2)
-    # # Create a Quantum Circuit
+    # circ.tdg(0)
+    t = TdgGate().inverse()
+    rxdg = RXGate(-0.4).inverse()
+    circ.append(t, [0])
+    circ.append(rxdg, [0])
+    circ.tdg(0).inverse()
+    # circ.sx(0).inverse()
+    # circ.iswap(0, 1).inverse()
+    # circ.cz(0, 2)
+    # circ.ccx(0, 1, 2)
+    backend = BasicAer.get_backend('unitary_simulator')
+    job = backend.run(transpile(circ, backend))
+    # print(job.result().get_unitary(circ, decimals=3))
+    # Create a Quantum Circuit
     # meas = QuantumCircuit(3, 3)
     # meas.measure(range(3), range(3))
     # circ = meas.compose(circ, range(3), front=True)
-    # qasm_string = circ.qasm()
+    qasm_string = circ.qasm()
     # print("---Circuit created using Qiskit(QASM)---")
     # print(qasm_string)
-
     # # Create a Circuit instance from the QASM string
     # circuit_origin = OpenQASM2_Parser.build_from_qasm_str(qasm_string)
     # print("---OriginIR Circuit coverted from QASM---")
@@ -561,11 +509,20 @@ if __name__ == '__main__':
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
     
     # print(c.circuit)
-    # print(c.unwrap())
-    c.analyze_circuit()
+    print(c.unwrap())
+    # c.analyze_circuit()
     
     # qsim = sim.OriginIR_Simulator()
 
     # result = qsim.simulate(c.circuit)
 
     # print(result)
+
+
+
+    # c = Circuit()
+    # c.h(0)
+    # c.cnot(1, 0)
+    # c.cnot(0, 2)
+    # c.measure(0,1,2)
+    # c = c.remapping({0:45, 1:46})

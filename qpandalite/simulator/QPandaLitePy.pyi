@@ -43,7 +43,7 @@ class Simulator:
         '''
         ...
 
-    def hadamard(self, qn : int) -> None:
+    def hadamard(self, qn : int, is_dagger : bool = False) -> None:
         '''Hadamard gate.
 
         Args:
@@ -59,7 +59,7 @@ class Simulator:
         '''
         ...
     
-    def sx(self, qn : int) -> None:
+    def sx(self, qn : int, is_dagger : bool = False) -> None:
         '''SX gate.
 
         Args:
@@ -67,7 +67,7 @@ class Simulator:
         '''
         ...
     
-    def y(self, qn : int) -> None:
+    def y(self, qn : int, is_dagger : bool = False) -> None:
         '''Y gate.
 
         Args:
@@ -75,7 +75,7 @@ class Simulator:
         '''
         ...
 
-    def z(self, qn : int) -> None:
+    def z(self, qn : int, is_dagger : bool = False) -> None:
         '''Z gate.
 
         Args:
@@ -92,7 +92,7 @@ class Simulator:
         '''
         ...   
 
-    def cz(self, q1 : int, q2 : int) -> None:
+    def cz(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
         '''CNOT gate.
 
         Args:
@@ -101,7 +101,7 @@ class Simulator:
         '''
         ...
 
-    def iswap(self, q1 : int, q2 : int) -> None:
+    def iswap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
         '''iSWAP gate.
 
         Args:
@@ -110,7 +110,7 @@ class Simulator:
         '''
         ...
 
-    def xy(self, q1 : int, q2 : int) -> None:
+    def xy(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
         '''XX+YY gate.
 
         Args:
@@ -119,7 +119,7 @@ class Simulator:
         '''
         ...
 
-    def cnot(self, controller : int, target : int) -> None:
+    def cnot(self, controller : int, target : int, is_dagger : bool = False) -> None:
         '''CNOT gate.
 
         Args:
@@ -128,7 +128,7 @@ class Simulator:
         '''
         ...    
 
-    def rx(self, qn : int, angle : float) -> None:
+    def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
         '''Rx gate.
 
         Args:
@@ -137,7 +137,7 @@ class Simulator:
         '''
         ...
 
-    def ry(self, qn : int, angle : float) -> None:
+    def ry(self, qn : int, angle : float, is_dagger : bool = False) -> None:
         '''Ry gate.
 
         Args:
@@ -146,7 +146,7 @@ class Simulator:
         '''
         ...
 
-    def rz(self, qn : int, angle : float) -> None:
+    def rz(self, qn : int, angle : float, is_dagger : bool = False) -> None:
         '''Rz gate.
 
         Args:
@@ -155,7 +155,7 @@ class Simulator:
         '''
         ...
 
-    def rphi90(self, qn : int, phi : float) -> None:
+    def rphi90(self, qn : int, phi : float, is_dagger : bool = False) -> None:
         '''Rphi90 gate (pi/2 pulse).
 
         Args:
@@ -164,7 +164,7 @@ class Simulator:
         '''
         ...
 
-    def rphi180(self, qn : int, phi : float) -> None:
+    def rphi180(self, qn : int, phi : float, is_dagger : bool = False) -> None:
         '''Rphi180 gate (pi pulse).
 
         Args:
@@ -173,7 +173,7 @@ class Simulator:
         '''
         ...
 
-    def rphi(self, qn : int, phi : float, theta: float) -> None:
+    def rphi(self, qn : int, phi : float, theta: float, is_dagger : bool = False) -> None:
         '''Rphi gate.
 
         Args:

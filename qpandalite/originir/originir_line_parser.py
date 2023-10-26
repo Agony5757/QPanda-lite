@@ -90,7 +90,11 @@ class OriginIR_Parser:
         q = int(matches.group(1))
         c = int(matches.group(2))
         return q, c
-
+    
+    @staticmethod
+    def handle_barrier(line):
+        matches = OriginIR_Parser.regexp_barrier.findall(line)
+        return matches
     @staticmethod
     def handle_control(line):
         """
@@ -170,7 +174,7 @@ class OriginIR_Parser:
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RZ'):
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-            elif line.startswith('Rphi'):
+            elif line.startswith('RPhi'):
                 operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
             elif line.startswith('MEASURE'):
                 operation = 'MEASURE'

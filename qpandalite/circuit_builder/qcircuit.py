@@ -27,7 +27,7 @@ class CircuitControlContext:
         c.circuit_str += ret        
         
     def __exit__(self, exc_type, exc_val, exc_tb):        
-        ret = 'ENDCONTROL ' + self._qubit_list() + '\n'
+        ret = 'ENDCONTROL\n'
         c.circuit_str += ret
 
 class CircuitDagContext:      

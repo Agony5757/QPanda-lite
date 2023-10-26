@@ -330,8 +330,6 @@ def query_all_task(savepath=None):
 if __name__ == '__main__':
     import numpy as np
     from qiskit import QuantumCircuit
-    
-    # The quantum circuit in qiskit
     # circ = QuantumCircuit(3)
     
     # circ.h(0)

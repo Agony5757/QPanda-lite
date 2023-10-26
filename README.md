@@ -64,7 +64,7 @@ cd QPanda-lite
 # install
 python setup.py develop
 ```
-#### With C++ enabled (quantum circuit simulator written in C++)
+#### With C++ enabled (quantum circuit simulator written in C++, ensure that CMAKE is included in your environment variables.)
 ```
 git clone https://github.com/Agony5757/QPanda-lite.git
 cd QPanda-lite

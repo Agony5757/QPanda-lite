@@ -144,11 +144,7 @@ class OriginIR_Simulator:
                     # i+2 because QINIT CREG are always excluded.
                     raise ValueError('Unsupported topology.\n'
                                      f'Line {i + 2} ({splitted_lines[i + 2]}).')
-            if dagger_flag:
-                raise ValueError('TODO: dagger flag support needed to be added.')
-            if control_qubits_set:
-                raise ValueError('TODO: control-qubit support needed to be added.')
-            
+                    
             self.simulate_gate(operation, qubit, cbit, parameter, dagger_flag)
         
         self.qubit_num = len(self.qubit_mapping)

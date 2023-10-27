@@ -1,6 +1,22 @@
 '''
 Definition of quantum circuit (Circuit)
 
+Class Circuit is essentially the OriginIR generator and analysis tool suppported by origin_line_parser and origin_base_parser.
+Each function inside the class is the ingredients that help us to construct quantum circuits.
+Each line after parsing will be transferred to either our OriginIR_Simulator/ OriginIR_Parser/ OpenQASM2_Parser or actual quantum machines.\n
+
+With that being said, for each function that modifies the circuit added to the class, we need to consider,
+1. How does it looks like in the quantum circuit?
+2. How does the origin/qasm_parser need to change in order to deal with this new feature?
+
+Circuit 类本质上是由 origin_line_parser 和 origin_base_parser 支持的 OriginIR 生成器和分析工具。
+类内的每个函数都是帮助我们构建量子电路的成分。
+解析后的每一行都会被传输到我们的 OriginIR_Simulator/ OriginIR_Parser/ OpenQASM2_Parser 或实际的量子机器。
+
+有鉴于此，对于每个添加到类中并修改电路的函数，我们需要考虑：
+1. 它在量子电路中是什么样子的？
+2. 为了处理这个新特性，origin/qasm_parser 需要怎样的变化？
+
 Author: Agony5757
 '''
 
@@ -262,6 +278,11 @@ class Circuit:
         self.circuit_str += 'CZ q[{}], q[{}]\n'.format(q1, q2)
         self.record_qubit(q1, q2)
 
+    def barrier(self, *qubits) -> None:
+        placeholders = ', '.join(['q[{}]'] * len(qubits))
+        self.circuit_str += ('BARRIER ' + placeholders + '\n').format(*qubits)
+        self.record_qubit(*qubits)
+
     def measure(self, *qubits):
         self.record_qubit(*qubits)
         self.measure_list = list(qubits)
@@ -356,6 +377,7 @@ class Circuit:
         # (operation, qubits, cbit, parameter, dagger_flag, deepcopy(control_qubits_set)).
 
         self.circuit_info['qubits'] = parser.n_qubit
+        # Just in case we have more ancillary_operations
         ancillary_operation = ['MEASURE']
         
         for single_command in parser.program_body:
@@ -380,27 +402,6 @@ class Circuit:
         
         print(self.circuit_info)
         # return parser.to_extended_originir()
-
-# def transform_line(line, circuit):
-#     # Match the cx operation
-#     match_cx = re.match(r'cx q\[(\d+)\],q\[(\d+)\];', line)
-#     if match_cx:
-#         qubit1, qubit2 = map(int, match_cx.groups())
-#         circuit.cnot(qubit1, qubit2)
-    
-#     # Match other operations, for example, h gate
-#     match_h = re.match(r'h q\[(\d+)\];', line)
-#     if match_h:
-#         qubit = int(match_h.group(1))
-#         circuit.h(qubit)
-    
-#     # Handling measure operation
-#     match_measure = re.match(r'measure q\[(\d+)\] -> c\[\d+\];', line)
-#     if match_measure:
-#         qubit = int(match_measure.group(1))
-#         circuit.measure_list.append(qubit)
-        # return None 
-
 
 if __name__ == '__main__':
     import qpandalite

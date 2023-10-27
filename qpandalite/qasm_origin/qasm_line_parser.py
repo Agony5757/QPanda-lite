@@ -124,6 +124,14 @@ class OpenQASM2_Parser:
             elif line.startswith('u3'):
                 pass
 
+            elif line.startswith('barrier'):
+                pattern = r'q\[(\d+)\]'
+                matches = re.findall(pattern, line)
+                # Convert matched strings to integers
+                qubit_indices = [int(index) for index in matches]
+                print(qubit_indices)
+                QASM_Origin_circuit.barrier(*qubit_indices)
+            
             elif line.startswith('measure'):
                 match_measure = re.match(r'measure q\[(\d+)\] -> c\[\d+\];', line)
                 qubit = int(match_measure.group(1))

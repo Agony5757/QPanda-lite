@@ -129,12 +129,12 @@ class OpenQASM2_Parser:
                 matches = re.findall(pattern, line)
                 # Convert matched strings to integers
                 qubit_indices = [int(index) for index in matches]
-                print(qubit_indices)
+                # print(qubit_indices)
                 QASM_Origin_circuit.barrier(*qubit_indices)
             
             elif line.startswith('measure'):
-                match_measure = re.match(r'measure q\[(\d+)\] -> c\[\d+\];', line)
-                qubit = int(match_measure.group(1))
+                match_measure = re.match(r'measure (\w+)\[(\d+)\] -> (\w+)\[\d+\];', line)
+                qubit = int(match_measure.group(2))
                 QASM_Origin_circuit.measure_list.append(qubit)
             elif line.startswith('CONTROL'):
                 pass

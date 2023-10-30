@@ -22,7 +22,7 @@ Optimization level 3 spends the most effort to optimize the circuit.
 """
 qubit_number = 6
 my_coupling = CouplingMap.from_line(qubit_number)
-my_basis_gates = ['rx', 'ry', 'rz', 'cz', 'id']
+my_basis_gates = ['h', 'x', 'y', 'z', 'rx', 'ry', 'rz', 'cz', 'id']
 
 for _ in range(100):
 	# Insert your quantum circuit
@@ -30,11 +30,15 @@ for _ in range(100):
 	meas = QuantumCircuit(qubit_number, qubit_number)
 	meas.measure(range(qubit_number), range(qubit_number))
 	q = meas.compose(q, range(qubit_number), front=True)
+	q.data = [(op, qubits, clbits) for op, qubits, clbits in q.data if q.name != "id"]
 
 	# select a backend
 	backend = BasicAer.get_backend('qasm_simulator')
 
 	result = transpile(q, basis_gates=my_basis_gates, coupling_map=my_coupling, optimization_level=1)
+	for index in reversed(range(len(result.data))):
+	    if result.data[index][0].name == "id":
+	        del result.data[index]
 	qasm_string = result.qasm()
 	# print("---Circuit created using Qiskit(QASM)---")
 	# print(qasm_string)

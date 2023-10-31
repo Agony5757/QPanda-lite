@@ -36,6 +36,8 @@ for _ in range(100):
 	backend = BasicAer.get_backend('qasm_simulator')
 
 	result = transpile(q, basis_gates=my_basis_gates, coupling_map=my_coupling, optimization_level=1)
+
+	# This is to exclude the "id" operation, which is not supported in the OriginIR
 	for index in reversed(range(len(result.data))):
 	    if result.data[index][0].name == "id":
 	        del result.data[index]

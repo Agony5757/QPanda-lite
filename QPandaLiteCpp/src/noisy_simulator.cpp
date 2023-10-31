@@ -20,7 +20,7 @@ namespace qpandalite {
 	{
 		double r = rand();
 		if (r > p)
-			return
+			return;
 		else
 			x(qn);
 	}
@@ -29,7 +29,7 @@ namespace qpandalite {
 	{
 		double r = rand();
 		if (r > p)
-			return
+			return;
 		else
 			z(qn);
 	}

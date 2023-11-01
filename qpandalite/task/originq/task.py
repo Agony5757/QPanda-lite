@@ -1,4 +1,5 @@
 import time
+import traceback
 from typing import List, Union
 import requests
 from pathlib import Path
@@ -6,6 +7,7 @@ import os
 import json
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import warnings
+from json.decoder import JSONDecodeError
 
 from ..task_utils import *
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -24,31 +26,50 @@ def get_token(pilot_api, login_url):
     text = response.text
     response = json.loads(text)
     token = response['token']
-    try:
-        with open('originq_online_config.json', 'r') as fp:
-            default_online_config = json.load(fp)
-        default_online_config['state_token'] = token
-        with open('originq_online_config.json', 'w') as fp:
-            json.dump(default_online_config, fp)
-    except:
-        warnings.warn('originq_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
+    with open('originq_online_config.json', 'r') as fp:
+        default_online_config = json.load(fp)
+    default_online_config['state_token'] = token
+    with open('originq_online_config.json', 'w') as fp:
+        json.dump(default_online_config, fp)
 
     return token
 
 try:
     with open('originq_online_config.json', 'r') as fp:
         default_online_config = json.load(fp)
+except FileNotFoundError as e:
+    raise ImportError('Import originq backend failed.\n'
+                      'originq_online_config.json is not found. '
+                      'It should be always placed at current working directory (cwd).')
+except JSONDecodeError as e:
+    raise ImportError('Import originq backend failed.\n'
+                        'Cannot load json from the originq_online_config.json. '
+                        'Please check the content.')
+except Exception as e:
+    raise ImportError('Import originq backend failed.\n'
+                      'Unknown import error.'                      
+                      '\n===== Original exception ======\n'
+                      f'{traceback.format_exc()}')
+
+try:
     default_login_apitoken = default_online_config['login_apitoken']
     default_login_url = default_online_config['login_url']    
-    default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
     default_submit_url = default_online_config['submit_url']
     default_query_url = default_online_config['query_url']
     default_task_group_size = default_online_config['task_group_size']
-except Exception as e:
-    raise ImportError('originq_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
+except KeyError as e:
+    raise ImportError('Import originq backend failed.\n'
+                      'originq_online_config.json does not exist such a key.'
+                      '\n===== Original exception ======\n'
+                      f'{traceback.format_exc()}')
 
+try:
+    default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
+except Exception as e:
+    raise ImportError('Import originq backend failed.\n'
+                      'Login error.'
+                      '\n===== Original exception ======\n'
+                      f'{traceback.format_exc()}')
 
 def parse_response_body(response_body):
     '''Parse response body (in query_by_taskid)
@@ -101,7 +122,7 @@ def parse_response_body(response_body):
         ret['status'] = 'running'
         return ret
 
-def query_by_taskid_single(taskid : str, url = default_query_url):
+def query_by_taskid_single(taskid : str, url = default_query_url, **kwargs):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
@@ -144,7 +165,8 @@ def query_by_taskid_single(taskid : str, url = default_query_url):
     return taskinfo
 
 def query_by_taskid(taskid : Union[List[str],str], 
-                    url = default_query_url):
+                    url = default_query_url,
+                    **kwargs):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
@@ -194,7 +216,8 @@ def query_by_taskid_sync(taskid,
                          interval = 2.0, 
                          timeout = 60.0, 
                          retry = 5,
-                         url = default_query_url):    
+                         url = default_query_url,
+                         **kwargs):    
     '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
   
     Args:
@@ -412,7 +435,8 @@ def submit_task(
     auto_mapping = False,
     specified_block = None,
     url = default_submit_url,
-    savepath = Path.cwd() / 'online_info'
+    savepath = Path.cwd() / 'online_info',
+    **kwargs
 ):
     '''submit circuits or a single circuit
 
@@ -495,7 +519,8 @@ def submit_task_compile_only(
     circuit_optimize = True,
     auto_mapping = False,
     url = default_submit_url,
-    savepath = Path.cwd() / 'online_info'
+    savepath = Path.cwd() / 'online_info',
+    **kwargs
 ):
     '''Compile a single circuit
 
@@ -540,7 +565,7 @@ def submit_task_compile_only(
         savepath = savepath
     )
 
-def query_all_task(url = default_query_url, savepath = None): 
+def query_all_task(url = default_query_url, savepath = None, **kwargs): 
     '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
 
     Args:

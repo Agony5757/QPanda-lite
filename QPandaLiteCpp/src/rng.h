@@ -10,7 +10,7 @@ namespace qpandalite
 
 		inline static RandomEngine& get_instance()
 		{
-			static RandomEngine& _eng;
+			static RandomEngine _eng;
 			return _eng;
 		}
 

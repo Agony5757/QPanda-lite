@@ -5,7 +5,7 @@ namespace qpandalite {
 
 	void NoiseSimulatorImpl::depolarizing(size_t qn, double p)
 	{
-		double r = rand();
+		double r = qpandalite::rand();
 		if (r > p)
 			return;
 		if (r < p / 3)
@@ -18,7 +18,7 @@ namespace qpandalite {
 
 	void NoiseSimulatorImpl::bitflip(size_t qn, double p)
 	{
-		double r = rand();
+		double r = qpandalite::rand();
 		if (r > p)
 			return;
 		else
@@ -27,14 +27,36 @@ namespace qpandalite {
 
 	void NoiseSimulatorImpl::phaseflip(size_t qn, double p)
 	{
-		double r = rand();
+		double r = qpandalite::rand();
 		if (r > p)
 			return;
 		else
 			z(qn);
 	}
 
-	void NoisySimulator::insert_error(std::vector<size_t> qubits)
+	NoisySimulator::NoisySimulator(size_t n_qubit, 
+		const std::map<std::string, double>& noise_description, 
+		const std::vector<std::array<double, 2>>& measurement_error)
+		: nqubit(n_qubit),
+		measurement_error_matrices(measurement_error)
+	{
+		_load_noise(noise_description);
+	}
+
+	void NoisySimulator::_load_noise(std::map<std::string, double> noise_description)
+	{
+		auto it_depol = noise_description.find("depolarizing");
+		if (it_depol != noise_description.end())
+		{
+			noise[NoiseType::Depolarizing] = it_depol->second;
+		}
+		auto it_damp = noise_description.find("damping");
+		auto it_bitflip = noise_description.find("bitflip");
+		auto it_phaseflip = noise_description.find("phaseflip");
+		
+	}
+
+	void NoisySimulator::insert_error(const std::vector<size_t> &qubits)
 	{
 		if (noise.empty()) return;
 
@@ -48,44 +70,48 @@ namespace qpandalite {
 		if (it_depol != it_end)
 		{
 			opcodes.emplace_back(
-				NoiseType::Depolarizing,
+				OpcodeType(
+				(uint32_t)NoiseType::Depolarizing,
 				qubits,
 				{ it_depol->second },
 				false,
-				{}
+				{})
 			);
 		}
 
 		if (it_damp != it_end)
 		{
 			opcodes.emplace_back(
-				NoiseType::Damping,
+				OpcodeType(
+				(uint32_t)NoiseType::Damping,
 				qubits,
 				{ it_depol->second },
 				false,
-				{}
+				{})
 			);
 		}
 
 		if (it_bitflip != it_end)
 		{
 			opcodes.emplace_back(
-				NoiseType::BitFlip,
+				OpcodeType(
+					(uint32_t)NoiseType::BitFlip,
 				qubits,
 				{ it_depol->second },
 				false,
-				{}
+				{})
 			);
 		}
 
 		if (it_phaseflip != it_end)
 		{
 			opcodes.emplace_back(
-				NoiseType::PhaseFlip,
+				OpcodeType(
+				(uint32_t)NoiseType::PhaseFlip,
 				qubits,
 				{ it_depol->second },
 				false,
-				{}
+				{})
 			);
 		}
 	}
@@ -132,7 +158,7 @@ namespace qpandalite {
 
 	void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, bool is_dagger)
 	{
-		xy_cont(qn1, qn2, {}, is_dagger);
+		xy_cont(qn1, qn2, theta, {}, is_dagger);
 	}
 
 	void NoisySimulator::cnot(size_t qn1, size_t qn2, bool is_dagger)
@@ -143,13 +169,27 @@ namespace qpandalite {
 	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
-			SupportOperationType::HADAMARD,
+			OpcodeType(
+			(uint8_t)SupportOperationType::HADAMARD,
 			{ qn },
 			{},
 			is_dagger,
-			global_controller
+			global_controller)
 		);
 		insert_error({ qn });
+	}
+
+	void NoisySimulator::xy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint8_t)SupportOperationType::XY,
+			{ qn1, qn2 },
+			{},
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn1, qn2 });
 	}
 
 	void NoisySimulator::measure(const std::vector<size_t> measure_qubits_)
@@ -164,11 +204,11 @@ namespace qpandalite {
 		{
 			switch (opcode.op)
 			{
-			case NoiseType::Depolarizing:
+			case (uint32_t)NoiseType::Depolarizing:
 				simulator.depolarizing(opcode.qubits[0], opcode.parameters[0]);
 				break;
-			case SupportOperationType::HADAMARD:
-				simulator.depolarizing(opcode.qubits[0]);
+			case (uint32_t)SupportOperationType::HADAMARD:
+				simulator.depolarizing(opcode.qubits[0], opcode.parameters[0]);
 				break;
 			default:
 				ThrowRuntimeError(fmt::format("Failed to handle opcode = {}\nPlease check.", opcode.op));
@@ -176,7 +216,29 @@ namespace qpandalite {
 		}
 	}
 
-	void measure_shots()
+	std::pair<size_t, double> NoisySimulator::_get_state_prob(size_t i)
+	{
+		auto measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
+		size_t meas_idx = get_state_with_qubit(i, measure_map);
+		double prob = abs_sqr(simulator.state[i]);
+		return { meas_idx, prob };
+	}
+
+	size_t NoisySimulator::get_measure()
+	{
+		double r = qpandalite::rand();
+		auto measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
+		for (size_t i = 0; i < pow2(simulator.total_qubit); ++i)
+		{
+			if (r < abs_sqr(simulator.state[i]))
+				return get_state_with_qubit(i, measure_map);
+			else
+				r -= abs_sqr(simulator.state[i]);
+		}
+		ThrowRuntimeError("NoisySimulator::get_measure() internal fatal error!");
+	}
+
+	std::map<size_t, size_t> NoisySimulator::measure_shots(size_t shots)
 	{
 		std::map<size_t, size_t> measured_result;
 		for (size_t i = 0; i < shots; ++i)
@@ -193,7 +255,7 @@ namespace qpandalite {
 				measured_result.emplace(meas, 1);
 			}
 		}
-		return measure_result;
+		return measured_result;
 	}
 
 }

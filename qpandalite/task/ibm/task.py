@@ -1,3 +1,4 @@
+import traceback
 import qiskit
 from qpandalite.task.task_utils import *
 
@@ -7,6 +8,7 @@ from typing import List, Union
 from pathlib import Path
 import os
 import json
+from json.decoder import JSONDecodeError
 import warnings
 
 import qiskit_ibm_provider
@@ -17,22 +19,37 @@ if saved_account is {}:
         with open('ibm_online_config.json', 'r') as fp:
             default_online_config = json.load(fp)
             default_token = default_online_config['default_token']
+    except FileNotFoundError as e:
+        raise ImportError('Import IBM backend failed.\n'
+                        'originq_online_config.json is not found. '
+                        'It should be always placed at current working directory (cwd).')
+    except JSONDecodeError as e:
+        raise ImportError('Import IBM backend failed.\n'
+                            'Cannot load json from the originq_online_config.json. '
+                            'Please check the content.')
     except Exception as e:
-        raise RuntimeError('ibm_online_config.json is not found. '
-                           'It should be placed at current working directory (cwd) at the first time.')
+        raise ImportError('Import IBM backend failed.\n'
+                        'Unknown import error.'                      
+                        '\n===== Original exception ======\n'
+                        f'{traceback.format_exc()}')
     try:
 
         qiskit_ibm_provider.IBMProvider.save_account(default_token)
     except Exception as e:
-        raise RuntimeError(f'failed to login, error information: {e}')
+        raise ImportError('Import IBM backend failed.\n'
+                           'Failed to login.'
+                           '\n===== Original exception ======\n'
+                           f'{traceback.format_exc()}')
 
 try:
     provider = qiskit_ibm_provider.IBMProvider(instance='ibm-q/open/main')
 except Exception as e:
-    raise RuntimeError(f'failed to login, error information: {e}')
+    raise ImportError('Import IBM backend failed.\n'
+                        'Failed to login.'
+                        '\n===== Original exception ======\n'
+                        f'{traceback.format_exc()}')
 
 backends = provider.backends()
-
 
 def query_by_taskid_single(taskid: str, ):
     '''Query circuit status by taskid (Async). This function will return without waiting.

@@ -11,6 +11,7 @@ import os
 import random
 import json
 import hashlib
+from json.decoder import JSONDecodeError
 
 from ..task_utils import *
 
@@ -20,12 +21,23 @@ try:
     available_qubits = default_online_config['available_qubits']
     available_topology = default_online_config['available_topology']
     default_task_group_size = default_online_config['task_group_size']
-except Exception as e:
+except FileNotFoundError as e:
     warnings.warn(ImportWarning('originq_online_config.json is not found. '
-                'It should be always placed at current working directory (cwd).'))
+                'It is optional in dummy mode, '
+                'but it is necessary for the real quantum device. '))
+    
     available_qubits = []
     available_topology = []
     default_task_group_size = 200
+except JSONDecodeError as e:
+    raise ImportError('Import originq_dummy backend failed.\n'
+                        'Cannot load json from the quafu_online_config.json. '
+                        'Please check the content.')
+except Exception as e:
+    raise ImportError('Import originq_dummy backend failed.\n'
+                      'Unknown import error. Original exception is:\n'
+                      f'{str(e)}')
+    
 
 class DummyCacheContainer:
     def __init__(self) -> None:

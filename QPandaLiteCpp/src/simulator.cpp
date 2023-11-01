@@ -976,39 +976,14 @@ namespace qpandalite{
 
     std::vector<dtype> Simulator::pmeasure_list(const std::vector<size_t> &measure_list)
     {
-        if (measure_list.size() > total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_list size = {})", total_qubit, measure_list.size());
-            ThrowInvalidArgument(errstr);
-        }
-        std::map<size_t, size_t> qlist;
-        for (size_t i = 0; i < measure_list.size(); ++i)
-        {
-            size_t qn = measure_list[i];
-            if (qn >= total_qubit)
-            {
-                auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_qubit = {})", total_qubit, qn);
-                ThrowInvalidArgument(errstr);
-            }
-            if (qlist.find(qn) != qlist.end())
-            {
-                auto errstr = fmt::format("Duplicate measure qubit ({})", qn);
-                ThrowInvalidArgument(errstr);
-            }
-            qlist.insert({qn,i});
-        }
+        auto measure_map = preprocess_measure_list(measure_list, total_qubit);
 
         std::vector<dtype> ret;
         ret.resize(pow2(measure_list.size()));
         
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
-            size_t meas_idx = 0;
-            for (auto &&[qn, j] : qlist)
-            {
-                // put "digit qn" of i to "digit j"
-                meas_idx += (((i >> qn) & 1) << j);
-            }
+            size_t meas_idx = get_state_with_qubit(i, measure_map);
             ret[meas_idx] += abs_sqr(state[i]);
         }
         return ret;

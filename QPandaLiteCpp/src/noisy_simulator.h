@@ -1,7 +1,7 @@
 #include "simulator.h"
 
 namespace qpandalite {
-    enum class NoiseType : uint8_t
+    enum class NoiseType : uint32_t
     {
         Depolarizing,
         Damping,
@@ -9,7 +9,7 @@ namespace qpandalite {
         PhaseFlip,
     };
 
-    enum class SupportOperationType : uint8_t
+    enum class SupportOperationType : uint32_t
     {
         HADAMARD = 1000,
         U22,
@@ -39,11 +39,21 @@ namespace qpandalite {
 
     struct OpcodeType
     {
-        uint8_t op;
+        uint32_t op;
         std::vector<size_t> qubits;
         std::vector<double> parameters;
         bool dagger;
         std::vector<size_t> global_controller;
+        OpcodeType(uint32_t op_,
+            const std::vector<size_t>& qubits_,
+            const std::vector<double>& parameters_,
+            bool dagger_,
+            const std::vector<size_t>& global_controller_
+        ) :op(op_), qubits(qubits_),
+            parameters(parameters_), dagger(dagger_),
+            global_controller(global_controller_)
+        {
+        }
     };
 
     struct NoisySimulator
@@ -58,14 +68,10 @@ namespace qpandalite {
 
         NoisySimulator(size_t n_qubit,
             const std::map<std::string, double>& noise_description,
-            std::vector<std::array<double, 2>> measurement_error)
-            : nqubit(n_qubit), noise(noise_description),
-            measurement_error_matrices(measurement_error)
-        { 
-        }
+            const std::vector<std::array<double, 2>>& measurement_error);
 
-        void insert_error(std::vector<size_t> qn);
-
+        void _load_noise(std::map<std::string, double> noise_description);
+        void insert_error(const std::vector<size_t> &qn);
         void hadamard(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
         void x(size_t qn, bool is_dagger = false);
@@ -103,10 +109,9 @@ namespace qpandalite {
         void measure(const std::vector<size_t> measure_qubits_);
 
         void execute_once();
+        std::pair<size_t, double> _get_state_prob(size_t i);
         size_t get_measure();
         std::map<size_t, size_t> measure_shots(size_t shots);
-
-
 
     };
 }

@@ -69,6 +69,44 @@ namespace qpandalite {
         return true;
     }
 
+    inline std::map<size_t, size_t> preprocess_measure_list(const std::vector<size_t> &measure_list, size_t total_qubit)
+    {
+        if (measure_list.size() > total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_list size = {})", total_qubit, measure_list.size());
+            ThrowInvalidArgument(errstr);
+        }
+
+        std::map<size_t, size_t> qlist;
+        for (size_t i = 0; i < measure_list.size(); ++i)
+        {
+            size_t qn = measure_list[i];
+            if (qn >= total_qubit)
+            {
+                auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_qubit = {})", total_qubit, qn);
+                ThrowInvalidArgument(errstr);
+            }
+            if (qlist.find(qn) != qlist.end())
+            {
+                auto errstr = fmt::format("Duplicate measure qubit ({})", qn);
+                ThrowInvalidArgument(errstr);
+            }
+            qlist.insert({ qn,i });
+        }
+        return qlist;
+    }
+
+    inline size_t get_state_with_qubit(size_t i, const std::map<size_t, size_t> &measure_map)
+    {
+        size_t ret = 0;
+        for (auto&& [qn, j] : measure_map)
+        {
+            // put "digit qn" of i to "digit j"
+            ret += (((i >> qn) & 1) << j);
+        }
+        return ret;
+    }
+
     struct Simulator
     { 
         static inline size_t max_qubit_num = 30;

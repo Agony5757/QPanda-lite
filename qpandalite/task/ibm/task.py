@@ -210,7 +210,7 @@ def _submit_task_group(circuits=None,
     return job
 
 
-=======
+# =======
 import qiskit
 # import qiskit_ibm_provider
 from qpandalite.task.task_utils import write_taskinfo
@@ -330,36 +330,34 @@ def query_all_task(savepath=None):
 if __name__ == '__main__':
     import numpy as np
     from qiskit import QuantumCircuit
+    circ = QuantumCircuit(3)
     
-    #The quantum circuit in qiskit
-    # circ = QuantumCircuit(3)
-    
-    # circ.h(0)
-    # circ.rx(0.4, 0)
-    # circ.x(0)
-    # circ.ry(0.39269908169872414, 1)
-    # circ.y(0)
-    # circ.rz(np.pi/8, 1)
-    # circ.z(0)
-    # circ.cz(0, 1)
-    # circ.cx(0, 2) 
+    circ.h(0)
+    circ.rx(0.4, 0)
+    circ.x(0)
+    circ.ry(0.39269908169872414, 1)
+    circ.y(0)
+    circ.rz(np.pi/8, 1)
+    circ.z(0)
+    circ.cz(0, 1)
+    circ.cx(0, 2) 
 
-    # circ.sx(0)
-    # circ.iswap(0, 1)
-    # circ.cz(0, 2)
-    # circ.ccx(0, 1, 2)
-    # x_circuit = QuantumCircuit(2, name='Xs')
-    # x_circuit.x(range(2))
-    # xs_gate = x_circuit.to_gate()
-    # cxs_gate = xs_gate.control()
-    # circ.append(cxs_gate, [0, 1, 2])
+    circ.sx(0)
+    circ.iswap(0, 1)
+    circ.cz(0, 2)
+    circ.ccx(0, 1, 2)
+    x_circuit = QuantumCircuit(2, name='Xs')
+    x_circuit.x(range(2))
+    xs_gate = x_circuit.to_gate()
+    cxs_gate = xs_gate.control()
+    circ.append(cxs_gate, [0, 1, 2])
     
-    # # Create a Quantum Circuit
-    # meas = QuantumCircuit(3, 3)
-    # meas.measure(range(3), range(3))
-    # qc = meas.compose(circ, range(3), front=True)
-    # QASM_string = qc.qasm()
-    # print(QASM_string)
+    # Create a Quantum Circuit
+    meas = QuantumCircuit(3, 3)
+    meas.measure(range(3), range(3))
+    qc = meas.compose(circ, range(3), front=True)
+    QASM_string = qc.qasm()
+    print(QASM_string)
 
     # The quantum circuit in OriginIR
     import qpandalite

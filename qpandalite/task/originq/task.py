@@ -122,7 +122,7 @@ def parse_response_body(response_body):
         ret['status'] = 'running'
         return ret
 
-def query_by_taskid_single(taskid : str, url = default_query_url):
+def query_by_taskid_single(taskid : str, url = default_query_url, **kwargs):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
@@ -165,7 +165,8 @@ def query_by_taskid_single(taskid : str, url = default_query_url):
     return taskinfo
 
 def query_by_taskid(taskid : Union[List[str],str], 
-                    url = default_query_url):
+                    url = default_query_url,
+                    **kwargs):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
@@ -215,7 +216,8 @@ def query_by_taskid_sync(taskid,
                          interval = 2.0, 
                          timeout = 60.0, 
                          retry = 5,
-                         url = default_query_url):    
+                         url = default_query_url,
+                         **kwargs):    
     '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
   
     Args:
@@ -433,7 +435,8 @@ def submit_task(
     auto_mapping = False,
     specified_block = None,
     url = default_submit_url,
-    savepath = Path.cwd() / 'online_info'
+    savepath = Path.cwd() / 'online_info',
+    **kwargs
 ):
     '''submit circuits or a single circuit
 
@@ -516,7 +519,8 @@ def submit_task_compile_only(
     circuit_optimize = True,
     auto_mapping = False,
     url = default_submit_url,
-    savepath = Path.cwd() / 'online_info'
+    savepath = Path.cwd() / 'online_info',
+    **kwargs
 ):
     '''Compile a single circuit
 
@@ -561,7 +565,7 @@ def submit_task_compile_only(
         savepath = savepath
     )
 
-def query_all_task(url = default_query_url, savepath = None): 
+def query_all_task(url = default_query_url, savepath = None, **kwargs): 
     '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
 
     Args:

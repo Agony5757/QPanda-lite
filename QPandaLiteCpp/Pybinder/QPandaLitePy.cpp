@@ -10,6 +10,7 @@
 #include "pybind11/operators.h"
 
 #include "simulator.h"
+#include "noisy_simulator.h"
 using namespace std;
 using namespace pybind11::literals;
 namespace py = pybind11;
@@ -25,7 +26,7 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("init_n_qubit", &qpandalite::Simulator::init_n_qubit)
 		.def("hadamard", &qpandalite::Simulator::hadamard)
 		.def("u22", &qpandalite::Simulator::u22)
-    	.def("x", &qpandalite::Simulator::x)
+		.def("x", &qpandalite::Simulator::x)
 		.def("sx", &qpandalite::Simulator::sx)
 		.def("y", &qpandalite::Simulator::y)
 		.def("z", &qpandalite::Simulator::z)
@@ -44,6 +45,49 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("pmeasure", &qpandalite::Simulator::pmeasure)
 		.def("pmeasure", &qpandalite::Simulator::pmeasure_list)
 		;
+	
+	py::enum_<qpandalite::NoiseType>(m, "NoiseType")
+		.value("Depolarizing", qpandalite::NoiseType::Depolarizing)
+		.value("Damping", qpandalite::NoiseType::Damping)
+		.value("BitFlip", qpandalite::NoiseType::BitFlip)
+		.value("PhaseFlip", qpandalite::NoiseType::PhaseFlip)
+		.export_values()
+		;
+
+	// py::class_<NoiseSimulatorImpl, Simulator>(m, "NoiseSimulatorImpl")
+	//     .def("depolarizing", &NoiseSimulatorImpl::depolarizing)
+	//     .def("damping", &NoiseSimulatorImpl::damping)
+	//     .def("bitflip", &NoiseSimulatorImpl::bitflip)
+	//     .def("phaseflip", &NoiseSimulatorImpl::phaseflip)
+	//     ;
+
+	// py::enum_<qpandalite::SupportOperationType>(m, "SupportOperationType")
+	//     .value("HADAMARD", SupportOperationType::HADAMARD)
+	//     // ... Add other values similarly
+	//     .export_values();
+
+	py::class_<qpandalite::OpcodeType>(m, "OpcodeType")
+		.def(py::init<uint32_t, const std::vector<size_t>&, const std::vector<double>&, bool, const std::vector<size_t>&>())
+		.def_readwrite("op", &qpandalite::OpcodeType::op)
+		// ... Similarly bind other members
+		;
+
+	py::class_<qpandalite::NoisySimulator>(m, "NoisySimulator")
+		.def(py::init<size_t, 
+			const std::map<std::string, double>&, 
+			const std::vector<std::array<double, 2>>&>())
+		.def_readonly("total_qubit", &qpandalite::NoisySimulator::nqubit)
+		.def_readonly("noise", &qpandalite::NoisySimulator::noise)
+		.def("_load_noise", &qpandalite::NoisySimulator::_load_noise)
+		.def("insert_error", &qpandalite::NoisySimulator::insert_error)
+		.def("hadamard", &qpandalite::NoisySimulator::hadamard);
+		// .def("u22", &qpandalite::NoisySimulator::u22)
+		// .def("x", &qpandalite::NoisySimulator::x)
+		// .def("sx", &qpandalite::NoisySimulator::sx)
+		// .def("y", &qpandalite::NoisySimulator::y)
+		// .def("z", &qpandalite::NoisySimulator::z)
+		;
+
 }
 
 #ifdef __GNUC__

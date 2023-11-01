@@ -232,3 +232,85 @@ class Simulator:
         '''
         ...
     
+class NoiseType:
+    Depolarizing: int
+    Damping: int
+    BitFlip: int
+    PhaseFlip: int
+
+class NoisySimulator:
+    noise: Dict[NoiseType, float]
+    measurement_error_matrices: List[Tuple[float, float]]
+    
+    def __init__(self, n_qubit, noise_description, measurement_error):
+        '''Create a simulator instance (implemented by C++).
+        The simulator has two accessible variables: ``total_qubit'' and ``state''.
+        total_qubit is initialized with init_n_qubit method.
+        state represents the quantum state, which can be modified by calling the gate method.
+        '''
+        self.simulator_instance = qpandalite.NoisySimulator(n_qubit, noise_description, measurement_error)
+
+    # @property
+    # def state(self) -> List[complex]:
+    #     '''The quantum state
+
+    #     Returns:
+    #         List[complex]: The representation of the quantum state.
+    #     '''
+    #     ...
+
+    @property
+    def total_qubit(self) -> int:
+        '''The number of qubit.
+
+        Returns:
+            int: The number of qubit of the simulator.
+        '''
+        ...
+
+    def insert_error(self, qubits: List[int]) -> None: ...
+        '''insert_error based on the noise_description
+
+        Args:
+            qubits List[int]: The list of gate qubit.
+        '''
+    
+    def hadamard(self, qn : int, is_dagger : bool = False) -> None:
+        '''Hadamard gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    # def x(self, qn: int) -> None: 
+    #     '''X gate.
+
+    #     Args:
+    #         qn (int): The gate qubit.
+    #     '''
+    #     ...
+    
+    # def sx(self, qn : int, is_dagger : bool = False) -> None:
+    #     '''SX gate.
+
+    #     Args:
+    #         qn (int): The gate qubit.
+    #     '''
+    #     ...
+    
+    # def y(self, qn : int, is_dagger : bool = False) -> None:
+    #     '''Y gate.
+
+    #     Args:
+    #         qn (int): The gate qubit.
+    #     '''
+    #     ...
+
+    # def z(self, qn : int, is_dagger : bool = False) -> None:
+    #     '''Z gate.
+
+    #     Args:
+    #         qn (int): The gate qubit.
+    #     '''
+    #     ...

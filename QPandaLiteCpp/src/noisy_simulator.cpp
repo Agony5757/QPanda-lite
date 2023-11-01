@@ -40,6 +40,7 @@ namespace qpandalite {
 		: nqubit(n_qubit),
 		measurement_error_matrices(measurement_error)
 	{
+		// process the noise description and store the relevant noise types and their parameters.
 		_load_noise(noise_description);
 	}
 
@@ -51,8 +52,22 @@ namespace qpandalite {
 			noise[NoiseType::Depolarizing] = it_depol->second;
 		}
 		auto it_damp = noise_description.find("damping");
+		if (it_damp != noise_description.end())
+		{
+			noise[NoiseType::Damping] = it_damp->second;
+		}
+
 		auto it_bitflip = noise_description.find("bitflip");
+		if (it_bitflip != noise_description.end())
+		{
+			noise[NoiseType::BitFlip] = it_bitflip->second;
+		}
+
 		auto it_phaseflip = noise_description.find("phaseflip");
+		if (it_phaseflip != noise_description.end())
+		{
+			noise[NoiseType::PhaseFlip] = it_phaseflip->second;
+		}
 		
 	}
 
@@ -121,50 +136,50 @@ namespace qpandalite {
 		hadamard_cont(qn, {}, is_dagger);
 	}
 
-	void NoisySimulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
-	{
-		u22_cont(qn, unitary, {}, is_dagger);
-	}
+	// void NoisySimulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
+	// {
+	// 	u22_cont(qn, unitary, {}, is_dagger);
+	// }
 
-	void NoisySimulator::x(size_t qn, bool is_dagger)
-	{
-		x_cont(qn, {}, is_dagger);
-	}
+	// void NoisySimulator::x(size_t qn, bool is_dagger)
+	// {
+	// 	x_cont(qn, {}, is_dagger);
+	// }
 
-	void NoisySimulator::y(size_t qn, bool is_dagger)
-	{
-		y_cont(qn, {}, is_dagger);
-	}
+	// void NoisySimulator::y(size_t qn, bool is_dagger)
+	// {
+	// 	y_cont(qn, {}, is_dagger);
+	// }
 
-	void NoisySimulator::z(size_t qn, bool is_dagger)
-	{
-		z_cont(qn, {}, is_dagger);
-	}
+	// void NoisySimulator::z(size_t qn, bool is_dagger)
+	// {
+	// 	z_cont(qn, {}, is_dagger);
+	// }
 
-	void NoisySimulator::sx(size_t qn, bool is_dagger)
-	{
-		sx_cont(qn, {}, is_dagger);
-	}
+	// void NoisySimulator::sx(size_t qn, bool is_dagger)
+	// {
+	// 	sx_cont(qn, {}, is_dagger);
+	// }
 
-	void NoisySimulator::cz(size_t qn1, size_t qn2, bool is_dagger)
-	{
-		cz_cont(qn1, qn2, {}, is_dagger);
-	}
+	// void NoisySimulator::cz(size_t qn1, size_t qn2, bool is_dagger)
+	// {
+	// 	cz_cont(qn1, qn2, {}, is_dagger);
+	// }
 
-	void NoisySimulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
-	{
-		iswap_cont(qn1, qn2, {}, is_dagger);
-	}
+	// void NoisySimulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
+	// {
+	// 	iswap_cont(qn1, qn2, {}, is_dagger);
+	// }
 
-	void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, bool is_dagger)
-	{
-		xy_cont(qn1, qn2, theta, {}, is_dagger);
-	}
+	// void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, bool is_dagger)
+	// {
+	// 	xy_cont(qn1, qn2, theta, {}, is_dagger);
+	// }
 
-	void NoisySimulator::cnot(size_t qn1, size_t qn2, bool is_dagger)
-	{
-		cnot_cont(qn1, qn2, {}, is_dagger);
-	}
+	// void NoisySimulator::cnot(size_t qn1, size_t qn2, bool is_dagger)
+	// {
+	// 	cnot_cont(qn1, qn2, {}, is_dagger);
+	// }
 
 	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{

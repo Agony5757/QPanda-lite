@@ -36,7 +36,9 @@ class OriginIR_Parser:
                         comma + blank + 
                         cid + 
                         '$')
-        
+    regexp_barrier_str = (r'^BARRIER' +
+                          f'(({blank}{qid}{blank}{comma})*{blank}{qid}{blank})' + 
+                          '$')    
     regexp_control_str = (r'^(CONTROL|ENDCONTROL)' +
                           f'(({blank}{qid}{blank}{comma})*{blank}{qid}{blank})' + 
                           '$')
@@ -46,6 +48,7 @@ class OriginIR_Parser:
     regexp_1q1p = re.compile(regexp_1q1p_str)
     regexp_1q2p = re.compile(regexp_1q2p_str)
     regexp_meas = re.compile(regexp_measure_str)
+    regexp_barrier = re.compile(regexp_barrier_str)
     regexp_control = re.compile(regexp_control_str)
     regexp_qid = re.compile(qid)
 
@@ -93,8 +96,13 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_barrier(line):
-        matches = OriginIR_Parser.regexp_barrier.findall(line)
-        return matches
+        matches = OriginIR_Parser.regexp_barrier.match(line)
+        # Extract individual qubit patterns
+        qubits = OriginIR_Parser.regexp_qid.findall(line)
+        # Extract only the numeric part of each qubit pattern
+        qubit_indices = [int(q[0]) for q in qubits]
+        return "BARRIER", qubit_indices
+    
     @staticmethod
     def handle_control(line):
         """
@@ -113,7 +121,6 @@ class OriginIR_Parser:
         operation_type = matches.group(1)
         qubits = OriginIR_Parser.regexp_qid.findall(matches.group(2))
         controls = [int(ctrl) for ctrl in qubits]
-        
         return operation_type, controls
 
     @staticmethod
@@ -176,6 +183,9 @@ class OriginIR_Parser:
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RPhi'):
                 operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+            elif line.startswith('BARRIER'):
+                operation = 'BARRIER'
+                operation, q = OriginIR_Parser.handle_barrier(line)
             elif line.startswith('MEASURE'):
                 operation = 'MEASURE'
                 q, c = OriginIR_Parser.handle_measure(line)

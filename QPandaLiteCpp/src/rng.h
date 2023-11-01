@@ -16,7 +16,7 @@ namespace qpandalite
 
 		inline void seed(unsigned int seed_)
 		{
-			eng.seed(seed_)
+			eng.seed(seed_);
 		}
 
 		inline double rand()

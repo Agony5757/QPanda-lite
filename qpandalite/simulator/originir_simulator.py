@@ -7,7 +7,6 @@ except ImportError as e:
     # warning has been emitted in __init__.py
     pass
 
-
 class OriginIR_Simulator:    
     def __init__(self, reverse_key = False):
         self.qubit_num = 0

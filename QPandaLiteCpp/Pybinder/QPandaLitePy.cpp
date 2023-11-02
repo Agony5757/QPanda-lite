@@ -80,12 +80,13 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def_readonly("noise", &qpandalite::NoisySimulator::noise)
 		.def("_load_noise", &qpandalite::NoisySimulator::_load_noise)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)
-		.def("hadamard", &qpandalite::NoisySimulator::hadamard);
+		.def("hadamard", &qpandalite::NoisySimulator::hadamard)
 		// .def("u22", &qpandalite::NoisySimulator::u22)
 		// .def("x", &qpandalite::NoisySimulator::x)
 		// .def("sx", &qpandalite::NoisySimulator::sx)
 		// .def("y", &qpandalite::NoisySimulator::y)
 		// .def("z", &qpandalite::NoisySimulator::z)
+		.def("measure_shots", &qpandalite::NoisySimulator::measure_shots)
 		;
 
 }

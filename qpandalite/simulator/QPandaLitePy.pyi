@@ -241,7 +241,7 @@ class NoiseType:
 class NoisySimulator:
     noise: Dict[NoiseType, float]
     measurement_error_matrices: List[Tuple[float, float]]
-    
+
     def __init__(self, n_qubit, noise_description, measurement_error):
         '''Create a simulator instance (implemented by C++).
         The simulator has two accessible variables: ``total_qubit'' and ``state''.
@@ -314,3 +314,16 @@ class NoisySimulator:
     #         qn (int): The gate qubit.
     #     '''
     #     ...
+    def measure_shots(self, shots: int) -> Dict[int, int]:
+        """
+        Simulate a quantum measurement multiple times and tally the results.
+        
+        Args:
+            shots (int): The number of times the quantum measurement is simulated.
+        
+        Returns:
+            Dict[int, int]: A dictionary where keys represent unique measurement results 
+            (as integers) and values represent the frequency of each result.
+        """
+        ...
+        

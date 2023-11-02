@@ -185,7 +185,7 @@ namespace qpandalite {
 	{
 		opcodes.emplace_back(
 			OpcodeType(
-			(uint8_t)SupportOperationType::HADAMARD,
+			(uint32_t)SupportOperationType::HADAMARD,
 			{ qn },
 			{},
 			is_dagger,
@@ -198,7 +198,7 @@ namespace qpandalite {
 	{
 		opcodes.emplace_back(
 			OpcodeType(
-			(uint8_t)SupportOperationType::XY,
+			(uint32_t)SupportOperationType::XY,
 			{ qn1, qn2 },
 			{},
 			is_dagger,
@@ -214,7 +214,10 @@ namespace qpandalite {
 
 	void NoisySimulator::execute_once()
 	{
+		// It initializes the simulator object with a specified number of qubits, given by nqubit.
 		simulator.init_n_qubit(nqubit);
+
+		// Currently, the iteration only supports Hadamard gates and depolarizing noise 2023/11/02
 		for (const auto &opcode : opcodes)
 		{
 			switch (opcode.op)
@@ -223,8 +226,12 @@ namespace qpandalite {
 				simulator.depolarizing(opcode.qubits[0], opcode.parameters[0]);
 				break;
 			case (uint32_t)SupportOperationType::HADAMARD:
-				simulator.depolarizing(opcode.qubits[0], opcode.parameters[0]);
-				break;
+    			simulator.hadamard(opcode.qubits[0]);
+				// for (const auto &amp : simulator.state) {
+				//     std::cout << amp << " ";
+				// }
+				// std::cout << std::endl;
+    			break;
 			default:
 				ThrowRuntimeError(fmt::format("Failed to handle opcode = {}\nPlease check.", opcode.op));
 			}
@@ -241,12 +248,19 @@ namespace qpandalite {
 
 	size_t NoisySimulator::get_measure()
 	{
+		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
+
+		// Preprocess the measure list to get a map of qubits to be measured, defined in simulator.h
 		auto measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
+
+		// This method is a basic way to implement weighted random sampling.
 		for (size_t i = 0; i < pow2(simulator.total_qubit); ++i)
 		{
-			if (r < abs_sqr(simulator.state[i]))
-				return get_state_with_qubit(i, measure_map);
+			// Is this random number landing in this probability range?
+			if (r < abs_sqr(simulator.state[i]))		
+				return i;
+			// No, move to the next one, and subtract the current prob from the r
 			else
 				r -= abs_sqr(simulator.state[i]);
 		}
@@ -255,16 +269,24 @@ namespace qpandalite {
 
 	std::map<size_t, size_t> NoisySimulator::measure_shots(size_t shots)
 	{
+		// Initialize an empty map to hold the frequency of each measured quantum state.
 		std::map<size_t, size_t> measured_result;
+
 		for (size_t i = 0; i < shots; ++i)
 		{
+			// Execute the quantum circuit once and Measure the quantum state after executing the circuit.
 			execute_once();
 			size_t meas = get_measure();
+			// std::cout << meas << " ";
+			// Search the histogram to see if this state has been observed before.
 			auto it = measured_result.find(meas);
+
+			// If the state has been observed before, increment its count.
 			if (it != measured_result.end())
 			{
 				it->second++;
 			}
+			// If this is the first time observing this state, add it to the histogram with a count of 1.
 			else
 			{
 				measured_result.emplace(meas, 1);

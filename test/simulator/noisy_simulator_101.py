@@ -13,10 +13,10 @@ n_qubit = 2
 
 # Noise description
 noise_description = {
-	"depolarizing": 0.05,  # 5% depolarizing noise
-	"damping": 0.03,       # 3% damping noise
-	"bitflip": 0.02,       # 2% bitflip noise
-	"phaseflip": 0.04      # 4% phaseflip noise
+	"depolarizing": 0.00,  # 5% depolarizing noise
+	# "damping": 0.03,       # 3% damping noise
+	# "bitflip": 0.02,       # 2% bitflip noise
+	# "phaseflip": 0.04      # 4% phaseflip noise
 }
 
 
@@ -31,17 +31,23 @@ simulator = NoisySimulator(n_qubit, noise_description, measurement_error)
 
 # Apply a Hadamard gate to the first qubit
 simulator.hadamard(0, False)
-
-simulator.insert_error([0, 1])
+simulator.hadamard(1, False)
+# simulator.hadamard(2, False)
+# simulator.insert_error([0, 1])
 
 noise_desc = simulator.noise
 
 print(noise_desc)
-# ... and so on
 
-# NOTE: Since I don't have the complete API for NoisySimulator, I'm only showing a basic usage example.
-# Depending on what other methods you have in your NoisySimulator class, you might call them as well.
+# Number of measurement shots
+shots = 100000
 
-# Assume you have a method to run the simulation and get the result:
-# result = simulator.run()
-# print(result)
+# Measure the state multiple times
+measurement_results = simulator.measure_shots(shots)
+
+# Display the measurement results
+print(f"Measurement Results over {shots} shots:")
+for state, count in measurement_results.items():
+    # Convert the state (integer) to binary representation
+    binary_state = format(state, f'0{n_qubit}b')
+    print(f"State |{binary_state}>: {count} occurrences")

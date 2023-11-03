@@ -63,6 +63,7 @@ namespace qpandalite {
         NoiseSimulatorImpl simulator;
         size_t nqubit;
         std::vector<size_t> measure_qubits;
+        std::map<size_t, size_t> measure_map;
         std::vector<OpcodeType> opcodes; // opcode + noisy
         std::vector<OpcodeType> original_opcodes; // perfect, without noise
 

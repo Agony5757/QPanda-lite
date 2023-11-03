@@ -195,6 +195,7 @@ namespace qpandalite {
 	void NoisySimulator::measure(const std::vector<size_t> measure_qubits_)
 	{
 		measure_qubits = measure_qubits_;
+		measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
 	}
 
 	void NoisySimulator::execute_once()
@@ -227,7 +228,6 @@ namespace qpandalite {
 	size_t NoisySimulator::get_measure()
 	{
 		double r = qpandalite::rand();
-		auto measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
 		for (size_t i = 0; i < pow2(simulator.total_qubit); ++i)
 		{
 			if (r < abs_sqr(simulator.state[i]))

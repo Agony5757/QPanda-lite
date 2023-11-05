@@ -210,6 +210,7 @@ namespace qpandalite {
 	void NoisySimulator::measure(const std::vector<size_t> measure_qubits_)
 	{
 		measure_qubits = measure_qubits_;
+		measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
 	}
 
 	void NoisySimulator::execute_once()

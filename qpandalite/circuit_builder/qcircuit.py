@@ -43,7 +43,7 @@ class CircuitControlContext:
         self.c.circuit_str += ret        
         
     def __exit__(self, exc_type, exc_val, exc_tb):        
-        ret = 'ENDCONTROL ' + self._qubit_list() + '\n'
+        ret = 'ENDCONTROL\n'
         self.c.circuit_str += ret
 
 class CircuitDagContext:      
@@ -301,11 +301,8 @@ class Circuit:
         ret = ret[:-2] + '\n'
         self.circuit_str += ret
 
-    def unset_control(self, *args):
-        ret = 'ENDCONTROL '
-        for q in self.control_list:
-            ret += f'q[{q}], '
-        ret = ret[:-2] + '\n'
+    def unset_control(self):
+        ret = 'ENDCONTROL\n'
         self.circuit_str += ret
 
     def dagger(self):
@@ -483,18 +480,18 @@ if __name__ == '__main__':
 
     # Nested-control(Correct)
     with c.control(0,1):
-        c.x(2)
+        c.x(2) # controlled by 0,1
         with c.control(4,5):
-            c.x(3)
+            c.x(3) # controlled by 0,1,4,5
 
     # Control-dagger-nested
     with c.control(2):
-        c.x(4)
+        c.x(4) # controlled by 2
         with c.dagger():
-            c.z(5)
-            c.x(10)
+            c.z(5) # dagger, controlled by 2
+            c.x(10) # dagger, controlled by 2
             with c.control(0,1):
-                c.x(3)
+                c.x(3) # dagger, controlled by 0,1,2
 
     # Dagger-control-nested
     with c.dagger():
@@ -508,8 +505,10 @@ if __name__ == '__main__':
     c.measure(0,1,2)
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
     # c = c.remapping({0:45, 1:46, 2:52, 3:53})
-    
-    # print(c.circuit)
+    print('---- Original Circuit ----')
+    print(c.circuit)
+    print()
+    print('---- Converted Circuit ----')
     print(c.unwrap())
     # c.analyze_circuit()
     

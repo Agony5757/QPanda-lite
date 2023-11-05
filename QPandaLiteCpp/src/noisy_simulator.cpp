@@ -251,7 +251,6 @@ namespace qpandalite {
 		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
 
-		// This method is a basic way to implement weighted random sampling.
 		for (size_t i = 0; i < pow2(simulator.total_qubit); ++i)
 		{
 			// Is this random number landing in this probability range?

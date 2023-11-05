@@ -232,6 +232,44 @@ class Circuit:
 
         # raise NotImplementedError('QASM support will be released in future.')
 
+    @property
+    def depth(self):
+        """
+        Return circuit depth.
+        """
+        return self._depth()
+        
+    def _depth(self):
+
+        parser = OriginIR_BaseParser()
+        parser.parse(self.originir)
+
+        # Initialize the depth of each qubit to zero
+        qubit_depths = {}
+
+        # Process each operation using the OriginIR_base_parser
+        for operation in parser.program_body:
+            # Other options in the op_code will not affect the depth but the control
+            op_name, qubits, _, _, _, control_qubits = operation
+            
+            # If the operation is on a single qubit, make it a list so that it could be processed
+            # with control qubits
+            if not isinstance(qubits, list):
+                qubits = [qubits]
+            
+            # Determine the current maximum depth among the qubits involved
+            current_max_depth = 0
+            for q in qubits + list(control_qubits):
+                # If q is found return the value associated with it, if not, return 0
+                current_max_depth = max(current_max_depth, qubit_depths.get(q, 0))
+            
+            # Increment the depth of all involved qubits by 1
+            for q in qubits + list(control_qubits):
+                qubit_depths[q] = current_max_depth + 1
+
+        # The depth of the circuit is the maximum depth across all qubits
+        return max(qubit_depths.values())
+    
     def record_qubit(self, *qubits):
         for qubit in qubits:
             if qubit not in self.used_qubit_list:

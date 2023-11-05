@@ -250,7 +250,6 @@ namespace qpandalite {
 	{
 		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
-
 		for (size_t i = 0; i < pow2(simulator.total_qubit); ++i)
 		{
 			// Is this random number landing in this probability range?

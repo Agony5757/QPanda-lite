@@ -95,6 +95,7 @@ class OriginIR_BaseParser:
         current_lineno = self._extract_creg_statement(lines, current_lineno)
         
         control_qubits_set = set()
+        control_stack = list()
         dagger_count = 0
         dagger_stacks = list()
 
@@ -126,9 +127,11 @@ class OriginIR_BaseParser:
             # Handle the control statement
             if operation == "CONTROL":
                 # Add all control qubits to the set
+                control_stack.append(qubits)
                 control_qubits_set.update(qubits)
 
             elif operation == "ENDCONTROL":
+                qubits = control_stack.pop()
                 for qubit in qubits:
                     control_qubits_set.discard(qubit)
 

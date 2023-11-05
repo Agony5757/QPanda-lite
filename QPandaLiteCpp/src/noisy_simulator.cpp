@@ -251,9 +251,6 @@ namespace qpandalite {
 		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
 
-		// Preprocess the measure list to get a map of qubits to be measured, defined in simulator.h
-		auto measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
-
 		// This method is a basic way to implement weighted random sampling.
 		for (size_t i = 0; i < pow2(simulator.total_qubit); ++i)
 		{

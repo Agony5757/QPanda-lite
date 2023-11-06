@@ -70,6 +70,9 @@ def _create_dummy_cache(dummy_path = None):
         if not os.path.exists(dummy_path):
             os.makedirs(dummy_path)
 
+        if isinstance(dummy_path, str):
+            dummy_path = Path(dummy_path)
+
         if not os.path.exists(dummy_path / 'dummy_result.jsonl'):
             with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
                 pass
@@ -96,6 +99,9 @@ def _write_dummy_cache(taskid,
         if not os.path.exists(dummy_path):
             os.makedirs(dummy_path)
 
+        if isinstance(dummy_path, str):
+            dummy_path = Path(dummy_path)
+
         with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
             fp.write(json.dumps(result_body) + '\n')
 
@@ -117,6 +123,9 @@ def _load_dummy_cache(taskid, dummy_path = None):
         return result
     
     if dummy_path:
+        if isinstance(dummy_path, str):
+            dummy_path = Path(dummy_path)
+            
         with open(dummy_path / 'dummy_result.jsonl', 'r') as fp:
             lines = fp.read().strip().splitlines()
             for line in lines[::-1]:

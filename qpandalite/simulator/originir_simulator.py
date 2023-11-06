@@ -119,7 +119,7 @@ class OriginIR_Simulator:
         self.parser.parse(originir)
         self.extract_actual_used_qubits(self.parser.program_body)
 
-        if available_qubits is not None:
+        if available_qubits:
             self.check_topology(available_qubits)
 
         self.simulator.init_n_qubit(len(self.qubit_mapping))
@@ -130,7 +130,7 @@ class OriginIR_Simulator:
         for i, opcode in enumerate(self.parser.program_body):            
             (operation, qubit, cbit, parameter, 
              dagger_flag, control_qubits_set) = opcode
-            if isinstance(qubit, list) and (available_topology is not None):
+            if isinstance(qubit, list) and (available_topology):
                 if len(qubit) > 2:                    
                     # i+2 because QINIT CREG are always excluded.
                     raise ValueError('Real chip does not support gate of 3-qubit or more. '

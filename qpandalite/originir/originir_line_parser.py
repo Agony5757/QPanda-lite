@@ -149,15 +149,29 @@ class OriginIR_Parser:
     @staticmethod
     def handle_control(line):
         """
-        Parses the provided line to extract control qubits information and the type of control operation (CONTROL/ENDCONTROL).
+        Parse a line to extract control qubits information and the type of control operation.
 
-        Returns:
-        - tuple: A tuple where the first element is the control operation type ("CONTROL" or "ENDCONTROL")
-                 and the second element is a list containing the parsed control qubits.
-        
-        Note:
-        This function assumes that the `regexp_control` regular expression is defined and matches
-        the CONTROL or ENDCONTROL pattern in the OriginIR language.
+        This function analyzes a given line of text to identify and extract information about
+        control qubits and determine whether the line represents the beginning of a control operation
+        (CONTROL) or the end of a control operation (ENDCONTROL) in OriginIR language.
+
+        Parameters
+        ----------
+        line : str
+            The line of text to be parsed for control qubit information.
+
+        Returns
+        -------
+        tuple of (str, list)
+            A tuple where the first element is a string indicating the control operation type
+            ("CONTROL" or "ENDCONTROL") and the second element is a list of integers representing
+            the parsed control qubits.
+
+        Notes
+        -----
+        The function relies on the `regexp_control` regular expression to match the CONTROL or
+        ENDCONTROL patterns in OriginIR language. This regular expression should be predefined
+        and properly constructed to capture the necessary information from the line.
         """
         matches = OriginIR_Parser.regexp_control.match(line)        
         # Extracting the operation type and multiple control qubits
@@ -169,14 +183,27 @@ class OriginIR_Parser:
     @staticmethod
     def handle_dagger(line):
         """
-        Parses the provided line to identify if it's a DAGGER or ENDDAGGER command.
+        Parse a line to identify DAGGER or ENDDAGGER commands in OriginIR.
 
-        Returns:
-        - str: "DAGGER" if the line is a DAGGER command, "ENDDAGGER" if it's an ENDDAGGER command,
-          None otherwise.
-        
-        Note:
-        This function identifies the DAGGER and ENDDAGGER commands in the OriginIR language.
+        This function checks a line of text to determine if it contains a command
+        related to the start or end of a DAGGER operation block in the OriginIR language.
+
+        Parameters
+        ----------
+        line : str
+            The line of text to be parsed.
+
+        Returns
+        -------
+        str or None
+            Returns "DAGGER" if the line is a DAGGER command, "ENDDAGGER" if it's an ENDDAGGER command,
+            or None if neither command is present.
+
+        Notes
+        -----
+        The DAGGER command in OriginIR denotes the start of a block where the operations are to be
+        applied in reverse order with conjugate transposition (dagger operation). The ENDDAGGER command
+        signifies the end of such a block.
         """
         if "ENDDAGGER" in line:
             return "ENDDAGGER"

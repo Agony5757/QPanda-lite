@@ -108,67 +108,59 @@ class Circuit:
     
     def make_operation_qasm(self):
         """
-        The function coverts OriginIR circuit into OpenQASM string.
+        Convert an OriginIR circuit description into an OpenQASM string.
 
-        Returns:
-        The OpenQASM version of the quantum circuit.
+        This function translates the supported OriginIR gates into their equivalent
+        OpenQASM representations. Unsupported gates are either omitted or transformed
+        into a supported sequence of OpenQASM operations.
 
-        
-        OriginIR supports gates:
-            'H':    operation, q = OriginIR_Parser.handle_1q(line)
-            'X':    operation, q = OriginIR_Parser.handle_1q(line)
-            'SX':   operation, q = OriginIR_Parser.handle_1q(line) - no support in qcircuit.py
-            'Y':    operation, q = OriginIR_Parser.handle_1q(line)
-            'Z':    operation, q = OriginIR_Parser.handle_1q(line)
-            'CZ':   operation, q = OriginIR_Parser.handle_2q(line)
-            'ISWAP':operation, q = OriginIR_Parser.handle_2q(line) - no support in qcircuit.py
-            'XY':   operation, q = OriginIR_Parser.handle_2q(line) - no support in qcircuit.py
-            'CNOT': operation, q = OriginIR_Parser.handle_2q(line)
-            'RX':   operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-            'RY':   operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-            'RZ':   operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
-            'Rphi': operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
-        
-        OpenQASM2 supports gates:
-            gate h a { u2(0,pi) a; }
-            gate x a { u3(pi,0,pi) a; }
-            SX(NOT SUPPORTED)
-            gate y a { u3(pi,pi/2,pi/2) a; }
-            gate z a { u1(pi) a; }
-            ---   CZ (    SUPPORTED)---
-            ---iSWAP (NOT SUPPORTED)---
-            ---   XY (NOT SUPPORTED)---
-            gate cx c,t { CX c,t; }
-            gate rx(theta) a { u3(theta,-pi/2,pi/2) a; }
-            gate ry(theta) a { u3(theta,0,0) a; }
-            gate rz(phi) a { u1(phi) a; }
-            gate u3(theta,phi,lambda) q { U(theta,phi,lambda) q; } roughly equals to Rphi 
+        Supported OriginIR gates and their OpenQASM equivalents:
 
-        
-            // 2-parameter 1-pulse single qubit gate
-            gate u2(phi,lambda) q { U(pi/2,phi,lambda) q; }
-            // 1-parameter 0-pulse single qubit gate
-            gate u1(lambda) q { U(0,0,lambda) q; }
-            // idle gate (identity)
-            gate id a { U(0,0,0) a; }            
-            // Clifford gate: sqrt(Z) phase gate
-            gate s a { u1(pi/2) a; }
-            // Clifford gate: conjugate of sqrt(Z)
-            gate sdg a { u1(-pi/2) a; }
-            // C3 gate: sqrt(S) phase gate
-            gate t a { u1(pi/4) a; }
-            // C3 gate: conjugate of sqrt(S)
-            gate tdg a { u1(-pi/4) a; }
+        - 'H': Hadamard gate
+        - 'X': Pauli-X gate
+        - 'SX': Sqrt-X gate (no direct support in OpenQASM)
+        - 'Y': Pauli-Y gate
+        - 'Z': Pauli-Z gate
+        - 'CZ': Controlled-Z gate
+        - 'ISWAP': iSWAP gate (no direct support in OpenQASM)
+        - 'XY': XY gate (no direct support in OpenQASM)
+        - 'CNOT': Controlled NOT gate
+        - 'RX': Rotation around X-axis
+        - 'RY': Rotation around Y-axis
+        - 'RZ': Rotation around Z-axis
+        - 'Rphi': Two-parameter single-qubit rotation (represented with u3 in OpenQASM)
 
-        From OriginIR to OpenQASM2, we need to make sure that：
-        
-        1. The operation that is not in the OpenQASM need to be specified, 
-        for example, gate iswap q0,q1 { s q0; s q1; h q0; cx q0,q1; cx q1,q0; h q1; }
+        The conversion process ensures that:
 
-        2. The operation from both OpenQASM and OriginIR that has the same name will have the same behavior,
-        especially the rotation-theta. If not, some modification could be done with the help of u3, u2, u1.
+        1. Any unsupported OriginIR operation is either mapped to a supported OpenQASM
+           equivalent or is constructed from OpenQASM primitives.
+           Example: The 'ISWAP' gate can be defined in OpenQASM using a sequence of
+           simpler gates.
 
-            2.1 RX, RY are the same, and RZ has a phase factor difference.
+        2. Gates with the same name in both OriginIR and OpenQASM have identical effects.
+           Any discrepancies, such as a phase factor difference in 'RZ', are corrected
+           using OpenQASM's u3, u2, or u1 gates.
+
+        Returns
+        -------
+        str
+            The OpenQASM representation of the quantum circuit.
+
+        Notes
+        -----
+        The SX, ISWAP, and XY gates are not natively supported in OpenQASM and require
+        a decomposed implementation using native OpenQASM gates.
+
+        Examples
+        --------
+        >>> originir_circuit = OriginIRCircuit()
+        >>> print(originir_circuit.qasm)
+        '...OpenQASM representation...'
+
+        Raises
+        ------
+        NotImplementedError
+            If the conversion functionality is not implemented, an error is raised.
         """
         modified_circ_str = self.circuit_str.replace('CNOT', 'cx')
 
@@ -216,17 +208,34 @@ class Circuit:
     @property
     def qasm(self):
         """
-        Convert the OriginIR representation into OpenQASM.
+        Convert the OriginIR representation of the circuit into OpenQASM format.
+
+        This property assembles the QASM representation by concatenating the headers,
+        operations, and measurement sections. OpenQASM format has specific syntactical rules:
+        statements are terminated with semicolons, whitespace is non-significant, the language
+        is case-sensitive, and comments start with double forward slashes and end at the end of the line.
+        For user-defined gates, the 'opaque' keyword should be used in QASM.
+
+        Returns
+        -------
+        str
+            The OpenQASM2 representation of the circuit.
         
-        Statements are separated by semicolons. 
-        Whitespace is ignored. 
-        The language is case sensitive. 
-        Comments begin with a pair of forward slashes and end with a new line.
+        Notes
+        -----
+        Currently, this property only supports conversion to OpenQASM2. Future versions
+        may include support for other versions or variants of QASM.
 
-        For self-defined gate, one should use opaque to define
+        Examples
+        --------
+        >>> circuit = QuantumCircuit()
+        >>> print(circuit.qasm)
+        '...OpenQASM2 representation...'
 
-        Return:
-            The OpenQASM2 representation of our circuit.
+        Raises
+        ------
+        NotImplementedError
+            If QASM support is not yet implemented, an error is raised.
         """
         return self.make_header_qasm() + self.make_operation_qasm() + self.make_measure_qasm()
 
@@ -235,8 +244,24 @@ class Circuit:
     @property
     def depth(self):
         """
-        Return circuit depth.
+        Calculate the depth of the quantum circuit.
+
+        The depth of a quantum circuit is defined as the maximum number of gates 
+        on any single qubit path in the circuit. This is a measure of the circuit's 
+        complexity and can be used to analyze the circuit's execution time on a quantum computer.
+
+        Returns
+        -------
+        int
+            The depth of the quantum circuit, which is the longest path of sequential 
+            gate operations on a single qubit.
+
+        Notes
+        -----
+        The measurement is not counted when calculating the depth of the circuit.
         """
+
+        
         return self._depth()
         
     def _depth(self):

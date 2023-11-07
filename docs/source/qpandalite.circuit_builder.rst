@@ -9,8 +9,7 @@ qpandalite.circuit\_builder.qcircuit module
 
 .. automodule:: qpandalite.circuit_builder.qcircuit
    :members:
-   :undoc-members:
-   :show-inheritance:
+.. as long as the class is documentated, the docstring will update and cover undocumented functions
 
 Module contents
 ---------------

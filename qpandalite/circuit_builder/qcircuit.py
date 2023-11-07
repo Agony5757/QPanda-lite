@@ -1,31 +1,18 @@
-'''
-Definition of quantum circuit (Circuit)
-
-Class Circuit is essentially the OriginIR generator and analysis tool suppported by origin_line_parser and origin_base_parser.
-Each function inside the class is the ingredients that help us to construct quantum circuits.
-Each line after parsing will be transferred to either our OriginIR_Simulator/ OriginIR_Parser/ OpenQASM2_Parser or actual quantum machines.\n
-
-With that being said, for each function that modifies the circuit added to the class, we need to consider,
-1. How does it looks like in the quantum circuit?
-2. How does the origin/qasm_parser need to change in order to deal with this new feature?
-
-Circuit 类本质上是由 origin_line_parser 和 origin_base_parser 支持的 OriginIR 生成器和分析工具。
-类内的每个函数都是帮助我们构建量子电路的成分。
-解析后的每一行都会被传输到我们的 OriginIR_Simulator/ OriginIR_Parser/ OpenQASM2_Parser 或实际的量子机器。
-
-有鉴于此，对于每个添加到类中并修改电路的函数，我们需要考虑：
-1. 它在量子电路中是什么样子的？
-2. 为了处理这个新特性，origin/qasm_parser 需要怎样的变化？
-
-Author: Agony5757
-'''
-
 from typing import Dict
 from copy import deepcopy
 from qpandalite.originir import OriginIR_Parser, OriginIR_BaseParser
 import re
 
-class CircuitControlContext:        
+class CircuitControlContext:
+    """
+    (test)Definition of quantum circuit (Circuit).
+
+    Class `Circuit` acts as the OriginIR generator and analysis tool supported by
+    `origin_line_parser` and `origin_base_parser`. Each function within the class
+    provides the necessary components to construct quantum circuits. After parsing,
+    each line is transferred to either the OriginIR_Simulator, OriginIR_Parser,
+    OpenQASM2_Parser, or actual quantum machines for execution or further processing.
+    """        
     def __init__(self, c, control_list):
         self.c = c
         self.control_list = control_list
@@ -59,6 +46,30 @@ class CircuitDagContext:
         self.c.circuit_str += ret
 
 class Circuit:
+    """
+    Definition of quantum circuit (Circuit).
+
+    Class `Circuit` acts as the OriginIR generator and analysis tool supported by
+    `origin_line_parser` and `origin_base_parser`. Each function within the class
+    provides the necessary components to construct quantum circuits. After parsing,
+    each line is transferred to either the OriginIR_Simulator, OriginIR_Parser,
+    OpenQASM2_Parser, or actual quantum machines for execution or further processing.
+
+    Attributes
+    ----------
+    used_qubit_list : list
+        A list to keep track of the qubits used in the circuit.
+    circuit_str : str
+        The string representation of the circuit in OriginIR format.
+    max_qubit : int
+        The maximum index of qubits used in the circuit.
+    measure_list : list
+        A list of qubits that will be measured.
+    circuit_info : dict
+        A dictionary containing information about the circuit such as the number of qubits,
+        the types and counts of gates used, and the measurement setup.
+    
+    """
     def __init__(self) -> None:
         self.used_qubit_list = []
         self.circuit_str = ''
@@ -400,22 +411,39 @@ class Circuit:
 
     def unwrap(self):
         """
-        This method is designed to process the given 'originir' and perform the 'unwrap' operation.
+        Process the given list of OriginIR operations and performs the 'unwrap' 
+        operation to simplify control structures.
 
-        Returns:
-            unwrapped originir (list): List of OriginIR operations. 
-            For example, the input will be,
-            QINIT 2
-            CREG 2
-            H q[0]
-            CONTROL q[0]
-            X q[1]
-            ENDCONTROL q[0]
-            The return will be ["H q[0]", "X q[1] controlled q[0]"].
+        Parameters
+        ----------
+        originir : list of str
+            A list of strings representing OriginIR operations.
 
-            NOTE: The control version string is still undecided., the string "X q[1] controlled q[0]" is temporary.
-        Raises:
-            None
+        Returns
+        -------
+        list of str
+            A simplified list of OriginIR operations where control structures 
+            have been unwrapped. For example, given the input:
+            
+            .. code-block:: none
+
+                QINIT 2
+                CREG 2
+                H q[0]
+                CONTROL q[0]
+                X q[1]
+                ENDCONTROL q[0]
+            
+            The return will be: ["H q[0]", "X q[1] controlled q[0]"].
+
+        Notes
+        -----
+        The format for control structure strings is subject to change. The string 
+        "X q[1] controlled q[0]" is currently a placeholder.
+
+        Raises
+        ------
+        None
         """
 
         parser = OriginIR_BaseParser()
@@ -424,12 +452,29 @@ class Circuit:
         
     def analyze_circuit(self):
         """
-        Analyze the stored circuit_str and update circuit_info,
-        
-        circuit_info contain
-            'qubits': the number of qubits 
-            'gates': the types of gates, and the number of them
-            'measurements': measurement setup
+        Analyzes the stored string representation of a quantum circuit and updates the circuit information.
+
+        The updated 'circuit_info' dictionary contains:
+        - 'qubits': The number of qubits used in the circuit.
+        - 'gates': A dictionary with types of gates used and their counts.
+        - 'measurements': Information about the measurement setup of the circuit.
+
+        Parameters
+        ----------
+        circuit_str : str
+            A string representation of the quantum circuit to be analyzed.
+
+        Returns
+        -------
+        dict
+            A dictionary containing information about the quantum circuit, including:
+            - 'qubits': an integer representing the number of qubits.
+            - 'gates': a dictionary where keys are gate types and values are counts.
+            - 'measurements': a string or dictionary detailing the measurement setup.
+
+        Raises
+        ------
+        None
         """
         parser = OriginIR_BaseParser()
         parser.parse(self.originir)

@@ -9,7 +9,7 @@ class OriginIR_Parser:
     comma = r','
     lbracket = r'\('
     rbracket = r'\)'
-    parameter = r'(-?\d+(\.\d*)?([eE][-+]?\d+)?)'
+    parameter = r'([-+]?\d+(\.\d*)?([eE][-+]?\d+)?)'
     regexp_1q_str = '^' + opname + blank + qid + '$'
     regexp_2q_str = ('^' + 
                      opname + blank + 
@@ -43,6 +43,32 @@ class OriginIR_Parser:
                         parameter + blank + 
                         rbracket +
                         '$')    
+    regexp_1q3p_str = ('^' + 
+                        opname + blank + 
+                        qid + blank +  
+                        comma + blank + 
+                        lbracket + blank + 
+                        parameter + blank + 
+                        comma + blank + 
+                        parameter + blank + 
+                        comma + blank + 
+                        parameter + blank + 
+                        rbracket +
+                        '$')    
+    regexp_1q4p_str = ('^' + 
+                        opname + blank + 
+                        qid + blank +  
+                        comma + blank + 
+                        lbracket + blank + 
+                        parameter + blank + 
+                        comma + blank + 
+                        parameter + blank + 
+                        comma + blank + 
+                        parameter + blank + 
+                        comma + blank + 
+                        parameter + blank + 
+                        rbracket +
+                        '$')    
     regexp_2q1p_str = ('^' + 
                         opname + blank + 
                         qid + blank +  
@@ -71,6 +97,8 @@ class OriginIR_Parser:
     regexp_3q = re.compile(regexp_3q_str)
     regexp_1q1p = re.compile(regexp_1q1p_str)
     regexp_1q2p = re.compile(regexp_1q2p_str)
+    regexp_1q3p = re.compile(regexp_1q3p_str)
+    regexp_1q4p = re.compile(regexp_1q4p_str)
     regexp_2q1p = re.compile(regexp_2q1p_str)
     regexp_meas = re.compile(regexp_measure_str)
     regexp_barrier = re.compile(regexp_barrier_str)
@@ -120,6 +148,27 @@ class OriginIR_Parser:
         parameter1 = float(matches.group(3))
         parameter2 = float(matches.group(6))
         return operation, q, [parameter1, parameter2]
+    
+    @staticmethod
+    def handle_1q3p(line):
+        matches = OriginIR_Parser.regexp_1q2p.match(line)
+        operation = matches.group(1)
+        q = int(matches.group(2))
+        parameter1 = float(matches.group(3))
+        parameter2 = float(matches.group(6))
+        parameter3 = float(matches.group(9))
+        return operation, q, [parameter1, parameter2, parameter3]
+    
+    @staticmethod
+    def handle_1q4p(line):
+        matches = OriginIR_Parser.regexp_1q2p.match(line)
+        operation = matches.group(1)
+        q = int(matches.group(2))
+        parameter1 = float(matches.group(3))
+        parameter2 = float(matches.group(6))
+        parameter3 = float(matches.group(9))
+        parameter4 = float(matches.group(12))
+        return operation, q, [parameter1, parameter2, parameter3, parameter4]
     
     @staticmethod
     def handle_2q1p(line):
@@ -288,6 +337,39 @@ if __name__ == '__main__':
     print(matches.group(6)) # 1.2e-5
     print(matches.group(7)) #
     print(matches.group(8)) #
+
+    print(OriginIR_Parser.regexp_1q3p_str)
+    matches = OriginIR_Parser.regexp_1q3p.match('U3 q[ 45 ], ( -1.1 , 1.2e-5 , 0.11)')
+    print(matches.group(0))
+    print(matches.group(1)) # U3
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # -1.1
+    print(matches.group(4)) # 
+    print(matches.group(5)) # 
+    print(matches.group(6)) # 1.2e-5
+    print(matches.group(7)) #
+    print(matches.group(8)) #
+    print(matches.group(9)) # 0.11
+    print(matches.group(10)) #
+    print(matches.group(11)) #
+
+    print(OriginIR_Parser.regexp_1q4p_str)
+    matches = OriginIR_Parser.regexp_1q4p.match('U4 q[ 45 ], ( -1.1 , 1.2e-5, 0 , 0.11)')
+    print(matches.group(0))
+    print(matches.group(1)) # U4
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # -1.1
+    print(matches.group(4)) # 
+    print(matches.group(5)) # 
+    print(matches.group(6)) # 1.2e-5
+    print(matches.group(7)) #
+    print(matches.group(8)) #
+    print(matches.group(9)) # 0
+    print(matches.group(10)) #
+    print(matches.group(11)) #
+    print(matches.group(12)) # 0.11
+    print(matches.group(13)) #
+    print(matches.group(14)) #
         
     print(OriginIR_Parser.regexp_2q_str)
     matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')

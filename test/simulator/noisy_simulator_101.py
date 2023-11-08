@@ -9,12 +9,12 @@ from qpandalite.circuit_builder import Circuit
 
 
 # Define the number of qubits
-n_qubit = 2
+n_qubit = 1
 
 # Noise description
 noise_description = {
-	"depolarizing": 0.00,  # 5% depolarizing noise
-	# "damping": 0.03,       # 3% damping noise
+	# "depolarizing": 0.00,  # 5% depolarizing noise
+	"damping": 0.3,       # 3% damping noise
 	# "bitflip": 0.02,       # 2% bitflip noise
 	# "phaseflip": 0.04      # 4% phaseflip noise
 }
@@ -30,17 +30,19 @@ measurement_error = [
 simulator = NoisySimulator(n_qubit, noise_description, measurement_error)
 
 # Apply a Hadamard gate to the first qubit
-simulator.hadamard(0, False)
-simulator.hadamard(1, False)
-# simulator.hadamard(2, False)
+# simulator.hadamard(x)
+# simulator.hadamard(1)
+simulator.x(0)
+# simulator.y(0)
+# simulator.z(1)
 # simulator.insert_error([0, 1])
 
-noise_desc = simulator.noise
+# noise_desc = simulator.noise
 
-print(noise_desc)
+# print(noise_desc)
 
 # Number of measurement shots
-shots = 100000
+shots = 10
 
 # Measure the state multiple times
 measurement_results = simulator.measure_shots(shots)

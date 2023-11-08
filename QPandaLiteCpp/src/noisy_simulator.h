@@ -37,6 +37,12 @@ namespace qpandalite {
         void damping(size_t qn, double gamma);
         void bitflip(size_t qn, double p);
         void phaseflip(size_t qn, double p);
+        
+        // Additional methods
+        void reset(size_t qn);
+        bool is_qubit_one(size_t qn);
+        void scale_amplitude(size_t qn, double scale_factor);
+        void normalize_state_vector();
     };
 
     struct OpcodeType

@@ -16,6 +16,34 @@ namespace qpandalite {
 			z(qn);
 	}
 
+	void NoiseSimulatorImpl::damping(size_t qn, double p)
+	{
+	    // Damping noise involves the kraus operator that is unitary,
+	    // so the state might need to be re-normalized in both cases of Kraus operators.
+	    double r = qpandalite::rand();
+
+	    // Apply the amplitude damping error represented by the Kraus operator K1
+	    if (r < p)
+	    {
+	        // With probability p, we set the qubit qn to the ground state |0> 
+	        reset(qn);
+	    }
+	    else
+	    {
+	        // With probability (1-p), we apply the operator E0 which adjusts the amplitude
+	        // of the qubit if it's in the |1> state.
+	        if (is_qubit_one(qn))
+	        {
+	            // E0 operation: the qubit remains in |1> but its amplitude is scaled by sqrt(1 - p)
+	            scale_amplitude(qn, std::sqrt(1 - p));
+	        }
+	        // If the qubit is in |0>, E0 does nothing, so no operation is needed.
+	    }
+
+	    // The Kraus operator is not unitary so we need to re-normalize the state.
+	    normalize_state_vector(); 
+	}
+	
 	void NoiseSimulatorImpl::bitflip(size_t qn, double p)
 	{
 		double r = qpandalite::rand();
@@ -32,6 +60,76 @@ namespace qpandalite {
 			return;
 		else
 			z(qn);
+	}
+
+	void NoiseSimulatorImpl::reset(size_t qn)
+	{
+	    if (qn >= total_qubit)
+	    {
+	        auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+	        ThrowInvalidArgument(errstr);
+	    }
+
+	    for (size_t i = 0; i < pow2(total_qubit); ++i)
+	    {
+	        if ((i >> qn) & 1)  // If the qubit is in the |1⟩ state
+	        {
+	            // We find the corresponding |0⟩ state for this qubit
+	            size_t corresponding_zero_state = i & ~(1UL << qn);
+	            
+	            // Add the amplitude from the |1⟩ state to the |0⟩ state
+	            state[corresponding_zero_state] += state[i];
+	            
+	            // Set the amplitude for the |1⟩ state to zero
+	            state[i] = 0;
+	        }
+	    }
+	}
+
+	bool NoiseSimulatorImpl::is_qubit_one(size_t qn)
+	{
+	    // You will need to check if the qubit qn is in the |1> state.
+	    // This requires knowledge about how the quantum state is represented in your simulator.
+	    // Assuming a state vector representation, you might do the following:
+
+	    bool qubit_is_one = false;
+	    for (size_t i = 0; i < pow2(total_qubit); ++i)
+	    {
+	        if (((i >> qn) & 1) && std::norm(state[i]) > 0)
+	        {
+	            qubit_is_one = true;
+	            break;
+	        }
+	    }
+	    return qubit_is_one;
+	}
+
+	void NoiseSimulatorImpl::scale_amplitude(size_t qn, double scale_factor)
+	{
+	    // This function is to scale the amplitude of the |1> state of qn by scale_factor due to the damping noise.
+	    for (size_t i = 0; i < pow2(total_qubit); ++i)
+	    {
+	        if ((i >> qn) & 1)  // If the qubit is in the |1> state
+	        {
+	            state[i] *= scale_factor;
+	        }
+	    }
+	}
+
+	void NoiseSimulatorImpl::normalize_state_vector() 
+	{
+	    double norm = 0;
+
+	    // Sum the squares of the absolute values of the amplitudes
+	    for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	        norm += abs_sqr(state[i]);
+	    }
+	    // Take the square root to get the normalization factor
+	    norm = std::sqrt(norm);
+	    // Divide each amplitude by the normalization factor
+	    for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	        state[i] /= norm;
+	    }
 	}
 
 	NoisySimulator::NoisySimulator(size_t n_qubit, 
@@ -100,7 +198,7 @@ namespace qpandalite {
 				OpcodeType(
 				(uint32_t)NoiseType::Damping,
 				qubits,
-				{ it_depol->second },
+				{ it_damp->second },
 				false,
 				{})
 			);
@@ -112,7 +210,7 @@ namespace qpandalite {
 				OpcodeType(
 					(uint32_t)NoiseType::BitFlip,
 				qubits,
-				{ it_depol->second },
+				{ it_bitflip->second },
 				false,
 				{})
 			);
@@ -124,7 +222,7 @@ namespace qpandalite {
 				OpcodeType(
 				(uint32_t)NoiseType::PhaseFlip,
 				qubits,
-				{ it_depol->second },
+				{ it_phaseflip->second },
 				false,
 				{})
 			);
@@ -141,20 +239,20 @@ namespace qpandalite {
 	// 	u22_cont(qn, unitary, {}, is_dagger);
 	// }
 
-	// void NoisySimulator::x(size_t qn, bool is_dagger)
-	// {
-	// 	x_cont(qn, {}, is_dagger);
-	// }
+	void NoisySimulator::x(size_t qn, bool is_dagger)
+	{
+		x_cont(qn, {}, is_dagger);
+	}
 
-	// void NoisySimulator::y(size_t qn, bool is_dagger)
-	// {
-	// 	y_cont(qn, {}, is_dagger);
-	// }
+	void NoisySimulator::y(size_t qn, bool is_dagger)
+	{
+		y_cont(qn, {}, is_dagger);
+	}
 
-	// void NoisySimulator::z(size_t qn, bool is_dagger)
-	// {
-	// 	z_cont(qn, {}, is_dagger);
-	// }
+	void NoisySimulator::z(size_t qn, bool is_dagger)
+	{
+		z_cont(qn, {}, is_dagger);
+	}
 
 	// void NoisySimulator::sx(size_t qn, bool is_dagger)
 	// {
@@ -186,6 +284,45 @@ namespace qpandalite {
 		opcodes.emplace_back(
 			OpcodeType(
 			(uint32_t)SupportOperationType::HADAMARD,
+			{ qn },
+			{},
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+	}
+
+	void NoisySimulator::x_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::X,
+			{ qn },
+			{},
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+	}
+
+	void NoisySimulator::y_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::Y,
+			{ qn },
+			{},
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+	}
+
+	void NoisySimulator::z_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::Z,
 			{ qn },
 			{},
 			is_dagger,
@@ -226,17 +363,38 @@ namespace qpandalite {
 			case (uint32_t)NoiseType::Depolarizing:
 				simulator.depolarizing(opcode.qubits[0], opcode.parameters[0]);
 				break;
+			// NOTE: CHECK THE FORMAT FOR DAMPING/ BITFLIP/ PHASEFLIP
+			case (uint32_t)NoiseType::Damping:
+				simulator.damping(opcode.qubits[0], opcode.parameters[0]);
+				break;
+			case (uint32_t)NoiseType::BitFlip:
+				simulator.bitflip(opcode.qubits[0], opcode.parameters[0]);
+				break;
+			case (uint32_t)NoiseType::PhaseFlip:
+				simulator.phaseflip(opcode.qubits[0], opcode.parameters[0]);
+				break;
 			case (uint32_t)SupportOperationType::HADAMARD:
     			simulator.hadamard(opcode.qubits[0]);
-				// for (const auto &amp : simulator.state) {
-				//     std::cout << amp << " ";
-				// }
-				// std::cout << std::endl;
     			break;
+			case (uint32_t)SupportOperationType::X:
+				simulator.x(opcode.qubits[0]);
+				break;
+			case (uint32_t)SupportOperationType::Y:
+				simulator.y(opcode.qubits[0]);
+				break;
+			case (uint32_t)SupportOperationType::Z:
+				simulator.z(opcode.qubits[0]);
+				break;
 			default:
 				ThrowRuntimeError(fmt::format("Failed to handle opcode = {}\nPlease check.", opcode.op));
 			}
 		}
+		
+		// This block could print the state after all operations(make sure the noiseless simulation is correct).
+		// for (const auto &amp : simulator.state) {
+		// 	    std::cout << amp << " ";
+		// 	}
+		// std::cout << std::endl;
 	}
 
 	std::pair<size_t, double> NoisySimulator::_get_state_prob(size_t i)

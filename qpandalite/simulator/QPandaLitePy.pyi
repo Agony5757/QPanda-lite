@@ -283,13 +283,13 @@ class NoisySimulator:
         '''
         ...
 
-    # def x(self, qn: int) -> None: 
-    #     '''X gate.
+    def x(self, qn: int, is_dagger : bool = False) -> None: 
+        '''X gate.
 
-    #     Args:
-    #         qn (int): The gate qubit.
-    #     '''
-    #     ...
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
     
     # def sx(self, qn : int, is_dagger : bool = False) -> None:
     #     '''SX gate.
@@ -299,21 +299,22 @@ class NoisySimulator:
     #     '''
     #     ...
     
-    # def y(self, qn : int, is_dagger : bool = False) -> None:
-    #     '''Y gate.
+    def y(self, qn : int, is_dagger : bool = False) -> None:
+        '''Y gate.
 
-    #     Args:
-    #         qn (int): The gate qubit.
-    #     '''
-    #     ...
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
 
-    # def z(self, qn : int, is_dagger : bool = False) -> None:
-    #     '''Z gate.
+    def z(self, qn : int, is_dagger : bool = False) -> None:
+        '''Z gate.
 
-    #     Args:
-    #         qn (int): The gate qubit.
-    #     '''
-    #     ...
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.

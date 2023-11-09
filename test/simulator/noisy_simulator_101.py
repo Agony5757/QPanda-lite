@@ -9,14 +9,14 @@ from qpandalite.circuit_builder import Circuit
 
 
 # Define the number of qubits
-n_qubit = 1
+n_qubit = 5
 
 # Noise description
 noise_description = {
-	# "depolarizing": 0.00,  # 5% depolarizing noise
-	"damping": 0.3,       # 3% damping noise
-	# "bitflip": 0.02,       # 2% bitflip noise
-	# "phaseflip": 0.04      # 4% phaseflip noise
+	"depolarizing": 0.1,  # 5% depolarizing noise
+	"damping": 0.5,       # 3% damping noise
+	"bitflip": 0.1,       # 2% bitflip noise
+	"phaseflip": 0.1      # 4% phaseflip noise
 }
 
 
@@ -30,19 +30,34 @@ measurement_error = [
 simulator = NoisySimulator(n_qubit, noise_description, measurement_error)
 
 # Apply a Hadamard gate to the first qubit
-# simulator.hadamard(x)
-# simulator.hadamard(1)
 simulator.x(0)
-# simulator.y(0)
-# simulator.z(1)
-# simulator.insert_error([0, 1])
+simulator.insert_error([0, 1])
+simulator.hadamard(0)
+simulator.insert_error([3, 4])
+simulator.insert_error([0])
+simulator.x(1)
+simulator.hadamard(1)
+simulator.insert_error([0, 1])
 
+# BUG: CNOT?
+simulator.cnot(0, 1)
+simulator.insert_error([0])
+simulator.cz(0, 1)
+simulator.insert_error([2])
+simulator.y(0)
+simulator.hadamard(0)
+simulator.z(1)
+simulator.hadamard(1)
+
+# Adding a layer of error right after the two-gates will induce the bug
+simulator.insert_error([0, 1])
+simulator.insert_error([2, 3])
 # noise_desc = simulator.noise
 
 # print(noise_desc)
 
 # Number of measurement shots
-shots = 10
+shots = 10000
 
 # Measure the state multiple times
 measurement_results = simulator.measure_shots(shots)

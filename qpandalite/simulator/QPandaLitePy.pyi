@@ -93,7 +93,7 @@ class Simulator:
         ...   
 
     def cz(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
-        '''CNOT gate.
+        '''CZ gate.
 
         Args:
             q1 (int): The first qubit.
@@ -291,13 +291,13 @@ class NoisySimulator:
         '''
         ...
     
-    # def sx(self, qn : int, is_dagger : bool = False) -> None:
-    #     '''SX gate.
+    def sx(self, qn : int, is_dagger : bool = False) -> None:
+        '''SX gate.
 
-    #     Args:
-    #         qn (int): The gate qubit.
-    #     '''
-    #     ...
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
     
     def y(self, qn : int, is_dagger : bool = False) -> None:
         '''Y gate.
@@ -314,6 +314,24 @@ class NoisySimulator:
             qn (int): The gate qubit.
         '''
         ...
+    
+    def cz(self, qn1 : int, qn2 : int, is_dagger : bool = False) -> None:
+        '''CZ gate.
+
+        Args:
+            qn1 (int): The gate qubit.
+            qn2 (int): The gate qubit.
+        '''
+        ...
+
+    def cnot(self, controller : int, target : int, is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ...  
     
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """

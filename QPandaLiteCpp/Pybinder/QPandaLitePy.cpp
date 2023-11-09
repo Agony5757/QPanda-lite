@@ -80,12 +80,17 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def_readonly("noise", &qpandalite::NoisySimulator::noise)
 		.def("_load_noise", &qpandalite::NoisySimulator::_load_noise)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)
+
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("is_dagger") = false)
 		// .def("u22", &qpandalite::NoisySimulator::u22)
 		.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("sx", &qpandalite::NoisySimulator::sx)
+		.def("sx", &qpandalite::NoisySimulator::sx, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("y", &qpandalite::NoisySimulator::y, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("z", &qpandalite::NoisySimulator::z, py::arg("qn"), py::arg("is_dagger") = false)
+		.def("cz", &qpandalite::NoisySimulator::cz, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
+		// .def("iswap", &qpandalite::NoisySimulator::iswap, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
+        // .def("xy", &qpandalite::NoisySimulator::xy, py::arg("qn1"), py::arg("qn2"), py::arg("theta"), py::arg("is_dagger") = false)
+        .def("cnot", &qpandalite::NoisySimulator::cnot, py::arg("controller"), py::arg("target"), py::arg("is_dagger") = false)        
 		.def("measure_shots", &qpandalite::NoisySimulator::measure_shots)
 		;
 

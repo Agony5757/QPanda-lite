@@ -110,7 +110,7 @@ class Simulator:
         '''
         ...
 
-    def xy(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+    def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
         '''XX+YY gate.
 
         Args:
@@ -324,6 +324,25 @@ class NoisySimulator:
         '''
         ...
 
+    def iswap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+        '''iSWAP gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
+    
+    def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
+        '''XX+YY gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+    
     def cnot(self, controller : int, target : int, is_dagger : bool = False) -> None:
         '''CNOT gate.
 
@@ -332,6 +351,33 @@ class NoisySimulator:
             target (int): The target qubit.
         '''
         ...  
+    
+    def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+        '''Rx gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def ry(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+        '''Ry gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def rz(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+        '''Rz gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
     
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """

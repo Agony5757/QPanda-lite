@@ -9,12 +9,12 @@ from qpandalite.circuit_builder import Circuit
 
 
 # Define the number of qubits
-n_qubit = 5
+n_qubit = 2
 
 # Noise description
 noise_description = {
 	"depolarizing": 0.1,  # 5% depolarizing noise
-	"damping": 0.5,       # 3% damping noise
+	"damping": 0.1,       # 3% damping noise
 	"bitflip": 0.1,       # 2% bitflip noise
 	"phaseflip": 0.1      # 4% phaseflip noise
 }
@@ -56,15 +56,40 @@ simulator.insert_error([2, 3])
 
 # print(noise_desc)
 
-# Number of measurement shots
-shots = 10000
 
-# Measure the state multiple times
+# Create an instance of the NoisySimulator
+simulator = NoisySimulator(n_qubit, noise_description, measurement_error)
+
+# Apply a Hadamard gate to the first qubit
+simulator.hadamard(0)
+simulator.hadamard(1)
+simulator.iswap(0, 1)
+simulator.rx(0, np.pi/8)
+simulator.ry(0, np.pi/4)
+simulator.rz(0, np.pi/2)
+# Number of measurement shots
+shots = 1
+
+# # Measure the state multiple times
 measurement_results = simulator.measure_shots(shots)
 
-# Display the measurement results
-print(f"Measurement Results over {shots} shots:")
-for state, count in measurement_results.items():
-    # Convert the state (integer) to binary representation
-    binary_state = format(state, f'0{n_qubit}b')
-    print(f"State |{binary_state}>: {count} occurrences")
+
+import qpandalite.simulator as qsim
+
+sim = qsim.Simulator()
+
+sim.init_n_qubit(2)
+sim.hadamard(0, False)
+sim.hadamard(1, False)
+sim.iswap(0, 1, False)
+sim.rx(0, np.pi/8, False)
+sim.ry(0, np.pi/4, False)
+sim.rz(0, np.pi/2, False)
+print(sim.state)
+
+# # Display the measurement results
+# print(f"Measurement Results over {shots} shots:")
+# for state, count in measurement_results.items():
+#     # Convert the state (integer) to binary representation
+#     binary_state = format(state, f'0{n_qubit}b')
+#     print(f"State |{binary_state}>: {count} occurrences")

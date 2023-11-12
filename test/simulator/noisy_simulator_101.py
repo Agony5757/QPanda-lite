@@ -13,10 +13,10 @@ n_qubit = 2
 
 # Noise description
 noise_description = {
-	"depolarizing": 0.1,  # 5% depolarizing noise
-	"damping": 0.1,       # 3% damping noise
-	"bitflip": 0.1,       # 2% bitflip noise
-	"phaseflip": 0.1      # 4% phaseflip noise
+	"depolarizing": 0,  # 5% depolarizing noise
+	"damping": 0,       # 3% damping noise
+	"bitflip": 0,       # 2% bitflip noise
+	"phaseflip": 0      # 4% phaseflip noise
 }
 
 
@@ -67,6 +67,9 @@ simulator.iswap(0, 1)
 simulator.rx(0, np.pi/8)
 simulator.ry(0, np.pi/4)
 simulator.rz(0, np.pi/2)
+simulator.rphi90(1, np.pi/8)
+simulator.rphi180(1, np.pi/4)
+simulator.rphi(1, np.pi/2, np.pi/4)
 # Number of measurement shots
 shots = 1
 
@@ -85,6 +88,9 @@ sim.iswap(0, 1, False)
 sim.rx(0, np.pi/8, False)
 sim.ry(0, np.pi/4, False)
 sim.rz(0, np.pi/2, False)
+sim.rphi90(1, np.pi/8, False)
+sim.rphi180(1, np.pi/4, False)
+sim.rphi(1, np.pi/2, np.pi/4, False)
 print(sim.state)
 
 # # Display the measurement results

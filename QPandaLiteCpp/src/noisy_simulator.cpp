@@ -338,6 +338,21 @@ namespace qpandalite {
 		rz_cont(qn, angle, {}, is_dagger);
     }
 	
+	void NoisySimulator::rphi90(size_t qn, double phi, bool is_dagger)
+    {
+		rphi90_cont(qn, phi, {}, is_dagger);
+    }
+    
+    void NoisySimulator::rphi180(size_t qn, double phi, bool is_dagger)
+    {
+		rphi180_cont(qn, phi, {}, is_dagger);
+    }
+    
+    void NoisySimulator::rphi(size_t qn, double phi, double theta, bool is_dagger)
+	{
+		rphi_cont(qn, phi, theta, {}, is_dagger);
+    }
+	
 	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
@@ -508,6 +523,45 @@ namespace qpandalite {
 		insert_error({ qn });
 	}
 
+	void NoisySimulator::rphi90_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::RPHI90,
+			{ qn },
+			{ phi },
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+    }
+    
+    void NoisySimulator::rphi180_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::RPHI180,
+			{ qn },
+			{ phi },
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+    }
+    
+    void NoisySimulator::rphi_cont(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::RPHI,
+			{ qn },
+			{ phi, theta },
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+    }
+
 	void NoisySimulator::measure(const std::vector<size_t> measure_qubits_)
 	{
 		measure_qubits = measure_qubits_;
@@ -560,6 +614,15 @@ namespace qpandalite {
 			case (uint32_t)SupportOperationType::Z:
 				simulator.z(opcode.qubits[0]);
 				break;
+			case (uint32_t)SupportOperationType::RX:
+				simulator.rx(opcode.qubits[0], opcode.parameters[0]);
+				break;
+			case (uint32_t)SupportOperationType::RY:
+				simulator.ry(opcode.qubits[0], opcode.parameters[0]);
+				break;
+			case (uint32_t)SupportOperationType::RZ:
+				simulator.rz(opcode.qubits[0], opcode.parameters[0]);
+				break;
 			case (uint32_t)SupportOperationType::CZ:
 				simulator.cz(opcode.qubits[0], opcode.qubits[1]);
 				break;
@@ -572,14 +635,14 @@ namespace qpandalite {
 			case (uint32_t)SupportOperationType::XY:
 				simulator.xy(opcode.qubits[0], opcode.qubits[1], opcode.parameters[0]);
 				break;
-			case (uint32_t)SupportOperationType::RX:
-				simulator.rx(opcode.qubits[0], opcode.parameters[0]);
+			case (uint32_t)SupportOperationType::RPHI90:
+				simulator.rphi90(opcode.qubits[0], opcode.parameters[0]);
 				break;
-			case (uint32_t)SupportOperationType::RY:
-				simulator.ry(opcode.qubits[0], opcode.parameters[0]);
+			case (uint32_t)SupportOperationType::RPHI180:
+				simulator.rphi180(opcode.qubits[0], opcode.parameters[0]);
 				break;
-			case (uint32_t)SupportOperationType::RZ:
-				simulator.rz(opcode.qubits[0], opcode.parameters[0]);
+			case (uint32_t)SupportOperationType::RPHI:
+				simulator.rphi(opcode.qubits[0], opcode.parameters[0], opcode.parameters[1]);
 				break;			
 			default:
 				ThrowRuntimeError(fmt::format("Failed to handle opcode = {}\nPlease check.", opcode.op));

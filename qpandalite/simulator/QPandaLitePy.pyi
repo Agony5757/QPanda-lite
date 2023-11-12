@@ -379,6 +379,34 @@ class NoisySimulator:
         '''
         ...
     
+    def rphi90(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+        '''Rphi90 gate (pi/2 pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi180(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+        '''Rphi180 gate (pi pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi(self, qn : int, phi : float, theta: float, is_dagger : bool = False) -> None:
+        '''Rphi gate.
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+            theta (float): The rotation angle.
+        '''
+        ...
+        
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.

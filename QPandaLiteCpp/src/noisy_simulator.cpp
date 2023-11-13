@@ -177,13 +177,15 @@ namespace qpandalite {
 	}
 
 	NoisySimulator::NoisySimulator(size_t n_qubit, 
-		const std::map<std::string, double>& noise_description, 
+		const std::map<std::string, double>& noise_description,
+		const std::map<std::string, std::map<std::string, double>>& gate_noise_description, 
 		const std::vector<std::array<double, 2>>& measurement_error)
 		: nqubit(n_qubit),
 		measurement_error_matrices(measurement_error)
 	{
 		// process the noise description and store the relevant noise types and their parameters.
-		_load_noise(noise_description);
+		_load_noise(noise_description); // Load global noise
+		_load_gate_dependent_noise(gate_noise_description); // Load gate-dependent noise
 	}
 
 	void NoisySimulator::_load_noise(std::map<std::string, double> noise_description)
@@ -213,6 +215,43 @@ namespace qpandalite {
 		
 	}
 
+    void NoisySimulator::_load_gate_dependent_noise(std::map<std::string, std::map<std::string, double>> gate_noise_description) 
+    {
+        // Store the gate-dependent noise parameters
+        // gate_dependent_noise = gate_noise_description;
+        for (const auto& gate_pair : gate_noise_description) 
+        {
+	        SupportOperationType gateType = string_to_SupportOperationType(gate_pair.first);
+	        std::map<NoiseType, double> noiseProbabilities;
+	        for (const auto& noise_pair : gate_pair.second) 
+	        {
+	            NoiseType noiseType = string_to_NoiseType(noise_pair.first);
+	            noiseProbabilities[noiseType] = noise_pair.second;
+	        }
+	        gate_dependent_noise[gateType] = noiseProbabilities;
+    	}
+    }
+
+    void NoisySimulator::load_opcode(const std::string& opstr, 
+    			const std::vector<size_t>& qubits, 
+		    	const std::vector<double>& parameters,
+		    	bool dagger, 
+		    	const std::vector<size_t>& global_controller) 
+    {
+    	SupportOperationType op = string_to_SupportOperationType(opstr);
+    	// opcodes.emplace_back(op, qubits, parameters, dagger, global_controller);
+    	opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t) op,
+			{ qubits },
+			{ parameters },
+			dagger,
+			global_controller)
+		);
+		insert_gate_dependent_error({qubits}, op);
+		insert_error({ qubits });
+	}
+	
 	void NoisySimulator::insert_error(const std::vector<size_t> &qubits)
 	{
 		if (noise.empty()) return;
@@ -272,6 +311,38 @@ namespace qpandalite {
 			);
 		}
 	}
+
+    void NoisySimulator::insert_gate_dependent_error(const std::vector<size_t> &qubits, SupportOperationType gateType) 
+    {
+        if (gate_dependent_noise.empty()) return;
+
+        // Find the noise configuration for the specific gate type
+        auto it_gate_noise = gate_dependent_noise.find(gateType);
+        if (it_gate_noise != gate_dependent_noise.end()) {
+            // If gate-specific noise is defined, use insert_generic_error
+            insert_generic_error(qubits, it_gate_noise->second);
+        }
+    }
+
+    void NoisySimulator::insert_generic_error(const std::vector<size_t> &qubits, 
+                              const std::map<NoiseType, double>& generic_noise_map) 
+    {
+        // Iterate through each noise type in the generic noise map
+        for (const auto& noise_pair : generic_noise_map) {
+            NoiseType noise_type = noise_pair.first;
+            double noise_probability = noise_pair.second;
+
+            opcodes.emplace_back(
+                OpcodeType(
+                    static_cast<uint32_t>(noise_type),
+                    qubits,
+                    {noise_probability},
+                    false,
+                    {})
+            );
+        
+        }
+    }
 
 	void NoisySimulator::hadamard(size_t qn, bool is_dagger)
 	{
@@ -363,6 +434,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::HADAMARD);
 		insert_error({ qn });
 	}
 
@@ -390,6 +462,8 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		
+        insert_gate_dependent_error({qn}, SupportOperationType::X);
 		insert_error({ qn });
 	}
 
@@ -403,6 +477,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::Y);
 		insert_error({ qn });
 	}
 
@@ -416,6 +491,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::Z);
 		insert_error({ qn });
 	}
 
@@ -429,6 +505,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::SX);
 		insert_error({ qn });
 	}
 
@@ -494,6 +571,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::RX);
 		insert_error({ qn });
 	}
 
@@ -507,6 +585,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::RY);
 		insert_error({ qn });
 	}
 
@@ -520,6 +599,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::RZ);
 		insert_error({ qn });
 	}
 
@@ -533,6 +613,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::RPHI90);
 		insert_error({ qn });
     }
     
@@ -546,6 +627,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::RPHI180);
 		insert_error({ qn });
     }
     
@@ -559,6 +641,7 @@ namespace qpandalite {
 			is_dagger,
 			global_controller)
 		);
+		insert_gate_dependent_error({qn}, SupportOperationType::RPHI);
 		insert_error({ qn });
     }
 
@@ -576,6 +659,7 @@ namespace qpandalite {
 		// Currently, the iteration only supports Hadamard gates and depolarizing noise 2023/11/02
 		for (const auto &opcode : opcodes)
 		{
+			std::cout << opcode.op << std::endl;
 			switch (opcode.op)
 			{
 			case (uint32_t)NoiseType::Depolarizing:
@@ -650,10 +734,10 @@ namespace qpandalite {
 		}
 		
 		// This block could print the state after all operations(make sure the noiseless simulation is correct).
-		for (const auto &amp : simulator.state) {
-			    std::cout << amp << " ";
-			}
-		std::cout << std::endl;
+		// for (const auto &amp : simulator.state) {
+		// 	    std::cout << amp.real() << " "<< amp.imag();
+		// 	}
+		// std::cout << std::endl;
 	}
 
 	std::pair<size_t, double> NoisySimulator::_get_state_prob(size_t i)

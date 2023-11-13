@@ -29,6 +29,44 @@ namespace qpandalite {
         RPHI
     };
 
+    inline NoiseType string_to_NoiseType(const std::string& noise_str)
+    {
+        if (noise_str == "depolarizing") return NoiseType::Depolarizing;
+        else if (noise_str == "damping") return NoiseType::Damping;
+        else if (noise_str == "bitflip") return NoiseType::BitFlip;
+        else if (noise_str == "phaseflip") return NoiseType::PhaseFlip;
+        // ... handle other cases ...
+
+        // Handle the default case where the string doesn't match any known NoiseType
+        
+        ThrowRuntimeError(fmt::format("Failed to handle noise_str: {}\nPlease check.", noise_str));
+    }
+
+    inline SupportOperationType string_to_SupportOperationType(const std::string& gate_str)
+    {
+        if (gate_str == "HADAMARD") return SupportOperationType::HADAMARD;
+        else if (gate_str == "U22") return SupportOperationType::U22;
+        else if (gate_str == "X") return SupportOperationType::X;
+        else if (gate_str == "Y") return SupportOperationType::Y;
+        else if (gate_str == "Z") return SupportOperationType::Z;
+        else if (gate_str == "SX") return SupportOperationType::SX;
+        else if (gate_str == "CZ") return SupportOperationType::CZ;
+        else if (gate_str == "ISWAP") return SupportOperationType::ISWAP;
+        else if (gate_str == "XY") return SupportOperationType::XY;
+        else if (gate_str == "CNOT") return SupportOperationType::CNOT;
+        else if (gate_str == "RX") return SupportOperationType::RX;
+        else if (gate_str == "RY") return SupportOperationType::RY;
+        else if (gate_str == "RZ") return SupportOperationType::RZ;
+        else if (gate_str == "RPHI90") return SupportOperationType::RPHI90;
+        else if (gate_str == "RPHI180") return SupportOperationType::RPHI180;
+        else if (gate_str == "RPHI") return SupportOperationType::RPHI;
+        // ... handle other cases ...
+
+        // Handle the default case where the string doesn't match any known SupportOperationType
+        ThrowRuntimeError(fmt::format("Failed to handle gate_str: {}\nPlease check.", gate_str));
+        
+    }
+
     // A simulator that specifically models quantum noise. It is derived from a base class named Simulator. 
     struct NoiseSimulatorImpl : public Simulator
     {
@@ -67,6 +105,7 @@ namespace qpandalite {
     struct NoisySimulator
     {
         std::map<NoiseType, double> noise;
+        std::map<SupportOperationType, std::map<NoiseType, double>> gate_dependent_noise;
         std::vector<std::array<double, 2>> measurement_error_matrices;
         NoiseSimulatorImpl simulator;
         size_t nqubit;
@@ -77,10 +116,20 @@ namespace qpandalite {
 
         NoisySimulator(size_t n_qubit,
             const std::map<std::string, double>& noise_description,
+            const std::map<std::string, std::map<std::string, double>>& gate_noise_description,
             const std::vector<std::array<double, 2>>& measurement_error);
 
         void _load_noise(std::map<std::string, double> noise_description);
+        void _load_gate_dependent_noise(std::map<std::string, std::map<std::string, double>> gate_noise_description);
+
+        void load_opcode(const std::string& opstr,
+                const std::vector<size_t>& qubits, 
+                const std::vector<double>& parameters,
+                bool dagger, 
+                const std::vector<size_t>& global_controller);
         void insert_error(const std::vector<size_t> &qn);
+        void insert_gate_dependent_error(const std::vector<size_t> &qubits, SupportOperationType gateType);
+        void insert_generic_error(const std::vector<size_t> &qubits, const std::map<NoiseType, double>& generic_noise_map);
         void hadamard(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
         void x(size_t qn, bool is_dagger = false);

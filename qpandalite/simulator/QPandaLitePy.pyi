@@ -232,23 +232,39 @@ class Simulator:
         '''
         ...
     
-class NoiseType:
-    Depolarizing: int
-    Damping: int
-    BitFlip: int
-    PhaseFlip: int
+# class NoiseType:
+#     Depolarizing: int
+#     Damping: int
+#     BitFlip: int
+#     PhaseFlip: int
+
 
 class NoisySimulator:
-    noise: Dict[NoiseType, float]
+    noise: Dict[str, float]
+    gate_dependent_noise: Dict[str, Dict[str, float]]
     measurement_error_matrices: List[Tuple[float, float]]
 
-    def __init__(self, n_qubit, noise_description, measurement_error):
-        '''Create a simulator instance (implemented by C++).
-        The simulator has two accessible variables: ``total_qubit'' and ``state''.
-        total_qubit is initialized with init_n_qubit method.
-        state represents the quantum state, which can be modified by calling the gate method.
-        '''
-        self.simulator_instance = qpandalite.NoisySimulator(n_qubit, noise_description, measurement_error)
+    def __init__(self,
+                n_qubit: int, 
+                noise_description: Optional[Dict[str, float]] = None, 
+                gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
+                measurement_error: Optional[List[Tuple[float, float]]] = None):
+        """
+        Create a simulator instance (implemented by C++).
+        The simulator has three accessible variables: `total_qubit`, `noise`, and `gate_dependent_noise`.
+        `total_qubit` is the number of qubits for the simulation.
+        `noise` is a dictionary mapping global noise types to their probabilities.
+        `gate_dependent_noise` is a dictionary mapping gate names to dictionaries of noise types and probabilities.
+        `measurement_error_matrices` represents the measurement error for the simulator.
+        
+        :param n_qubit: The number of qubits for the simulation.
+        :param noise_description: A dictionary mapping global noise types to their probabilities.
+        :param gate_noise_description: A dictionary mapping gate names to dictionaries of noise types and probabilities.
+        :param measurement_error: A list of tuples representing measurement error matrices.
+        """
+        self.simulator_instance = qpandalite.NoisySimulator(
+            n_qubit, noise_description, gate_noise_description, measurement_error
+        )
 
     # @property
     # def state(self) -> List[complex]:
@@ -268,12 +284,24 @@ class NoisySimulator:
         '''
         ...
 
-    def insert_error(self, qubits: List[int]) -> None: ...
+    def load_opcode(self, opstr: str,                # Operation name as a string
+                    qubits: List[int],              # List of qubits
+                    parameters: List[float],         # List of parameters
+                    dagger: bool,                   # Dagger flag
+                    global_controller: List[int]) -> None:  # List of control qubits
+
+        """
+        Loads an opcode into the simulator.       
+        """
+        ...
+
+    def insert_error(self, qubits: List[int]) -> None: 
         '''insert_error based on the noise_description
 
         Args:
             qubits List[int]: The list of gate qubit.
         '''
+        ...
     
     def hadamard(self, qn : int, is_dagger : bool = False) -> None:
         '''Hadamard gate.
@@ -406,7 +434,7 @@ class NoisySimulator:
             theta (float): The rotation angle.
         '''
         ...
-        
+
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.

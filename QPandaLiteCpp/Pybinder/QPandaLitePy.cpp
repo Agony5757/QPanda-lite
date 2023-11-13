@@ -54,31 +54,50 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.export_values()
 		;
 
-	// py::class_<NoiseSimulatorImpl, Simulator>(m, "NoiseSimulatorImpl")
-	//     .def("depolarizing", &NoiseSimulatorImpl::depolarizing)
-	//     .def("damping", &NoiseSimulatorImpl::damping)
-	//     .def("bitflip", &NoiseSimulatorImpl::bitflip)
-	//     .def("phaseflip", &NoiseSimulatorImpl::phaseflip)
-	//     ;
-
-	// py::enum_<qpandalite::SupportOperationType>(m, "SupportOperationType")
-	//     .value("HADAMARD", SupportOperationType::HADAMARD)
-	//     // ... Add other values similarly
-	//     .export_values();
+	py::enum_<qpandalite::SupportOperationType>(m, "SupportOperationType")
+        .value("HADAMARD", qpandalite::SupportOperationType::HADAMARD)
+        .value("U22", qpandalite::SupportOperationType::U22)
+        .value("X", qpandalite::SupportOperationType::X)
+        .value("Y", qpandalite::SupportOperationType::Y)
+        .value("Z", qpandalite::SupportOperationType::Z)
+        .value("SX", qpandalite::SupportOperationType::SX)
+        .value("CZ", qpandalite::SupportOperationType::CZ)
+        .value("ISWAP", qpandalite::SupportOperationType::ISWAP)
+        .value("XY", qpandalite::SupportOperationType::XY)
+        .value("CNOT", qpandalite::SupportOperationType::CNOT)
+        .value("RX", qpandalite::SupportOperationType::RX)
+        .value("RY", qpandalite::SupportOperationType::RY)
+        .value("RZ", qpandalite::SupportOperationType::RZ)
+        .value("RPHI90", qpandalite::SupportOperationType::RPHI90)
+        .value("RPHI180", qpandalite::SupportOperationType::RPHI180)
+        .value("RPHI", qpandalite::SupportOperationType::RPHI)
+        .export_values();
 
 	py::class_<qpandalite::OpcodeType>(m, "OpcodeType")
-		.def(py::init<uint32_t, const std::vector<size_t>&, const std::vector<double>&, bool, const std::vector<size_t>&>())
+		.def(py::init<uint32_t, 
+                  const std::vector<size_t>&, 
+                  const std::vector<double>&, 
+                  bool, 
+                  const std::vector<size_t>&>())
 		.def_readwrite("op", &qpandalite::OpcodeType::op)
-		// ... Similarly bind other members
+		// There might be others
 		;
 
 	py::class_<qpandalite::NoisySimulator>(m, "NoisySimulator")
 		.def(py::init<size_t, 
-			const std::map<std::string, double>&, 
-			const std::vector<std::array<double, 2>>&>())
+                      const std::map<std::string, double>&, 
+                      const std::map<std::string, std::map<std::string, double>>&,
+                      const std::vector<std::array<double, 2>>&>(),
+             py::arg("n_qubit"),
+             py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
+             py::arg("gate_noise_description") = std::map<std::string, std::map<std::string, double>>{},  // Default empty map
+             py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
+        )
 		.def_readonly("total_qubit", &qpandalite::NoisySimulator::nqubit)
 		.def_readonly("noise", &qpandalite::NoisySimulator::noise)
-		.def("_load_noise", &qpandalite::NoisySimulator::_load_noise)
+		.def_readonly("gate_dependent_noise", &qpandalite::NoisySimulator::gate_dependent_noise)
+
+		.def("load_opcode", &qpandalite::NoisySimulator::load_opcode)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)
 
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("is_dagger") = false)

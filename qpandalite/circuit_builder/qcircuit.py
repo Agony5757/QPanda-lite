@@ -389,6 +389,14 @@ class Circuit:
         self.circuit_str += 'ENDDAGGER\n'
 
     def remapping(self, mapping : Dict[int, int]):
+        # Check that all keys and values in the mapping are integers and non-negative
+        if not all(isinstance(k, int) and isinstance(v, int) and k >= 0 and v >= 0 for k, v in mapping.items()):
+            raise TypeError('All keys and values in mapping must be non-negative integers.')
+
+        # Check for duplicated physical qubits (same physical qubit assigned more than once)
+        if len(set(mapping.values())) != len(mapping.values()):
+            raise ValueError('A physical qubit is assigned more than once.')
+
         # check if mapping is full
         for qubit in self.used_qubit_list:
             if qubit not in mapping:

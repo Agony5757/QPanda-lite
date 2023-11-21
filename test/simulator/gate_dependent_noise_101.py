@@ -8,13 +8,14 @@ from qpandalite.circuit_builder import Circuit
 
 # Define the noise descriptions
 noise_description = {
-    "depolarizing": 0.01
+    # "depolarizing": 0.01
 }
 
 # Define the gate noise descriptions
 gate_noise_description = {
     "X": {"depolarizing": 0.03},
-    "HADAMARD": {"depolarizing": 0.02}
+    "HADAMARD": {"depolarizing": 0.02},
+    "ISWAP": {"depolarizing": 0.02}
 }
 
 # Define the measurement errors

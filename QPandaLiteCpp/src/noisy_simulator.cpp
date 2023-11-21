@@ -520,6 +520,7 @@ namespace qpandalite {
 			global_controller)
 		);
 		insert_error({ qn1, qn2 });
+		insert_gate_dependent_error({qn1, qn2}, SupportOperationType::CZ);
 	}
 
 	void NoisySimulator::xy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
@@ -533,6 +534,7 @@ namespace qpandalite {
 			global_controller)
 		);
 		insert_error({ qn1, qn2 });
+		insert_gate_dependent_error({qn1, qn2}, SupportOperationType::XY);
 	}
 
 	void NoisySimulator::iswap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
@@ -546,6 +548,7 @@ namespace qpandalite {
 			global_controller)
 		);
 		insert_error({ qn1, qn2 });
+		insert_gate_dependent_error({qn1, qn2}, SupportOperationType::ISWAP);
 	}
 
 	void NoisySimulator::cnot_cont(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
@@ -559,6 +562,7 @@ namespace qpandalite {
 			global_controller)
 		);
 		insert_error({ controller, target });
+		insert_gate_dependent_error({controller, target}, SupportOperationType::CNOT);
 	}
 
 	void NoisySimulator::rx_cont(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)

@@ -11,6 +11,7 @@ import os
 import random
 import json
 import hashlib
+from json.decoder import JSONDecodeError
 
 from ..task_utils import *
 
@@ -20,12 +21,23 @@ try:
     available_qubits = default_online_config['available_qubits']
     available_topology = default_online_config['available_topology']
     default_task_group_size = default_online_config['task_group_size']
-except Exception as e:
+except FileNotFoundError as e:
     warnings.warn(ImportWarning('originq_online_config.json is not found. '
-                'It should be always placed at current working directory (cwd).'))
+                'It is optional in dummy mode, '
+                'but it is necessary for the real quantum device. '))
+    
     available_qubits = []
     available_topology = []
     default_task_group_size = 200
+except JSONDecodeError as e:
+    raise ImportError('Import originq_dummy backend failed.\n'
+                        'Cannot load json from the quafu_online_config.json. '
+                        'Please check the content.')
+except Exception as e:
+    raise ImportError('Import originq_dummy backend failed.\n'
+                      'Unknown import error. Original exception is:\n'
+                      f'{str(e)}')
+    
 
 class DummyCacheContainer:
     def __init__(self) -> None:
@@ -58,6 +70,9 @@ def _create_dummy_cache(dummy_path = None):
         if not os.path.exists(dummy_path):
             os.makedirs(dummy_path)
 
+        if isinstance(dummy_path, str):
+            dummy_path = Path(dummy_path)
+
         if not os.path.exists(dummy_path / 'dummy_result.jsonl'):
             with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
                 pass
@@ -84,6 +99,9 @@ def _write_dummy_cache(taskid,
         if not os.path.exists(dummy_path):
             os.makedirs(dummy_path)
 
+        if isinstance(dummy_path, str):
+            dummy_path = Path(dummy_path)
+
         with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
             fp.write(json.dumps(result_body) + '\n')
 
@@ -105,6 +123,9 @@ def _load_dummy_cache(taskid, dummy_path = None):
         return result
     
     if dummy_path:
+        if isinstance(dummy_path, str):
+            dummy_path = Path(dummy_path)
+            
         with open(dummy_path / 'dummy_result.jsonl', 'r') as fp:
             lines = fp.read().strip().splitlines()
             for line in lines[::-1]:

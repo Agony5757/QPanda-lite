@@ -1,21 +1,53 @@
+import traceback
 import warnings
 import requests
 from pathlib import Path
 import os
 import json
 import quafu
+
 import time
+
+from json.decoder import JSONDecodeError
+
 
 from qpandalite.originir.originir_line_parser import OriginIR_Parser
 from ..task_utils import load_all_online_info, write_taskinfo
 
 try:
-    with open('quafu_online_config.json', 'r') as fp:
-        default_online_config = json.load(fp)
+    fp = open('quafu_online_config.json', 'r')
+except FileNotFoundError as e:
+    raise ImportError('Import quafu backend failed.\n'
+                    'quafu_online_config.json is not found. '
+                    'It should be always placed at current working directory (cwd).')
+except Exception as e:
+    raise ImportError('Import quafu backend failed.\n'
+                      'Unknown import error.'
+                      '\n===== Original exception ======\n'
+                      f'{traceback.format_exc()}')
+
+try:          
+    default_online_config = json.load(fp)
+    fp.close()
+except JSONDecodeError as e:
+    raise ImportError('Import quafu backend failed.\n'
+                        'Cannot load json from the quafu_online_config.json. '
+                        'Please check the content.')
+except Exception as e:
+    raise ImportError('Import quafu backend failed.\n'
+                      'Unknown import error.'
+                      '\n===== Original exception ======\n'
+                      f'{traceback.format_exc()}')
+
+try:
     default_token = default_online_config['default_token']
-except:
-    raise ImportError('quafu_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
+except KeyError as e:
+    raise ImportError('Import quafu backend failed.\n'
+                    'default_online_config.json should have the "default_token" key.')
+except Exception as e:
+    raise ImportError('Import quafu backend failed.\n'
+                      'Unknown import error. Original exception is:\n'
+                      f'{str(e)}')
 
 class Translation_OriginIR_to_QuafuCircuit(OriginIR_Parser):
     @staticmethod

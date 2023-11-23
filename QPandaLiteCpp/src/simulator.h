@@ -69,6 +69,44 @@ namespace qpandalite {
         return true;
     }
 
+    inline std::map<size_t, size_t> preprocess_measure_list(const std::vector<size_t> &measure_list, size_t total_qubit)
+    {
+        if (measure_list.size() > total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_list size = {})", total_qubit, measure_list.size());
+            ThrowInvalidArgument(errstr);
+        }
+
+        std::map<size_t, size_t> qlist;
+        for (size_t i = 0; i < measure_list.size(); ++i)
+        {
+            size_t qn = measure_list[i];
+            if (qn >= total_qubit)
+            {
+                auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_qubit = {})", total_qubit, qn);
+                ThrowInvalidArgument(errstr);
+            }
+            if (qlist.find(qn) != qlist.end())
+            {
+                auto errstr = fmt::format("Duplicate measure qubit ({})", qn);
+                ThrowInvalidArgument(errstr);
+            }
+            qlist.insert({ qn,i });
+        }
+        return qlist;
+    }
+
+    inline size_t get_state_with_qubit(size_t i, const std::map<size_t, size_t> &measure_map)
+    {
+        size_t ret = 0;
+        for (auto&& [qn, j] : measure_map)
+        {
+            // put "digit qn" of i to "digit j"
+            ret += (((i >> qn) & 1) << j);
+        }
+        return ret;
+    }
+
     struct Simulator
     { 
         static inline size_t max_qubit_num = 30;
@@ -76,26 +114,46 @@ namespace qpandalite {
         std::vector<complex_t> state;
 
         void init_n_qubit(size_t nqubit);
-        void hadamard(size_t qn);
-        void u22(size_t qn, const u22_t &unitary);
-        void x(size_t qn);
-        void z(size_t qn);
-        void y(size_t qn);
-        void sx(size_t qn);
-        void cz(size_t qn1, size_t qn2);
-        void iswap(size_t qn1, size_t qn2);
-        void xy(size_t qn1, size_t qn2);
-        void cnot(size_t controller, size_t target);
-        void rx(size_t qn, double angle);
-        void ry(size_t qn, double angle);
-        void rz(size_t qn, double angle);
-        void rphi90(size_t qn, double phi);
-        void rphi180(size_t qn, double phi);
-        void rphi(size_t qn, double phi, double theta);
+        void hadamard(size_t qn,                        bool is_dagger = false);
+        void u22(size_t qn, const u22_t& unitary,       bool is_dagger = false);
+        void x(size_t qn,                               bool is_dagger = false);
+        void z(size_t qn,                               bool is_dagger = false);
+        void y(size_t qn,                               bool is_dagger = false);
+        void sx(size_t qn,                              bool is_dagger = false);
+        void cz(size_t qn1, size_t qn2,                 bool is_dagger = false);
+        void iswap(size_t qn1, size_t qn2,              bool is_dagger = false);
+        void xy(size_t qn1, size_t qn2, double theta,   bool is_dagger = false);
+        void cnot(size_t controller, size_t target,     bool is_dagger = false);
+        void rx(size_t qn, double angle,                bool is_dagger = false);
+        void ry(size_t qn, double angle,                bool is_dagger = false);
+        void rz(size_t qn, double angle,                bool is_dagger = false);
+        void rphi90(size_t qn, double phi,              bool is_dagger = false);
+        void rphi180(size_t qn, double phi,             bool is_dagger = false);
+        void rphi(size_t qn, double phi, double theta,  bool is_dagger = false);
+
+        void hadamard_cont(size_t qn,                        const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void u22_cont(size_t qn, const u22_t &unitary,       const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void x_cont(size_t qn,                               const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void z_cont(size_t qn,                               const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void y_cont(size_t qn,                               const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void sx_cont(size_t qn,                              const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void cz_cont(size_t qn1, size_t qn2,                 const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void iswap_cont(size_t qn1, size_t qn2,              const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void xy_cont(size_t qn1, size_t qn2, double theta,   const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void cnot_cont(size_t controller, size_t target,     const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void rx_cont(size_t qn, double angle,                const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void ry_cont(size_t qn, double angle,                const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void rz_cont(size_t qn, double angle,                const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void rphi90_cont(size_t qn, double phi,              const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void rphi180_cont(size_t qn, double phi,             const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void rphi_cont(size_t qn, double phi, double theta,  const std::vector<size_t>& global_controller, bool is_dagger = false);
+
+        static bool control_enable(size_t idx, const std::vector<size_t>& global_controller);
 
         dtype get_prob_map(const std::map<size_t, int> &measure_qubits);
         dtype get_prob(size_t qn, int state);
         std::vector<dtype> pmeasure_list(const std::vector<size_t> &measure_list);
         std::vector<dtype> pmeasure(size_t measure_qubit);
     };
+
 }

@@ -402,10 +402,22 @@ class Circuit:
             if qubit not in mapping:
                 raise ValueError('At lease one qubit is not appeared in mapping. '
                                  f'(qubit : {qubit})')
+        
+        # check if mapping has duplicate qubits
+        unique_qubit_set = set()
+        for qubit in mapping:
+            if qubit in unique_qubit_set:
+                raise ValueError('Qubit is used twice in the mapping. Given mapping : '
+                                 f'({mapping})')
             
+            unique_qubit_set.add(qubit)
+
         c = deepcopy(self)
         for old_qubit, new_qubit in mapping.items():
-            c.circuit_str = c.circuit_str.replace(f'q[{old_qubit}]', f'q[{new_qubit}]')
+            c.circuit_str = c.circuit_str.replace(f'q[{old_qubit}]', f'q[_{old_qubit}]')
+
+        for old_qubit, new_qubit in mapping.items():
+            c.circuit_str = c.circuit_str.replace(f'q[_{old_qubit}]', f'q[{new_qubit}]')
 
         for i, old_qubit in enumerate(self.used_qubit_list):
             c.used_qubit_list[i] = mapping[old_qubit]

@@ -86,7 +86,13 @@ dummy_cache_container = DummyCacheContainer()
 
 def set_dummy_path(dummy_path : os.PathLike):
     _create_dummy_cache(dummy_path)
-    dummy_cache_container.dummy_path = Path(dummy_path)    
+    dummy_cache_container.dummy_path = Path(dummy_path)   
+
+def save_dummy_cache(extra_savepath):
+    dummy_cache_container.save_dummy_cache(extra_savepath)    
+
+def clear_dummy():
+    dummy_cache_container.clear_dummy_cache()    
 
 def _create_dummy_cache(dummy_path = None):
     '''Create simulation storage for dummy simulation server.

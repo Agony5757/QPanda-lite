@@ -1,24 +1,15 @@
 qpandalite.circuit\_builder package
 ===================================
 
-Submodules
-----------
-
-qpandalite.circuit\_builder.basic\_gates module
------------------------------------------------
-
-.. automodule:: qpandalite.circuit_builder.basic_gates
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Quantum Circuit Module
+-----------------------
 
 qpandalite.circuit\_builder.qcircuit module
 -------------------------------------------
 
 .. automodule:: qpandalite.circuit_builder.qcircuit
    :members:
-   :undoc-members:
-   :show-inheritance:
+.. as long as the class is documentated, the docstring will update and cover undocumented functions
 
 Module contents
 ---------------

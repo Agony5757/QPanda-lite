@@ -4,10 +4,18 @@ qpandalite.originir package
 Submodules
 ----------
 
-qpandalite.originir.parser module
----------------------------------
+qpandalite.originir.originir\_base\_parser module
+-------------------------------------------------
 
-.. automodule:: qpandalite.originir.parser
+.. automodule:: qpandalite.originir.originir_base_parser
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+qpandalite.originir.originir\_line\_parser module
+-------------------------------------------------
+
+.. automodule:: qpandalite.originir.originir_line_parser
    :members:
    :undoc-members:
    :show-inheritance:

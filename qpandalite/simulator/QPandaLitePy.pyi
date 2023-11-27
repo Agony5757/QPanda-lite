@@ -93,7 +93,7 @@ class Simulator:
         ...   
 
     def cz(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
-        '''CNOT gate.
+        '''CZ gate.
 
         Args:
             q1 (int): The first qubit.
@@ -110,7 +110,7 @@ class Simulator:
         '''
         ...
 
-    def xy(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+    def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
         '''XX+YY gate.
 
         Args:
@@ -232,3 +232,219 @@ class Simulator:
         '''
         ...
     
+# class NoiseType:
+#     Depolarizing: int
+#     Damping: int
+#     BitFlip: int
+#     PhaseFlip: int
+
+
+class NoisySimulator:
+    noise: Dict[str, float]
+    gate_dependent_noise: Dict[str, Dict[str, float]]
+    measurement_error_matrices: List[Tuple[float, float]]
+
+    def __init__(self,
+                n_qubit: int, 
+                noise_description: Optional[Dict[str, float]] = None, 
+                gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
+                measurement_error: Optional[List[Tuple[float, float]]] = None):
+        """
+        Create a simulator instance (implemented by C++).
+        The simulator has three accessible variables: `total_qubit`, `noise`, and `gate_dependent_noise`.
+        `total_qubit` is the number of qubits for the simulation.
+        `noise` is a dictionary mapping global noise types to their probabilities.
+        `gate_dependent_noise` is a dictionary mapping gate names to dictionaries of noise types and probabilities.
+        `measurement_error_matrices` represents the measurement error for the simulator.
+        
+        :param n_qubit: The number of qubits for the simulation.
+        :param noise_description: A dictionary mapping global noise types to their probabilities.
+        :param gate_noise_description: A dictionary mapping gate names to dictionaries of noise types and probabilities.
+        :param measurement_error: A list of tuples representing measurement error matrices.
+        """
+        self.simulator_instance = qpandalite.NoisySimulator(
+            n_qubit, noise_description, gate_noise_description, measurement_error
+        )
+
+    # @property
+    # def state(self) -> List[complex]:
+    #     '''The quantum state
+
+    #     Returns:
+    #         List[complex]: The representation of the quantum state.
+    #     '''
+    #     ...
+
+    @property
+    def total_qubit(self) -> int:
+        '''The number of qubit.
+
+        Returns:
+            int: The number of qubit of the simulator.
+        '''
+        ...
+
+    def load_opcode(self, opstr: str,                # Operation name as a string
+                    qubits: List[int],              # List of qubits
+                    parameters: List[float],         # List of parameters
+                    dagger: bool,                   # Dagger flag
+                    global_controller: List[int]) -> None:  # List of control qubits
+
+        """
+        Loads an opcode into the simulator.       
+        """
+        ...
+
+    def insert_error(self, qubits: List[int]) -> None: 
+        '''insert_error based on the noise_description
+
+        Args:
+            qubits List[int]: The list of gate qubit.
+        '''
+        ...
+    
+    def hadamard(self, qn : int, is_dagger : bool = False) -> None:
+        '''Hadamard gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    def x(self, qn: int, is_dagger : bool = False) -> None: 
+        '''X gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
+    def sx(self, qn : int, is_dagger : bool = False) -> None:
+        '''SX gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
+    def y(self, qn : int, is_dagger : bool = False) -> None:
+        '''Y gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    def z(self, qn : int, is_dagger : bool = False) -> None:
+        '''Z gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
+    def cz(self, qn1 : int, qn2 : int, is_dagger : bool = False) -> None:
+        '''CZ gate.
+
+        Args:
+            qn1 (int): The gate qubit.
+            qn2 (int): The gate qubit.
+        '''
+        ...
+
+    def iswap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+        '''iSWAP gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
+    
+    def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
+        '''XX+YY gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+    
+    def cnot(self, controller : int, target : int, is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ...  
+    
+    def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+        '''Rx gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def ry(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+        '''Ry gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def rz(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+        '''Rz gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+    
+    def rphi90(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+        '''Rphi90 gate (pi/2 pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi180(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+        '''Rphi180 gate (pi pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi(self, qn : int, phi : float, theta: float, is_dagger : bool = False) -> None:
+        '''Rphi gate.
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+            theta (float): The rotation angle.
+        '''
+        ...
+
+    def measure_shots(self, shots: int) -> Dict[int, int]:
+        """
+        Simulate a quantum measurement multiple times and tally the results.
+        
+        Args:
+            shots (int): The number of times the quantum measurement is simulated.
+        
+        Returns:
+            Dict[int, int]: A dictionary where keys represent unique measurement results 
+            (as integers) and values represent the frequency of each result.
+        """
+        ...
+        

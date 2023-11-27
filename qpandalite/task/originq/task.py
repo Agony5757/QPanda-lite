@@ -34,42 +34,60 @@ def get_token(pilot_api, login_url):
 
     return token
 
-try:
-    with open('originq_online_config.json', 'r') as fp:
-        default_online_config = json.load(fp)
-except FileNotFoundError as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'originq_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
-except JSONDecodeError as e:
-    raise ImportError('Import originq backend failed.\n'
-                        'Cannot load json from the originq_online_config.json. '
-                        'Please check the content.')
-except Exception as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'Unknown import error.'                      
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+# Define default values for your configuration parameters
+default_online_config = {
+    'login_apitoken': 'default_api_token',
+    'login_url': 'default_login_url',
+    'submit_url': 'default_submit_url',
+    'query_url': 'default_query_url',
+    'task_group_size': 'default_task_group_size'
+}
 
-try:
-    default_login_apitoken = default_online_config['login_apitoken']
-    default_login_url = default_online_config['login_url']    
-    default_submit_url = default_online_config['submit_url']
-    default_query_url = default_online_config['query_url']
-    default_task_group_size = default_online_config['task_group_size']
-except KeyError as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'originq_online_config.json does not exist such a key.'
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+# Only attempt to read the config file if we're not generating docs
+if os.getenv('SPHINX_DOC_GEN') != '1':
+    try:
+        with open('originq_online_config.json', 'r') as fp:
+            default_online_config = json.load(fp)
+    except FileNotFoundError as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'originq_online_config.json is not found. '
+                          'It should be always placed at current working directory (cwd).')
+    except JSONDecodeError as e:
+        raise ImportError('Import originq backend failed.\n'
+                            'Cannot load json from the originq_online_config.json. '
+                            'Please check the content.')
+    except Exception as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'Unknown import error.'                      
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
 
-try:
-    default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
-except Exception as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'Login error.'
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+    try:
+        default_login_apitoken = default_online_config['login_apitoken']
+        default_login_url = default_online_config['login_url']    
+        default_submit_url = default_online_config['submit_url']
+        default_query_url = default_online_config['query_url']
+        default_task_group_size = default_online_config['task_group_size']
+    except KeyError as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'originq_online_config.json does not exist such a key.'
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
+
+    try:
+        default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
+    except Exception as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'Login error.'
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
+
+# Now you can safely use the configuration values:
+default_login_apitoken = default_online_config['login_apitoken']
+default_login_url = default_online_config['login_url']
+default_submit_url = default_online_config['submit_url']
+default_query_url = default_online_config['query_url']
+default_task_group_size = default_online_config['task_group_size']
 
 def parse_response_body(response_body):
     '''Parse response body (in query_by_taskid)

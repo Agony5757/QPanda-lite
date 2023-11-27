@@ -366,63 +366,63 @@ def _submit_task_group(circuits = None,
 
     return task_id
 
-def submit_task_old(
-    circuit, 
-    task_name = None, 
-    tasktype = None, 
-    chip_id = 72,
-    shots = 1000,
-    circuit_optimize = True,
-    measurement_amend = False,
-    auto_mapping = False,
-    specified_block = None,
-    url = default_submit_url,
-    savepath = Path.cwd() / 'online_info'
-):
-    ''' !!!! DEPRECATED !!!!
-    submit a single circuit
+# def submit_task_old(
+#     circuit, 
+#     task_name = None, 
+#     tasktype = None, 
+#     chip_id = 72,
+#     shots = 1000,
+#     circuit_optimize = True,
+#     measurement_amend = False,
+#     auto_mapping = False,
+#     specified_block = None,
+#     url = default_submit_url,
+#     savepath = Path.cwd() / 'online_info'
+# ):
+#     ''' !!!! DEPRECATED !!!!
+#     submit a single circuit
 
-    Note:
-        Actual implementation is _submit_task_group
+#     Note:
+#         Actual implementation is _submit_task_group
 
-    Note:
-        If wanting compile_only=True, use submit_task_compile_only()
+#     Note:
+#         If wanting compile_only=True, use submit_task_compile_only()
 
-    Args:
-        circuit (str): A quantum circuit to be submitted. 
-        task_name (str, optional): The name of the task. Defaults to None.
-        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
-        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
-        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
-        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
-        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
-        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
-        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
-        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
-        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
+#     Args:
+#         circuit (str): A quantum circuit to be submitted. 
+#         task_name (str, optional): The name of the task. Defaults to None.
+#         tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
+#         chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
+#         shots (int, optional): Number of shots for every circuit. Defaults to 1000.
+#         circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
+#         measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
+#         auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
+#         specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
+#         url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
+#         savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
 
-    Raises:
-        RuntimeError: Circuit not input
-        RuntimeError: Error when submitting the task
+#     Raises:
+#         RuntimeError: Circuit not input
+#         RuntimeError: Error when submitting the task
 
-    Returns:
-        int: The taskid of this taskgroup
-    '''
+#     Returns:
+#         int: The taskid of this taskgroup
+#     '''
 
-    return _submit_task_group(
-        circuits = [circuit], 
-        task_name = task_name, 
-        tasktype = tasktype, 
-        chip_id = chip_id,
-        shots = shots,
-        circuit_optimize = circuit_optimize,
-        measurement_amend = measurement_amend,
-        auto_mapping = auto_mapping,
-        compile_only=False,
-        specified_block = specified_block,
-        url = url,
-        savepath = savepath
-    )
+#     return _submit_task_group(
+#         circuits = [circuit], 
+#         task_name = task_name, 
+#         tasktype = tasktype, 
+#         chip_id = chip_id,
+#         shots = shots,
+#         circuit_optimize = circuit_optimize,
+#         measurement_amend = measurement_amend,
+#         auto_mapping = auto_mapping,
+#         compile_only=False,
+#         specified_block = specified_block,
+#         url = url,
+#         savepath = savepath
+#     )
 
 def submit_task(
     circuit, 

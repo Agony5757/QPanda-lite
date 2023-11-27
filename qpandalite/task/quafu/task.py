@@ -136,9 +136,10 @@ def submit_task(circuit = None,
                 group_name = None
     ):
 
-    if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136']:
+    if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']:
         raise RuntimeError(r"Invalid chip_id. "
-                           r"Current quafu chip_id list: ['ScQ-P10','ScQ-P18','ScQ-P136']")
+                           r"Current quafu chip_id list: "
+                           r"['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']")
     if isinstance(circuit, str):
         qc = Translation_OriginIR_to_QuafuCircuit.translate(circuit)
 
@@ -147,7 +148,6 @@ def submit_task(circuit = None,
         task = quafu.Task()
 
         # validate chip_id
-
         task.config(backend=chip_id, shots=shots, compile=auto_mapping)
 
         n_retries = 5

@@ -1,3 +1,4 @@
+import datetime
 import time
 from typing import List, Union
 import warnings
@@ -38,10 +39,23 @@ except Exception as e:
                       'Unknown import error. Original exception is:\n'
                       f'{str(e)}')
     
-
 class DummyCacheContainer:
     def __init__(self) -> None:
         self.cached_results = dict()
+        self.dummy_path = None
+
+    def clear_dummy_cache(self):
+        self.cached_results = dict()
+
+    def save_dummy_cache(self, extra_savepath):
+        if not os.path.exists(extra_savepath):
+            os.makedirs(extra_savepath)
+
+        extra_savepath = Path(extra_savepath)
+        with open(extra_savepath / f'{timestr()}-dummycache.txt', 'a'):
+            for result in self.cached_results:
+                fp.write(json.dumps(result) + '\n')
+        
     
     def write_dummy_cache(self, taskid, result_body):
         if taskid in self.cached_results:
@@ -51,14 +65,28 @@ class DummyCacheContainer:
                              f'result_body (input) = {result_body}')
     
         self.cached_results[taskid] = result_body
+        
+        if self.dummy_path:
+            with open(self.dummy_path / 'dummy_result.jsonl', 'a') as fp:
+                fp.write(json.dumps(result_body) + '\n')
     
     def load_dummy_cache(self, taskid):
         if taskid in self.cached_results:
             return self.cached_results[taskid]        
-        else:
-            return None
+                
+        if self.dummy_path:                
+            with open(self.dummy_path / 'dummy_result.jsonl', 'r') as fp:
+                lines = fp.read().strip().splitlines()
+                for line in lines[::-1]:
+                    result = json.loads(line)
+                    if result['taskid'] == taskid:
+                        return result
 
 dummy_cache_container = DummyCacheContainer()
+
+def set_dummy_path(dummy_path : os.PathLike):
+    _create_dummy_cache(dummy_path)
+    dummy_cache_container.dummy_path = Path(dummy_path)    
 
 def _create_dummy_cache(dummy_path = None):
     '''Create simulation storage for dummy simulation server.
@@ -79,15 +107,13 @@ def _create_dummy_cache(dummy_path = None):
 
 def _write_dummy_cache(taskid, 
                        taskname, 
-                       results, 
-                       dummy_path = None):  
+                       results):  
     '''Write simulation results to dummy server.
 
     Args:
         taskid (str): Taskid.
         taskname (str): Task name.
         results (List[Dict[str, List[float]]]): A list of simulation results. Example: [{'key':['001', '101'], 'value':[100, 100]}]
-        dummy_path (str or Path, optional): Path for dummy storage. Defaults to None.
     '''
     result_body = {
         'taskid' : taskid,
@@ -95,24 +121,14 @@ def _write_dummy_cache(taskid,
         'status' : 'success',
         'result' : results
     }
-    if dummy_path:
-        if not os.path.exists(dummy_path):
-            os.makedirs(dummy_path)
-
-        if isinstance(dummy_path, str):
-            dummy_path = Path(dummy_path)
-
-        with open(dummy_path / 'dummy_result.jsonl', 'a') as fp:
-            fp.write(json.dumps(result_body) + '\n')
 
     dummy_cache_container.write_dummy_cache(taskid, result_body)
 
-def _load_dummy_cache(taskid, dummy_path = None):        
-    '''Write simulation results to dummy server.
+def _load_dummy_cache(taskid):        
+    '''Load simulation results by taskid.
 
     Args:
         taskid (str): Taskid.
-        dummy_path (str or Path, optional): Path for dummy storage. Defaults to None.
 
     Returns:
         result (Dict): The result which emulates the results produced by query_by_taskid
@@ -121,18 +137,7 @@ def _load_dummy_cache(taskid, dummy_path = None):
     result = dummy_cache_container.load_dummy_cache(taskid)
     if result is not None:
         return result
-    
-    if dummy_path:
-        if isinstance(dummy_path, str):
-            dummy_path = Path(dummy_path)
-            
-        with open(dummy_path / 'dummy_result.jsonl', 'r') as fp:
-            lines = fp.read().strip().splitlines()
-            for line in lines[::-1]:
-                result = json.loads(line)
-                if result['taskid'] == taskid:
-                    return result
-            
+                
     raise ValueError(f'Taskid {taskid} is not found. This is impossible in dummy server mode.') 
 
 def _random_taskid() -> str:
@@ -151,11 +156,8 @@ def _submit_task_group_dummy_impl(
     task_name,
     shots,
     auto_mapping,
-    savepath,
-    dummy_path
+    savepath
 ):
-    # make dummy cache
-    _create_dummy_cache(dummy_path)
     if len(circuits) > default_task_group_size:
         # list of circuits
         groups = []
@@ -173,8 +175,7 @@ def _submit_task_group_dummy_impl(
                 '{}_{}'.format(task_name, i), 
                 shots, 
                 auto_mapping,
-                savepath, 
-                dummy_path) for i, group in enumerate(groups)]
+                savepath) for i, group in enumerate(groups)]
     
     # generate taskid
     taskid = _random_taskid()
@@ -199,7 +200,7 @@ def _submit_task_group_dummy_impl(
         results.append({'key':key, 'value': value})
     
     # write cache, ready for loading results
-    _write_dummy_cache(taskid, task_name, results, dummy_path)
+    _write_dummy_cache(taskid, task_name, results)
 
     return taskid
 
@@ -215,7 +216,6 @@ def submit_task(
     specified_block = None, # dummy parameter
     savepath = Path.cwd() / 'online_info',
     url = None, # dummy parameter
-    dummy_path = None
 ):   
     '''submit circuits or a single circuit (DUMMY)
     '''
@@ -230,8 +230,7 @@ def submit_task(
             task_name = task_name, 
             shots = 0,
             auto_mapping = auto_mapping,
-            savepath = savepath,
-            dummy_path = dummy_path
+            savepath = savepath
         )
     elif isinstance(circuit, str):
         taskid = _submit_task_group_dummy_impl(
@@ -239,8 +238,7 @@ def submit_task(
             task_name = task_name, 
             shots = 0,
             auto_mapping = auto_mapping,
-            savepath = savepath,
-            dummy_path = dummy_path
+            savepath = savepath
         )
     else:
         raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')
@@ -255,12 +253,11 @@ def submit_task(
 
 def query_by_taskid(taskid : Union[List[str],str], 
                     url = None, # dummy parameter
-                    dummy_path = None):
+                    ):
     '''Query circuit status by taskid (Async). This function will return without waiting.
   
     Args:
         taskid (str): The taskid.
-        dummy_path (str or Path, optional): Path for dummy storage. Defaults to None.
 
     Raises:
         ValueError: Taskid invalid.
@@ -281,7 +278,7 @@ def query_by_taskid(taskid : Union[List[str],str],
         taskinfo['status'] = 'success'
         taskinfo['result'] = []
         for taskid_i in taskid:
-            taskinfo_i = _load_dummy_cache(taskid_i, dummy_path)
+            taskinfo_i = _load_dummy_cache(taskid_i)
             if taskinfo_i['status'] == 'failed':
                 # if any task is failed, then this group is failed.
                 taskinfo['status'] = 'failed'
@@ -295,7 +292,7 @@ def query_by_taskid(taskid : Union[List[str],str],
                     taskinfo['result'].extend(taskinfo_i['result'])
             
     elif isinstance(taskid, str):
-        taskinfo = _load_dummy_cache(taskid, dummy_path)
+        taskinfo = _load_dummy_cache(taskid)
     else:
         raise ValueError('Invalid Taskid')
     
@@ -306,14 +303,13 @@ def query_by_taskid_sync(taskid : Union[str, List[str]],
                          timeout : float  = 60.0, 
                          retry : int = 0,
                          url = None,  # dummy parameter
-                         dummy_path = None):    
+                         ):    
     '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
   
     Args:
         taskid (str): The taskid.
         interval (float): Interval time between two queries. (in seconds)
         timeout (float): Interval time between two queries. (in seconds)
-        dummy_path (str or Path, optional): Path for dummy storage. Defaults to None.
 
     Raises:
         RuntimeError: Taskid invalid.
@@ -333,7 +329,7 @@ def query_by_taskid_sync(taskid : Union[str, List[str]],
         if now - starttime > timeout:
             raise TimeoutError(f'Reach the maximum timeout.')
         
-        taskinfo = query_by_taskid(taskid=taskid, dummy_path=dummy_path)
+        taskinfo = query_by_taskid(taskid=taskid)
         if taskinfo['status'] == 'running':
             continue
         if taskinfo['status'] == 'success':
@@ -347,7 +343,6 @@ def query_by_taskid_sync(taskid : Union[str, List[str]],
 
 def query_all_task(savepath = None, 
                    url = None, # dummy parameter
-                   dummy_path = None
                    ): 
     '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
 
@@ -371,8 +366,7 @@ def query_all_task(savepath = None,
             status = 'finished'
             for taskid_i in taskid:
                 if not os.path.exists(savepath / '{}.txt'.format(taskid)):
-                    taskinfo = query_by_taskid(taskid=taskid_i, 
-                                               dummy_path=dummy_path)
+                    taskinfo = query_by_taskid(taskid=taskid_i)
                     if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
                         write_taskinfo(taskid_i, taskinfo, savepath)
                     else:
@@ -382,7 +376,7 @@ def query_all_task(savepath = None,
 
         elif isinstance(taskid, str):
             if not os.path.exists(savepath / '{}.txt'.format(taskid)):
-                taskinfo = query_by_taskid(taskid=taskid, dummy_path=dummy_path)
+                taskinfo = query_by_taskid(taskid=taskid)
                 if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
                     write_taskinfo(taskid, taskinfo, savepath)
                     finished += 1

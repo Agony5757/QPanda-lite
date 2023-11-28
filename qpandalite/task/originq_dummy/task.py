@@ -3,10 +3,6 @@ import time
 from typing import List, Union
 import warnings
 import qpandalite.simulator as sim
-try:
-    from qpandalite.simulator import OriginIR_Simulator
-except ImportError as e:
-    raise ImportError('You must install QPandaLiteCpp to enable the simulation.')
 from pathlib import Path
 import os
 import random

@@ -1,14 +1,21 @@
 from typing import List, Tuple
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
+import warnings
 
 try:
-    from qpandalite.simulator import Simulator
+    from .QPandaLitePy import Simulator
 except ImportError as e:
-    # warning has been emitted in __init__.py
-    pass
+    # Note: Without compiling the QPandaLiteCpp, you can also use qpandalite.
+    # Only the C++ simulator is disabled.
+    warnings.warn('qpandalite is not install with QPandaLiteCpp (QPandaLitePy).')
 
 class OriginIR_Simulator:    
     def __init__(self, reverse_key = False):
+        '''OriginIR_Simulator is a quantum circuit simulation based on C++ which runs locally on your PC.
+
+        Args:
+            reverse_key (bool, optional): _description_. Defaults to False.
+        '''
         self.qubit_num = 0
         self.simulator = Simulator()
         self.measure_qubit = []

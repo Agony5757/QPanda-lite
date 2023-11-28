@@ -14,66 +14,37 @@ QPanda-lite是一个轻量级的QPanda支持。
       - 不稳定
       - 未发布
 
-.. _install:
+.. toctree::
+   :maxdepth: 2
+   :caption: 教程
 
-*************************
-QPanda-lite 安装
-*************************
-
-.. _pip-install:
-
-从pip安装
-------------------------
-
-* 安装方式
-
-.. code-block:: bash
-
-   pip install qpandalite
-
-
-.. _build-from-source:
-
-从源码安装
-------------------------
-
-* 平台要求
-
-Python本体
-   - Python 3
-
-C++量子线路模拟器支持（可选）
-   - C++ compiler (support C++17 or more)
-   - CMake 3.x
-
-* 安装方式
-
-.. code-block:: bash
-
-   # installation
-   python setup.py install
-
-   # development
-   # (deprecated when building with C++)
-   python setup.py develop
+   source/guide/installation
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API docs
+   :maxdepth: 1
+   :caption: qpandalite API docs
+
+   .. source/modules
 
    source/qpandalite.circuit_builder
    source/qpandalite.originir
-   source/qpandalite.task
-   source/qpandalite.task.originq
-   source/qpandalite.task.quafu
    source/qpandalite.simulator
 
+.. toctree::
+   :maxdepth: 1
+   :caption: qpandalite task模块 API docs
+   
+   .. source/qpandalite.task
 
+   source/qpandalite.task.originq
+   source/qpandalite.task.originq_dummy
+   source/qpandalite.task.quafu
+   source/qpandalite.task.ibm
 
-.. Indices and tables
-.. ==================
+Indices and tables
+==================
 
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

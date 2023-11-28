@@ -19,11 +19,21 @@ QPanda-lite是一个轻量级的QPanda支持。
    :caption: 教程
 
    source/guide/installation
+   source/guide/originir_simple
+   source/guide/build_circuit_simple
+   source/guide/simulation_simple
+   source/guide/submit_task_simple
 
+.. toctree::
+   :maxdepth: 2
+   :caption: 功能文档
+
+   source/features/build_circuit
+   source/features/submit_task_general
 
 .. toctree::
    :maxdepth: 1
-   :caption: qpandalite API docs
+   :caption: qpandalite API文档
 
    .. source/modules
 
@@ -33,7 +43,7 @@ QPanda-lite是一个轻量级的QPanda支持。
 
 .. toctree::
    :maxdepth: 1
-   :caption: qpandalite task模块 API docs
+   :caption: qpandalite task模块 API文档
    
    .. source/qpandalite.task
 

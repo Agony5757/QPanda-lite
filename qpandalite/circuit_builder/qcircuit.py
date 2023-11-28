@@ -403,7 +403,7 @@ class Circuit:
                 raise ValueError('At lease one qubit is not appeared in mapping. '
                                  f'(qubit : {qubit})')
         
-        # check if mapping has duplicate qubits
+        # check if mapping has duplicated qubits
         unique_qubit_set = set()
         for qubit in mapping:
             if qubit in unique_qubit_set:

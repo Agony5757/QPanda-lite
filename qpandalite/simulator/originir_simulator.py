@@ -3,11 +3,11 @@ from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 import warnings
 
 try:
-    from .QPandaLitePy import Simulator
+    from QPandaLitePy import Simulator
 except ImportError as e:
     # Note: Without compiling the QPandaLiteCpp, you can also use qpandalite.
     # Only the C++ simulator is disabled.
-    warnings.warn('qpandalite is not install with QPandaLiteCpp (QPandaLitePy).')
+    # warnings.warn('qpandalite is not install with QPandaLiteCpp (QPandaLitePy).')
 
 class OriginIR_Simulator:    
     def __init__(self, reverse_key = False):

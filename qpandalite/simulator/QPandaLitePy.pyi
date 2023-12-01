@@ -4,7 +4,7 @@ Note:
     You can find implementation at QPandaLiteCpp/src/simulator.cpp. The python interface is implemented by pybind11, which can be found at QPandaLiteCpp/Pybinder/QPandaLitePy.cpp.
 
 '''
-from typing import Mapping, List, Optional
+from typing import Dict, Mapping, List, Optional, Tuple
 from typing_extensions import override
 # from numpy.typing import ArrayLike
 
@@ -51,7 +51,7 @@ class Simulator:
         '''
         ...
 
-    def x(self, qn: int) -> None: 
+    def x(self, qn: int, is_dagger : bool = False) -> None: 
         '''X gate.
 
         Args:
@@ -183,8 +183,148 @@ class Simulator:
         '''
         ...
 
+    def hadamard_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
+        '''Hadamard gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    def x_cont(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
+        '''X gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
+    def sx_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
+        '''SX gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+    
+    def y_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
+        '''Y gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    def z_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
+        '''Z gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
+    def u22_cont(self, qn : int, control : List[int], unitary : List[complex]) -> None:
+        '''Any 2*2 unitary.
+
+        Args:
+            qn (int): The gate qubit.
+            unitary (List[complex]): A list with 4 complex elements, representing u00, u01, u10, u11 respectively.
+        '''
+        ...   
+
+    def cz_cont(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
+        '''CZ gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
+    def iswap_cont(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
+        '''iSWAP gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
+    def xy_cont(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
+        '''XX+YY gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
+    def cnot_cont(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ...    
+
+    def rx_cont(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
+        '''Rx gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def ry_cont(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
+        '''Ry gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def rz_cont(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
+        '''Rz gate.
+
+        Args:
+            qn (int): Qubit.
+            angle (float): The rotation angle.
+        '''
+        ...
+
+    def rphi90_cont(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
+        '''Rphi90 gate (pi/2 pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi180_cont(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
+        '''Rphi180 gate (pi pulse).
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+        '''
+        ...
+
+    def rphi_cont(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
+        '''Rphi gate.
+
+        Args:
+            qn (int): Qubit.
+            phi (float): The phase angle.
+            theta (float): The rotation angle.
+        '''
+        ...
+
     @override
-    def get_prob(self, measure_qubit : int, measure_state : int ) -> float:
+    def get_prob(self, measure_qubit : int, measure_state : int) -> float:
         '''Measure
 
         Args:
@@ -239,7 +379,7 @@ class Simulator:
 #     PhaseFlip: int
 
 
-class NoisySimulator:
+class NoisySimulator:    
     noise: Dict[str, float]
     gate_dependent_noise: Dict[str, Dict[str, float]]
     measurement_error_matrices: List[Tuple[float, float]]
@@ -262,19 +402,8 @@ class NoisySimulator:
         :param gate_noise_description: A dictionary mapping gate names to dictionaries of noise types and probabilities.
         :param measurement_error: A list of tuples representing measurement error matrices.
         """
-        self.simulator_instance = qpandalite.NoisySimulator(
-            n_qubit, noise_description, gate_noise_description, measurement_error
-        )
-
-    # @property
-    # def state(self) -> List[complex]:
-    #     '''The quantum state
-
-    #     Returns:
-    #         List[complex]: The representation of the quantum state.
-    #     '''
-    #     ...
-
+        ...
+        
     @property
     def total_qubit(self) -> int:
         '''The number of qubit.
@@ -283,7 +412,7 @@ class NoisySimulator:
             int: The number of qubit of the simulator.
         '''
         ...
-
+        
     def load_opcode(self, opstr: str,                # Operation name as a string
                     qubits: List[int],              # List of qubits
                     parameters: List[float],         # List of parameters

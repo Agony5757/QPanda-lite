@@ -218,6 +218,7 @@ def submit_task(
     specified_block = None, # dummy parameter
     savepath = Path.cwd() / 'online_info',
     url = None, # dummy parameter
+    **kwargs
 ):   
     '''submit circuits or a single circuit (DUMMY)
     '''

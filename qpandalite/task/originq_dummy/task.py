@@ -4,7 +4,7 @@ from typing import List, Union
 import warnings
 import qpandalite.simulator as sim
 try:
-    from qpandalite.simulator import OriginIR_Simulator
+    from qpandalite.simulator import OriginIR_Simulator OriginIR_BaseParser
 except ImportError as e:
     raise ImportError('You must install QPandaLiteCpp to enable the simulation.')
 from pathlib import Path
@@ -162,7 +162,9 @@ def _submit_task_group_dummy_impl(
     task_name,
     shots,
     auto_mapping,
-    savepath
+    savepath,
+    **kwargs
+
 ):
     if len(circuits) > default_task_group_size:
         # list of circuits
@@ -188,6 +190,39 @@ def _submit_task_group_dummy_impl(
     results = []
     for circuit in circuits:
         simulator = sim.OriginIR_Simulator()
+
+        parser = sim.OriginIR_BaseParser()
+        parser.parse(c.originir)
+
+        print(parser.program_body)
+        
+        noise_description = kwargs.get('noise_description', None)
+        gate_noise_description = kwargs.get('gate_noise_description', None)
+        measurement_error = kwargs.get('measurement_error', None)
+
+        # Create an instance of the NoisySimulator
+        noisy_simulator = NoisySimulator(simulator.qubit_num, noise_description, gate_noise_description)
+
+        for code in parser.program_body:
+             # Deconstruct the opcode into individual components
+            operation, qubit, cbit, parameter, dagger_flag, control_qubits_set = code
+            
+            # Convert control qubits set to list if not None
+            control_qubits_list = list(control_qubits_set) if control_qubits_set else []
+            
+            # Convert parameter to a list if not None, else to an empty list
+            parameters_list = [parameter] if parameter else []
+
+            # Call the load_opcode method on the simulator for each opcode
+            simulator.load_opcode(operation, [qubit], parameters_list, dagger_flag, control_qubits_list)
+
+
+        # Number of measurement shots
+        shots = 1024
+
+        # Noisy Simulator: measure the state multiple times
+        measurement_results = simulator.measure_shots(shots)
+
         if auto_mapping:
             prob_result = simulator.simulate(circuit)
         else:
@@ -221,7 +256,8 @@ def submit_task(
     auto_mapping = False,
     specified_block = None, # dummy parameter
     savepath = Path.cwd() / 'online_info',
-    url = None, # dummy parameter
+    url = None, # dummy parameter,
+    **kwargs
 ):   
     '''submit circuits or a single circuit (DUMMY)
     '''
@@ -236,7 +272,8 @@ def submit_task(
             task_name = task_name, 
             shots = 0,
             auto_mapping = auto_mapping,
-            savepath = savepath
+            savepath = savepath,
+            **kwargs
         )
     elif isinstance(circuit, str):
         taskid = _submit_task_group_dummy_impl(
@@ -244,7 +281,8 @@ def submit_task(
             task_name = task_name, 
             shots = 0,
             auto_mapping = auto_mapping,
-            savepath = savepath
+            savepath = savepath,
+            **kwargs
         )
     else:
         raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')

@@ -117,7 +117,7 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)
 
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("u22", &qpandalite::NoisySimulator::u22)
+		.def("u22", &qpandalite::NoisySimulator::u22)
 		.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("sx", &qpandalite::NoisySimulator::sx, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("y", &qpandalite::NoisySimulator::y, py::arg("qn"), py::arg("is_dagger") = false)

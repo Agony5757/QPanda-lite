@@ -349,10 +349,10 @@ namespace qpandalite {
 		hadamard_cont(qn, {}, is_dagger);
 	}
 
-	// void NoisySimulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
-	// {
-	// 	u22_cont(qn, unitary, {}, is_dagger);
-	// }
+	void NoisySimulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
+	{
+		u22_cont(qn, unitary, {}, is_dagger);
+	}
 
 	void NoisySimulator::x(size_t qn, bool is_dagger)
 	{
@@ -438,19 +438,21 @@ namespace qpandalite {
 		insert_error({ qn });
 	}
 
-	// IT NEEDS ONE MORE PARAMETER, THE UNITARY MATRIX
-	// void NoisySimulator::u22_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
-	// {
-	// 	opcodes.emplace_back(
-	// 		OpcodeType(
-	// 		(uint32_t)SupportOperationType::u22,
-	// 		{ qn },
-	// 		{},
-	// 		is_dagger,
-	// 		global_controller)
-	// 	);
-	// 	insert_error({ qn });
-	// }
+	void NoisySimulator::u22_cont(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::U22,
+			{ qn },
+			{ unitary[0].real(), unitary[0].imag(),
+			  unitary[1].real(), unitary[1].imag(),
+			  unitary[2].real(), unitary[2].imag(),
+			  unitary[3].real(), unitary[3].imag(), },
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn });
+	}
 
 	void NoisySimulator::x_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{

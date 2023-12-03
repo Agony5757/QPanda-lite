@@ -239,7 +239,6 @@ namespace qpandalite {
 		    	const std::vector<size_t>& global_controller) 
     {
     	SupportOperationType op = string_to_SupportOperationType(opstr);
-    	// opcodes.emplace_back(op, qubits, parameters, dagger, global_controller);
     	opcodes.emplace_back(
 			OpcodeType(
 			(uint32_t) op,
@@ -665,7 +664,7 @@ namespace qpandalite {
 		// Currently, the iteration only supports Hadamard gates and depolarizing noise 2023/11/02
 		for (const auto &opcode : opcodes)
 		{
-			std::cout << opcode.op << std::endl;
+			// std::cout << opcode.op << std::endl;
 			switch (opcode.op)
 			{
 			case (uint32_t)NoiseType::Depolarizing:

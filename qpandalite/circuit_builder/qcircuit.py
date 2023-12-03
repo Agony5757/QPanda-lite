@@ -352,6 +352,10 @@ class Circuit:
         self.circuit_str += 'CZ q[{}], q[{}]\n'.format(q1, q2)
         self.record_qubit(q1, q2)
 
+    def iswap(self, q1, q2) -> None:
+        self.circuit_str += 'ISWAP q[{}], q[{}]\n'.format(q1, q2)
+        self.record_qubit(q1, q2)
+
     def barrier(self, *qubits) -> None:
         placeholders = ', '.join(['q[{}]'] * len(qubits))
         self.circuit_str += ('BARRIER ' + placeholders + '\n').format(*qubits)

@@ -56,7 +56,8 @@ for code in parser.program_body:
 
 
 # Number of measurement shots
-shots = 1
+shots = 1024
 
-# # Measure the state multiple times
+# Measure the state multiple times
 measurement_results = simulator.measure_shots(shots)
+print(measurement_results)

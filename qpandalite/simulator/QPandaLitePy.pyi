@@ -402,7 +402,9 @@ class NoisySimulator:
         :param gate_noise_description: A dictionary mapping gate names to dictionaries of noise types and probabilities.
         :param measurement_error: A list of tuples representing measurement error matrices.
         """
-        ...
+        self.simulator_instance = qpandalite.NoisySimulator(
+            n_qubit, noise_description, gate_noise_description, measurement_error
+        )
         
     @property
     def total_qubit(self) -> int:
@@ -412,7 +414,7 @@ class NoisySimulator:
             int: The number of qubit of the simulator.
         '''
         ...
-        
+    
     def load_opcode(self, opstr: str,                # Operation name as a string
                     qubits: List[int],              # List of qubits
                     parameters: List[float],         # List of parameters

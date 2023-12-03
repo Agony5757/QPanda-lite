@@ -2,7 +2,13 @@ import datetime
 import time
 from typing import List, Union
 import warnings
+from qpandalite.originir import OriginIR_Parser, OriginIR_BaseParser
 import qpandalite.simulator as sim
+try:
+    from qpandalite.simulator.originir_simulator import OriginIR_Simulator, OriginIR_NoisySimulator
+except ImportError as e:
+    raise ImportError('You must install QPandaLiteCpp to enable the simulation.')
+
 from pathlib import Path
 import os
 import random
@@ -158,8 +164,11 @@ def _submit_task_group_dummy_impl(
     task_name,
     shots,
     auto_mapping,
-    savepath
+    savepath,
+    **kwargs
+
 ):
+    # print("hi")
     if len(circuits) > default_task_group_size:
         # list of circuits
         groups = []
@@ -182,28 +191,59 @@ def _submit_task_group_dummy_impl(
     # generate taskid
     taskid = _random_taskid()
     results = []
-    for circuit in circuits:
-        simulator = sim.OriginIR_Simulator()
-        if auto_mapping:
-            prob_result = simulator.simulate(circuit)
-        else:
-            prob_result = simulator.simulate(circuit, 
-                                            available_qubits=available_qubits,
-                                            available_topology=available_topology)
-        n_qubits = simulator.qubit_num
-        key = []
-        value = []
 
-        # get probs from probability list
-        # Note: originq server will directly produce prob list instead of shots list.
-        for i, meas_result in enumerate(prob_result):
-            key.append(bin(i)[2:].zfill(len(simulator.measure_qubit)))
-            value.append(meas_result)
-        results.append({'key':key, 'value': value})
+    noise_description = kwargs.get('noise_description', None)
+    gate_noise_description = kwargs.get('gate_noise_description', None)
+    measurement_error = kwargs.get('measurement_error', None)
+
+    for circuit in circuits:
+        # If there is noise_description
+        if noise_description:
+            my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, measurement_error)
+            my_sim.simulate(circuit)
+            prob_result = my_sim.simulator.measure_shots(shots)
+            
+            if auto_mapping:
+                pass
+                # prob_result = simulator.simulate(circuit)
+            else:
+                # prob_result = simulator.simulate(circuit, available_qubits=available_qubits, available_topology=available_topology)
+                n_qubits = my_sim.qubit_num
+                key = []
+                value = []
+
+                # get probs from probability list
+                # Note: originq server will directly produce prob list instead of shots list.
+                print(n_qubits)
+                for i, meas_result in prob_result.items():
+                    print(i, meas_result)
+                    key.append(bin(i)[2:].zfill(n_qubits))
+                    value.append(meas_result/shots)
+                results.append({'key':key, 'value': value})
+
+        else:
+            simulator = sim.OriginIR_Simulator()
+
+            if auto_mapping:
+                prob_result = simulator.simulate(circuit)
+            else:
+                prob_result = simulator.simulate(circuit, 
+                                                available_qubits=available_qubits,
+                                                available_topology=available_topology)
+                n_qubits = simulator.qubit_num
+                key = []
+                value = []
+
+                # get probs from probability list
+                # Note: originq server will directly produce prob list instead of shots list.
+                for i, meas_result in enumerate(prob_result):
+                    key.append(bin(i)[2:].zfill(len(simulator.measure_qubit)))
+                    value.append(meas_result)
+                results.append({'key':key, 'value': value})
     
     # write cache, ready for loading results
     _write_dummy_cache(taskid, task_name, results)
-
+    print(results)
     return taskid
 
 def submit_task(
@@ -220,7 +260,8 @@ def submit_task(
     url = None, # dummy parameter
     **kwargs
 ):   
-    '''submit circuits or a single circuit (DUMMY)
+    '''
+    submit circuits or a single circuit (DUMMY)
     '''
     
     if isinstance(circuit, list):
@@ -231,17 +272,19 @@ def submit_task(
         taskid = _submit_task_group_dummy_impl(
             circuits = circuit, 
             task_name = task_name, 
-            shots = 0,
+            shots = shots,
             auto_mapping = auto_mapping,
-            savepath = savepath
+            savepath = savepath,
+            **kwargs
         )
     elif isinstance(circuit, str):
         taskid = _submit_task_group_dummy_impl(
             circuits = [circuit], 
             task_name = task_name, 
-            shots = 0,
+            shots = shots,
             auto_mapping = auto_mapping,
-            savepath = savepath
+            savepath = savepath,
+            **kwargs
         )
     else:
         raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')

@@ -127,9 +127,11 @@ namespace qpandalite {
                 const std::vector<double>& parameters,
                 bool dagger, 
                 const std::vector<size_t>& global_controller);
+        
         void insert_error(const std::vector<size_t> &qn);
         void insert_gate_dependent_error(const std::vector<size_t> &qubits, SupportOperationType gateType);
         void insert_generic_error(const std::vector<size_t> &qubits, const std::map<NoiseType, double>& generic_noise_map);
+
         void hadamard(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
         void x(size_t qn, bool is_dagger = false);

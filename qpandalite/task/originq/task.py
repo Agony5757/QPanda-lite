@@ -34,42 +34,60 @@ def get_token(pilot_api, login_url):
 
     return token
 
-try:
-    with open('originq_online_config.json', 'r') as fp:
-        default_online_config = json.load(fp)
-except FileNotFoundError as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'originq_online_config.json is not found. '
-                      'It should be always placed at current working directory (cwd).')
-except JSONDecodeError as e:
-    raise ImportError('Import originq backend failed.\n'
-                        'Cannot load json from the originq_online_config.json. '
-                        'Please check the content.')
-except Exception as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'Unknown import error.'                      
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+# Define default values for your configuration parameters
+default_online_config = {
+    'login_apitoken': 'default_api_token',
+    'login_url': 'default_login_url',
+    'submit_url': 'default_submit_url',
+    'query_url': 'default_query_url',
+    'task_group_size': 'default_task_group_size'
+}
 
-try:
-    default_login_apitoken = default_online_config['login_apitoken']
-    default_login_url = default_online_config['login_url']    
-    default_submit_url = default_online_config['submit_url']
-    default_query_url = default_online_config['query_url']
-    default_task_group_size = default_online_config['task_group_size']
-except KeyError as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'originq_online_config.json does not exist such a key.'
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+# Only attempt to read the config file if we're not generating docs
+if os.getenv('SPHINX_DOC_GEN') != '1':
+    try:
+        with open('originq_online_config.json', 'r') as fp:
+            default_online_config = json.load(fp)
+    except FileNotFoundError as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'originq_online_config.json is not found. '
+                          'It should be always placed at current working directory (cwd).')
+    except JSONDecodeError as e:
+        raise ImportError('Import originq backend failed.\n'
+                            'Cannot load json from the originq_online_config.json. '
+                            'Please check the content.')
+    except Exception as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'Unknown import error.'                      
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
 
-try:
-    default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
-except Exception as e:
-    raise ImportError('Import originq backend failed.\n'
-                      'Login error.'
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+    try:
+        default_login_apitoken = default_online_config['login_apitoken']
+        default_login_url = default_online_config['login_url']    
+        default_submit_url = default_online_config['submit_url']
+        default_query_url = default_online_config['query_url']
+        default_task_group_size = default_online_config['task_group_size']
+    except KeyError as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'originq_online_config.json does not exist such a key.'
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
+
+    try:
+        default_token = get_token(pilot_api=default_login_apitoken, login_url=default_login_url)
+    except Exception as e:
+        raise ImportError('Import originq backend failed.\n'
+                          'Login error.'
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
+
+# Now you can safely use the configuration values:
+default_login_apitoken = default_online_config['login_apitoken']
+default_login_url = default_online_config['login_url']
+default_submit_url = default_online_config['submit_url']
+default_query_url = default_online_config['query_url']
+default_task_group_size = default_online_config['task_group_size']
 
 def parse_response_body(response_body):
     '''Parse response body (in query_by_taskid)
@@ -366,63 +384,63 @@ def _submit_task_group(circuits = None,
 
     return task_id
 
-def submit_task_old(
-    circuit, 
-    task_name = None, 
-    tasktype = None, 
-    chip_id = 72,
-    shots = 1000,
-    circuit_optimize = True,
-    measurement_amend = False,
-    auto_mapping = False,
-    specified_block = None,
-    url = default_submit_url,
-    savepath = Path.cwd() / 'online_info'
-):
-    ''' !!!! DEPRECATED !!!!
-    submit a single circuit
+# def submit_task_old(
+#     circuit, 
+#     task_name = None, 
+#     tasktype = None, 
+#     chip_id = 72,
+#     shots = 1000,
+#     circuit_optimize = True,
+#     measurement_amend = False,
+#     auto_mapping = False,
+#     specified_block = None,
+#     url = default_submit_url,
+#     savepath = Path.cwd() / 'online_info'
+# ):
+#     ''' !!!! DEPRECATED !!!!
+#     submit a single circuit
 
-    Note:
-        Actual implementation is _submit_task_group
+#     Note:
+#         Actual implementation is _submit_task_group
 
-    Note:
-        If wanting compile_only=True, use submit_task_compile_only()
+#     Note:
+#         If wanting compile_only=True, use submit_task_compile_only()
 
-    Args:
-        circuit (str): A quantum circuit to be submitted. 
-        task_name (str, optional): The name of the task. Defaults to None.
-        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
-        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
-        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
-        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
-        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
-        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
-        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
-        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
-        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
+#     Args:
+#         circuit (str): A quantum circuit to be submitted. 
+#         task_name (str, optional): The name of the task. Defaults to None.
+#         tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
+#         chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
+#         shots (int, optional): Number of shots for every circuit. Defaults to 1000.
+#         circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
+#         measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
+#         auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
+#         specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
+#         url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
+#         savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
 
-    Raises:
-        RuntimeError: Circuit not input
-        RuntimeError: Error when submitting the task
+#     Raises:
+#         RuntimeError: Circuit not input
+#         RuntimeError: Error when submitting the task
 
-    Returns:
-        int: The taskid of this taskgroup
-    '''
+#     Returns:
+#         int: The taskid of this taskgroup
+#     '''
 
-    return _submit_task_group(
-        circuits = [circuit], 
-        task_name = task_name, 
-        tasktype = tasktype, 
-        chip_id = chip_id,
-        shots = shots,
-        circuit_optimize = circuit_optimize,
-        measurement_amend = measurement_amend,
-        auto_mapping = auto_mapping,
-        compile_only=False,
-        specified_block = specified_block,
-        url = url,
-        savepath = savepath
-    )
+#     return _submit_task_group(
+#         circuits = [circuit], 
+#         task_name = task_name, 
+#         tasktype = tasktype, 
+#         chip_id = chip_id,
+#         shots = shots,
+#         circuit_optimize = circuit_optimize,
+#         measurement_amend = measurement_amend,
+#         auto_mapping = auto_mapping,
+#         compile_only=False,
+#         specified_block = specified_block,
+#         url = url,
+#         savepath = savepath
+#     )
 
 def submit_task(
     circuit, 

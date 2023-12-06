@@ -3,127 +3,54 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=======================================
 欢迎来到QPanda-lite!
 =======================================
+QPanda-lite是一个轻量级的QPanda支持。
+
+
+.. note::
+   
+   **开发中**
+      - 不稳定
+      - 未发布
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: 教程
 
-   qpandalite.task
-   qpandalite.task.originq
-   qpandalite.task.quafu
-   qpandalite.simulator
-   :ref:`modindex`
+   source/guide/installation
+   source/guide/originir_simple
+   source/guide/build_circuit_simple
+   source/guide/simulation_simple
+   source/guide/submit_task_simple
 
+.. toctree::
+   :maxdepth: 2
+   :caption: 功能文档
 
-What is QPanda-lite?
-==========================
-QPanda-lite是一个轻量级的QPanda支持。
+   source/features/build_circuit
+   source/features/submit_task_general
 
-当前状态
-==========================
-**开发中**
-   - 不稳定
-   - 未发布
+.. toctree::
+   :maxdepth: 1
+   :caption: qpandalite API文档
 
-安装
-==========================
+   .. source/modules
 
-从源码安装
---------------
+   source/qpandalite.circuit_builder
+   source/qpandalite.originir
+   source/qpandalite.simulator
 
-* 平台要求
-
-Python本体
-   - Python 3
-
-C++量子线路模拟器支持（可选）
-   - C++ compiler (support C++17 or more)
-   - CMake 3.x
-
-* 安装方式
-
-.. code-block:: bash
-
-   # installation
-   python setup.py install
-
-   # development
-   # (deprecated when building with C++)
-   python setup.py develop
-
-从pip安装
---------------
-将在未来支持。
-
-.. code-block:: bash
-
-   pip install qpandalite
-
-
-模块
-==========================
-
-Task
---------------
-
-Task模块是一个第三方的量子云平台任务提交的支持。现在支持OriginQ平台和Quafu平台。
-
-* OriginQ
-
-API文档详见
-:doc:`source/qpandalite.task.originq`
-
-简易用法
-
-.. code-block:: python
-
-   import qpandalite.task.originq as task
+.. toctree::
+   :maxdepth: 1
+   :caption: qpandalite task模块 API文档
    
-   # code an originir
-   # originir = ...
-   taskid = task.submit_task(originir)
-   result = task.query_by_taskid(taskid)
-   print(result)
-   
-   # code many originirs
-   # originir_list = list()
-   # ... append to originir_list
-   task.submit_task(originir_list)
-   result_list = task.query_by_taskid(taskid)
-   for result in result_list:
-      print(result)
+   .. source/qpandalite.task
 
-
-* Quafu 
-
-API文档详见
-:doc:`source/qpandalite.task.quafu`
-
-简易用法
-
-.. code-block:: python
-
-   import qpandalite.task.quafu as task
-   
-   # code some originir
-   # originir = ...
-   taskid = task.submit_task(originir)
-   result = task.query_by_taskid(taskid)
-   print(result)
-
-
-Circuit builder
----------------
-简单的线路编辑器（开发中）
-
-Simulator
---------------
-一个C++量子线路模拟器（开发中）
-
-
+   source/qpandalite.task.originq
+   source/qpandalite.task.originq_dummy
+   source/qpandalite.task.quafu
+   source/qpandalite.task.ibm
 
 Indices and tables
 ==================

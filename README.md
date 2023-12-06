@@ -199,4 +199,15 @@ print(sim.state)
 ```
 
 ## Documentation (not finished)
+
+### Readthedocs
 [Readthedocs: https://qpanda-lite.readthedocs.io/](https://qpanda-lite.readthedocs.io/)
+
+### Build the docs
+
+The doc is based on 
+```bash
+cd docs
+pip install -r requirements.txt
+make html
+```

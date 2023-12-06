@@ -8,7 +8,9 @@ Subpackages
    :maxdepth: 4
 
    qpandalite.task.originq
+   qpandalite.task.originq_dummy
    qpandalite.task.quafu
+   qpandalite.task.ibm
 
 Submodules
 ----------

@@ -339,12 +339,12 @@ namespace qpandalite{
         u22_t unitary; 
         if(is_dagger)
         {
-            unitary = {cos(angle / 2), -sin(angle / 2),
-                            sin(angle / 2), cos(angle / 2)};
+            unitary = {cos(angle / 2), sin(angle / 2),
+                            -sin(angle / 2), cos(angle / 2)};
         }else
         {
-            unitary = {cos(angle / 2), sin(angle / 2),
-                    -sin(angle / 2), cos(angle / 2)};
+            unitary = {cos(angle / 2), -sin(angle / 2),
+                    sin(angle / 2), cos(angle / 2)};
         }
 
 

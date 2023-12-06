@@ -14,40 +14,45 @@ from json.decoder import JSONDecodeError
 from qpandalite.originir.originir_line_parser import OriginIR_Parser
 from ..task_utils import load_all_online_info, write_taskinfo
 
-try:
-    fp = open('quafu_online_config.json', 'r')
-except FileNotFoundError as e:
-    raise ImportError('Import quafu backend failed.\n'
-                    'quafu_online_config.json is not found. '
-                    'It should be always placed at current working directory (cwd).')
-except Exception as e:
-    raise ImportError('Import quafu backend failed.\n'
-                      'Unknown import error.'
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+# Initialize default_online_config with a default or dummy value
+default_online_config = {'default_token': 'dummy_token'}
 
-try:          
-    default_online_config = json.load(fp)
-    fp.close()
-except JSONDecodeError as e:
-    raise ImportError('Import quafu backend failed.\n'
-                        'Cannot load json from the quafu_online_config.json. '
-                        'Please check the content.')
-except Exception as e:
-    raise ImportError('Import quafu backend failed.\n'
-                      'Unknown import error.'
-                      '\n===== Original exception ======\n'
-                      f'{traceback.format_exc()}')
+# Only attempt to read the config file if we're not generating docs
+if os.getenv('SPHINX_DOC_GEN') != '1':
+    try:
+        fp = open('quafu_online_config.json', 'r')
+    except FileNotFoundError as e:
+        raise ImportError('Import quafu backend failed.\n'
+                        'quafu_online_config.json is not found. '
+                        'It should be always placed at current working directory (cwd).')
+    except Exception as e:
+        raise ImportError('Import quafu backend failed.\n'
+                          'Unknown import error.'
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
 
-try:
-    default_token = default_online_config['default_token']
-except KeyError as e:
-    raise ImportError('Import quafu backend failed.\n'
-                    'default_online_config.json should have the "default_token" key.')
-except Exception as e:
-    raise ImportError('Import quafu backend failed.\n'
-                      'Unknown import error. Original exception is:\n'
-                      f'{str(e)}')
+    try:          
+        default_online_config = json.load(fp)
+        fp.close()
+    except JSONDecodeError as e:
+        raise ImportError('Import quafu backend failed.\n'
+                            'Cannot load json from the quafu_online_config.json. '
+                            'Please check the content.')
+    except Exception as e:
+        raise ImportError('Import quafu backend failed.\n'
+                          'Unknown import error.'
+                          '\n===== Original exception ======\n'
+                          f'{traceback.format_exc()}')
+
+    try:
+        default_token = default_online_config['default_token']
+    except KeyError as e:
+        raise ImportError('Import quafu backend failed.\n'
+                        'default_online_config.json should have the "default_token" key.')
+    except Exception as e:
+        raise ImportError('Import quafu backend failed.\n'
+                          'Unknown import error. Original exception is:\n'
+                          f'{str(e)}')
 
 class Translation_OriginIR_to_QuafuCircuit(OriginIR_Parser):
     @staticmethod
@@ -136,9 +141,12 @@ def submit_task(circuit = None,
                 group_name = None
     ):
 
-    if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136']:
+
+    if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']:
         raise RuntimeError(r"Invalid chip_id. "
-                           r"Current quafu chip_id list: ['ScQ-P10','ScQ-P18','ScQ-P136']")
+                           r"Current quafu chip_id list: "
+                           r"['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']")
+
     if isinstance(circuit, str):
         qc = Translation_OriginIR_to_QuafuCircuit.translate(circuit)
 
@@ -147,7 +155,6 @@ def submit_task(circuit = None,
         task = quafu.Task()
 
         # validate chip_id
-
         task.config(backend=chip_id, shots=shots, compile=auto_mapping)
 
         n_retries = 5
@@ -242,6 +249,7 @@ def query_by_taskid(taskid, savepath=None):
                 taskinfo['status'] = 'running'
             if taskinfo['status'] == 'success':
                 taskinfo['result'].append(taskinfo_i)
+
     elif isinstance(taskid, str):
         taskinfo = query_by_taskid_single(taskid, savepath)
     else:

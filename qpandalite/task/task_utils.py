@@ -2,6 +2,7 @@ import requests
 from pathlib import Path
 import os
 import json
+from datetime import datetime
 
 def load_circuit(basepath = None):
     '''Load all quantum circuits under the basepath.
@@ -114,3 +115,10 @@ def write_taskinfo(taskid, taskinfo, savepath = None):
         savepath = Path.cwd() / 'online_info'
     with open(savepath / '{}.txt'.format(taskid), 'w') as fp:
         json.dump(taskinfo, fp)
+
+def timestr():
+    return timestr_ymd_hms()
+
+def timestr_ymd_hms():
+    return datetime.now().strftime(r"%Y%m%d_%H%M%S")
+    

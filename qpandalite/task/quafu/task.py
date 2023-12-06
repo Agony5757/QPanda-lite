@@ -241,7 +241,7 @@ def query_by_taskid(taskid, savepath=None):
             elif taskinfo_i == 'Running':
                 taskinfo['status'] = 'running'
             if taskinfo['status'] == 'success':
-                taskinfo['result'].extend(taskinfo_i)
+                taskinfo['result'].append(taskinfo_i)
     elif isinstance(taskid, str):
         taskinfo = query_by_taskid_single(taskid, savepath)
     else:

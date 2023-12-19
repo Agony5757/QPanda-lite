@@ -156,7 +156,7 @@ class CMakeBuild(build_ext):
         )
 
 if BUILD_WITH_CPP:
-    ext_modules = [CMakeExtension("qpandalite")]
+    ext_modules = [CMakeExtension("QPandaLitePy")]
     cmdclass = {"build_ext": CMakeBuild}
 else:
     ext_modules = []

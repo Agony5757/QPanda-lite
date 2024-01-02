@@ -2,6 +2,7 @@
 '''
 
 from copy import deepcopy
+import math
 import numpy as np
 from typing import Dict, Union, List
 
@@ -36,8 +37,12 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     keys = deepcopy(key_value_result['key'])
     if reverse_key:
         for i in range(len(keys)):
-            keys[i] = keys[i][::-1]
+            keys[i] = '0x{}'.format(keys[i][2:][::-1])
+    keys = [int(key, base=16) for key in keys]
     values = deepcopy(key_value_result['value'])
+
+    max_key = max(keys)
+    guessed_qubit_num = math.ceil(math.log2(max_key))
 
     if prob_or_shots == 'prob':
         total_shots = np.sum(values)
@@ -50,7 +55,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     if style == 'keyvalue':
         return kv_result
     elif style == 'list':
-        return kv2list(kv_result)
+        return kv2list(kv_result, guessed_qubit_num)
     else:
         raise ValueError('style only accepts "keyvalue" or "list".')
 
@@ -61,20 +66,16 @@ def shots2prob(measured_result : Dict[str, int],
 
     return {k : measured_result[k] / total_shots for k in measured_result}
 
-def kv2list(kv_result : dict):    
+def kv2list(kv_result : dict, guessed_qubit_num):
+    ret = [0] * (2 ** guessed_qubit_num)
     for k in kv_result:
-        qubit_num = len(k)
-        break
-
-    ret = [0] * (2 ** qubit_num)
-    for k in kv_result:
-        ret[int(k, 2)] = kv_result[k]
+        ret[k] = kv_result[k]
 
     return ret
 
 if __name__ == '__main__':
 
-    result = {'key': ['001','010','100'], 'value': [10, 20, 9970]}
+    result = {'key': ['0x1','0x2','0x7'], 'value': [10, 20, 9970]}
     print(convert_originq_result(result, 
                                  style='keyvalue', 
                                  prob_or_shots='prob', 
@@ -114,3 +115,4 @@ if __name__ == '__main__':
                                  style='list', 
                                  prob_or_shots='shots', 
                                  reverse_key=False))
+    

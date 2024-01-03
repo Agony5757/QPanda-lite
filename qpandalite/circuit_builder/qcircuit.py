@@ -345,7 +345,7 @@ class Circuit:
         self.record_qubit(qn)
 
     def rphi(self, qn, phi, theta) -> None:
-        self.circuit_str += 'Rphi q[{}], ({}, {})\n'.format(qn, phi, theta)
+        self.circuit_str += 'RPhi q[{}], ({}, {})\n'.format(qn, phi, theta)
         self.record_qubit(qn)
 
     def cnot(self, controller, target) -> None:

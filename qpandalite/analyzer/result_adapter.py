@@ -11,6 +11,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                            style = 'keyvalue', 
                            prob_or_shots = 'prob',
                            reverse_key = True, 
+                           key_style = 'dec',
                            qubit_num = None):
     '''OriginQ result general adapter. Return adapted format given by the arguments. 
 
@@ -46,8 +47,21 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     else:
         guessed_qubit_num = math.ceil(math.log2(max_key))
 
-    if reverse_key:
-        keys = [int(np.binary_repr(key, guessed_qubit_num)[::-1], 2) for key in keys]
+    if reverse_key:        
+        if key_style == 'bin':
+            keys = [np.binary_repr(key, guessed_qubit_num)[::-1] for key in keys]
+        elif key_style == 'dec':
+            keys = [int(np.binary_repr(key, guessed_qubit_num)[::-1], 2) for key in keys]
+        else:
+            raise ValueError('key_style must be either bin or dec')
+    else:
+        if key_style == 'bin':
+            keys = [np.binary_repr(key, guessed_qubit_num) for key in keys]
+        elif key_style == 'dec':
+            # default is decimal
+            pass
+        else:
+            raise ValueError('key_style must be either bin or dec')
 
     if prob_or_shots == 'prob':
         total_shots = np.sum(values)

@@ -312,6 +312,10 @@ class Circuit:
                 self.used_qubit_list.append(qubit)
                 self.max_qubit = max(self.max_qubit, qubit)
 
+    def identity(self, qn) -> None:
+        self.circuit_str += 'I q[{}]\n'.format(qn)
+        self.record_qubit(qn)
+
     def h(self, qn) -> None:
         self.circuit_str += 'H q[{}]\n'.format(qn)
         self.record_qubit(qn)

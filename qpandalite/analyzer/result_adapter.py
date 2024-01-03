@@ -10,7 +10,8 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                                     Dict[str, int]], 
                            style = 'keyvalue', 
                            prob_or_shots = 'prob',
-                           reverse_key = True):
+                           reverse_key = True, 
+                           qubit_num = None):
     '''OriginQ result general adapter. Return adapted format given by the arguments. 
 
     Args:
@@ -35,14 +36,18 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                        for result in key_value_result]
 
     keys = deepcopy(key_value_result['key'])
-    if reverse_key:
-        for i in range(len(keys)):
-            keys[i] = '0x{}'.format(keys[i][2:][::-1])
     keys = [int(key, base=16) for key in keys]
+    
     values = deepcopy(key_value_result['value'])
 
     max_key = max(keys)
-    guessed_qubit_num = math.ceil(math.log2(max_key))
+    if qubit_num:
+        guessed_qubit_num = qubit_num
+    else:
+        guessed_qubit_num = math.ceil(math.log2(max_key))
+
+    if reverse_key:
+        keys = [int(np.binary_repr(key, guessed_qubit_num)[::-1], 2) for key in keys]
 
     if prob_or_shots == 'prob':
         total_shots = np.sum(values)

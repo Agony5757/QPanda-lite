@@ -345,7 +345,7 @@ class Circuit:
         self.record_qubit(qn)
 
     def rphi(self, qn, theta, phi) -> None:
-        self.circuit_str += 'RPhi q[{}], ({:.16f}, {:.16f})\n'.format(qn, theta, phi)
+        self.circuit_str += 'RPhi q[{}], ({}, {})\n'.format(qn, theta, phi)
         self.record_qubit(qn)
 
     def cnot(self, controller, target) -> None:
@@ -376,7 +376,7 @@ class Circuit:
         return CircuitControlContext(self, args)
     
     def set_control(self, *args):    
-        self.record_qubit(*args)    
+        self.record_qubit(*args)
         ret = 'CONTROL '
         for q in self.control_list:
             ret += f'q[{q}], '

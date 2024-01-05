@@ -473,60 +473,6 @@ def submit_task(
     return taskid
 
 
-def submit_task_compile_only(
-        circuit,
-        task_name=None,
-        chip_id=72,
-        circuit_optimize=True,
-        auto_mapping=False,
-        url=default_submit_url,
-        savepath=Path.cwd() / 'online_info',
-        **kwargs
-):
-    '''Compile a single circuit
-
-    Note:
-        Actual implementation is _submit_task_group
-
-    Note:
-        If wanting compile_only=False, use submit_task()
-
-    Args:
-        circuit (str): A quantum circuit to be submitted.
-        task_name (str, optional): The name of the task. Defaults to None.
-        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
-        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
-        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
-        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
-        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
-        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
-        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
-        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
-        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
-
-    Raises:
-        RuntimeError: Circuit not input
-        RuntimeError: Error when submitting the task
-
-    Returns:
-        int: The taskid of this taskgroup
-    '''
-
-    if not isinstance(circuit, str):
-        raise ValueError('Input is not a valid originir string.')
-
-    return _submit_task_group(
-        circuits=[circuit],
-        task_name=task_name,
-        chip_id=chip_id,
-        circuit_optimize=circuit_optimize,
-        auto_mapping=auto_mapping,
-        compile_only=True,
-        url=url,
-        savepath=savepath
-    )
-
-
 def query_all_task(url=default_query_url, savepath=None, **kwargs):
     '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
 

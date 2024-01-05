@@ -141,10 +141,12 @@ def submit_task(circuit = None,
                 group_name = None
     ):
 
+
     if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']:
         raise RuntimeError(r"Invalid chip_id. "
                            r"Current quafu chip_id list: "
                            r"['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']")
+
     if isinstance(circuit, str):
         qc = Translation_OriginIR_to_QuafuCircuit.translate(circuit)
 
@@ -246,7 +248,8 @@ def query_by_taskid(taskid, savepath=None):
             elif taskinfo_i == 'Running':
                 taskinfo['status'] = 'running'
             if taskinfo['status'] == 'success':
-                taskinfo['result'].extend(taskinfo_i)
+                taskinfo['result'].append(taskinfo_i)
+
     elif isinstance(taskid, str):
         taskinfo = query_by_taskid_single(taskid, savepath)
     else:

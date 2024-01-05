@@ -97,7 +97,7 @@ class OriginIR_BaseParser:
         control_qubits_set = set()
         control_stack = list()
         dagger_count = 0
-        dagger_stacks = list()
+        dagger_stack = list()
 
         for lineno in range(current_lineno, len(lines)): 
             # handle the line
@@ -138,14 +138,24 @@ class OriginIR_BaseParser:
             # Handle the dagger statement
             elif operation == "DAGGER":
                 # Add a new list to the stack to collect operations inside this DAGGER block
-                dagger_stacks.append([])
+                dagger_stack.append([])
                 dagger_count += 1
 
             elif operation == "ENDDAGGER":
                 # Pop the latest list of operations from the dagger stack and reverse them
-                if dagger_stacks:
-                    reversed_ops = dagger_stacks.pop()
-                    self.program_body.extend(reversed_ops[::-1])
+                if dagger_stack:
+                    reversed_ops = dagger_stack.pop()
+
+                    # case 1: dagger_stack is empty, insert reversed operations
+                    if not dagger_stack:
+                        self.program_body.extend(reversed_ops[::-1])
+
+                    # case 2: dagger_stack is not empty, insert reversed operations to top
+                    else:
+                        dagger_stack[-1].extend(reversed_ops[::-1])
+                else:
+                    raise ValueError(f'Parse error at line {lineno}: {line}\n'
+                                      'Encounter ENDDAGGER operation before any DAGGER.')
                 dagger_count -= 1
 
             else:
@@ -156,7 +166,7 @@ class OriginIR_BaseParser:
                         raise ValueError(f'Parse error at line {lineno}: {line}\n'
                                          'MEASURE operation is inside a CONTROL block.')
                     
-                    if dagger_stacks:
+                    if dagger_stack:
                         raise ValueError(f'Parse error at line {lineno}: {line}\n'
                                          'MEASURE operation is inside a DAGGER block.')
 
@@ -166,8 +176,9 @@ class OriginIR_BaseParser:
                 else:
                     dagger_flag = False
 
-                if dagger_stacks:
-                    dagger_stacks[-1].append((operation, 
+                if dagger_stack:
+                    # insert to the top of the dagger stack
+                    dagger_stack[-1].append((operation, 
                                               qubits, 
                                               cbit, 
                                               parameter, 
@@ -185,7 +196,7 @@ class OriginIR_BaseParser:
         if control_qubits_set:
             raise ValueError('Parse error at end.\n'
                              'The CONTROL operation is not closed at the end of the OriginIR.')
-        if dagger_stacks:
+        if dagger_stack:
             raise ValueError('Parse error at end.\n'
                              'The DAGGER operation is not closed at the end of the OriginIR.')
         

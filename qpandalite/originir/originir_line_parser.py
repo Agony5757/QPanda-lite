@@ -300,6 +300,8 @@ class OriginIR_Parser:
                 operation, q = OriginIR_Parser.handle_2q(line)
             elif line.startswith('ISWAP'):
                 operation, q = OriginIR_Parser.handle_2q(line)
+            elif line.startswith('I'):
+                operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('XY'):
                 operation, q = OriginIR_Parser.handle_2q1p(line)
             elif line.startswith('CNOT'):

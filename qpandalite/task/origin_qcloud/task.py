@@ -82,7 +82,7 @@ def parse_response_body(response_body):
         code = recv_dict["code"]
         raise Exception(f"query task error : {message} (errcode: {code})")
 
-    print(recv_dict)
+    # print(recv_dict)
     result_list = recv_dict["obj"]
 
     ret['taskid'] = result_list['taskId']    

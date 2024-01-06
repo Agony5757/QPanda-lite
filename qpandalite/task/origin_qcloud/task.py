@@ -71,7 +71,6 @@ def parse_response_body(response_body):
             - taskid
             - taskname
             - status
-            - compiled_prog (?)
             - result (not always)
     '''
 
@@ -80,14 +79,15 @@ def parse_response_body(response_body):
 
     if not recv_dict["success"]:
         message = recv_dict["message"]
-        raise Exception(f"query task error : {message}")
+        code = recv_dict["code"]
+        raise Exception(f"query task error : {message} (errcode: {code})")
 
-    result_list = recv_dict["obj"]["qcodeTaskNewVo"]["taskResultList"][0]
+    print(recv_dict)
+    result_list = recv_dict["obj"]
 
-    ret['taskid'] = result_list['rTaskId']
-    ret['taskname'] = result_list['taskName']
+    ret['taskid'] = result_list['taskId']    
 
-    task_status = result_list['taskState']
+    task_status = result_list['taskStatus']
     if task_status == '3':
         # successfully finished !
         ret['status'] = 'success'
@@ -95,20 +95,13 @@ def parse_response_body(response_body):
         # task_result
         task_result = result_list['taskResult']
         try:
-            task_result = json.loads(task_result)
+            # task_result is a list of json
+            task_result = [json.loads(task_result_json) for task_result_json in task_result]
         except json.decoder.JSONDecodeError as e:
             raise RuntimeError('Error when parsing the response task_result. '
-                               f'task_result = {task_result}')
+                               f'task_result = {result_list["taskResult"]}')
+        
         ret['result'] = task_result
-
-        # compiled_prog = response_body['without_compensate_prog']
-        # print(type(compiled_prog))
-        # ret['compiled_prog'] = json.loads(compiled_prog)
-        # timelines = response_body['compile_output_prog']
-        # timelines_ret = []
-        # for timeline in timelines:
-        #     timelines_ret.append(json.loads(timeline))
-        # ret['timeline'] = timelines_ret
         return ret
     elif task_status == '4':
         ret['status'] = 'failed'
@@ -120,7 +113,10 @@ def parse_response_body(response_body):
         return ret
 
 
-def query_by_taskid_single(taskid: str, url=default_query_url, **kwargs):
+def query_by_taskid_single(taskid: str, 
+                           url=default_query_url, 
+                           savepath=Path.cwd() / 'online_info', 
+                           **kwargs):
     """
     Query circuit status by taskid (Async). This function will return without waiting.
 
@@ -142,6 +138,13 @@ def query_by_taskid_single(taskid: str, url=default_query_url, **kwargs):
     """
 
     if not taskid: raise ValueError('Task id ??')
+    
+    if savepath:
+        filename = savepath / f'{taskid}.txt'
+        if os.path.exists(filename):
+            with open(filename, 'r') as fp:
+                return json.load(fp)
+
     if not url: raise ValueError('URL invalid.')
 
     headers = dict()
@@ -174,6 +177,10 @@ def query_by_taskid_single(taskid: str, url=default_query_url, **kwargs):
 
     response_body = json.loads(text)
     taskinfo = parse_response_body(response_body)
+    
+    if savepath and taskinfo['status'] == 'success':
+        with open(filename, 'w') as fp:
+            json.dump(taskinfo, fp)
 
     return taskinfo
 
@@ -207,6 +214,7 @@ def query_by_taskid(taskid: Union[List[str], str],
         taskinfo['result'] = []
         for taskid_i in taskid:
             taskinfo_i = query_by_taskid_single(taskid_i, url)
+            print(taskinfo_i)
             if taskinfo_i['status'] == 'failed':
                 # if any task is failed, then this group is failed.
                 taskinfo['status'] = 'failed'
@@ -223,7 +231,7 @@ def query_by_taskid(taskid: Union[List[str], str],
         taskinfo = query_by_taskid_single(taskid, url)
     else:
         raise ValueError('Invalid Taskid')
-
+    
     return taskinfo
 
 
@@ -246,11 +254,8 @@ def query_by_taskid_sync(taskid,
         TimeoutError: Timeout reached
 
     Returns:
-        Dict[str, dict]: The status and the result
-            status : success | failed | running
-            result (when success): List[Dict[str,list]]
-            result (when failed): {'errcode': str, 'errinfo': str}
-            result (when running): N/A
+        result (until success): List[Dict[str,list]]
+
     '''
     starttime = time.time()
     while True:
@@ -354,7 +359,7 @@ def _submit_task_group(circuits=None,
     request_body = dict()
     request_body['qmachineType'] = tasktype if tasktype is not None else 5
     request_body['qprogArr'] = circuits
-    request_body['taskFrom'] = 4  # what's this
+    request_body['taskFrom'] = 4  # means it comes from QPanda
     request_body['chipId'] = chip_id
     request_body['shot'] = shots
     request_body['isAmend'] = 1 if measurement_amend else 0

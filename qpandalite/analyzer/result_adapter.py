@@ -19,6 +19,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
         key_value_result (Dict[str, int] or a list of Dict[str, int]): The raw result produced by machine.
         style (str): Accepts "keyvalue" or "list". Defaults to 'keyvalue'.
         prob_or_shots (str): Accepts "prob" or "shots". Defaults to 'prob'.
+        key_style (str): Accepts "bin" (as str) or "dec" (as int). Defaults to 'dec'.
         reverse_key (bool, optional): Reverse the key (Change endian). Defaults to True.
 
     Raises:
@@ -33,7 +34,8 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
         return [convert_originq_result(result,
                                        style=style,
                                        prob_or_shots=prob_or_shots,
-                                       reverse_key=reverse_key) 
+                                       reverse_key=reverse_key,
+                                       key_style=key_style) 
                                        for result in key_value_result]
 
     keys = deepcopy(key_value_result['key'])

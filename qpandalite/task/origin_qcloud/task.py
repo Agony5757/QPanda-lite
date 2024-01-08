@@ -215,7 +215,7 @@ def query_by_taskid(taskid: Union[List[str], str],
         taskinfo['result'] = []
         for taskid_i in taskid:
             taskinfo_i = query_by_taskid_single(taskid_i, url)
-            print(taskinfo_i)
+            # print(taskinfo_i)
             if taskinfo_i['status'] == 'failed':
                 # if any task is failed, then this group is failed.
                 taskinfo['status'] = 'failed'

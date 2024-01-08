@@ -47,6 +47,7 @@ if os.getenv('SPHINX_DOC_GEN') != '1':
         default_submit_url = default_online_config['submit_url']
         default_query_url = default_online_config['query_url']
         default_task_group_size = default_online_config['task_group_size']
+        available_qubits = default_online_config.get('available_qubits', [])
     except KeyError as e:
         raise ImportError('Import origin qcloud  backend failed.\n'
                           'originq_cloud_config.json does not exist such a key.'

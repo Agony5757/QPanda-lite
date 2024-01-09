@@ -127,6 +127,7 @@ def query_by_taskid_single(taskid: str, url=default_query_url, **kwargs):
     Args:
         taskid (str): The taskid.
         url (str, optional): The querying URL. Defaults to default_query_url.
+        retry (int): The number of repetitions of failed submissions.
 
     Raises:
         ValueError: Taskid invalid.
@@ -155,11 +156,24 @@ def query_by_taskid_single(taskid: str, url=default_query_url, **kwargs):
     request_body['apiKey'] = default_token
     request_body['taskId'] = taskid
 
-    response = requests.post(url=url,
-                             headers=headers,
-                             json=request_body,
-                             verify=False,
-                             timeout=10)
+    retry = kwargs.get('retry', 5)
+
+    while True:
+        try:
+            response = requests.post(url=url,
+                                     headers=headers,
+                                     json=request_body,
+                                     verify=False,
+                                     timeout=30)
+            break
+        except:
+            if retry > 0:
+                retry -= 1
+                print(f'submit failed. Retry remains {retry} times.')
+                time.sleep(1)
+            else:
+                print(f'Retry count exhausted.')
+                raise e
 
     status_code = response.status_code
     if status_code != 200:

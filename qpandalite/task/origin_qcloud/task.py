@@ -334,18 +334,18 @@ def _submit_task_group(circuits=None,
         if group:
             groups.append(group)
 
-        return [_submit_task_group(group,
-                                   '{}_{}'.format(task_name, i),
-                                   tasktype,
-                                   chip_id,
-                                   shots,
-                                   circuit_optimize,
-                                   measurement_amend,
-                                   auto_mapping,
-                                   compile_only,
-                                   specified_block,
-                                   url,
-                                   savepath) for i, group in enumerate(groups)]
+        return [_submit_task_group(circuits=group,
+                                   task_name='{}_{}'.format(task_name, i),
+                                   tasktype=tasktype,
+                                   chip_id=chip_id,
+                                   shots=shots,
+                                   circuit_optimize=circuit_optimize,
+                                   measurement_amend=measurement_amend,
+                                   auto_mapping=auto_mapping,
+                                   compile_only=compile_only,
+                                   specified_block=specified_block,
+                                   url=url,
+                                   savepath=savepath) for i, group in enumerate(groups)]
 
         # raise RuntimeError(f'Circuit group size too large. '
         #                    f'(Expect: <= {default_task_group_size}, Get: {len(circuits)})')

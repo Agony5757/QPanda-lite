@@ -237,7 +237,7 @@ def _submit_task_group_dummy_impl(
                 # get probs from probability list
                 # Note: originq server will directly produce prob list instead of shots list.
                 for i, meas_result in enumerate(prob_result):
-                    key.append(bin(i)[2:].zfill(len(simulator.measure_qubit)))
+                    key.append(hex(i))
                     value.append(meas_result)
                 results.append({'key':key, 'value': value})
     

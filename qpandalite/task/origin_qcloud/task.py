@@ -444,6 +444,10 @@ def submit_task(
         url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
         savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
 
+    Optional kwargs:
+        timeout (float, optional): Timeout option for submitting task. Defaults to 30.
+        retry (int, optional): Retry count for submitting task. Defaults to 5.
+
     Raises:
         RuntimeError: Circuit not input
         RuntimeError: Error when submitting the task
@@ -469,7 +473,8 @@ def submit_task(
             compile_only=False,
             specified_block=specified_block,
             url=url,
-            savepath=savepath
+            savepath=savepath,
+            **kwargs
         )
     elif isinstance(circuit, str):
         taskid = _submit_task_group(
@@ -484,7 +489,8 @@ def submit_task(
             compile_only=False,
             specified_block=specified_block,
             url=url,
-            savepath=savepath
+            savepath=savepath,            
+            **kwargs
         )
     else:
         raise ValueError('Input must be a str or List[str], where each str is a valid originir string.')

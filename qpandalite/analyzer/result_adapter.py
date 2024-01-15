@@ -11,7 +11,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                            style = 'keyvalue', 
                            prob_or_shots = 'prob',
                            reverse_key = True, 
-                           key_style = 'dec',
+                           key_style = 'bin',
                            qubit_num = None):
     '''OriginQ result general adapter. Return adapted format given by the arguments. 
 
@@ -19,7 +19,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
         key_value_result (Dict[str, int] or a list of Dict[str, int]): The raw result produced by machine.
         style (str): Accepts "keyvalue" or "list". Defaults to 'keyvalue'.
         prob_or_shots (str): Accepts "prob" or "shots". Defaults to 'prob'.
-        key_style (str): Accepts "bin" (as str) or "dec" (as int). Defaults to 'dec'.
+        key_style (str): Accepts "bin" (as str) or "dec" (as int). Defaults to 'bin'.
         reverse_key (bool, optional): Reverse the key (Change endian). Defaults to True.
 
     Raises:

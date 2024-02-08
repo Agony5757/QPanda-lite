@@ -23,6 +23,10 @@ default_online_config = {
     'task_group_size': 'default_task_group_size'
 }
 
+TASK_STATUS_FAILED = 'failed'
+TASK_STATUS_SUCCESS = 'success'
+TASK_STATUS_RUNNING = 'running'
+
 # Only attempt to read the config file if we're not generating docs
 if os.getenv('SPHINX_DOC_GEN') != '1':
     try:
@@ -91,7 +95,7 @@ def parse_response_body(response_body):
     task_status = result_list['taskStatus']
     if task_status == '3':
         # successfully finished !
-        ret['status'] = 'success'
+        ret['status'] = TASK_STATUS_SUCCESS
 
         # task_result
         task_result = result_list['taskResult']
@@ -105,12 +109,12 @@ def parse_response_body(response_body):
         ret['result'] = task_result
         return ret
     elif task_status == '4':
-        ret['status'] = 'failed'
+        ret['status'] = TASK_STATUS_FAILED
         ret['result'] = {'errcode': result_list['errorDetail'], 'errinfo': result_list['errorMessage']}
 
         return ret
     else:
-        ret['status'] = 'running'
+        ret['status'] = TASK_STATUS_RUNNING
         return ret
 
 
@@ -179,7 +183,8 @@ def query_by_taskid_single(taskid: str,
     response_body = json.loads(text)
     taskinfo = parse_response_body(response_body)
     
-    if savepath and (taskinfo['status'] == 'success' or taskinfo['status'] == 'failed'):
+    if savepath and (taskinfo['status'] == TASK_STATUS_SUCCESS or 
+                     taskinfo['status'] == TASK_STATUS_FAILED):
         write_taskinfo(taskid, taskinfo, savepath)
 
     return taskinfo
@@ -212,19 +217,19 @@ def query_by_taskid(taskid: Union[List[str], str],
 
     if isinstance(taskid, list):
         taskinfo = dict()
-        taskinfo['status'] = 'success'
+        taskinfo['status'] = TASK_STATUS_SUCCESS
         taskinfo['result'] = []
         for taskid_i in taskid:
             taskinfo_i = query_by_taskid_single(taskid_i, url, savepath)
-            if taskinfo_i['status'] == 'failed':
+            if taskinfo_i['status'] == TASK_STATUS_FAILED:
                 # if any task is failed, then this group is failed.
-                taskinfo['status'] = 'failed'
+                taskinfo['status'] = TASK_STATUS_FAILED
                 break
-            elif taskinfo_i['status'] == 'running':
+            elif taskinfo_i['status'] == TASK_STATUS_RUNNING:
                 # if any task is running, then set to running
-                taskinfo['status'] = 'running'
-            if taskinfo_i['status'] == 'success':
-                if taskinfo['status'] == 'success':
+                taskinfo['status'] = TASK_STATUS_RUNNING
+            if taskinfo_i['status'] == TASK_STATUS_SUCCESS:
+                if taskinfo['status'] == TASK_STATUS_SUCCESS:
                     # update if task is successfully finished (so far)
                     taskinfo['result'].extend(taskinfo_i['result'])
 
@@ -272,12 +277,12 @@ def query_by_taskid_sync(taskid,
             time.sleep(interval)
 
             taskinfo = query_by_taskid(taskid, url, savepath)
-            if taskinfo['status'] == 'running':
+            if taskinfo['status'] == TASK_STATUS_RUNNING:
                 continue
-            if taskinfo['status'] == 'success':
+            if taskinfo['status'] == TASK_STATUS_SUCCESS:
                 result = taskinfo['result']
                 return result
-            if taskinfo['status'] == 'failed':
+            if taskinfo['status'] == TASK_STATUS_FAILED:
                 errorinfo = taskinfo['result']
                 raise RuntimeError(f'Failed to execute, errorinfo = {errorinfo}')
         except Exception as e:
@@ -318,7 +323,7 @@ def _submit_task_group(circuits=None,
         compile_only (bool, optional): Only compile time sequence data, without really executing it. Defaults to False.
         specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
         url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
-        timeout (float, optional): The timeout for submitting each task
+        timeout (float, optional): The timeout for submitting each task (passed to request.post)
         savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
 
     Raises:
@@ -528,7 +533,7 @@ def query_all_task(url=default_query_url, savepath=None, **kwargs):
             for taskid_i in taskid:
                 if not os.path.exists(savepath / '{}.txt'.format(taskid)):
                     taskinfo = query_by_taskid(taskid_i, url)
-                    if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
+                    if taskinfo['status'] == TASK_STATUS_SUCCESS or taskinfo['status'] == TASK_STATUS_FAILED:
                         write_taskinfo(taskid_i, taskinfo, savepath)
                     else:
                         status = 'unfinished'
@@ -538,7 +543,7 @@ def query_all_task(url=default_query_url, savepath=None, **kwargs):
         elif isinstance(taskid, str):
             if not os.path.exists(savepath / '{}.txt'.format(taskid)):
                 taskinfo = query_by_taskid(taskid, url)
-                if taskinfo['status'] == 'success' or taskinfo['status'] == 'failed':
+                if taskinfo['status'] == TASK_STATUS_SUCCESS or taskinfo['status'] == TASK_STATUS_FAILED:
                     write_taskinfo(taskid, taskinfo, savepath)
                     finished += 1
             else:

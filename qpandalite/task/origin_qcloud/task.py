@@ -41,7 +41,7 @@ if os.getenv('SPHINX_DOC_GEN') != '1':
                           'Cannot load json from the originq_cloud_config.json. '
                           'Please check the content.')
     except Exception as e:
-        raise ImportError('Import origin qcloud  failed.\n'
+        raise ImportError('Import origin qcloud failed.\n'
                           'Unknown import error.'
                           '\n===== Original exception ======\n'
                           f'{traceback.format_exc()}')

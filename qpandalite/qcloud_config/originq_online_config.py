@@ -2,12 +2,12 @@ import json
 from pathlib import Path
 
 def create_originq_config(login_apitoken = None, 
-                                 login_url = None,
-                                 submit_url = None, 
-                                 query_url = None, 
-                                 available_qubits = None,
-                                 available_topology = None,
-                                 task_group_size = 200):    
+                          login_url = None,
+                          submit_url = None, 
+                          query_url = None, 
+                          available_qubits = None,
+                          available_topology = None,
+                          task_group_size = 200):    
 
     if not login_apitoken:
         raise RuntimeError('You should input your token.')

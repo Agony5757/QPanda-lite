@@ -312,6 +312,10 @@ class Circuit:
                 self.used_qubit_list.append(qubit)
                 self.max_qubit = max(self.max_qubit, qubit)
 
+    def identity(self, qn) -> None:
+        self.circuit_str += 'I q[{}]\n'.format(qn)
+        self.record_qubit(qn)
+
     def h(self, qn) -> None:
         self.circuit_str += 'H q[{}]\n'.format(qn)
         self.record_qubit(qn)
@@ -340,8 +344,8 @@ class Circuit:
         self.circuit_str += 'RZ q[{}], ({})\n'.format(qn, theta)
         self.record_qubit(qn)
 
-    def rphi(self, qn, phi, theta) -> None:
-        self.circuit_str += 'Rphi q[{}], ({}, {})\n'.format(qn, phi, theta)
+    def rphi(self, qn, theta, phi) -> None:
+        self.circuit_str += 'RPhi q[{}], ({}, {})\n'.format(qn, theta, phi)
         self.record_qubit(qn)
 
     def cnot(self, controller, target) -> None:
@@ -372,7 +376,7 @@ class Circuit:
         return CircuitControlContext(self, args)
     
     def set_control(self, *args):    
-        self.record_qubit(*args)    
+        self.record_qubit(*args)
         ret = 'CONTROL '
         for q in self.control_list:
             ret += f'q[{q}], '

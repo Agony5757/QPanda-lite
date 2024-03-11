@@ -111,8 +111,16 @@ def write_taskinfo(taskid, taskinfo, savepath = None):
         taskinfo (Dict): The taskinfo needed to be saved correponding to the taskid (as a single file)
         savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath. Defaults to None.
     '''
+
+    # if no savepath, then it will not save anything
     if not savepath:
-        savepath = Path.cwd() / 'online_info'
+        return
+        # savepath = Path.cwd() / 'online_info'
+
+    # no overwrite
+    if os.path.exists(savepath / '{}.txt'.format(taskid)):
+        return
+    
     with open(savepath / '{}.txt'.format(taskid), 'w') as fp:
         json.dump(taskinfo, fp)
 

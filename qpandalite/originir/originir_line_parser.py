@@ -192,7 +192,7 @@ class OriginIR_Parser:
         # Extract individual qubit patterns
         qubits = OriginIR_Parser.regexp_qid.findall(line)
         # Extract only the numeric part of each qubit pattern
-        qubit_indices = [int(q[0]) for q in qubits]
+        qubit_indices = [int(q) for q in qubits]
         return "BARRIER", qubit_indices
     
     @staticmethod
@@ -300,6 +300,8 @@ class OriginIR_Parser:
                 operation, q = OriginIR_Parser.handle_2q(line)
             elif line.startswith('ISWAP'):
                 operation, q = OriginIR_Parser.handle_2q(line)
+            elif line.startswith('I'):
+                operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('XY'):
                 operation, q = OriginIR_Parser.handle_2q1p(line)
             elif line.startswith('CNOT'):

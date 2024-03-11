@@ -8,6 +8,7 @@ import json
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import warnings
 from json.decoder import JSONDecodeError
+import bz2
 
 from ..task_utils import *
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -103,8 +104,9 @@ def parse_response_body(response_body):
             - compiled_prog 
             - result (not always)
     '''
-    # print(response_body)
+    
     ret = dict()
+    
     ret['taskid'] = response_body['taskId']
     ret['taskname'] = response_body['taskDescribe']
 
@@ -125,11 +127,11 @@ def parse_response_body(response_body):
         # compiled_prog = response_body['without_compensate_prog']
         # print(type(compiled_prog))
         # ret['compiled_prog'] = json.loads(compiled_prog)
-        timelines = response_body['compile_output_prog']
-        timelines_ret = []
-        for timeline in timelines:
-            timelines_ret.append(json.loads(timeline))
-        ret['timeline'] = timelines_ret
+        # timelines = response_body['compile_output_prog']
+        # timelines_ret = []
+        # for timeline in timelines:
+        #     timelines_ret.append(json.loads(timeline))
+        # ret['timeline'] = timelines_ret
         return ret
     elif task_status == '4':
         ret['status'] = 'failed'
@@ -174,10 +176,13 @@ def query_by_taskid_single(taskid : str, url = default_query_url, **kwargs):
         raise RuntimeError(f'Error in query_by_taskid. '
                            'The returned status code is not 200.'
                            f' Response: {response.text}')
-    
-    text = response.text
-    response_body = json.loads(text)
 
+    if response.content[:2] == b'BZ':
+        text = bz2.decompress(response.content)
+    else:
+        text = response.text
+
+    response_body = json.loads(text)
     taskinfo = parse_response_body(response_body)
 
     return taskinfo

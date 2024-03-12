@@ -8,6 +8,9 @@ from typing import Dict, Mapping, List, Optional, Tuple
 from typing_extensions import override
 # from numpy.typing import ArrayLike
 
+def seed(seed_: int) -> None: ...
+def rand() -> float: ...
+
 class Simulator:
     def __init__(self) -> None: 
         '''Create a simulator instance (implemented by C++).
@@ -405,7 +408,7 @@ class NoisySimulator:
         self.simulator_instance = qpandalite.NoisySimulator(
             n_qubit, noise_description, gate_noise_description, measurement_error
         )
-        
+
     @property
     def total_qubit(self) -> int:
         '''The number of qubit.

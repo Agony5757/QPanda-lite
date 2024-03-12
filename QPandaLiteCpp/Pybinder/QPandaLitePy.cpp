@@ -11,6 +11,7 @@
 
 #include "simulator.h"
 #include "noisy_simulator.h"
+#include "rng.h"
 using namespace std;
 using namespace pybind11::literals;
 namespace py = pybind11;
@@ -18,6 +19,9 @@ namespace py = pybind11;
 PYBIND11_MODULE(QPandaLitePy, m)
 {
 	m.doc() = "[Module QPandaLitePy]";
+	m.def("seed", &qpandalite::seed);
+	m.def("rand", &qpandalite::rand);
+
 	py::class_<qpandalite::Simulator>(m, "Simulator")
 		.def(py::init<>())
 		.def_readwrite_static("max_qubit_num", &qpandalite::Simulator::max_qubit_num)
@@ -151,6 +155,7 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		// .def("rphi180_cont", &qpandalite::NoisySimulator::rphi180_cont, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
 		// .def("rphi_cont", &qpandalite::NoisySimulator::rphi_cont, py::arg("qn"), py::arg("phi"), py::arg("theta"), py::arg("is_dagger") = false)
 		;
+
 
 }
 

@@ -4,7 +4,13 @@ import math
 from qpandalite.simulator import Simulator, NoisySimulator
 from qpandalite.qasm_origin import OpenQASM2_Parser
 from qpandalite.circuit_builder import Circuit
+from qpandalite.simulator import seed
 
+import time
+current_time_seed = int(time.time())
+
+# Use the current time as a seed
+seed(current_time_seed)
 
 # Define the noise descriptions
 noise_description = {

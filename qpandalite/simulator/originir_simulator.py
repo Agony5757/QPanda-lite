@@ -168,17 +168,22 @@ class OriginIR_Simulator:
 
 
 class OriginIR_NoisySimulator(OriginIR_Simulator):
-    def __init__(self, noise_description, gate_noise_description={}, reverse_key=False):
+    def __init__(self, noise_description, gate_noise_description={}, 
+                 measurement_error=[], reverse_key=False):
         # Initialize noise-related attributes
         self.noise_description = noise_description
         self.gate_noise_description = gate_noise_description
+        self.measurement_error = measurement_error
         # Initialize the superclass with the reverse_key parameter
         super().__init__(reverse_key=reverse_key)
 
     def _make_simulator(self):
         # Overriding the parent class's _make_simulator method
         # to create an instance of NoisySimulator instead of Simulator
-        self.simulator = NoisySimulator(self.qubit_num, self.noise_description, self.gate_noise_description)
+        self.simulator = NoisySimulator(self.qubit_num, 
+                                        self.noise_description, 
+                                        self.gate_noise_description,
+                                        self.measurement_error)
 
     def simulate_gate(self, operation, qubit, cbit, parameter, is_dagger):
         # print(operation, qubit, cbit, parameter, is_dagger)
@@ -232,6 +237,7 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
 
     def simulate(self, 
                  originir, 
+                 shots = 1000,
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None):
         '''Simulate originir.
@@ -279,12 +285,12 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
             self.simulate_gate(operation, qubit, cbit, parameter, dagger_flag)
         
         self.qubit_num = len(self.qubit_mapping)
-        # measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)
-        # measure_qubit = []
-        # for qubit in measure_qubit_cbit:
-        #     measure_qubit.append(qubit[0])
-        # prob_list = self.simulator.measure_shots(1024)
-        # return prob_list
+        measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)
+        measure_qubit = []
+        for qubit in measure_qubit_cbit:
+            measure_qubit.append(qubit[0])
+        prob_list = self.simulator.measure_shots(measure_qubit, shots)
+        return prob_list
     
     @property
     def state(self):

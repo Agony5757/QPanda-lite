@@ -568,7 +568,17 @@ class NoisySimulator:
             theta (float): The rotation angle.
         '''
         ...
-
+    def get_prob_list(self, measure_list: list) -> List:
+        """
+        Get probability list with certain measure qubits.
+        
+        Args:
+            measure_list (list): The measure qubit indices.
+            
+        Returns:
+            List: A probability list measured in measure_list.
+        """
+        ...
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.

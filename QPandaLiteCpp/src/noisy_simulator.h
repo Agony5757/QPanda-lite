@@ -109,6 +109,7 @@ namespace qpandalite {
         std::vector<std::array<double, 2>> measurement_error_matrices;
         NoiseSimulatorImpl simulator;
         size_t nqubit;
+        //std::vector<complex_t> state;
         std::vector<size_t> measure_qubits;
         std::map<size_t, size_t> measure_map;
         std::vector<OpcodeType> opcodes; // opcode + noisy
@@ -170,8 +171,10 @@ namespace qpandalite {
 
         void execute_once();
         std::pair<size_t, double> _get_state_prob(size_t i);
-        size_t get_measure();
-        std::map<size_t, size_t> measure_shots(size_t shots);
+        // size_t get_measure();
+        std::vector<double_t> NoisySimulator::get_prob_list(const std::vector<size_t>& measure_list);
+        size_t get_measure(std::vector<double_t> prob_list);
+        std::map<size_t, size_t> measure_shots(const std::vector<size_t>& measure_list, size_t shots);
 
     };
 }

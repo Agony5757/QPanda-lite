@@ -81,7 +81,8 @@ if __name__ == '__main__':
     kvresult = convert_originq_result(result, 
                                     style='keyvalue', 
                                     prob_or_shots='prob', 
-                                    reverse_key=False)
+                                    reverse_key=False,
+                                    qubit_num=3)
     
     print(calculate_expectation(kvresult, ['IIZ', 'IZI', 'ZII', 'ZZZ']))
     

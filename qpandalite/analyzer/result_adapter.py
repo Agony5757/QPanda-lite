@@ -11,6 +11,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                            style = 'keyvalue', 
                            prob_or_shots = 'prob',
                            reverse_key = True, 
+                           key_input_style = 'bin',
                            key_style = 'bin',
                            qubit_num = None):
     '''OriginQ result general adapter. Return adapted format given by the arguments. 
@@ -35,11 +36,13 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                        style=style,
                                        prob_or_shots=prob_or_shots,
                                        reverse_key=reverse_key,
+                                       key_input_style = key_input_style,
                                        key_style=key_style) 
                                        for result in key_value_result]
 
     keys = deepcopy(key_value_result['key'])
-    keys = [int(key, base=16) for key in keys]
+    base = 2 if key_input_style == 'bin' else 16
+    keys = [int(key, base=base) for key in keys]
     
     values = deepcopy(key_value_result['value'])
 

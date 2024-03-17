@@ -14,7 +14,7 @@ seed(current_time_seed)
 
 # Define the noise descriptions
 noise_description = {
-    # "depolarizing": 0.01
+    "depolarizing": 0.01
 }
 
 # Define the gate noise descriptions
@@ -52,6 +52,6 @@ simulator.rphi(1, np.pi/2, np.pi/4)
 shots = 1024
 
 # # Measure the state multiple times
-measurement_results = simulator.measure_shots(shots)
+measurement_results = simulator.measure_shots(measure_qubit=[(0,0)], shots=shots)
 
 print(measurement_results)

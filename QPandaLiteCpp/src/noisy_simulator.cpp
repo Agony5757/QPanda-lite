@@ -1,5 +1,8 @@
 #include "noisy_simulator.h"
 #include "rng.h"
+#include <bitset>
+#include <string>
+#include <numeric>
 
 namespace qpandalite {
 
@@ -753,7 +756,7 @@ namespace qpandalite {
 		return { meas_idx, prob };
 	}
 
-	size_t NoisySimulator::get_measure()
+	/*size_t NoisySimulator::get_measure()
 	{
 		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
@@ -775,18 +778,94 @@ namespace qpandalite {
 			}
 		}
 		ThrowRuntimeError("NoisySimulator::get_measure() internal fatal error!");
+	}*/
+
+	size_t NoisySimulator::get_measure(std::vector<double_t> prob_list)
+	{	
+		size_t iter_num = prob_list.size();
+
+		// Generate a random number between 0 and 1
+		double r = qpandalite::rand();
+		// std::cout << r << " ";
+		for (size_t i = 0; i < iter_num; ++i)
+		{
+			// std::cout << simulator.state[i] << " ";
+			// Is this random number landing in this probability range?
+			if (r < prob_list[i])
+			{
+				// std::cout << r << " ";		
+				return i;
+			}
+			// No, move to the next one, and subtract the current prob from the r
+			else
+			{
+				r -= prob_list[i];
+				// std::cout << r << " ";
+			}
+		}
+		ThrowRuntimeError("NoisySimulator::get_measure() internal fatal error!");
 	}
 
-	std::map<size_t, size_t> NoisySimulator::measure_shots(size_t shots)
+	std::vector<double_t> NoisySimulator::get_prob_list(const std::vector<size_t>& measure_list)
+	{
+		// Generate a new state with certain measure_qubits (not all qubits)
+		size_t n_q = simulator.total_qubit;
+		size_t n_m = measure_list.size();
+		size_t n_s = n_q - n_m;
+		
+		std::vector<double_t> prob_list(pow(2, n_m), 0.0);
+		std::vector<std::vector<double_t>> intermediate_state(pow(2, n_m), std::vector<double_t>(pow(2, n_s), 0.0));
+
+		if (n_s == 0) {
+			for (size_t i = 0; i < pow(2, n_q); ++i) {
+				prob_list[i] = abs_sqr(simulator.state[i]);
+			}
+			return prob_list;
+		}
+
+		for (size_t t = 0; t < pow(2, n_q); ++t) {
+			std::string binary_str = std::bitset<32>(t).to_string().substr(32 - n_q, n_q);
+			std::string str1 = "", str2 = "";
+			std::size_t str_size = binary_str.size();
+
+			for (size_t i = 0; i < str_size; ++i) {
+				if (std::find(measure_list.begin(), measure_list.end(), i) != measure_list.end()) {
+					str1 = binary_str[str_size - 1 - i] + str1;
+					// The measure_list has to be sorted list;
+				}
+				else {
+					str2 = binary_str[str_size - 1 - i] + str2;
+				}
+			}
+
+			size_t k = std::stoi(str1, nullptr, 2);
+			size_t l = std::stoi(str2, nullptr, 2);
+			intermediate_state[k][l] = abs_sqr(simulator.state[t]);
+		}
+
+		for (size_t i = 0; i < intermediate_state.size(); ++i) {
+			prob_list[i] = std::accumulate(intermediate_state[i].begin(), intermediate_state[i].end(), 0.0);
+		}
+
+		return prob_list;
+	}
+
+	std::map<size_t, size_t> NoisySimulator::measure_shots(const std::vector<size_t>& measure_list, size_t shots)
 	{
 		// Initialize an empty map to hold the frequency of each measured quantum state.
 		std::map<size_t, size_t> measured_result;
+		std::vector<double_t> prob_list;
 
 		for (size_t i = 0; i < shots; ++i)
 		{
 			// Execute the quantum circuit once and Measure the quantum state after executing the circuit.
 			execute_once();
-			size_t meas = get_measure();
+			/*for (size_t i = 0; i < simulator.state.size(); ++i) {
+				std::cout << simulator.state[i] << ' ';
+			}
+			std::cout << '\n';*/
+			prob_list = get_prob_list(measure_list);
+			size_t meas = get_measure(prob_list);
 			// std::cout << meas << " ";
 			// Search the histogram to see if this state has been observed before.
 			auto it = measured_result.find(meas);

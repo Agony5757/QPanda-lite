@@ -48,13 +48,12 @@ print(qc.used_qubit_list)
 # print(qc.circuit_str)
 # print(f'remapping:{remapping}')
 result = nsim.simulate(qc.originir, shots=10000)
-res = nsim.simulator.get_prob_list([0,1,2,3])
+
 _sum = 0
 for key, value in result.items():
     _sum += value
 print(f'noisy result: {result}')
 print(_sum)
-print(f'prob_list: {res}')
 
 
 

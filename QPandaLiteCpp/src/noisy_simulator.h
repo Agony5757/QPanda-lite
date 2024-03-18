@@ -171,9 +171,8 @@ namespace qpandalite {
 
         void execute_once();
         std::pair<size_t, double> _get_state_prob(size_t i);
-        // size_t get_measure();
-        std::vector<double_t> NoisySimulator::get_prob_list(const std::vector<size_t>& measure_list);
-        size_t get_measure(std::vector<double_t> prob_list);
+        size_t get_measure();
+        size_t integer_trans(size_t i, const std::vector<size_t>& measure_list);
         std::map<size_t, size_t> measure_shots(const std::vector<size_t>& measure_list, size_t shots);
 
     };

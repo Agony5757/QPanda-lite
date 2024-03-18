@@ -6,6 +6,7 @@ sim = qsim.Simulator()
 sim.init_n_qubit(6)
 print(len(sim.state))
 print(sim.state)
+
 print(sim.total_qubit)
 
 sim.hadamard(0)

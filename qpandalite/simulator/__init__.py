@@ -11,3 +11,4 @@ except ImportError as e:
     warnings.warn('qpandalite is not install with QPandaLiteCpp.')
 
 from .originir_simulator import OriginIR_Simulator
+from .originir_simulator import OriginIR_NoisySimulator

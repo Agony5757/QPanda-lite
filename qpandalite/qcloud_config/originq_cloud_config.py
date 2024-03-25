@@ -7,7 +7,8 @@ def create_originq_cloud_config(apitoken=None,
                           query_url=None,
                           available_qubits=None,
                           available_topology=None,
-                          task_group_size=200):
+                          task_group_size=200,
+                          savepath = None):
     if not apitoken:
         raise RuntimeError('You should input your api key.')
 
@@ -25,6 +26,9 @@ def create_originq_cloud_config(apitoken=None,
 
     if not isinstance(task_group_size, int):
         raise RuntimeError('Task group size (task_group_size) must be a number.')
+    
+    if not savepath:
+        savepath = Path.cwd()
 
     default_online_config = {
         'apitoken': apitoken,
@@ -35,14 +39,15 @@ def create_originq_cloud_config(apitoken=None,
         'task_group_size': task_group_size,
     }
 
-    with open(Path.cwd() / 'originq_cloud_config.json', 'w') as fp:
+    with open(savepath / 'originq_cloud_config.json', 'w') as fp:
         json.dump(default_online_config, fp, indent=2)
 
 
 def create_originq_online_cloud_config(apitoken=None,
                                  submit_url=None,
                                  query_url=None,
-                                 task_group_size=200):
+                                 task_group_size=200,
+                                 savepath = None):
     if not apitoken:
         raise RuntimeError('You should input your api key.')
 
@@ -54,6 +59,9 @@ def create_originq_online_cloud_config(apitoken=None,
 
     if not isinstance(task_group_size, int):
         raise RuntimeError('Task group size (task_group_size) must be a number.')
+    
+    if not savepath:
+        savepath = Path.cwd()
 
     default_online_config = {
         'apitoken': apitoken,
@@ -64,7 +72,7 @@ def create_originq_online_cloud_config(apitoken=None,
         'task_group_size': task_group_size,
     }
 
-    with open(Path.cwd() / 'originq_cloud_config.json', 'w') as fp:
+    with open(savepath / 'originq_cloud_config.json', 'w') as fp:
         json.dump(default_online_config, fp, indent=2)
 
 

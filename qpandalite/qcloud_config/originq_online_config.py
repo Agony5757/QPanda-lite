@@ -7,7 +7,8 @@ def create_originq_config(login_apitoken = None,
                           query_url = None, 
                           available_qubits = None,
                           available_topology = None,
-                          task_group_size = 200):    
+                          task_group_size = 200,
+                          savepath = None):    
 
     if not login_apitoken:
         raise RuntimeError('You should input your token.')
@@ -29,6 +30,9 @@ def create_originq_config(login_apitoken = None,
 
     if not isinstance(task_group_size, int):
         raise RuntimeError('Task group size (task_group_size) must be a number.')
+    
+    if not savepath:
+        savepath = Path.cwd()
 
     default_online_config = {
         'login_apitoken' : login_apitoken,
@@ -40,14 +44,15 @@ def create_originq_config(login_apitoken = None,
         'task_group_size': task_group_size,
     }
 
-    with open(Path.cwd() / 'originq_online_config.json', 'w') as fp:
+    with open(savepath / 'originq_online_config.json', 'w') as fp:
         json.dump(default_online_config, fp, indent=2)
 
 def create_originq_online_config(login_apitoken = None, 
                                  login_url = None,
                                  submit_url = None, 
                                  query_url = None, 
-                                 task_group_size = 200):    
+                                 task_group_size = 200,
+                                 savepath = None):    
 
     if not login_apitoken:
         raise RuntimeError('You should input your token.')
@@ -63,6 +68,9 @@ def create_originq_online_config(login_apitoken = None,
 
     if not isinstance(task_group_size, int):
         raise RuntimeError('Task group size (task_group_size) must be a number.')
+    
+    if not savepath:
+        savepath = Path.cwd()
 
     default_online_config = {
         'login_apitoken' : login_apitoken,
@@ -74,13 +82,14 @@ def create_originq_online_config(login_apitoken = None,
         'task_group_size': task_group_size,
     }
 
-    with open(Path.cwd() / 'originq_online_config.json', 'w') as fp:
+    with open(savepath / 'originq_online_config.json', 'w') as fp:
         json.dump(default_online_config, fp, indent=2)
 
 def create_originq_dummy_config(
     available_qubits = None,
     available_topology = None,
-    task_group_size = 200):    
+    task_group_size = 200,
+    savepath = None):    
 
     if not isinstance(available_qubits, list):
         raise RuntimeError('Available qubits must be a list.')
@@ -90,6 +99,9 @@ def create_originq_dummy_config(
 
     if not isinstance(task_group_size, int):
         raise RuntimeError('Task group size (task_group_size) must be a number.')
+    
+    if not savepath:
+        savepath = Path.cwd()
 
     default_online_config = {
         'login_apitoken' : 'DUMMY',
@@ -101,8 +113,9 @@ def create_originq_dummy_config(
         'task_group_size': task_group_size,
     }
 
-    with open(Path.cwd() / 'originq_online_config.json', 'w') as fp:
+    with open(savepath / 'originq_online_config.json', 'w') as fp:
         json.dump(default_online_config, fp, indent=2)
+
 
 
 if __name__ == '__main__':

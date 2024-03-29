@@ -35,7 +35,8 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                        style=style,
                                        prob_or_shots=prob_or_shots,
                                        reverse_key=reverse_key,
-                                       key_style=key_style) 
+                                       key_style=key_style,
+                                       qubit_num=qubit_num) 
                                        for result in key_value_result]
 
     keys = deepcopy(key_value_result['key'])

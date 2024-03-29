@@ -85,6 +85,7 @@ class DummyCacheContainer:
                         return result
 
 dummy_cache_container = DummyCacheContainer()
+dummy_cache_container.dummy_path = Path.cwd() / 'dummy_cache'
 
 def set_dummy_path(dummy_path : os.PathLike):
     _create_dummy_cache(dummy_path)
@@ -186,7 +187,8 @@ def _submit_task_group_dummy_impl(
                 '{}_{}'.format(task_name, i), 
                 shots, 
                 auto_mapping,
-                savepath) for i, group in enumerate(groups)]
+                savepath,
+                **kwargs) for i, group in enumerate(groups)]
     
     # generate taskid
     taskid = _random_taskid()
@@ -194,32 +196,33 @@ def _submit_task_group_dummy_impl(
 
     noise_description = kwargs.get('noise_description', None)
     gate_noise_description = kwargs.get('gate_noise_description', None)
-    measurement_error = kwargs.get('measurement_error', None)
+    measurement_error = kwargs.get('measurement_error', [])
 
     for circuit in circuits:
         # If there is noise_description
         if noise_description:
-            my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, measurement_error)
-            my_sim.simulate(circuit)
-            prob_result = my_sim.simulator.measure_shots(shots)
+            my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
+                                             measurement_error, reverse_key=False)
             
             if auto_mapping:
-                pass
-                # prob_result = simulator.simulate(circuit)
+                prob_result = my_sim.simulate(circuit, shots)
             else:
-                # prob_result = simulator.simulate(circuit, available_qubits=available_qubits, available_topology=available_topology)
-                n_qubits = my_sim.qubit_num
-                key = []
-                value = []
+                prob_result = my_sim.simulate(circuit, shots=shots, 
+                                                 available_qubits=available_qubits, 
+                                                 available_topology=available_topology)
+            # n_qubits = my_sim.qubit_num
+            n_qubits = len(my_sim.measure_qubit)    
+            key = []
+            value = []
 
-                # get probs from probability list
-                # Note: originq server will directly produce prob list instead of shots list.
+            # get probs from probability list
+            # Note: originq server will directly produce prob list instead of shots list.
 
-                for i, meas_result in prob_result.items():
-                    # print(i, meas_result)
-                    key.append(bin(i)[2:].zfill(n_qubits))
-                    value.append(meas_result/shots)
-                results.append({'key':key, 'value': value})
+            for i, meas_result in prob_result.items():
+                # print(i, meas_result)
+                key.append(bin(i)[2:].zfill(n_qubits))
+                value.append(meas_result/shots)
+            results.append({'key':key, 'value': value})
 
         else:
             simulator = sim.OriginIR_Simulator()
@@ -230,16 +233,16 @@ def _submit_task_group_dummy_impl(
                 prob_result = simulator.simulate(circuit, 
                                                 available_qubits=available_qubits,
                                                 available_topology=available_topology)
-                n_qubits = simulator.qubit_num
-                key = []
-                value = []
+            n_qubits = simulator.qubit_num
+            key = []
+            value = []
 
-                # get probs from probability list
-                # Note: originq server will directly produce prob list instead of shots list.
-                for i, meas_result in enumerate(prob_result):
-                    key.append(hex(i))
-                    value.append(meas_result)
-                results.append({'key':key, 'value': value})
+            # get probs from probability list
+            # Note: originq server will directly produce prob list instead of shots list.
+            for i, meas_result in enumerate(prob_result):
+                key.append(hex(i))
+                value.append(meas_result)
+            results.append({'key':key, 'value': value})
     
     # write cache, ready for loading results
     _write_dummy_cache(taskid, task_name, results)

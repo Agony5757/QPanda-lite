@@ -568,7 +568,7 @@ class NoisySimulator:
             theta (float): The rotation angle.
         '''
         ...
-
+        
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.

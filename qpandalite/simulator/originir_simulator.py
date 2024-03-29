@@ -25,6 +25,7 @@ class OriginIR_Simulator:
         self.qubit_num = 0
         self.measure_qubit = []
         self.qubit_mapping = dict()
+        self.parser = OriginIR_BaseParser()
         self._make_simulator()
 
     def _make_simulator(self):        

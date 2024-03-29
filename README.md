@@ -28,7 +28,7 @@ Developing. Unstable.
 
 ### Requirements
  
- - Python >= 3.7
+ - Python >= 3.8
 
 #### Optional for quafu execution
 manually install via pip : 

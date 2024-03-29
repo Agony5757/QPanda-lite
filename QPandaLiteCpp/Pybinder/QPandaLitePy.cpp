@@ -136,7 +136,6 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("rphi90", &qpandalite::NoisySimulator::rphi90, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
 		.def("rphi180", &qpandalite::NoisySimulator::rphi180, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
 		.def("rphi", &qpandalite::NoisySimulator::rphi, py::arg("qn"), py::arg("phi"), py::arg("theta"), py::arg("is_dagger") = false)
-		.def("integer_trans", &qpandalite::NoisySimulator::integer_trans, py::arg("i"), py::arg("measure_list"))
 		.def("measure_shots", &qpandalite::NoisySimulator::measure_shots, py::arg("measure_list"), py::arg("shots"))
 		
 		// .def("hadamard_cont", &qpandalite::NoisySimulator::hadamard_cont, py::arg("qn"), py::arg("is_dagger") = false)

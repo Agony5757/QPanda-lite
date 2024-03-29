@@ -390,7 +390,7 @@ def query_by_taskid_sync(taskid : Union[str, List[str]],
         
         time.sleep(interval)
 
-def query_all_task(savepath = None, 
+def query_all_tasks(savepath = None, 
                    url = None, # dummy parameter
                    ): 
     '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
@@ -434,6 +434,14 @@ def query_all_task(savepath = None,
         else:
             raise RuntimeError('Invalid Taskid.')
     return finished, task_count
+
+def query_all_task(savepath = None, 
+                   url = None, # dummy parameter
+                   ):
+    '''Deprecated!! Use query_all_tasks instead
+    '''
+    warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
+    return query_all_tasks(savepath, url)
 
 if __name__ == '__main__':
     _random_taskid()

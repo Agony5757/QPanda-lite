@@ -509,7 +509,7 @@ def submit_task(
     return taskid
 
 
-def query_all_task(url=default_query_url, savepath=None, **kwargs):
+def query_all_tasks(url=default_query_url, savepath=None, **kwargs):
     '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
 
     Args:
@@ -552,6 +552,11 @@ def query_all_task(url=default_query_url, savepath=None, **kwargs):
             raise RuntimeError('Invalid Taskid.')
     return finished, task_count
 
+def query_all_task(url=default_query_url, savepath=None, **kwargs):
+    '''Deprecated!! Use query_all_tasks instead
+    '''
+    warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
+    return query_all_tasks(url, savepath, **kwargs)
 
 if __name__ == '__main__':
     result = query_by_taskid_single("55775D4858EF3D2C3813945703243A01")

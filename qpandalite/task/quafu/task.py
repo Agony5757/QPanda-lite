@@ -351,7 +351,7 @@ def query_task_by_group_sync(group_name, verbose=True, savepath=Path.cwd() / 'qu
                 raise e
 
 
-def query_all_task(savepath = None):
+def query_all_tasks(savepath = None):
     if not savepath:
         savepath = Path.cwd() / 'quafu_online_info'
     
@@ -368,3 +368,9 @@ def query_all_task(savepath = None):
             else:                
                 # write_taskinfo(savepath, taskid, ret)
                 write_taskinfo(taskid, taskinfo=ret, savepath=savepath)
+
+def query_all_task(savepath = None):
+    '''Deprecated!! Use query_all_tasks instead
+    '''
+    warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
+    return query_all_task(savepath)

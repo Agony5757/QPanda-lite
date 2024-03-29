@@ -165,7 +165,6 @@ def _submit_task_group_dummy_impl(
     task_name,
     shots,
     auto_mapping,
-    savepath,
     **kwargs
 ):
     # print("hi")
@@ -186,7 +185,6 @@ def _submit_task_group_dummy_impl(
                 '{}_{}'.format(task_name, i), 
                 shots, 
                 auto_mapping,
-                savepath,
                 **kwargs) for i, group in enumerate(groups)]
     
     # generate taskid
@@ -276,7 +274,6 @@ def submit_task(
             task_name = task_name, 
             shots = shots,
             auto_mapping = auto_mapping,
-            savepath = savepath,
             **kwargs
         )
     elif isinstance(circuit, str):
@@ -285,7 +282,6 @@ def submit_task(
             task_name = task_name, 
             shots = shots,
             auto_mapping = auto_mapping,
-            savepath = savepath,
             **kwargs
         )
     else:

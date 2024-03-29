@@ -220,7 +220,7 @@ def _submit_task_group_dummy_impl(
 
             for i, meas_result in prob_result.items():
                 # print(i, meas_result)
-                key.append(bin(i)[2:].zfill(n_qubits))
+                key.append(hex(i))
                 value.append(meas_result/shots)
             results.append({'key':key, 'value': value})
 

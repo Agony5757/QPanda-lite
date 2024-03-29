@@ -167,7 +167,6 @@ def _submit_task_group_dummy_impl(
     auto_mapping,
     savepath,
     **kwargs
-
 ):
     # print("hi")
     if len(circuits) > default_task_group_size:

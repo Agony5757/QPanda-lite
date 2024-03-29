@@ -361,17 +361,19 @@ namespace qpandalite{
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
-            if ((i >> qn) & 1)
-            {   
-                if(is_dagger)
-                {
-                    state[i] *= std::complex(cos(angle), -sin(angle));
-                }else
-                {
-                    state[i] *= std::complex(cos(angle), sin(angle));
-                }
-                
+            if (((i >> qn) & 1) ^ is_dagger)
+            {
+                // 0 and not dagger -> exp(-it/2)
+                // 1 and dagger -> exp(-it/2)
+                state[i] *= std::complex(cos(angle / 2), -sin(angle / 2));
             }
+            else
+            {
+                // 0 and dagger -> exp(it/2)
+                // 1 and not dagger -> exp(it/2)
+                state[i] *= std::complex(cos(angle / 2), sin(angle / 2));
+            }
+
         }
     }
 

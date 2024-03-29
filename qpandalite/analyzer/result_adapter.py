@@ -11,7 +11,6 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                            style = 'keyvalue', 
                            prob_or_shots = 'prob',
                            reverse_key = True, 
-                           key_input_style = 'dec',
                            key_style = 'bin',
                            qubit_num = None):
     '''OriginQ result general adapter. Return adapted format given by the arguments. 
@@ -20,7 +19,6 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
         key_value_result (Dict[str, int] or a list of Dict[str, int]): The raw result produced by machine.
         style (str): Accepts "keyvalue" or "list". Defaults to 'keyvalue'.
         prob_or_shots (str): Accepts "prob" or "shots". Defaults to 'prob'.
-        key_input_style (str): Accepts "bin" (as str) or "dec" (as int). Defaults to 'dec'.
         key_style (str): Accepts "bin" (as str) or "dec" (as int). Defaults to 'bin'.
         reverse_key (bool, optional): Reverse the key (Change endian). Defaults to True.
 
@@ -37,21 +35,12 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                        style=style,
                                        prob_or_shots=prob_or_shots,
                                        reverse_key=reverse_key,
-                                       key_input_style = key_input_style,
-                                       key_style=key_style,
-                                       qubit_num=qubit_num) 
+                                       key_style=key_style) 
                                        for result in key_value_result]
 
     keys = deepcopy(key_value_result['key'])
-    # for results which contain binary keys
-    if key_input_style == 'bin':
-        base = 2
-    elif key_input_style == 'dec':
-        base = 16
-    else:
-        raise ValueError('key_input_style must be either bin or dec')
-    
-    keys = [int(key, base=base) for key in keys]
+    # for results which contain binary keys    
+    keys = [int(key, base=16) for key in keys]
     
     values = deepcopy(key_value_result['value'])
 
@@ -59,7 +48,10 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     if qubit_num:
         guessed_qubit_num = qubit_num
     else:
-        guessed_qubit_num = math.ceil(math.log2(max_key))
+        guessed_qubit_num = len(bin(max_key)) - 2
+
+    if style == 'list':
+        key_style = 'dec'
 
     if reverse_key:        
         if key_style == 'bin':
@@ -88,7 +80,7 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     if style == 'keyvalue':
         return kv_result
     elif style == 'list':
-        return kv2list(kv_result, key_style, guessed_qubit_num)
+        return kv2list(kv_result, guessed_qubit_num)
     else:
         raise ValueError('style only accepts "keyvalue" or "list".')
 
@@ -99,18 +91,12 @@ def shots2prob(measured_result : Dict[str, int],
 
     return {k : measured_result[k] / total_shots for k in measured_result}
 
-def kv2list(kv_result : dict, key_style: str, guessed_qubit_num):
+def kv2list(kv_result : dict, guessed_qubit_num):
     ret = [0] * (2 ** guessed_qubit_num)
     # The key style of kv_result needs to be specified.
-    if key_style == 'bin':
-        base = 2
-    elif key_style == 'dec':
-        base = 16
-    else:
-        raise ValueError('key_input_style must be either bin or dec')
     for k in kv_result:
-        k_i = int(k, base)
-        ret[k_i] = kv_result[k]
+        ret[k] = kv_result[k]
+        
     return ret
 
 if __name__ == '__main__':

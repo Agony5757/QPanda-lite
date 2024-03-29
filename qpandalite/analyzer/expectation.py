@@ -82,7 +82,6 @@ if __name__ == '__main__':
                                     style='keyvalue', 
                                     prob_or_shots='prob', 
                                     reverse_key=False,
-                                    key_input_style = 'bin',
                                     qubit_num=3)
     
     print(calculate_expectation(kvresult, ['IIZ', 'IZI', 'ZII', 'ZZZ']))
@@ -91,7 +90,6 @@ if __name__ == '__main__':
                                     style='list', 
                                     prob_or_shots='prob', 
                                     reverse_key=False,
-                                    key_input_style = 'bin',
                                     qubit_num=3)
 
     print(calculate_expectation(listresult, ['IIZ', 'IZI', 'ZII', 'ZZZ']))

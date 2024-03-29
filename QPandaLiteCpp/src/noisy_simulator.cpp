@@ -777,39 +777,26 @@ namespace qpandalite {
 		ThrowRuntimeError("NoisySimulator::get_measure() internal fatal error!");
 	}
 
-	size_t NoisySimulator::integer_trans(size_t i, const std::vector<size_t>& measure_list) 
-	{	// convert an integer i (n bit binary string) into a new integer j (m bit binary string)
-		size_t j = 0;
-		if (measure_list.size() == simulator.total_qubit) {
-			return i;
-		}
-		for (size_t k = 0; k < measure_list.size(); ++k) {
-			if (i & (1 << measure_list[k])) { // if i[measure_list[k]] is 1,
-				j |= (1 << k);				  // set j[k] == 1.
-			}
-		}
-		return j;
-	}
 
 
 	std::map<size_t, size_t> NoisySimulator::measure_shots(const std::vector<size_t>& measure_list, size_t shots)
 	{
 		// Initialize an empty map to hold the frequency of each measured quantum state.
+
+		measure_map = preprocess_measure_list(measure_list, nqubit);
 		std::map<size_t, size_t> measured_result;
 
 		for (size_t i = 0; i < shots; ++i)
 		{
 			// Execute the quantum circuit once and Measure the quantum state after executing the circuit.
 			execute_once();
-			/*for (size_t i = 0; i < simulator.state.size(); ++i) {
-				std::cout << simulator.state[i] << ' ';
-			}
-			std::cout << '\n';*/
+			
 			size_t meas = get_measure();
-			size_t meas_trans = integer_trans(meas, measure_list);
+			size_t meas_idx = get_state_with_qubit(meas, measure_map);
+			
 			// std::cout << meas << " ";
 			// Search the histogram to see if this state has been observed before.
-			auto it = measured_result.find(meas_trans);
+			auto it = measured_result.find(meas_idx);
 
 			// If the state has been observed before, increment its count.
 			if (it != measured_result.end())
@@ -819,7 +806,7 @@ namespace qpandalite {
 			// If this is the first time observing this state, add it to the histogram with a count of 1.
 			else
 			{
-				measured_result.emplace(meas_trans, 1);
+				measured_result.emplace(meas_idx, 1);
 			}
 		}
 		return measured_result;

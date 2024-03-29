@@ -119,7 +119,7 @@ class OriginIR_Simulator:
             available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
 
         Returns:
-            _type_: _description_
+            List[float]: The probability list of output from the ideal simulator
         '''
         # extract the actual used qubit, and build qubit mapping
         # like q45 -> 0, q46 -> 1, etc..
@@ -292,6 +292,17 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
         prob_list = self.simulator.measure_shots(measure_qubit, shots)
         return prob_list
     
+    def measure_shots(self, shots):
+        '''Call this to actually perform simulation
+
+        Args:
+            shots (int): number of shots
+
+        Returns:
+            List[float]: Probability list produced by the noisy simulator.
+        '''
+        return self.simulator.measure_shots(shots)
+
     @property
     def state(self):
         return self.simulator.state

@@ -1,3 +1,9 @@
+from pathlib import Path
+import os
+def change_working_directory(new_directory):
+    if new_directory:
+        os.chdir(new_directory)
+        
 from .circuit_builder import Circuit
 from .originir import OriginIR_Parser
 try:

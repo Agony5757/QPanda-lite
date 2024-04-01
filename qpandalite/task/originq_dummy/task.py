@@ -85,7 +85,6 @@ class DummyCacheContainer:
                         return result
 
 dummy_cache_container = DummyCacheContainer()
-dummy_cache_container.dummy_path = Path.cwd() / 'dummy_cache'
 
 def set_dummy_path(dummy_path : os.PathLike):
     _create_dummy_cache(dummy_path)

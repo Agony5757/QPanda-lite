@@ -378,6 +378,11 @@ namespace qpandalite {
 		cz_cont(qn1, qn2, {}, is_dagger);
 	}
 
+	void NoisySimulator::swap(size_t qn1, size_t qn2, bool is_dagger)
+	{
+		iswap_cont(qn1, qn2, {}, is_dagger);
+	}
+
 	void NoisySimulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
 	{
 		iswap_cont(qn1, qn2, {}, is_dagger);
@@ -422,6 +427,16 @@ namespace qpandalite {
 	{
 		rphi_cont(qn, phi, theta, {}, is_dagger);
     }
+
+	void NoisySimulator::toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger)
+	{
+		toffoli_cont(qn1, qn2, target, {}, is_dagger);
+	}
+
+	void NoisySimulator::cswap(size_t qn1, size_t qn2, size_t target, bool is_dagger)
+	{
+		cswap_cont(qn1, qn2, target, {}, is_dagger);
+	}
 	
 	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
@@ -522,6 +537,20 @@ namespace qpandalite {
 		);
 		insert_error({ qn1, qn2 });
 		insert_gate_dependent_error({qn1, qn2}, SupportOperationType::CZ);
+	}
+
+	void NoisySimulator::swap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+				(uint32_t)SupportOperationType::SWAP,
+				{ qn1, qn2 },
+				{},
+				is_dagger,
+				global_controller)
+		);
+		insert_error({ qn1, qn2 });
+		insert_gate_dependent_error({ qn1, qn2 }, SupportOperationType::SWAP);
 	}
 
 	void NoisySimulator::xy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
@@ -650,6 +679,34 @@ namespace qpandalite {
 		insert_error({ qn });
     }
 
+	void NoisySimulator::toffoli_cont(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+				(uint32_t)SupportOperationType::TOFFOLI,
+				{ qn1, qn2, target },
+				{ },
+				is_dagger,
+				global_controller)
+		);
+		insert_gate_dependent_error({ qn1, qn2, target }, SupportOperationType::TOFFOLI);
+		insert_error({ qn1, qn2, target });
+	}
+
+	void NoisySimulator::cswap_cont(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		opcodes.emplace_back(
+			OpcodeType(
+				(uint32_t)SupportOperationType::CSWAP,
+				{ controller, target1, target2 },
+				{ },
+				is_dagger,
+				global_controller)
+		);
+		insert_gate_dependent_error({ controller, target1, target2 }, SupportOperationType::CSWAP);
+		insert_error({ controller, target1, target2 });
+	}
+
 	void NoisySimulator::measure(const std::vector<size_t> measure_qubits_)
 	{
 		measure_qubits = measure_qubits_;
@@ -689,50 +746,62 @@ namespace qpandalite {
 				for (const auto &q : opcode.qubits)
 				{
 					simulator.phaseflip(q, opcode.parameters[0]);
-				}				
+				}
 				break;
 			case (uint32_t)SupportOperationType::HADAMARD:
-    			simulator.hadamard(opcode.qubits[0]);
+    			simulator.hadamard_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
     			break;
 			case (uint32_t)SupportOperationType::X:
-				simulator.x(opcode.qubits[0]);
+				simulator.x_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
+				break;
+			case (uint32_t)SupportOperationType::SX:
+				simulator.sx_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::Y:
-				simulator.y(opcode.qubits[0]);
+				simulator.y_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::Z:
-				simulator.z(opcode.qubits[0]);
+				simulator.z_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RX:
-				simulator.rx(opcode.qubits[0], opcode.parameters[0]);
+				simulator.rx_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RY:
-				simulator.ry(opcode.qubits[0], opcode.parameters[0]);
+				simulator.ry_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RZ:
-				simulator.rz(opcode.qubits[0], opcode.parameters[0]);
+				simulator.rz_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::CZ:
-				simulator.cz(opcode.qubits[0], opcode.qubits[1]);
+				simulator.cz_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::CNOT:
-				simulator.cnot(opcode.qubits[0], opcode.qubits[1]);
+				simulator.cnot_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
+				break;
+			case (uint32_t)SupportOperationType::SWAP:
+				simulator.swap_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::ISWAP:
-				simulator.iswap(opcode.qubits[0], opcode.qubits[1]);
+				simulator.iswap_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::XY:
-				simulator.xy(opcode.qubits[0], opcode.qubits[1], opcode.parameters[0]);
+				simulator.xy_cont(opcode.qubits[0], opcode.qubits[1], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RPHI90:
-				simulator.rphi90(opcode.qubits[0], opcode.parameters[0]);
+				simulator.rphi90_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RPHI180:
-				simulator.rphi180(opcode.qubits[0], opcode.parameters[0]);
+				simulator.rphi180_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RPHI:
-				simulator.rphi(opcode.qubits[0], opcode.parameters[0], opcode.parameters[1]);
-				break;			
+				simulator.rphi_cont(opcode.qubits[0], opcode.parameters[0], opcode.parameters[1], opcode.global_controller, opcode.dagger);
+				break;
+			case (uint32_t)SupportOperationType::TOFFOLI:
+				simulator.toffoli_cont(opcode.qubits[0], opcode.qubits[1], opcode.qubits[2], opcode.global_controller, opcode.dagger);
+				break;
+			case (uint32_t)SupportOperationType::CSWAP:
+				simulator.cswap_cont(opcode.qubits[0], opcode.qubits[1], opcode.qubits[2], opcode.global_controller, opcode.dagger);
+				break;
 			default:
 				ThrowRuntimeError(fmt::format("Failed to handle opcode = {}\nPlease check.", opcode.op));
 			}

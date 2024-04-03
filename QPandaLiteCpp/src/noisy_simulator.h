@@ -18,6 +18,7 @@ namespace qpandalite {
         Z,
         SX,
         CZ,
+        SWAP,
         ISWAP,
         XY,
         CNOT,
@@ -26,41 +27,83 @@ namespace qpandalite {
         RZ,
         RPHI90,
         RPHI180,
-        RPHI
+        RPHI,
+        TOFFOLI,
+        CSWAP,
     };
 
     inline NoiseType string_to_NoiseType(const std::string& noise_str)
     {
-        if (noise_str == "depolarizing") return NoiseType::Depolarizing;
-        else if (noise_str == "damping") return NoiseType::Damping;
-        else if (noise_str == "bitflip") return NoiseType::BitFlip;
-        else if (noise_str == "phaseflip") return NoiseType::PhaseFlip;
+        static const std::map<std::string, NoiseType> noise_type_map =
+        {
+           {"depolarizing", NoiseType::Depolarizing},
+           {"damping", NoiseType::Damping},
+           {"bitflip", NoiseType::BitFlip},
+           {"phaseflip", NoiseType::PhaseFlip},
+        };
+        //if (noise_str == "depolarizing") return NoiseType::Depolarizing;
+        //else if (noise_str == "damping") return NoiseType::Damping;
+        //else if (noise_str == "bitflip") return NoiseType::BitFlip;
+        //else if (noise_str == "phaseflip") return NoiseType::PhaseFlip;
         // ... handle other cases ...
 
-        // Handle the default case where the string doesn't match any known NoiseType
-        
+        auto iter = noise_type_map.find(noise_str);
+        if (iter != noise_type_map.end())
+            return iter->second;
+
+        // Handle the default case where the string doesn't match any known NoiseType        
         ThrowRuntimeError(fmt::format("Failed to handle noise_str: {}\nPlease check.", noise_str));
     }
 
     inline SupportOperationType string_to_SupportOperationType(const std::string& gate_str)
     {
-        if (gate_str == "HADAMARD") return SupportOperationType::HADAMARD;
-        else if (gate_str == "U22") return SupportOperationType::U22;
-        else if (gate_str == "X") return SupportOperationType::X;
-        else if (gate_str == "Y") return SupportOperationType::Y;
-        else if (gate_str == "Z") return SupportOperationType::Z;
-        else if (gate_str == "SX") return SupportOperationType::SX;
-        else if (gate_str == "CZ") return SupportOperationType::CZ;
-        else if (gate_str == "ISWAP") return SupportOperationType::ISWAP;
-        else if (gate_str == "XY") return SupportOperationType::XY;
-        else if (gate_str == "CNOT") return SupportOperationType::CNOT;
-        else if (gate_str == "RX") return SupportOperationType::RX;
-        else if (gate_str == "RY") return SupportOperationType::RY;
-        else if (gate_str == "RZ") return SupportOperationType::RZ;
-        else if (gate_str == "RPHI90") return SupportOperationType::RPHI90;
-        else if (gate_str == "RPHI180") return SupportOperationType::RPHI180;
-        else if (gate_str == "RPHI") return SupportOperationType::RPHI;
-        // ... handle other cases ...
+        static const std::map<std::string, SupportOperationType> op_type_map =
+        {
+           {"HADAMARD", SupportOperationType::HADAMARD},
+           {"U22", SupportOperationType::U22},
+           {"X", SupportOperationType::X},
+           {"Y", SupportOperationType::Y},
+           {"Z", SupportOperationType::Z},
+           {"SX", SupportOperationType::SX},
+           {"CZ", SupportOperationType::CZ},
+           {"SWAP", SupportOperationType::SWAP},
+           {"ISWAP", SupportOperationType::ISWAP},
+           {"XY", SupportOperationType::XY},
+           {"CNOT", SupportOperationType::CNOT},
+           {"RX", SupportOperationType::RX},
+           {"RY", SupportOperationType::RY},
+           {"RZ", SupportOperationType::RZ},
+           {"RPHI90", SupportOperationType::RPHI90},
+           {"RPHI180", SupportOperationType::RPHI180},
+           {"RPHI", SupportOperationType::RPHI},
+           {"TOFFOLI", SupportOperationType::TOFFOLI},
+           {"CSWAP", SupportOperationType::CSWAP},
+        };
+
+        //if (gate_str == "HADAMARD") return SupportOperationType::HADAMARD;
+        //else if (gate_str == "U22") return SupportOperationType::U22;
+        //else if (gate_str == "X") return SupportOperationType::X;
+        //else if (gate_str == "Y") return SupportOperationType::Y;
+        //else if (gate_str == "Z") return SupportOperationType::Z;
+        //else if (gate_str == "SX") return SupportOperationType::SX;
+        //else if (gate_str == "CZ") return SupportOperationType::CZ;
+        //else if (gate_str == "SWAP") return SupportOperationType::SWAP;
+        //else if (gate_str == "ISWAP") return SupportOperationType::ISWAP;
+        //else if (gate_str == "XY") return SupportOperationType::XY;
+        //else if (gate_str == "CNOT") return SupportOperationType::CNOT;
+        //else if (gate_str == "RX") return SupportOperationType::RX;
+        //else if (gate_str == "RY") return SupportOperationType::RY;
+        //else if (gate_str == "RZ") return SupportOperationType::RZ;
+        //else if (gate_str == "RPHI90") return SupportOperationType::RPHI90;
+        //else if (gate_str == "RPHI180") return SupportOperationType::RPHI180;
+        //else if (gate_str == "RPHI") return SupportOperationType::RPHI;
+        //else if (gate_str == "TOFFOLI") return SupportOperationType::TOFFOLI;
+        //else if (gate_str == "CSWAP") return SupportOperationType::CSWAP;
+        //// ... handle other cases ...
+
+        auto iter = op_type_map.find(gate_str);
+        if (iter != op_type_map.end())
+            return iter->second;
 
         // Handle the default case where the string doesn't match any known SupportOperationType
         ThrowRuntimeError(fmt::format("Failed to handle gate_str: {}\nPlease check.", gate_str));
@@ -140,6 +183,7 @@ namespace qpandalite {
         void y(size_t qn, bool is_dagger = false);
         void sx(size_t qn, bool is_dagger = false);
         void cz(size_t qn1, size_t qn2, bool is_dagger = false);
+        void swap(size_t qn1, size_t qn2, bool is_dagger = false);
         void iswap(size_t qn1, size_t qn2, bool is_dagger = false);
         void xy(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
         void cnot(size_t controller, size_t target, bool is_dagger = false);
@@ -149,6 +193,8 @@ namespace qpandalite {
         void rphi90(size_t qn, double phi, bool is_dagger = false);
         void rphi180(size_t qn, double phi, bool is_dagger = false);
         void rphi(size_t qn, double phi, double theta, bool is_dagger = false);
+        void toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger = false);
+        void cswap(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
 
         void hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void u22_cont(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger = false);
@@ -157,6 +203,7 @@ namespace qpandalite {
         void y_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void sx_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void cz_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void swap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void iswap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void xy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void cnot_cont(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger = false);
@@ -166,7 +213,9 @@ namespace qpandalite {
         void rphi90_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void rphi180_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void rphi_cont(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
-        
+        void toffoli_cont(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void cswap_cont(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger = false);
+
         void measure(const std::vector<size_t> measure_qubits_);
 
         void execute_once();

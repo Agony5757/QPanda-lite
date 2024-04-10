@@ -124,12 +124,17 @@ namespace qpandalite {
         void iswap(size_t qn1, size_t qn2,              bool is_dagger = false);
         void xy(size_t qn1, size_t qn2, double theta,   bool is_dagger = false);
         void cnot(size_t controller, size_t target,     bool is_dagger = false);
+        void swap(size_t qn1, size_t qn2,               bool is_dagger = false);
         void rx(size_t qn, double angle,                bool is_dagger = false);
         void ry(size_t qn, double angle,                bool is_dagger = false);
         void rz(size_t qn, double angle,                bool is_dagger = false);
         void rphi90(size_t qn, double phi,              bool is_dagger = false);
         void rphi180(size_t qn, double phi,             bool is_dagger = false);
         void rphi(size_t qn, double phi, double theta,  bool is_dagger = false);
+        
+
+        // void ccnot(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
+        // void cswap(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
 
         void hadamard_cont(size_t qn,                        const std::vector<size_t>& global_controller, bool is_dagger = false);
         void u22_cont(size_t qn, const u22_t &unitary,       const std::vector<size_t>& global_controller, bool is_dagger = false);

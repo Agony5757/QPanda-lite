@@ -247,6 +247,7 @@ namespace qpandalite{
             }
         }
     }
+    
     void Simulator::cnot(size_t controller, size_t target, bool is_dagger)
     {
         if (controller >= total_qubit)
@@ -720,8 +721,19 @@ namespace qpandalite{
         {
             if (!control_enable(i, global_controller))
                 continue;
-            if (((i >> controller) & 1) && ((i >> target) & 1))
+            bool control_active = true;
+            
+            // Check if all global controllers are active (in state 1)
+            for (size_t q : global_controller) {
+
+                if (!((i >> q) & 1)) {
+                    control_active = false;
+                    break;
+                }
+            }
+            if (control_active && ((i >> controller) & 1) && ((i >> target) & 1))
             {
+                // Printing i when all conditions are satisfied
                 std::swap(state[i], state[i - pow2(target)]);
             }
         }

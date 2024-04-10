@@ -12,6 +12,7 @@ namespace qpandalite {
     enum class SupportOperationType : uint32_t
     {
         HADAMARD = 1000,
+        IDENTITY,
         U22,
         X,
         Y,
@@ -45,6 +46,7 @@ namespace qpandalite {
     inline SupportOperationType string_to_SupportOperationType(const std::string& gate_str)
     {
         if (gate_str == "HADAMARD") return SupportOperationType::HADAMARD;
+        else if (gate_str == "IDENTITY") return SupportOperationType::IDENTITY;
         else if (gate_str == "U22") return SupportOperationType::U22;
         else if (gate_str == "X") return SupportOperationType::X;
         else if (gate_str == "Y") return SupportOperationType::Y;
@@ -132,6 +134,7 @@ namespace qpandalite {
         void insert_gate_dependent_error(const std::vector<size_t> &qubits, SupportOperationType gateType);
         void insert_generic_error(const std::vector<size_t> &qubits, const std::map<NoiseType, double>& generic_noise_map);
 
+        void id(size_t qn, bool is_dagger = false);
         void hadamard(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
         void x(size_t qn, bool is_dagger = false);
@@ -149,6 +152,7 @@ namespace qpandalite {
         void rphi180(size_t qn, double phi, bool is_dagger = false);
         void rphi(size_t qn, double phi, double theta, bool is_dagger = false);
 
+        void id_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void u22_cont(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void x_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);

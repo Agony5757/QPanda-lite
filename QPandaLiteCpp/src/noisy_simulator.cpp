@@ -342,6 +342,11 @@ namespace qpandalite {
         
         }
     }
+	
+	void NoisySimulator::id(size_t qn, bool is_dagger)
+	{
+		id_cont(qn, {}, is_dagger);
+	}
 
 	void NoisySimulator::hadamard(size_t qn, bool is_dagger)
 	{
@@ -423,6 +428,20 @@ namespace qpandalite {
 		rphi_cont(qn, phi, theta, {}, is_dagger);
     }
 	
+	void NoisySimulator::id_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	{
+		// opcodes.emplace_back(
+		// 	OpcodeType(
+		// 	(uint32_t)SupportOperationType::IDENTITY,
+		// 	{ qn },
+		// 	{},
+		// 	is_dagger,
+		// 	global_controller)
+		// );
+		insert_gate_dependent_error({qn}, SupportOperationType::IDENTITY);
+		insert_error({ qn });
+	}
+
 	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
@@ -563,6 +582,12 @@ namespace qpandalite {
 			global_controller)
 		);
 		insert_error({ controller, target });
+
+	    for (size_t qubit : global_controller) {
+	        insert_error({qubit});
+	        insert_gate_dependent_error({qubit}, SupportOperationType::CNOT);
+	    }
+
 		insert_gate_dependent_error({controller, target}, SupportOperationType::CNOT);
 	}
 
@@ -716,7 +741,16 @@ namespace qpandalite {
 				simulator.cz(opcode.qubits[0], opcode.qubits[1]);
 				break;
 			case (uint32_t)SupportOperationType::CNOT:
-				simulator.cnot(opcode.qubits[0], opcode.qubits[1]);
+				if (!opcode.global_controller.empty())
+                {
+                    // If there are global controllers, use the cnot_cont method
+                    simulator.cnot_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller);
+                }
+                else
+                {
+                    // If there are no global controllers, use the regular cnot method
+                    simulator.cnot(opcode.qubits[0], opcode.qubits[1]);
+                }
 				break;
 			case (uint32_t)SupportOperationType::ISWAP:
 				simulator.iswap(opcode.qubits[0], opcode.qubits[1]);

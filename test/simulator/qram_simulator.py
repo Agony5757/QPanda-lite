@@ -37,7 +37,17 @@ simulator = NoisySimulator(2,noise_description, gate_noise_description)
 # print(gate_noise_desc)
 
 
-# simulator.cnot_cont()
+simulator.hadamard(0)
+simulator.x(0)
+simulator.hadamard(1)
+simulator.z(1)
+simulator.iswap(0, 1)
+simulator.rx(0, np.pi/8)
+simulator.ry(0, np.pi/4)
+simulator.rz(0, np.pi/2)
+simulator.rphi90(1, np.pi/8)
+simulator.rphi180(1, np.pi/4)
+simulator.rphi(1, np.pi/2, np.pi/4)
 # Number of measurement shots
 shots = 1024
 

@@ -437,6 +437,14 @@ class NoisySimulator:
         '''
         ...
     
+    def id(self, qn : int, is_dagger : bool = False) -> None:
+        '''Identity gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
     def hadamard(self, qn : int, is_dagger : bool = False) -> None:
         '''Hadamard gate.
 
@@ -568,6 +576,15 @@ class NoisySimulator:
             theta (float): The rotation angle.
         '''
         ...
+
+    def cnot_cont(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ... 
 
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """

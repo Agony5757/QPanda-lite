@@ -121,7 +121,7 @@ namespace qpandalite {
         void y(size_t qn,                               bool is_dagger = false);
         void sx(size_t qn,                              bool is_dagger = false);
         void cz(size_t qn1, size_t qn2,                 bool is_dagger = false);
-        void swap(size_t qn1, size_t qn2, bool is_dagger = false);
+        void swap(size_t qn1, size_t qn2,               bool is_dagger = false);
         void iswap(size_t qn1, size_t qn2,              bool is_dagger = false);
         void xy(size_t qn1, size_t qn2, double theta,   bool is_dagger = false);
         void cnot(size_t controller, size_t target,     bool is_dagger = false);
@@ -130,7 +130,7 @@ namespace qpandalite {
         void rz(size_t qn, double angle,                bool is_dagger = false);
         void rphi90(size_t qn, double phi,              bool is_dagger = false);
         void rphi180(size_t qn, double phi,             bool is_dagger = false);
-        void rphi(size_t qn, double phi, double theta, bool is_dagger = false);
+        void rphi(size_t qn, double phi, double theta,  bool is_dagger = false);
         void toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger = false);
         void cswap(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
 

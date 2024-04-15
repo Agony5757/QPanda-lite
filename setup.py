@@ -164,7 +164,7 @@ else:
 
 setup(
     name = "qpandalite",
-    version = "0.2.1",
+    version = "0.2.1.post1",
     author = "Agony",
     author_email = "chenzhaoyun@iai.ustc.edu.cn",
     description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",

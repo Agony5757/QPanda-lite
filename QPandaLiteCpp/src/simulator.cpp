@@ -167,6 +167,32 @@ namespace qpandalite{
         }
     }
 
+    void Simulator::swap(size_t qn1, size_t qn2, bool is_dagger)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 && (!v2))
+            {
+                // |10>
+                // let it swap with |01>
+                std::swap(state[i - pow2(qn1) + pow2(qn2)], state[i]);
+            }
+        }
+    }
+
     void Simulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
     {
         if (qn1 >= total_qubit)
@@ -456,8 +482,75 @@ namespace qpandalite{
         u22(qn, unitary);    
     }
 
+    void Simulator::toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target = {})", total_qubit, target);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (((i >> qn1) & 1) && ((i >> qn2) & 1) && ((i >> target) & 1))
+            {
+                std::swap(state[i], state[i - pow2(target)]);
+            }
+        }
+    }
+
+    void Simulator::cswap(size_t controller, size_t target1, size_t target2, bool is_dagger)
+    {
+        if (controller >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, controller = {})", total_qubit, controller);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target1 = {})", total_qubit, target1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target2 = {})", total_qubit, target2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (!((i >> controller) & 1))
+                continue;
+
+            bool v1 = (i >> target1) & 1;
+            bool v2 = (i >> target2) & 1;
+            if (v1 && (!v2))
+            {
+                // |10>
+                // let it swap with |01>
+                std::swap(state[i - pow2(target1) + pow2(target2)], state[i]);
+            }
+        }
+    }
+
     void Simulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            hadamard(qn, is_dagger);
+            return;
+        }
+
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
@@ -616,6 +709,41 @@ namespace qpandalite{
             if (((i >> qn1) & 1) && ((i >> qn2) & 1))
             {
                 state[i] *= -1;
+            }
+        }
+    }
+
+    void Simulator::swap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        if (global_controller.size() == 0)
+        {
+            swap(qn1, qn2, is_dagger);
+            return;
+        }
+
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (!control_enable(i, global_controller))
+                continue;
+
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 && (!v2))
+            {
+                // |10>
+                // let it swap with |01>
+                std::swap(state[i - pow2(qn1) + pow2(qn2)], state[i]);
             }
         }
     }
@@ -924,6 +1052,80 @@ namespace qpandalite{
         u22_cont(qn, unitary, global_controller);
     }
 
+    void Simulator::toffoli_cont(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        if (global_controller.size() == 0)
+        {
+            toffoli(qn1, qn2, target, is_dagger);
+            return;
+        }
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target = {})", total_qubit, target);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (!control_enable(i, global_controller))
+                continue;
+            if (((i >> qn1) & 1) && ((i >> qn2) & 1) && ((i >> target) & 1))
+            {
+                // |111> swap with |110>
+                std::swap(state[i], state[i - pow2(target)]);
+            }
+        }
+    }
+
+    void Simulator::cswap_cont(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        if (global_controller.size() == 0)
+        {
+            cswap(controller, target1, target2, is_dagger);
+            return;
+        }
+        if (controller >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, controller = {})", total_qubit, controller);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target1 = {})", total_qubit, target1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (target2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, target2 = {})", total_qubit, target2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if (!control_enable(i, global_controller))
+                continue;
+            if (!((i >> controller) & 1))
+                continue;
+
+            if (((i >> target1) & 1) && (!((i >> target2) & 1)))
+            {
+                // |10>
+                // let it swap with |01>
+                std::swap(state[i - pow2(target1) + pow2(target2)], state[i]);
+            }
+        }
+    }
+    
     bool Simulator::control_enable(size_t idx, const std::vector<size_t>& global_controller)
     {
         for (auto qid : global_controller)

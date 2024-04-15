@@ -113,6 +113,15 @@ class Simulator:
         '''
         ...
 
+    def swap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+        '''iSWAP gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
     def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
         '''XX+YY gate.
 
@@ -522,6 +531,15 @@ class NoisySimulator:
         '''
         ...  
     
+    def swap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ...  
+
     def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
         '''Rx gate.
 
@@ -576,6 +594,24 @@ class NoisySimulator:
             theta (float): The rotation angle.
         '''
         ...
+    
+    def toffoli(self, qn1 : int, qn2 : int, target : int, is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ... 
+    
+    def cswap(self, controller : int, target1 : int, target2 : int, is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ... 
 
     def cnot_cont(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
         '''CNOT gate.
@@ -585,6 +621,7 @@ class NoisySimulator:
             target (int): The target qubit.
         '''
         ... 
+
 
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """

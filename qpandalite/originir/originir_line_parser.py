@@ -281,10 +281,13 @@ class OriginIR_Parser:
             elif line.startswith('SX'):
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('X1'):
+                raise NotImplementedError(f'Unsupported operation: {line}.')    
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('Y1'):
+                raise NotImplementedError(f'Unsupported operation: {line}.')    
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('Z1'):
+                raise NotImplementedError(f'Unsupported operation: {line}.')    
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('X'):
                 operation, q = OriginIR_Parser.handle_1q(line)
@@ -293,6 +296,7 @@ class OriginIR_Parser:
             elif line.startswith('Z'):
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('T'):
+                raise NotImplementedError(f'Unsupported operation: {line}.')
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('S'):
                 operation, q = OriginIR_Parser.handle_1q(line)
@@ -308,11 +312,17 @@ class OriginIR_Parser:
                 operation, q = OriginIR_Parser.handle_2q(line)
             elif line.startswith('TOFFOLI'):
                 operation, q = OriginIR_Parser.handle_3q(line)
+            elif line.startswith('CSWAP'):
+                operation, q = OriginIR_Parser.handle_3q(line)
             elif line.startswith('RX'):
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RY'):
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RZ'):
+                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            elif line.startswith('RPhi90'):
+                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+            elif line.startswith('RPhi180'):
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RPhi'):
                 operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
@@ -331,7 +341,7 @@ class OriginIR_Parser:
             elif line.startswith('ENDDAGGER'):
                 operation = OriginIR_Parser.handle_dagger(line)
             else:
-                print("something wrong")
+                # print("something wrong")
                 raise NotImplementedError(f'A invalid line: {line}.')      
             
             return operation, q, c, parameter

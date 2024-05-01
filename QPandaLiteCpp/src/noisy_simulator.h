@@ -149,6 +149,9 @@ namespace qpandalite {
     {
         std::map<NoiseType, double> noise;
         std::map<SupportOperationType, std::map<NoiseType, double>> gate_dependent_noise;
+
+        // The measurement error is described by 1-P00 and 1-P11
+        // When measured to 1, then it flips qi by measurement_error_matrices[qi][1] probability 
         std::vector<std::array<double, 2>> measurement_error_matrices;
         NoiseSimulatorImpl simulator;
         size_t nqubit;
@@ -172,9 +175,13 @@ namespace qpandalite {
                 bool dagger, 
                 const std::vector<size_t>& global_controller);
         
+        /* Noisy simulation */
         void insert_error(const std::vector<size_t> &qn);
         void insert_gate_dependent_error(const std::vector<size_t> &qubits, SupportOperationType gateType);
         void insert_generic_error(const std::vector<size_t> &qubits, const std::map<NoiseType, double>& generic_noise_map);
+
+        // Model the gate error
+        // Perform bit flip based on measurement 
 
         void hadamard(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
@@ -220,6 +227,7 @@ namespace qpandalite {
 
         void execute_once();
         std::pair<size_t, double> _get_state_prob(size_t i);
+        size_t get_measure_no_readout_error();
         size_t get_measure();
         std::map<size_t, size_t> measure_shots(const std::vector<size_t>& measure_list, size_t shots);
 

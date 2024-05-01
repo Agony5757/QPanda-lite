@@ -822,7 +822,7 @@ namespace qpandalite {
 		return { meas_idx, prob };
 	}
 
-	size_t NoisySimulator::get_measure()
+	size_t NoisySimulator::get_measure_no_readout_error()
 	{
 		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
@@ -846,7 +846,37 @@ namespace qpandalite {
 		ThrowRuntimeError("NoisySimulator::get_measure() internal fatal error!");
 	}
 
+	size_t NoisySimulator::get_measure()
+	{
+		size_t meas_result = get_measure_no_readout_error();
+		if (measurement_error_matrices.size() == 0)
+			return meas_result;
 
+		if (measurement_error_matrices.size() != nqubit)
+			ThrowRuntimeError("The size of the measurement_error_matrices does not match the qubit number!");
+	
+		for (size_t i = 0; i < nqubit; ++i)
+		{
+			double r = qpandalite::rand();
+			if (meas_result & pow2(i))
+			{
+				// |1> case
+				double meas_error = measurement_error_matrices[i][1];
+
+				if (r < meas_error)
+					meas_result -= pow2(i);
+			}
+			else
+			{
+				// |0> case
+				double meas_error = measurement_error_matrices[i][0];
+
+				if (r < meas_error)
+					meas_result += pow2(i);
+			}
+		}
+		return meas_result;
+	}
 
 	std::map<size_t, size_t> NoisySimulator::measure_shots(const std::vector<size_t>& measure_list, size_t shots)
 	{

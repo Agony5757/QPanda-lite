@@ -106,22 +106,19 @@ PYBIND11_MODULE(QPandaLitePy, m)
 	py::class_<qpandalite::NoisySimulator>(m, "NoisySimulator")
 		.def(py::init<size_t, 
                       const std::map<std::string, double>&, 
-                      const std::map<std::string, std::map<std::string, double>>&,
                       const std::vector<std::array<double, 2>>&>(),
-             py::arg("n_qubit"),
+			 py::arg("n_qubit"),
              py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
-             py::arg("gate_noise_description") = std::map<std::string, std::map<std::string, double>>{},  // Default empty map
              py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
         )
 		.def_readonly("total_qubit", &qpandalite::NoisySimulator::nqubit)
 		.def_readonly("noise", &qpandalite::NoisySimulator::noise)
-		.def_readonly("gate_dependent_noise", &qpandalite::NoisySimulator::gate_dependent_noise)
 		.def_readonly("measurement_error_matrices", &qpandalite::NoisySimulator::measurement_error_matrices)
 		.def("load_opcode", &qpandalite::NoisySimulator::load_opcode)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)
 
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("u22", &qpandalite::NoisySimulator::u22, py::arg("is_dagger") = false)
+		.def("u22", &qpandalite::NoisySimulator::u22, py::arg("qn"), py::arg("u22"), py::arg("is_dagger") = false)
 		.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("sx", &qpandalite::NoisySimulator::sx, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("y", &qpandalite::NoisySimulator::y, py::arg("qn"), py::arg("is_dagger") = false)
@@ -138,25 +135,35 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("rphi", &qpandalite::NoisySimulator::rphi, py::arg("qn"), py::arg("phi"), py::arg("theta"), py::arg("is_dagger") = false)
 		.def("measure_shots", &qpandalite::NoisySimulator::measure_shots, py::arg("measure_list"), py::arg("shots"))
 		
-		// .def("hadamard_cont", &qpandalite::NoisySimulator::hadamard_cont, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("u22_cont", &qpandalite::NoisySimulator::u22_cont, py::arg("is_dagger") = false)
-		// .def("x_cont", &qpandalite::NoisySimulator::x_cont, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("sx_cont", &qpandalite::NoisySimulator::sx_cont, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("y_cont", &qpandalite::NoisySimulator::y_cont, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("z_cont", &qpandalite::NoisySimulator::z_cont, py::arg("qn"), py::arg("is_dagger") = false)
-		// .def("cz_cont", &qpandalite::NoisySimulator::cz_cont, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
-		// .def("iswap_cont", &qpandalite::NoisySimulator::iswap_cont, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
-        // .def("xy_cont", &qpandalite::NoisySimulator::xy_cont, py::arg("qn1"), py::arg("qn2"), py::arg("theta"), py::arg("is_dagger") = false)
-        // .def("cnot_cont", &qpandalite::NoisySimulator::cnot_cont, py::arg("controller"), py::arg("target"), py::arg("is_dagger") = false)        
-		// .def("rx_cont", &qpandalite::NoisySimulator::rx_cont, py::arg("qn"), py::arg("theta"), py::arg("is_dagger") = false)
-		// .def("ry_cont", &qpandalite::NoisySimulator::ry_cont, py::arg("qn"), py::arg("theta"), py::arg("is_dagger") = false)
-		// .def("rz_cont", &qpandalite::NoisySimulator::rz_cont, py::arg("qn"), py::arg("theta"), py::arg("is_dagger") = false)
-		// .def("rphi90_cont", &qpandalite::NoisySimulator::rphi90_cont, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
-		// .def("rphi180_cont", &qpandalite::NoisySimulator::rphi180_cont, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
-		// .def("rphi_cont", &qpandalite::NoisySimulator::rphi_cont, py::arg("qn"), py::arg("phi"), py::arg("theta"), py::arg("is_dagger") = false)
+		 //.def("hadamard_cont", &qpandalite::NoisySimulator::hadamard_cont, py::arg("qn"), py::arg("is_dagger") = false)
+		 //.def("u22_cont", &qpandalite::NoisySimulator::u22_cont, py::arg("is_dagger") = false)
+		 //.def("x_cont", &qpandalite::NoisySimulator::x_cont, py::arg("qn"), py::arg("is_dagger") = false)
+		 //.def("sx_cont", &qpandalite::NoisySimulator::sx_cont, py::arg("qn"), py::arg("is_dagger") = false)
+		 //.def("y_cont", &qpandalite::NoisySimulator::y_cont, py::arg("qn"), py::arg("is_dagger") = false)
+		 //.def("z_cont", &qpandalite::NoisySimulator::z_cont, py::arg("qn"), py::arg("is_dagger") = false)
+		 //.def("cz_cont", &qpandalite::NoisySimulator::cz_cont, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
+		 //.def("iswap_cont", &qpandalite::NoisySimulator::iswap_cont, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
+		 //.def("xy_cont", &qpandalite::NoisySimulator::xy_cont, py::arg("qn1"), py::arg("qn2"), py::arg("theta"), py::arg("is_dagger") = false)
+		 //.def("cnot_cont", &qpandalite::NoisySimulator::cnot_cont, py::arg("controller"), py::arg("target"), py::arg("is_dagger") = false)        
+		 //.def("rx_cont", &qpandalite::NoisySimulator::rx_cont, py::arg("qn"), py::arg("theta"), py::arg("is_dagger") = false)
+		 //.def("ry_cont", &qpandalite::NoisySimulator::ry_cont, py::arg("qn"), py::arg("theta"), py::arg("is_dagger") = false)
+		 //.def("rz_cont", &qpandalite::NoisySimulator::rz_cont, py::arg("qn"), py::arg("theta"), py::arg("is_dagger") = false)
+		 //.def("rphi90_cont", &qpandalite::NoisySimulator::rphi90_cont, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
+		 //.def("rphi180_cont", &qpandalite::NoisySimulator::rphi180_cont, py::arg("qn"), py::arg("phi"), py::arg("is_dagger") = false)
+		 //.def("rphi_cont", &qpandalite::NoisySimulator::rphi_cont, py::arg("qn"), py::arg("phi"), py::arg("theta"), py::arg("is_dagger") = false)
 		;
 
-
+	py::class_<qpandalite::NoisySimulator_GateDependent, qpandalite::NoisySimulator>(m, "NoisySimulator_GateDependent")
+		.def(py::init<size_t,
+				const std::map<std::string, double>&,
+				const std::map<std::string, std::map<std::string, double>>&,
+				const std::vector<std::array<double, 2>>&>(),
+			py::arg("n_qubit"),
+			py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
+			py::arg("gate_noise_description") = std::map<std::string, std::map<std::string, double>>{},  // Default empty map
+			py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
+		)
+		;
 }
 
 #ifdef __GNUC__

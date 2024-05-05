@@ -209,14 +209,16 @@ namespace qpandalite {
 
     struct NoisySimulator_GateDependent : public NoisySimulator
     {
-        std::map<SupportOperationType, std::map<NoiseType, double>> gate_dependent_noise;
+        using GateDependentNoise_t = std::map<SupportOperationType, std::map<NoiseType, double>>;
+        using GateDependentNoise_Description_t = std::map<std::string, std::map<std::string, double>>;
+        GateDependentNoise_t gate_dependent_noise;
 
         NoisySimulator_GateDependent(size_t n_qubit,
             const std::map<std::string, double>& noise_description,
-            const std::map<std::string, std::map<std::string, double>>& gate_noise_description,
+            const GateDependentNoise_Description_t& gate_noise_description,
             const std::vector<std::array<double, 2>>& measurement_error);
 
-        void _load_gate_dependent_noise(std::map<std::string, std::map<std::string, double>> gate_noise_description);
+        void _load_gate_dependent_noise(const GateDependentNoise_Description_t&gate_noise_description);
 
         /* Noisy simulation */
         void insert_error(const std::vector<size_t>& qn, SupportOperationType gateType);
@@ -230,4 +232,28 @@ namespace qpandalite {
             bool dagger,
             const std::vector<size_t>& global_controller);
     };
+
+    struct NoisySimulator_GateErrorSpecific : public NoisySimulator
+    {
+        using GateError1q_t = std::map<std::pair<SupportOperationType, int>, std::map<NoiseType, double>>;
+        using GateError2q_t = std::map<std::pair<SupportOperationType, std::pair<int, int>>, std::map<NoiseType, double>>;
+        using GateError1q_Description_t = std::map<std::pair<std::string, int>, std::map<std::string, double>>;
+        using GateError2q_Description_t = std::map<std::pair<std::string, std::pair<int, int>>, std::map<std::string, double>>;
+        GateError1q_t gate_error1q;
+        GateError2q_t gate_error2q;
+
+        NoisySimulator_GateErrorSpecific(size_t n_qubit,
+            const std::map<std::string, double>& noise_description,
+            const GateError1q_Description_t& gate_error1q_description,
+            const GateError2q_Description_t& gate_error2q_description,
+            const std::vector<std::array<double, 2>>& measurement_error);
+
+        void _load_gate_error1q(const GateError1q_Description_t& gate_noise_description);
+        void _load_gate_error2q(const GateError2q_Description_t& gate_noise_description);
+
+        /* Noisy simulation */
+        void insert_error(const std::vector<size_t>& qn, SupportOperationType gateType);
+       
+    };
+
 }

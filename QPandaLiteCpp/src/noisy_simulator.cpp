@@ -880,7 +880,7 @@ namespace qpandalite {
 		_insert_gate_dependent_error(qubits, gateType);
 	}
 
-	void NoisySimulator_GateDependent::_load_gate_dependent_noise(std::map<std::string, std::map<std::string, double>> gate_noise_description)
+	void NoisySimulator_GateDependent::_load_gate_dependent_noise(const std::map<std::string, std::map<std::string, double>> &gate_noise_description)
 	{
 		// Store the gate-dependent noise parameters
 		// gate_dependent_noise = gate_noise_description;
@@ -948,6 +948,47 @@ namespace qpandalite {
 				global_controller)
 		);
 		insert_error({ qubits }, op);
+	}
+
+	NoisySimulator_GateErrorSpecific::NoisySimulator_GateErrorSpecific(size_t n_qubit,
+		const std::map<std::string, double>& noise_description,
+		const GateError1q_Description_t& gate_error1q_description,
+		const GateError2q_Description_t& gate_error2q_description,
+		const std::vector<std::array<double, 2>>& measurement_error)
+		: NoisySimulator(n_qubit, noise_description, measurement_error)
+	{
+		_load_gate_error1q(gate_error1q_description);
+		_load_gate_error2q(gate_error2q_description);
+	}
+
+	void NoisySimulator_GateErrorSpecific::_load_gate_error1q(const GateError1q_Description_t& gate_error_description)
+	{
+		for (auto &[gate_qubit, noise_type] : gate_error_description)
+		{
+			SupportOperationType gateType = string_to_SupportOperationType(gate_qubit.first);
+			std::map<NoiseType, double> noiseProbabilities;
+			for (const auto& noise_pair : noise_type)
+			{
+				NoiseType noiseType = string_to_NoiseType(noise_pair.first);
+				noiseProbabilities[noiseType] = noise_pair.second;
+			}
+			gate_error1q[std::make_pair(gateType, gate_qubit.second)] = noiseProbabilities;
+		}
+	}
+
+	void NoisySimulator_GateErrorSpecific::_load_gate_error2q(const GateError2q_Description_t& gate_error_description)
+	{
+		for (auto& [gate_qubit, noise_type] : gate_error_description)
+		{
+			SupportOperationType gateType = string_to_SupportOperationType(gate_qubit.first);
+			std::map<NoiseType, double> noiseProbabilities;
+			for (const auto& noise_pair : noise_type)
+			{
+				NoiseType noiseType = string_to_NoiseType(noise_pair.first);
+				noiseProbabilities[noiseType] = noise_pair.second;
+			}
+			gate_error2q[std::make_pair(gateType, gate_qubit.second)] = noiseProbabilities;
+		}
 	}
 }
 

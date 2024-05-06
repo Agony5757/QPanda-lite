@@ -254,7 +254,7 @@ namespace qpandalite {
             const GateDependentNoise_Description_t& gate_noise_description,
             const std::vector<std::array<double, 2>>& measurement_error);
 
-        void _load_gate_dependent_noise(const GateDependentNoise_Description_t&gate_noise_description);
+        void _load_gate_dependent_noise(const GateDependentNoise_Description_t& gate_noise_description);
 
         /* Noisy simulation */
         void insert_error(const std::vector<size_t>& qn, SupportOperationType gateType);

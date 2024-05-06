@@ -165,15 +165,15 @@ namespace qpandalite {
 
 		for (size_t i = 0; i < pow2(total_qubit); ++i)
 		{
-			if ((i >> qn) & 1)  // If the qubit is in the |1⟩ state
+			if ((i >> qn) & 1)  // If the qubit is in the |1> state
 			{
-				// We find the corresponding |0⟩ state for this qubit
-				size_t corresponding_zero_state = i & ~(1ULL << qn);
+				// We find the corresponding |0> state for this qubit
+				size_t corresponding_zero_state = i & ~(pow2(qn));
 
-				// Add the amplitude from the |1⟩ state to the |0⟩ state
+				// Add the amplitude from the |1> state to the |0> state
 				state[corresponding_zero_state] = std::norm(abs_sqr(state[i]));
 
-				// Set the amplitude for the |1⟩ state to zero
+				// Set the amplitude for the |1> state to zero
 				state[i] = 0;
 
 			}

@@ -290,8 +290,8 @@ namespace qpandalite {
 
 			if (noise_type <= NoiseType::__NoiseTypeBegin ||
 				noise_type >= NoiseType::__NoiseTypeEnd)
-				ThrowRuntimeError("General noise type does not belong to "
-					"Depolarizing Damping BitFlip PhaseFlip");
+				ThrowRuntimeError("General noise type does not belong to the following: "
+					"Depolarizing Damping BitFlip PhaseFlip.");
 
 			opcodes.emplace_back(
 				OpcodeType(

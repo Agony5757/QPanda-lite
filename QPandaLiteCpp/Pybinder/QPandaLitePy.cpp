@@ -164,6 +164,20 @@ PYBIND11_MODULE(QPandaLitePy, m)
 			py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
 		)
 		;
+
+	py::class_<qpandalite::NoisySimulator_GateErrorSpecific, qpandalite::NoisySimulator>(m, "NoisySimulator_GateErrorSpecific")
+		.def(py::init<size_t,
+			const std::map<std::string, double>&,
+			const qpandalite::NoisySimulator_GateErrorSpecific::GateError1q_Description_t&,
+			const qpandalite::NoisySimulator_GateErrorSpecific::GateError2q_Description_t&,
+			const std::vector<std::array<double, 2>>&>(),
+			py::arg("n_qubit"),
+			py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
+			py::arg("gate_error1q_description") = qpandalite::NoisySimulator_GateErrorSpecific::GateError1q_Description_t{},  // Default empty map
+			py::arg("gate_error2q_description") = qpandalite::NoisySimulator_GateErrorSpecific::GateError2q_Description_t{},  // Default empty map
+			py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
+		)
+		;
 }
 
 #ifdef __GNUC__

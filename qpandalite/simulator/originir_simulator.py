@@ -83,8 +83,7 @@ class OriginIR_Simulator:
         else:
             raise RuntimeError('Unknown OriginIR operation. '
                                 f'Operation: {operation}. '
-                                f'Full opcode: {(operation, qubit, cbit, 
-                                                    parameter, is_dagger, control_qubits_set)}')
+                                f'Full opcode: {(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)}')
     
     def _simulate_common_gate(self, operation, qubit, cbit, parameter, is_dagger, ):
         if operation == 'RX':

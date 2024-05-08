@@ -382,15 +382,15 @@ namespace qpandalite {
 			);
 		}
 	}
-	
-	void NoisySimulator::id(size_t qn, bool is_dagger)
-	{
-		id_cont(qn, {}, is_dagger);
-	}
 
 	void NoisySimulator::insert_error(const std::vector<size_t>& qubits, SupportOperationType gate_type)
 	{
 		_insert_global_error(qubits);
+	}
+	
+	void NoisySimulator::id(size_t qn, bool is_dagger)
+	{
+		id_cont(qn, {}, is_dagger);
 	}
 
 	void NoisySimulator::hadamard(size_t qn, bool is_dagger)
@@ -490,16 +490,15 @@ namespace qpandalite {
 
 	void NoisySimulator::id_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
-		// opcodes.emplace_back(
-		// 	OpcodeType(
-		// 	(uint32_t)SupportOperationType::IDENTITY,
-		// 	{ qn },
-		// 	{},
-		// 	is_dagger,
-		// 	global_controller)
-		// );
-		insert_gate_dependent_error({qn}, SupportOperationType::IDENTITY);
-		insert_error({ qn });
+		opcodes.emplace_back(
+			OpcodeType(
+			(uint32_t)SupportOperationType::IDENTITY,
+			{ qn },
+			{},
+			is_dagger,
+			global_controller)
+		);
+		insert_error({ qn }, SupportOperationType::IDENTITY);
 	}
 
 	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
@@ -829,10 +828,7 @@ namespace qpandalite {
 				simulator.cz_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::CNOT:
-				simulator.cnot_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
-				break;
-			case (uint32_t)SupportOperationType::SWAP:
-				simulator.swap_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
+				simulator.cnot(opcode.qubits[0], opcode.qubits[1]);
 				break;
 			case (uint32_t)SupportOperationType::ISWAP:
 				simulator.iswap_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);

@@ -196,6 +196,7 @@ namespace qpandalite {
         // Perform bit flip based on measurement 
 
         void hadamard(size_t qn, bool is_dagger = false);
+        void id(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
         void x(size_t qn, bool is_dagger = false);
         void z(size_t qn, bool is_dagger = false);

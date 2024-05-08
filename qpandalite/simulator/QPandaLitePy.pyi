@@ -614,8 +614,8 @@ class NoisySimulator:
 
         Args:
             controller (int): The controller qubit.
-            target (int): The target qubit.
-            target (int): The target qubit.
+            target1 (int): The target qubit1.
+            target2 (int): The target qubit2.
         '''
         ... 
 

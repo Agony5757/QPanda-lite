@@ -51,12 +51,13 @@ jobs:
     
     - name: Install CMake
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then 
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
           sudo apt-get update
           sudo apt-get install -y cmake
-        elif [ "$RUNNER_OS" == "Windows" ]; then
+        elif [[ "${{ runner.os }}" == "Windows" ]]; then
           choco install cmake
         fi
+      shell: ${{ matrix.shell }}
         
     - name: Build
       # Build your program with the given configuration

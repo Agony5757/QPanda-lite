@@ -3,6 +3,7 @@
 [![Documentation Status](https://readthedocs.org/projects/qpanda-lite/badge/?version=latest)](https://qpanda-lite.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/qpandalite.svg)](https://badge.fury.io/py/qpandalite)
 [![Build and Test](https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml/badge.svg?branch=main)](https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml)
+
 QPanda: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplication
 
 QPanda-lite *should be* a simple, easy, and transparent python-native version for QPanda.

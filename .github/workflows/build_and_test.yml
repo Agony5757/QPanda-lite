@@ -73,5 +73,5 @@ jobs:
       run: python setup.py install
       
     - name: Test
-      run: python -c "import qpandalite"
+      run: python -c "import qpandalite; qpandalite.run_test()"
    

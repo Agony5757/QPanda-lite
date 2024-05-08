@@ -21,3 +21,5 @@ from .qcloud_config.ibm_online_config import create_ibm_online_config
 from .qcloud_config.originq_cloud_config import create_originq_cloud_config
 from .transpiler import plot_time_line
 from .task.task_utils import (get_last_taskid, load_circuit, load_circuit_group, load_all_online_info)
+
+from .test import run_test

@@ -63,8 +63,14 @@ jobs:
       shell: pwsh
         
     - name: Build
+      if: runner.os == 'Linux'
       # Build your program with the given configuration
       run: sudo python setup.py install
+        
+    - name: Build
+      if: runner.os == 'Windows'
+      # Build your program with the given configuration
+      run: python setup.py install
       
     - name: Test
       run: python -c "import qpandalite"

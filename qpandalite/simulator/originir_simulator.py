@@ -149,8 +149,7 @@ class OriginIR_Simulator:
         else:
             raise RuntimeError('Unknown OriginIR operation. '
                                 f'Operation: {operation}.'
-                                f'Full opcode: {(operation, qubit, cbit, 
-                                                    parameter, is_dagger)}')
+                                f'Full opcode: {(operation, qubit, cbit, parameter, is_dagger)}')
 
     def simulate_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):
         if control_qubits_set:

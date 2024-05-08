@@ -990,7 +990,7 @@ namespace qpandalite {
 		}
 	}
 
-	NoisySimulator_GateErrorSpecific::NoisySimulator_GateErrorSpecific(size_t n_qubit,
+	NoisySimulator_GateSpecificError::NoisySimulator_GateSpecificError(size_t n_qubit,
 		const std::map<std::string, double>& noise_description,
 		const GateError1q_Description_t& gate_error1q_description,
 		const GateError2q_Description_t& gate_error2q_description,
@@ -1001,7 +1001,7 @@ namespace qpandalite {
 		_load_gate_error2q(gate_error2q_description);
 	}
 
-	void NoisySimulator_GateErrorSpecific::_load_gate_error1q(const GateError1q_Description_t& gate_error_description)
+	void NoisySimulator_GateSpecificError::_load_gate_error1q(const GateError1q_Description_t& gate_error_description)
 	{
 		for (auto& [gate_qubit, noise_type] : gate_error_description)
 		{
@@ -1020,7 +1020,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoisySimulator_GateErrorSpecific::_load_gate_error2q(const GateError2q_Description_t& gate_error_description)
+	void NoisySimulator_GateSpecificError::_load_gate_error2q(const GateError2q_Description_t& gate_error_description)
 	{
 		for (auto& [gate_qubit, noise_type] : gate_error_description)
 		{
@@ -1039,7 +1039,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoisySimulator_GateErrorSpecific::insert_error(const std::vector<size_t>& qubits, SupportOperationType gateType)
+	void NoisySimulator_GateSpecificError::insert_error(const std::vector<size_t>& qubits, SupportOperationType gateType)
 	{
 		_insert_global_error(qubits);
 
@@ -1064,7 +1064,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoisySimulator_GateErrorSpecific::_insert_gate_error1q(SupportOperationType gateType, size_t qn)
+	void NoisySimulator_GateSpecificError::_insert_gate_error1q(SupportOperationType gateType, size_t qn)
 	{
 		if (gate_error1q.empty()) return;
 
@@ -1076,7 +1076,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoisySimulator_GateErrorSpecific::_insert_gate_error2q(SupportOperationType gateType, size_t qn1, size_t qn2)
+	void NoisySimulator_GateSpecificError::_insert_gate_error2q(SupportOperationType gateType, size_t qn1, size_t qn2)
 	{
 		if (gate_error2q.empty()) return;
 

@@ -262,7 +262,7 @@ namespace qpandalite {
         
     };
 
-    struct NoisySimulator_GateErrorSpecific : public NoisySimulator
+    struct NoisySimulator_GateSpecificError : public NoisySimulator
     {
         using GateError1q_t = std::map<std::pair<SupportOperationType, size_t>, std::map<NoiseType, double>>;
         using GateError2q_t = std::map<std::pair<SupportOperationType, std::pair<size_t, size_t>>, std::map<NoiseType, double>>;
@@ -271,7 +271,7 @@ namespace qpandalite {
         GateError1q_t gate_error1q;
         GateError2q_t gate_error2q;
 
-        NoisySimulator_GateErrorSpecific(size_t n_qubit,
+        NoisySimulator_GateSpecificError(size_t n_qubit,
             const std::map<std::string, double>& noise_description,
             const GateError1q_Description_t& gate_error1q_description,
             const GateError2q_Description_t& gate_error2q_description,

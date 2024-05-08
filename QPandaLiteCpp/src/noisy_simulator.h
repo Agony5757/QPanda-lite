@@ -16,6 +16,7 @@ namespace qpandalite {
     {
         __SupportOperationTypeBegin = 1000,
         HADAMARD,
+        IDENTITY,
         U22,
         X,
         Y,
@@ -92,6 +93,7 @@ namespace qpandalite {
         static const std::map<std::string, SupportOperationType> op_type_map =
         {
            {"HADAMARD", SupportOperationType::HADAMARD},
+           {"IDENTITY", SupportOperationType::IDENTITY},
            {"U22", SupportOperationType::U22},
            {"X", SupportOperationType::X},
            {"Y", SupportOperationType::Y},
@@ -194,6 +196,7 @@ namespace qpandalite {
         // Perform bit flip based on measurement 
 
         void hadamard(size_t qn, bool is_dagger = false);
+        void id(size_t qn, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
         void x(size_t qn, bool is_dagger = false);
         void z(size_t qn, bool is_dagger = false);
@@ -213,6 +216,7 @@ namespace qpandalite {
         void toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger = false);
         void cswap(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
 
+        void id_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void u22_cont(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void x_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);

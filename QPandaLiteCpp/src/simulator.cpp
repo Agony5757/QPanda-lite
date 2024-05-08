@@ -273,6 +273,7 @@ namespace qpandalite{
             }
         }
     }
+    
     void Simulator::cnot(size_t controller, size_t target, bool is_dagger)
     {
         if (controller >= total_qubit)
@@ -890,8 +891,19 @@ namespace qpandalite{
         {
             if (!control_enable(i, global_controller))
                 continue;
-            if (((i >> controller) & 1) && ((i >> target) & 1))
+            bool control_active = true;
+            
+            // Check if all global controllers are active (in state 1)
+            for (size_t q : global_controller) {
+
+                if (!((i >> q) & 1)) {
+                    control_active = false;
+                    break;
+                }
+            }
+            if (control_active && ((i >> controller) & 1) && ((i >> target) & 1))
             {
+                // Printing i when all conditions are satisfied
                 std::swap(state[i], state[i - pow2(target)]);
             }
         }
@@ -1116,7 +1128,6 @@ namespace qpandalite{
         u22_cont(qn, unitary, global_controller);
     }
 
-
     void Simulator::toffoli_cont(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         if (global_controller.size() == 0)
@@ -1190,7 +1201,7 @@ namespace qpandalite{
             }
         }
     }
-
+    
     bool Simulator::control_enable(size_t idx, const std::vector<size_t>& global_controller)
     {
         for (auto qid : global_controller)

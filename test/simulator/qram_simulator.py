@@ -14,7 +14,7 @@ seed(current_time_seed)
 
 # Define the noise descriptions
 noise_description = {
-    "depolarizing": 0.01
+    # "depolarizing": 0.01
 }
 
 # Define the gate noise descriptions
@@ -37,11 +37,21 @@ simulator = NoisySimulator(2,noise_description, gate_noise_description)
 # print(gate_noise_desc)
 
 
-# simulator.cnot_cont()
+simulator.hadamard(0)
+simulator.x(0)
+simulator.hadamard(1)
+simulator.z(1)
+simulator.iswap(0, 1)
+simulator.rx(0, np.pi/8)
+simulator.ry(0, np.pi/4)
+simulator.rz(0, np.pi/2)
+simulator.rphi90(1, np.pi/8)
+simulator.rphi180(1, np.pi/4)
+simulator.rphi(1, np.pi/2, np.pi/4)
 # Number of measurement shots
 shots = 1024
 
 # # Measure the state multiple times
-measurement_results = simulator.measure_shots(measure_qubit=[(0,0)], shots=shots)
+measurement_results = simulator.measure_shots(shots)
 
 print(measurement_results)

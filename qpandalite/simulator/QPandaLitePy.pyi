@@ -11,6 +11,9 @@ from typing_extensions import override
 def seed(seed_: int) -> None: ...
 def rand() -> float: ...
 
+def seed(seed_: int) -> None: ...
+def rand() -> float: ...
+
 class Simulator:
     def __init__(self) -> None: 
         '''Create a simulator instance (implemented by C++).
@@ -105,6 +108,15 @@ class Simulator:
         ...
 
     def iswap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+        '''iSWAP gate.
+
+        Args:
+            q1 (int): The first qubit.
+            q2 (int): The second qubit.
+        '''
+        ...
+
+    def swap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
         '''iSWAP gate.
 
         Args:
@@ -438,6 +450,14 @@ class NoisySimulator:
         '''
         ...
     
+    def id(self, qn : int, is_dagger : bool = False) -> None:
+        '''Identity gate.
+
+        Args:
+            qn (int): The gate qubit.
+        '''
+        ...
+
     def hadamard(self, qn : int, is_dagger : bool = False) -> None:
         '''Hadamard gate.
 
@@ -515,6 +535,15 @@ class NoisySimulator:
         '''
         ...  
     
+    def swap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ...  
+
     def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
         '''Rx gate.
 
@@ -569,7 +598,37 @@ class NoisySimulator:
             theta (float): The rotation angle.
         '''
         ...
-        
+    
+    def toffoli(self, qn1 : int, qn2 : int, target : int, is_dagger : bool = False) -> None:
+        '''Toffoli gate.
+
+        Args:
+            qn1 (int): The controller qubit1.
+            qn2 (int): The controller qubit2.
+            target (int): The target qubit.
+        '''
+        ... 
+    
+    def cswap(self, controller : int, target1 : int, target2 : int, is_dagger : bool = False) -> None:
+        '''CSWAP gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target1 (int): The target qubit1.
+            target2 (int): The target qubit2.
+        '''
+        ... 
+
+    def cnot_cont(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
+        '''CNOT gate.
+
+        Args:
+            controller (int): The controller qubit.
+            target (int): The target qubit.
+        '''
+        ... 
+
+
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.

@@ -4,7 +4,7 @@ sim = qsim.OriginIR_Simulator(reverse_key=False)
 
 originir = '''
 QINIT 72
-CREG 2
+CREG 3
 RY q[45],(0.9424777960769379)
 RY q[46],(0.9424777960769379)
 CZ q[45],q[46]
@@ -21,9 +21,10 @@ print(res)
 print(sim.state)
 
 
+sim = qsim.OriginIR_Simulator(reverse_key=False)
 originir = '''
 QINIT 72
-CREG 2
+CREG 3
 RY q[45],(0.9424777960769379)
 RY q[46],(0.9424777960769379)
 CZ q[45],q[46]

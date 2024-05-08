@@ -35,10 +35,12 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                        style=style,
                                        prob_or_shots=prob_or_shots,
                                        reverse_key=reverse_key,
-                                       key_style=key_style) 
+                                       key_style=key_style,
+                                       qubit_num=qubit_num) 
                                        for result in key_value_result]
 
     keys = deepcopy(key_value_result['key'])
+    # for results which contain binary keys    
     keys = [int(key, base=16) for key in keys]
     
     values = deepcopy(key_value_result['value'])
@@ -47,7 +49,10 @@ def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
     if qubit_num:
         guessed_qubit_num = qubit_num
     else:
-        guessed_qubit_num = math.ceil(math.log2(max_key))
+        guessed_qubit_num = len(bin(max_key)) - 2
+
+    if style == 'list':
+        key_style = 'dec'
 
     if reverse_key:        
         if key_style == 'bin':
@@ -89,9 +94,10 @@ def shots2prob(measured_result : Dict[str, int],
 
 def kv2list(kv_result : dict, guessed_qubit_num):
     ret = [0] * (2 ** guessed_qubit_num)
+    # The key style of kv_result needs to be specified.
     for k in kv_result:
         ret[k] = kv_result[k]
-
+        
     return ret
 
 if __name__ == '__main__':

@@ -367,11 +367,11 @@ namespace qpandalite{
         if(is_dagger)
         {
             unitary = {cos(angle / 2), sin(angle / 2),
-                            -sin(angle / 2), cos(angle / 2)};
+                       -sin(angle / 2), cos(angle / 2)};
         }else
         {
             unitary = {cos(angle / 2), -sin(angle / 2),
-                    sin(angle / 2), cos(angle / 2)};
+                       sin(angle / 2), cos(angle / 2)};
         }
 
 
@@ -388,17 +388,19 @@ namespace qpandalite{
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
-            if ((i >> qn) & 1)
-            {   
-                if(is_dagger)
-                {
-                    state[i] *= std::complex(cos(angle), -sin(angle));
-                }else
-                {
-                    state[i] *= std::complex(cos(angle), sin(angle));
-                }
-                
+            if (((i >> qn) & 1) ^ is_dagger)
+            {
+                // 0 and not dagger -> exp(-it/2)
+                // 1 and dagger -> exp(-it/2)
+                state[i] *= std::complex(cos(angle / 2), -sin(angle / 2));
             }
+            else
+            {
+                // 0 and dagger -> exp(it/2)
+                // 1 and not dagger -> exp(it/2)
+                state[i] *= std::complex(cos(angle / 2), sin(angle / 2));
+            }
+
         }
     }
 
@@ -578,6 +580,11 @@ namespace qpandalite{
 
     void Simulator::u22_cont(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            u22(qn, unitary, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
@@ -625,6 +632,11 @@ namespace qpandalite{
 
     void Simulator::x_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            x(qn, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
@@ -644,6 +656,11 @@ namespace qpandalite{
 
     void Simulator::y_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            y(qn, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
@@ -666,6 +683,11 @@ namespace qpandalite{
 
     void Simulator::z_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            z(qn, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
@@ -685,6 +707,11 @@ namespace qpandalite{
 
     void Simulator::cz_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            cz(qn1, qn2, is_dagger);
+            return;
+        }
         if (qn1 >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
@@ -750,6 +777,11 @@ namespace qpandalite{
 
     void Simulator::iswap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            iswap(qn1, qn2, is_dagger);
+            return;
+        }
         if (qn1 >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
@@ -790,6 +822,11 @@ namespace qpandalite{
 
     void Simulator::xy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            xy(qn1, qn2, theta, is_dagger);
+            return;
+        }
         if (qn1 >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
@@ -829,6 +866,11 @@ namespace qpandalite{
 
     void Simulator::cnot_cont(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            cnot(controller, target, is_dagger);
+            return;
+        }
         if (controller >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, controller = {})", total_qubit, controller);
@@ -869,6 +911,11 @@ namespace qpandalite{
 
     void Simulator::rx_cont(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            rx(qn, angle, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
@@ -895,6 +942,11 @@ namespace qpandalite{
 
     void Simulator::sx_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            sx(qn, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
@@ -922,6 +974,11 @@ namespace qpandalite{
 
     void Simulator::ry_cont(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            ry(qn, angle, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
@@ -946,6 +1003,11 @@ namespace qpandalite{
 
     void Simulator::rz_cont(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            rz(qn, angle, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
@@ -966,13 +1028,17 @@ namespace qpandalite{
                 {
                     state[i] *= std::complex(cos(angle), sin(angle));
                 }
-
             }
         }
     }
 
     void Simulator::rphi90_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            rphi90(qn, phi, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
@@ -1000,6 +1066,11 @@ namespace qpandalite{
 
     void Simulator::rphi180_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            rphi180(qn, phi, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
@@ -1027,6 +1098,11 @@ namespace qpandalite{
 
     void Simulator::rphi_cont(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
+        if (global_controller.size() == 0)
+        {
+            rphi(qn, phi, theta, is_dagger);
+            return;
+        }
         if (qn >= total_qubit)
         {
             auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);

@@ -11,6 +11,9 @@ from typing_extensions import override
 def seed(seed_: int) -> None: ...
 def rand() -> float: ...
 
+def seed(seed_: int) -> None: ...
+def rand() -> float: ...
+
 class Simulator:
     def __init__(self) -> None: 
         '''Create a simulator instance (implemented by C++).
@@ -414,9 +417,10 @@ class NoisySimulator:
         :param gate_noise_description: A dictionary mapping gate names to dictionaries of noise types and probabilities.
         :param measurement_error: A list of tuples representing measurement error matrices.
         """
-        self.simulator_instance = qpandalite.NoisySimulator(
-            n_qubit, noise_description, gate_noise_description, measurement_error
-        )
+        # self.simulator_instance = qpandalite.NoisySimulator(
+        #     n_qubit, noise_description, gate_noise_description, measurement_error
+        # )
+        ...
 
     @property
     def total_qubit(self) -> int:
@@ -596,19 +600,21 @@ class NoisySimulator:
         ...
     
     def toffoli(self, qn1 : int, qn2 : int, target : int, is_dagger : bool = False) -> None:
-        '''CNOT gate.
+        '''Toffoli gate.
 
         Args:
-            controller (int): The controller qubit.
+            qn1 (int): The controller qubit1.
+            qn2 (int): The controller qubit2.
             target (int): The target qubit.
         '''
         ... 
     
     def cswap(self, controller : int, target1 : int, target2 : int, is_dagger : bool = False) -> None:
-        '''CNOT gate.
+        '''CSWAP gate.
 
         Args:
             controller (int): The controller qubit.
+            target (int): The target qubit.
             target (int): The target qubit.
         '''
         ... 

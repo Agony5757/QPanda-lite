@@ -325,7 +325,7 @@ def submit_task(circuit,
     return task_id
 
 
-def query_all_task(savepath=None):
+def query_all_tasks(savepath=None):
     if not savepath:
         savepath = Path.cwd() / 'online_info'
 
@@ -343,6 +343,11 @@ def query_all_task(savepath=None):
             finished += 1
     return finished, task_count
 
+def query_all_task(savepath = None):
+    '''Deprecated!! Use query_all_tasks instead
+    '''
+    warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
+    return query_all_tasks(savepath)
 
 if __name__ == '__main__':
     import numpy as np

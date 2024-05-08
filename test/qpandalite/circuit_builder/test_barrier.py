@@ -37,4 +37,5 @@ print(circuit_origin.circuit)
 
 origin_qc = QuantumCircuit.from_qasm_str(circuit_origin.qasm)
 print("---Back?---")
-print(origin_qc.qasm())
+
+print(origin_qc.qasm() == qasm_string)

@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <cstdint>
 
 #include "errors.h"
 namespace qpandalite {

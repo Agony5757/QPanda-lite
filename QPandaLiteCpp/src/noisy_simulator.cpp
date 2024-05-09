@@ -1022,8 +1022,11 @@ namespace qpandalite {
 		{
 			SupportOperationType gateType = string_to_SupportOperationType(gate_qubit.first);
 
-			if (gate_qubit_count(gateType) != 1)
-				ThrowInvalidArgument("The specified gate is not 1q.");
+			// DO NOT IMPLEMENT THIS!
+			// Because we require this to emulate the local error in 2-qubit operation
+			// 
+			//if (gate_qubit_count(gateType) != 1)
+			//	ThrowInvalidArgument("The specified gate is not 1q.");
 			
 			std::map<NoiseType, double> noiseProbabilities;
 			for (const auto& noise_pair : noise_type)
@@ -1041,16 +1044,28 @@ namespace qpandalite {
 		{
 			SupportOperationType gateType = string_to_SupportOperationType(gate_qubit.first);
 
-			if (gate_qubit_count(gateType) != 2)
-				ThrowInvalidArgument("The specified gate is not 2q.");
+			// DO NOT IMPLEMENT THIS!
+			// Because we require this to emulate the crosstalk
+			// 
+			//if (gate_qubit_count(gateType) != 2)
+			//	ThrowInvalidArgument("The specified gate is not 2q.");
 			
-			std::map<NoiseType, double> noiseProbabilities;
-			for (const auto& noise_pair : noise_type)
+			if (gate_qubit_count(gateType) <= 2)
 			{
-				NoiseType noiseType = string_to_NoiseType(noise_pair.first);
-				noiseProbabilities[noiseType] = noise_pair.second;
+				// to emulate the nonlocal error in 2q gate
+				std::map<NoiseType, double> noiseProbabilities;
+				for (const auto& noise_pair : noise_type)
+				{
+					NoiseType noiseType = string_to_NoiseType(noise_pair.first);
+					noiseProbabilities[noiseType] = noise_pair.second;
+				}
+				gate_error2q[std::make_pair(gateType, gate_qubit.second)] = noiseProbabilities;
 			}
-			gate_error2q[std::make_pair(gateType, gate_qubit.second)] = noiseProbabilities;
+			else
+			{
+				ThrowInvalidArgument("The specified gate is not 1q or 2q.");
+			}
+
 		}
 	}
 
@@ -1063,15 +1078,12 @@ namespace qpandalite {
 		{
 		case 1:
 			_insert_gate_error1q(gateType, qubits[0]);
+			_insert_gate_error2q(gateType, qubits[0], -1);
 			break;
 		case 2:
-			{
-				size_t q0 = qubits[0];
-				size_t q1 = qubits[1];
-				if (q0 > q1)
-					std::swap(q0, q1);
-				_insert_gate_error2q(gateType, q0, q1);
-			}
+			_insert_gate_error2q(gateType, qubits[0], qubits[1]);
+			_insert_gate_error1q(gateType, qubits[0]);
+			_insert_gate_error1q(gateType, qubits[1]);
 			break;
 		default:
 			ThrowRuntimeError("[Fatal] Error type and gate qubit count "
@@ -1095,11 +1107,34 @@ namespace qpandalite {
 	{
 		if (gate_error2q.empty()) return;
 
-		// Find the noise configuration for the specific gate type
-		auto it_gate_noise = gate_error2q.find(std::make_pair(gateType, std::make_pair(qn1, qn2)));
-		if (it_gate_noise != gate_error2q.end()) {
-			// If gate-specific noise is defined, use insert_generic_error
-			_insert_generic_error({ qn1, qn2 }, it_gate_noise->second);
+		if (qn2 == -1)
+		{
+			// 1q gate has 2q error
+			for (const auto &gate_error : gate_error2q)
+			{
+				// gate_error = std::pair<...> (Gate Description, Error Description)
+				// gate_error.first = std::pair<...> (GateType, Gate Specified Description)
+				// gate_error.first.first= SupportOperationType
+				// gate_error.first.second = std::pair<size_t, size_t> (q1, q2)
+				// gate_error.second = Error Description
+				if (gate_error.first.first != gateType)
+					continue;
+
+				if (gate_error.first.second.first == qn1)
+				{
+					size_t qn2_crosstalk_error = gate_error.first.second.second;
+					_insert_generic_error({ qn1, qn2_crosstalk_error }, gate_error.second);
+				}
+			}
+		}
+		else {
+			// 2q gate has 2q error
+			// Find the noise configuration for the specific gate type
+			auto it_gate_noise = gate_error2q.find(std::make_pair(gateType, std::make_pair(qn1, qn2)));
+			if (it_gate_noise != gate_error2q.end()) {
+				// If gate-specific noise is defined, use insert_generic_error
+				_insert_generic_error({ qn1, qn2 }, it_gate_noise->second);
+			}
 		}
 	}
 }

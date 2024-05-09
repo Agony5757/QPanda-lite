@@ -6,6 +6,7 @@ Note:
 '''
 from typing import Dict, Mapping, List, Optional, Tuple
 from typing_extensions import override
+
 # from numpy.typing import ArrayLike
 
 def seed(seed_: int) -> None: ...
@@ -387,22 +388,41 @@ class Simulator:
         '''
         ...
     
-# class NoiseType:
-#     Depolarizing: int
-#     Damping: int
-#     BitFlip: int
-#     PhaseFlip: int
+class NoiseType:
+    Depolarizing: int
+    Damping: int
+    BitFlip: int
+    PhaseFlip: int
+    TwoQubitDepolarizing : int
 
+class SupportOperationType:
+    HADAMARD : int
+    IDENTITY : int
+    U22 : int
+    X : int
+    Y : int
+    Z : int
+    SX : int
+    CZ : int
+    ISWAP : int
+    XY : int
+    CNOT : int
+    RX : int
+    RY : int
+    RZ : int
+    RPHI90 : int
+    RPHI180 : int
+    RPHI : int
+    TOFFOLI : int
+    CSWAP : int
 
 class NoisySimulator:    
     noise: Dict[str, float]
-    gate_dependent_noise: Dict[str, Dict[str, float]]
     measurement_error_matrices: List[Tuple[float, float]]
 
     def __init__(self,
                 n_qubit: int, 
                 noise_description: Optional[Dict[str, float]] = None, 
-                gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
                 measurement_error: Optional[List[Tuple[float, float]]] = None):
         """
         Create a simulator instance (implemented by C++).
@@ -642,3 +662,26 @@ class NoisySimulator:
         """
         ...
         
+class NoisySimulator_GateDependent(NoisySimulator):
+    
+    gate_dependent_noise: Dict[str, Dict[str, float]]
+    
+    def __init__(self,
+        n_qubit: int, 
+        noise_description: Optional[Dict[str, float]] = None, 
+        gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
+        measurement_error: Optional[List[Tuple[float, float]]] = None):
+        ...
+
+GateError1q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
+GateError2q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
+class NoisySimulator_GateErrorSpecific(NoisySimulator):
+    
+    gate_error1q: Dict[str, Dict[str, float]]
+    
+    def __init__(self,
+        n_qubit: int, 
+        noise_description: Optional[Dict[str, float]] = None, 
+        gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
+        measurement_error: Optional[List[Tuple[float, float]]] = None):
+        ...

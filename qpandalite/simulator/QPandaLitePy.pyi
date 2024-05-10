@@ -649,7 +649,7 @@ class NoisySimulator:
         ... 
 
 
-    def measure_shots(self, shots: int) -> Dict[int, int]:
+    def measure_shots(self, measure_qubits: List[int], shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.
         
@@ -675,7 +675,7 @@ class NoisySimulator_GateDependent(NoisySimulator):
 
 GateError1q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
 GateError2q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
-class NoisySimulator_GateErrorSpecific(NoisySimulator):
+class NoisySimulator_GateSpecificError(NoisySimulator):
     
     gate_error1q: Dict[str, Dict[str, float]]
     

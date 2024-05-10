@@ -649,7 +649,7 @@ class NoisySimulator:
         ... 
 
 
-    def measure_shots(self, shots: int) -> Dict[int, int]:
+    def measure_shots(self, measure_qubits: List[int], shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.
         

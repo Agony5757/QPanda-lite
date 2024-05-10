@@ -6,7 +6,7 @@ import qpandalite.simulator as sim
 from qpandalite.qasm_origin import OpenQASM2_Parser
 from qpandalite.circuit_builder import Circuit
 
-import common_gates 
+from . import common_gates 
 
 def iswap_test():
     sim = qsim.Simulator()

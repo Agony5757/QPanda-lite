@@ -123,6 +123,7 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)	
 		.def("get_measure_no_readout_error", &qpandalite::NoisySimulator::get_measure_no_readout_error)
 		.def("get_measure", &qpandalite::NoisySimulator::get_measure)
+		.def("measure_shots", &qpandalite::NoisySimulator::measure_shots)
 		
 		.def("id", &qpandalite::NoisySimulator::id, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("dagger") = false)

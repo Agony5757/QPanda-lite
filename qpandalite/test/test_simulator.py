@@ -2,7 +2,7 @@ import qpandalite
 from qpandalite.simulator import (Simulator, 
                                   NoisySimulator,
                                   NoisySimulator_GateDependent, 
-                                  NoisySimulator_GateErrorSpecific)
+                                  NoisySimulator_GateSpecificError)
 from qpandalite.qasm_origin import OpenQASM2_Parser
 from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import seed

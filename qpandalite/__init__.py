@@ -12,7 +12,7 @@ except:
     # warning has been omitted in the submodule.
     pass
 import QPandaLitePy
-from .analyzer import convert_originq_result, calculate_expectation, shots2prob, kv2list
+from .analyzer import convert_originq_result, convert_quafu_result, calculate_expectation, shots2prob, kv2list
 from .qcloud_config.originq_online_config import (create_originq_online_config, 
                                                   create_originq_dummy_config,
                                                   create_originq_config)

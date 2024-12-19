@@ -1,4 +1,4 @@
-from qpandalite.simulator import Simulator, NoisySimulator
+from qpandalite.simulator import Simulator, NoisySimulator, NoisySimulator_GateDependent
 from qpandalite.simulator import seed
 import numpy as np
 import json
@@ -65,7 +65,7 @@ for noise_strength in [1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]:
 
 	for C in single_qubit_cliffords:
 		# Create an instance of the NoisySimulator
-		simulator = NoisySimulator(3, noise_description, gate_noise_description)
+		simulator = NoisySimulator_GateDependent(3, noise_description, gate_noise_description)
 
 		simulator.hadamard(0)
 		# apply_single_clifford(C, simulator, 1, inverse=False)
@@ -102,10 +102,10 @@ for noise_strength in [1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]:
 		aa = 0
 		culmu = 0
 		for key in list(measurement_results.keys()):  # Use list to avoid RuntimeError for changing dict size during iteration
-		    if int(key) % 2 == 0:  # Check if the key is even
-		        culmu += measurement_results[key]
-		    if int(key) in [0,4]:
-		        aa += measurement_results[key]
+			if int(key) % 2 == 0:  # Check if the key is even
+				culmu += measurement_results[key]
+			if int(key) in [0,4]:
+				aa += measurement_results[key]
 		
 		condition_prob.append(1 - aa / culmu)
 	# single_exps_sup[noise_strength].append(measurement_results[0] / shots)

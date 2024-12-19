@@ -1,3 +1,4 @@
+import re
 from setuptools import Distribution, setup, Extension, find_packages
 import setuptools
 from setuptools.command.build_ext import build_ext
@@ -12,14 +13,12 @@ filtered_args = []
 for i, arg in enumerate(sys.argv):
     if arg == '--no-cpp':
         BUILD_WITH_CPP = False
-        print('Build without c++ support.')
+        print('Build without C++ support.')
     else:
         filtered_args.append(arg)
 
 sys.argv = filtered_args
 
-with open("README.md", 'r', encoding = 'utf-8') as fp:
-    readme = fp.read()
 
 CLASSIFIERS = """\
 Development Status :: 5 - Production/Stable
@@ -162,12 +161,24 @@ else:
     ext_modules = []
     cmdclass = {}
 
+__version__ = ''
+# Obtain version from versioneer
+exec(open('qpandalite/__version__.py').read())
+if not __version__:
+    raise ValueError('Version is not set')
+
+description = ('QPanda-Lite. A python-native version for pyqpanda. '
+               'Simple, easy, and transparent.')
+
+with open("README.md", 'r', encoding = 'utf-8') as fp:
+    readme = fp.read()
+
 setup(
     name = "qpandalite",
-    version = "0.2.2",
+    version = __version__,
     author = "Agony",
     author_email = "chenzhaoyun@iai.ustc.edu.cn",
-    description= "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent.",
+    description= description,
     long_description = readme,
     long_description_content_type="text/markdown",
     ext_modules=ext_modules,

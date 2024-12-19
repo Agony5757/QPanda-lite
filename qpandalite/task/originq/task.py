@@ -1,3 +1,13 @@
+'''
+Commit task to originq QPilot directly.
+
+This module is not available in current version. 
+Please use qpandalite.task.originq_cloud instead.
+'''
+
+raise ImportError('This module is not available in current version. '
+                  'Please use qpandalite.task.originq_cloud instead.')
+
 import time
 import traceback
 from typing import List, Union

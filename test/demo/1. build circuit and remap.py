@@ -26,6 +26,9 @@ def demo_1():
     # Measure the qubits you want.
     c.measure(0,1,2)
 
+    # Print the original circuit    
+    print(c.circuit)
+
     # Use this to create a remapping (this is NOT an inplace operation.)
     c = c.remapping({0 : 100, 1: 101, 2: 102, 3: 103})
 
@@ -37,3 +40,27 @@ def demo_1():
 
 if __name__ == '__main__':
     demo_1()
+
+    # Output 1:
+    # QINIT 4
+    # CREG 3
+    # X q[0]
+    # RX q[1], (3.141592653589793)
+    # RY q[2], (1.5707963267948966)
+    # CNOT q[2], q[3]
+    # CZ q[1], q[2]
+    # MEASURE q[0], c[0]
+    # MEASURE q[1], c[1]
+    # MEASURE q[2], c[2]
+    
+    # Output 2:
+    # QINIT 4
+    # CREG 3
+    # X q[100]
+    # RX q[101], (3.141592653589793)
+    # RY q[102], (1.5707963267948966)
+    # CNOT q[102], q[103]        # Note that the qubit ID has been changed.
+    # CZ q[101], q[102]
+    # MEASURE q[100], c[0]
+    # MEASURE q[101], c[1]
+    # MEASURE q[102], c[2]

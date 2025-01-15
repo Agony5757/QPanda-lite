@@ -690,7 +690,7 @@ class NoisySimulator_GateDependent(NoisySimulator):
 
 GateError1q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
 GateError2q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
-class NoisySimulator_GateErrorSpecific(NoisySimulator):
+class NoisySimulator_GateSpecificError(NoisySimulator):
     
     gate_error1q: Dict[str, Dict[str, float]]
     

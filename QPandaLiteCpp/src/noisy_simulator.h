@@ -263,6 +263,7 @@ namespace qpandalite {
         std::pair<size_t, double> _get_state_prob(size_t i);
         size_t get_measure_no_readout_error();
         size_t get_measure();
+        std::map<size_t, size_t> measure_shots(size_t shots);
         std::map<size_t, size_t> measure_shots(const std::vector<size_t>& measure_list, size_t shots);
 
     };

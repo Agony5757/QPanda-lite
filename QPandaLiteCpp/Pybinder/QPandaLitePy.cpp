@@ -114,6 +114,9 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		// There might be others
 		;
 
+	using measure_shots_type1 = std::map<size_t, size_t> (qpandalite::NoisySimulator::*)(const std::vector<size_t>&, size_t);
+	using measure_shots_type2 = std::map<size_t, size_t> (qpandalite::NoisySimulator::*)(size_t);
+
 	py::class_<qpandalite::NoisySimulator>(m, "NoisySimulator")
 		.def(py::init<size_t, 
                       const std::map<std::string, double>&, 
@@ -129,7 +132,8 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("insert_error", &qpandalite::NoisySimulator::insert_error)	
 		.def("get_measure_no_readout_error", &qpandalite::NoisySimulator::get_measure_no_readout_error)
 		.def("get_measure", &qpandalite::NoisySimulator::get_measure)
-		.def("measure_shots", &qpandalite::NoisySimulator::measure_shots)
+		.def("measure_shots", (measure_shots_type1)&qpandalite::NoisySimulator::measure_shots, py::arg("measure_qubits"), py::arg("shots"))
+		.def("measure_shots", (measure_shots_type2)&qpandalite::NoisySimulator::measure_shots, py::arg("shots"))
 		
 		.def("id", &qpandalite::NoisySimulator::id, py::arg("qn"), py::arg("is_dagger") = false)
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("dagger") = false)

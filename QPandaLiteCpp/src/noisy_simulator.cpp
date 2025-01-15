@@ -927,6 +927,37 @@ namespace qpandalite {
 		return meas_result;
 	}
 
+
+	std::map<size_t, size_t> NoisySimulator::measure_shots(size_t shots)
+	{
+		/* The measure qubits are set empty - so every qubit is measured. */
+
+		std::map<size_t, size_t> measured_result;
+		for (size_t i = 0; i < shots; ++i)
+		{
+			// Execute the quantum circuit once and Measure the quantum state after executing the circuit.
+			execute_once();
+
+			size_t meas = get_measure();
+
+			// std::cout << meas << " ";
+			// Search the histogram to see if this state has been observed before.
+			auto it = measured_result.find(meas);
+
+			// If the state has been observed before, increment its count.
+			if (it != measured_result.end())
+			{
+				it->second++;
+			}
+			// If this is the first time observing this state, add it to the histogram with a count of 1.
+			else
+			{
+				measured_result.emplace(meas, 1);
+			}
+		}
+		return measured_result;
+	}
+
 	std::map<size_t, size_t> NoisySimulator::measure_shots(const std::vector<size_t>& measure_list, size_t shots)
 	{
 		// Initialize an empty map to hold the frequency of each measured quantum state.

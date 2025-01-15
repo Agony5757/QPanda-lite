@@ -649,9 +649,24 @@ class NoisySimulator:
         ... 
 
 
+    def measure_shots(self, measure_qubits: List[int], shots: int) -> Dict[int, int]:
+        """
+        Simulate a quantum measurement multiple times and tally the results.
+        
+        Args:
+            measure_qubits (List[int]): The list of measured qubits.
+            shots (int): The number of times the quantum measurement is simulated.
+        
+        Returns:
+            Dict[int, int]: A dictionary where keys represent unique measurement results 
+            (as integers) and values represent the frequency of each result.
+        """
+        ...        
+
     def measure_shots(self, shots: int) -> Dict[int, int]:
         """
         Simulate a quantum measurement multiple times and tally the results.
+        The measure qubits are set empty, so all qubits are measured.
         
         Args:
             shots (int): The number of times the quantum measurement is simulated.

@@ -191,7 +191,6 @@ setup(
     install_requires=['numpy',
                       'requests',
                       'pandas',
-                      'matplotlib',
                       'seaborn',
                       'rb_generator'],
     zip_safe = False,

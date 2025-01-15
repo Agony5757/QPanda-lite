@@ -69,8 +69,8 @@ namespace qpandalite{
     
     void Simulator::cz(size_t qn1, size_t qn2, bool is_dagger)
     {
-        CHECK_QUBIT_RANGE2(qn1, input1);
-        CHECK_QUBIT_RANGE2(qn2, input2);
+        CHECK_QUBIT_RANGE2(qn1, input1)
+        CHECK_QUBIT_RANGE2(qn2, input2)
         CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -84,16 +84,9 @@ namespace qpandalite{
 
     void Simulator::swap(size_t qn1, size_t qn2, bool is_dagger)
     {
-        if (qn1 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn2 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
-            ThrowInvalidArgument(errstr);
-        }
+        CHECK_QUBIT_RANGE2(qn1, input1)
+        CHECK_QUBIT_RANGE2(qn2, input2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
@@ -110,21 +103,9 @@ namespace qpandalite{
 
     void Simulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
     {
-        if (qn1 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn2 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn1 == qn2)
-        {
-            auto errstr = fmt::format("qn1 = qn2");
-            ThrowInvalidArgument(errstr);
-        }
+        CHECK_QUBIT_RANGE2(qn1, input1)
+        CHECK_QUBIT_RANGE2(qn2, input2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
         using namespace std::literals::complex_literals;
         for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -141,29 +122,15 @@ namespace qpandalite{
                     state[i] *= 1i;
                     state[i + pow2(qn1) - pow2(qn2)] *= 1i;
                 }
-
             }
-
         }
     }
 
     void Simulator::xy(size_t qn1, size_t qn2, double theta, bool is_dagger)
     {
-        if (qn1 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn2 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn1 == qn2)
-        {
-            auto errstr = fmt::format("qn1 = qn2");
-            ThrowInvalidArgument(errstr);
-        }
+        CHECK_QUBIT_RANGE2(qn1, input1)
+        CHECK_QUBIT_RANGE2(qn2, input2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
         using namespace std::literals::complex_literals;
 
@@ -191,21 +158,9 @@ namespace qpandalite{
     
     void Simulator::cnot(size_t controller, size_t target, bool is_dagger)
     {
-        if (controller >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, controller = {})", total_qubit, controller);
-            ThrowInvalidArgument(errstr);
-        }
-        if (target >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, target = {})", total_qubit, target);
-            ThrowInvalidArgument(errstr);
-        }
-        if (controller == target)
-        {
-            auto errstr = fmt::format("controller = target");
-            ThrowInvalidArgument(errstr);
-        }
+        CHECK_QUBIT_RANGE2(controller, controller)
+        CHECK_QUBIT_RANGE2(target, target)
+        CHECK_DUPLICATE_QUBIT(controller, target)
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
@@ -218,11 +173,7 @@ namespace qpandalite{
 
     void Simulator::rx(size_t qn, double angle, bool is_dagger)
     {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
+        CHECK_QUBIT_RANGE(qn)
 
         // Rx 
         using namespace std::literals::complex_literals;
@@ -238,7 +189,7 @@ namespace qpandalite{
         }
 
 
-        u22(qn, unitary);
+        u22_unsafe_impl(state, qn, unitary, total_qubit);
     }
 
 

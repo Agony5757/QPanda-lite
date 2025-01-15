@@ -167,6 +167,11 @@ namespace qpandalite {
         }
     }
 
+    inline void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, u22_t unitary, size_t total_qubit)
+    {
+        return u22_unsafe_impl(state, qn, unitary[0], unitary[1], unitary[2], unitary[3], total_qubit);
+    }
+
     inline void x_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)

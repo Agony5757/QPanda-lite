@@ -1162,6 +1162,146 @@ namespace qpandalite{
             }
         }
     }
+
+
+    void Simulator::zz_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        if (global_controller.size() == 0)
+        {
+            zz(qn1, qn2, theta, is_dagger);
+            return;
+        }
+
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
+
+        if (is_dagger)
+            theta = -theta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 != v2)
+            {
+                state[i] *= complex_t(cos(-theta / 2), sin(-theta / 2));
+            }
+        }
+    }
+
+    void Simulator::xx_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        if (global_controller.size() == 0)
+        {
+            zz(qn1, qn2, theta, is_dagger);
+            return;
+        }
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
+
+        if (is_dagger)
+             theta = -theta;
+        using namespace std::literals::complex_literals;
+        complex_t ctheta = cos(theta);
+        complex_t stheta = sin(theta);
+        complex_t istheta = 1i * stheta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 == false && v2 == false) /* 00 */
+            {
+                /* only 00 will be operated */
+                size_t i00 = i;
+                size_t i01 = i + pow2(qn1);
+                size_t i10 = i + pow2(qn2);
+                size_t i11 = i + pow2(qn1) + pow2(qn2);
+
+                complex_t a00 = state[i00];
+                complex_t a01 = state[i01];
+                complex_t a10 = state[i10];
+                complex_t a11 = state[i11];
+
+                state[i00] = a00 * ctheta + a11 * istheta;
+                state[i01] = a01 * ctheta + a10 * istheta;
+                state[i10] = a01 * istheta + a10 * ctheta;
+                state[i11] = a00 * istheta + a11 * ctheta;
+            }
+        }
+    }
+
+    /* YY interaction
+   *    |00> -> [ cos(t)    0       0      -isin(t) ]
+   *    |01> -> [   0     cos(t)  isin(t)    0     ]
+   *    |10> -> [   0     isin(t)  cos(t)    0     ]
+   *    |11> -> [ -isin(t)   0       0       cos(t) ]
+   */
+    void Simulator::yy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        if (global_controller.size() == 0)
+        {
+            zz(qn1, qn2, theta, is_dagger);
+            return;
+        }
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
+
+        if (is_dagger)
+            theta = -theta;
+        using namespace std::literals::complex_literals;
+        complex_t ctheta = cos(theta);
+        complex_t stheta = sin(theta);
+        complex_t istheta = 1i * stheta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 == false && v2 == false) /* 00 */
+            {
+                /* only 00 will be operated */
+                size_t i00 = i;
+                size_t i01 = i + pow2(qn1);
+                size_t i10 = i + pow2(qn2);
+                size_t i11 = i + pow2(qn1) + pow2(qn2);
+
+                complex_t a00 = state[i00];
+                complex_t a01 = state[i01];
+                complex_t a10 = state[i10];
+                complex_t a11 = state[i11];
+
+                state[i00] = a00 * ctheta - a11 * istheta;
+                state[i01] = a01 * ctheta + a10 * istheta;
+                state[i10] = a01 * istheta + a10 * ctheta;
+                state[i11] = -a00 * istheta + a11 * ctheta;
+            }
+        }
+    }
+
+    void Simulator::u3_cont(size_t qn, double theta, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE(qn)
+
+        /* build the matrix */
+        complex_t ctheta = cos(theta / 2);
+        complex_t stheta = sin(theta / 2);
+        complex_t eilambda = complex_t(cos(lambda), sin(lambda));
+        complex_t eiphi = complex_t(cos(phi), sin(phi));
+        complex_t eiphi_plus_lambda = complex_t(cos(phi + lambda), sin(phi + lambda));
+        complex_t u00 = ctheta;
+        complex_t u01 = -eilambda * stheta;
+        complex_t u10 = eiphi * stheta;
+        complex_t u11 = eiphi_plus_lambda * ctheta;
+
+        u22(qn, { u00, u01, u10, u11 }, is_dagger);
+    }
     
     bool Simulator::control_enable(size_t idx, const std::vector<size_t>& global_controller)
     {

@@ -222,7 +222,7 @@ namespace qpandalite{
 
         using namespace std::literals::complex_literals;
         u22_t unitary; 
-        if(is_dagger)
+        if (is_dagger)
         {
             unitary = {cos(angle / 2), sin(angle / 2),
                        -sin(angle / 2), cos(angle / 2)};
@@ -312,8 +312,8 @@ namespace qpandalite{
         if (is_dagger)
         {
             unitary[0] = cos(theta / 2);
-            unitary[2] = -1i * sin(theta / 2) * std::complex(-cos(phi), -sin(phi));
-            unitary[1] = -1i * sin(theta / 2) * std::complex(-cos(phi), sin(phi));
+            unitary[2] = std::conj(-1i * sin(theta / 2) * std::complex(cos(phi), -sin(phi)));
+            unitary[1] = std::conj(-1i * sin(theta / 2) * std::complex(cos(phi), sin(phi)));
             unitary[3] = cos(theta / 2);           
         }
         else

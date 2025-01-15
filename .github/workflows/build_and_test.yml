@@ -65,12 +65,12 @@ jobs:
     - name: Build
       if: runner.os == 'Linux'
       # Build your program with the given configuration
-      run: sudo python setup.py install
+      run: sudo pip install .
         
     - name: Build
       if: runner.os == 'Windows'
       # Build your program with the given configuration
-      run: python setup.py install
+      run: pip install .
       
     - name: Test
       run: python -c "import qpandalite; qpandalite.run_test()"

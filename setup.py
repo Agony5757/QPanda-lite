@@ -192,6 +192,7 @@ setup(
                       'requests',
                       'pandas',
                       'seaborn',
+                      'matplotlib',
                       'rb_generator'],
     zip_safe = False,
     python_requires='>=3.8',    

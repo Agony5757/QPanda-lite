@@ -50,7 +50,7 @@ class Simulator:
         '''
         ...
 
-    def hadamard(self, qn : int, is_dagger : bool = False) -> None:
+    def hadamard(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''Hadamard gate.
 
         Args:
@@ -58,7 +58,7 @@ class Simulator:
         '''
         ...
 
-    def x(self, qn: int, is_dagger : bool = False) -> None: 
+    def x(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
         '''X gate.
 
         Args:
@@ -66,7 +66,7 @@ class Simulator:
         '''
         ...
     
-    def sx(self, qn : int, is_dagger : bool = False) -> None:
+    def sx(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''SX gate.
 
         Args:
@@ -74,7 +74,7 @@ class Simulator:
         '''
         ...
     
-    def y(self, qn : int, is_dagger : bool = False) -> None:
+    def y(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''Y gate.
 
         Args:
@@ -82,7 +82,7 @@ class Simulator:
         '''
         ...
 
-    def z(self, qn : int, is_dagger : bool = False) -> None:
+    def z(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''Z gate.
 
         Args:
@@ -90,7 +90,7 @@ class Simulator:
         '''
         ...
 
-    def u22(self, qn : int, unitary : List[complex]) -> None:
+    def u22(self, qn : int, control : List[int], unitary : List[complex]) -> None:
         '''Any 2*2 unitary.
 
         Args:
@@ -99,7 +99,7 @@ class Simulator:
         '''
         ...   
 
-    def cz(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+    def cz(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
         '''CZ gate.
 
         Args:
@@ -108,7 +108,7 @@ class Simulator:
         '''
         ...
 
-    def iswap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+    def iswap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
         '''iSWAP gate.
 
         Args:
@@ -117,16 +117,7 @@ class Simulator:
         '''
         ...
 
-    def swap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
-        '''iSWAP gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
+    def xy(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
         '''XX+YY gate.
 
         Args:
@@ -135,7 +126,7 @@ class Simulator:
         '''
         ...
 
-    def cnot(self, controller : int, target : int, is_dagger : bool = False) -> None:
+    def cnot(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
         '''CNOT gate.
 
         Args:
@@ -144,7 +135,7 @@ class Simulator:
         '''
         ...    
 
-    def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+    def rx(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rx gate.
 
         Args:
@@ -153,7 +144,7 @@ class Simulator:
         '''
         ...
 
-    def ry(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+    def ry(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
         '''Ry gate.
 
         Args:
@@ -162,7 +153,7 @@ class Simulator:
         '''
         ...
 
-    def rz(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+    def rz(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rz gate.
 
         Args:
@@ -171,7 +162,7 @@ class Simulator:
         '''
         ...
 
-    def rphi90(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+    def rphi90(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rphi90 gate (pi/2 pulse).
 
         Args:
@@ -180,7 +171,7 @@ class Simulator:
         '''
         ...
 
-    def rphi180(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+    def rphi180(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rphi180 gate (pi pulse).
 
         Args:
@@ -189,147 +180,7 @@ class Simulator:
         '''
         ...
 
-    def rphi(self, qn : int, phi : float, theta: float, is_dagger : bool = False) -> None:
-        '''Rphi gate.
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-            theta (float): The rotation angle.
-        '''
-        ...
-
-    def hadamard_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Hadamard gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def x_cont(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
-        '''X gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def sx_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''SX gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def y_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Y gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def z_cont(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Z gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def u22_cont(self, qn : int, control : List[int], unitary : List[complex]) -> None:
-        '''Any 2*2 unitary.
-
-        Args:
-            qn (int): The gate qubit.
-            unitary (List[complex]): A list with 4 complex elements, representing u00, u01, u10, u11 respectively.
-        '''
-        ...   
-
-    def cz_cont(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CZ gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def iswap_cont(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''iSWAP gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def xy_cont(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''XX+YY gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def cnot_cont(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ...    
-
-    def rx_cont(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rx gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def ry_cont(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Ry gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rz_cont(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rz gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rphi90_cont(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi90 gate (pi/2 pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi180_cont(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi180 gate (pi pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi_cont(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
+    def rphi(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
         '''Rphi gate.
 
         Args:
@@ -469,16 +320,8 @@ class NoisySimulator:
             qubits List[int]: The list of gate qubit.
         '''
         ...
-    
-    def id(self, qn : int, is_dagger : bool = False) -> None:
-        '''Identity gate.
 
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def hadamard(self, qn : int, is_dagger : bool = False) -> None:
+    def hadamard(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''Hadamard gate.
 
         Args:
@@ -486,7 +329,7 @@ class NoisySimulator:
         '''
         ...
 
-    def x(self, qn: int, is_dagger : bool = False) -> None: 
+    def x(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
         '''X gate.
 
         Args:
@@ -494,7 +337,7 @@ class NoisySimulator:
         '''
         ...
     
-    def sx(self, qn : int, is_dagger : bool = False) -> None:
+    def sx(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''SX gate.
 
         Args:
@@ -502,7 +345,7 @@ class NoisySimulator:
         '''
         ...
     
-    def y(self, qn : int, is_dagger : bool = False) -> None:
+    def y(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''Y gate.
 
         Args:
@@ -510,7 +353,7 @@ class NoisySimulator:
         '''
         ...
 
-    def z(self, qn : int, is_dagger : bool = False) -> None:
+    def z(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
         '''Z gate.
 
         Args:
@@ -518,7 +361,7 @@ class NoisySimulator:
         '''
         ...
     
-    def cz(self, qn1 : int, qn2 : int, is_dagger : bool = False) -> None:
+    def cz(self, qn1 : int, qn2 : int, control : List[int], is_dagger : bool = False) -> None:
         '''CZ gate.
 
         Args:
@@ -527,7 +370,7 @@ class NoisySimulator:
         '''
         ...
 
-    def iswap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+    def iswap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
         '''iSWAP gate.
 
         Args:
@@ -537,7 +380,7 @@ class NoisySimulator:
         ...
 
     
-    def xy(self, q1 : int, q2 : int, theta: float, is_dagger : bool = False) -> None:
+    def xy(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
         '''XX+YY gate.
 
         Args:
@@ -546,7 +389,7 @@ class NoisySimulator:
         '''
         ...
     
-    def cnot(self, controller : int, target : int, is_dagger : bool = False) -> None:
+    def cnot(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
         '''CNOT gate.
 
         Args:
@@ -555,7 +398,7 @@ class NoisySimulator:
         '''
         ...  
     
-    def swap(self, q1 : int, q2 : int, is_dagger : bool = False) -> None:
+    def swap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
         '''CNOT gate.
 
         Args:
@@ -564,7 +407,7 @@ class NoisySimulator:
         '''
         ...  
 
-    def rx(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+    def rx(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rx gate.
 
         Args:
@@ -573,7 +416,7 @@ class NoisySimulator:
         '''
         ...
 
-    def ry(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+    def ry(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
         '''Ry gate.
 
         Args:
@@ -582,7 +425,7 @@ class NoisySimulator:
         '''
         ...
 
-    def rz(self, qn : int, angle : float, is_dagger : bool = False) -> None:
+    def rz(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rz gate.
 
         Args:
@@ -591,7 +434,7 @@ class NoisySimulator:
         '''
         ...
     
-    def rphi90(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+    def rphi90(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rphi90 gate (pi/2 pulse).
 
         Args:
@@ -600,7 +443,7 @@ class NoisySimulator:
         '''
         ...
 
-    def rphi180(self, qn : int, phi : float, is_dagger : bool = False) -> None:
+    def rphi180(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
         '''Rphi180 gate (pi pulse).
 
         Args:
@@ -609,7 +452,7 @@ class NoisySimulator:
         '''
         ...
 
-    def rphi(self, qn : int, phi : float, theta: float, is_dagger : bool = False) -> None:
+    def rphi(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
         '''Rphi gate.
 
         Args:
@@ -619,7 +462,7 @@ class NoisySimulator:
         '''
         ...
     
-    def toffoli(self, qn1 : int, qn2 : int, target : int, is_dagger : bool = False) -> None:
+    def toffoli(self, qn1 : int, qn2 : int, target : int, control : List[int], is_dagger : bool = False) -> None:
         '''Toffoli gate.
 
         Args:
@@ -629,7 +472,7 @@ class NoisySimulator:
         '''
         ... 
     
-    def cswap(self, controller : int, target1 : int, target2 : int, is_dagger : bool = False) -> None:
+    def cswap(self, controller : int, target1 : int, target2 : int, control : List[int], is_dagger : bool = False) -> None:
         '''CSWAP gate.
 
         Args:
@@ -639,7 +482,7 @@ class NoisySimulator:
         '''
         ... 
 
-    def cnot_cont(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
+    def cnot(self, controller : int, target : int, control : List[int], control : List[int], is_dagger : bool = False) -> None:
         '''CNOT gate.
 
         Args:

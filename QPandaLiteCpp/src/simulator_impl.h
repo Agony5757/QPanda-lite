@@ -129,11 +129,26 @@ namespace qpandalite {
         }
         return ret;
     }
-    inline void hadamard_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+
+    inline size_t make_controller_mask(const std::vector<size_t>& global_controller)
+    {
+        size_t mask = 0;
+        for (size_t qn : global_controller)
+        {
+            mask |= (1ull << qn);
+        }
+        return mask;
+    }
+
+    inline void hadamard_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
-            if ((i >> qn) & 1) continue;
+            if ((i & controller_mask) != controller_mask) 
+                continue;
+            if ((i >> qn) & 1) 
+                continue;
+
             size_t i0 = i;
             size_t i1 = i + pow2(qn);
 
@@ -148,11 +163,16 @@ namespace qpandalite {
         }
     }
 
-    inline void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, complex_t u00, complex_t u01, complex_t u10, complex_t u11, size_t total_qubit)
+    inline void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, 
+        complex_t u00, complex_t u01, complex_t u10, complex_t u11, size_t total_qubit, size_t controller_mask)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
-            if ((i >> qn) & 1) continue;
+            if ((i & controller_mask) != controller_mask)
+                continue;
+            if ((i >> qn) & 1)
+                continue;
+
             size_t i0 = i;
             size_t i1 = i + pow2(qn);
 
@@ -167,15 +187,18 @@ namespace qpandalite {
         }
     }
 
-    inline void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, u22_t unitary, size_t total_qubit)
+    inline void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, u22_t unitary, size_t total_qubit, size_t controller_mask)
     {
-        return u22_unsafe_impl(state, qn, unitary[0], unitary[1], unitary[2], unitary[3], total_qubit);
+        return u22_unsafe_impl(state, qn, unitary[0], unitary[1], unitary[2], unitary[3], total_qubit, controller_mask);
     }
 
-    inline void x_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+    inline void x_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
             if ((i >> qn) & 1)
             {
                 std::swap(state[i], state[i - pow2(qn)]);
@@ -183,11 +206,14 @@ namespace qpandalite {
         }
     }
 
-    inline void y_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+    inline void y_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
     {
         using namespace std::literals::complex_literals;
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
             if ((i >> qn) & 1)
             {
                 std::swap(state[i], state[i - pow2(qn)]);
@@ -197,12 +223,13 @@ namespace qpandalite {
         }
     }
 
-    inline void z_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+    inline void z_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
     {
-        using namespace std::literals::complex_literals;
-
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
             if ((i >> qn) & 1)
             {
                 state[i] *= -1;
@@ -210,4 +237,242 @@ namespace qpandalite {
         }
     }
 
+    inline void cz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t total_qubit, size_t controller_mask)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if (((i >> qn1) & 1) && ((i >> qn2) & 1))
+            {
+                state[i] *= -1;
+            }
+        }
+    }
+
+    inline void swap_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t total_qubit, size_t controller_mask)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 && (!v2))
+            {
+                // |10>
+                // let it swap with |01>
+                std::swap(state[i - pow2(qn1) + pow2(qn2)], state[i]);
+            }
+
+        }
+    }
+
+    inline void iswap_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t total_qubit, size_t controller_mask, bool is_dagger)
+    {
+        using namespace std::literals::complex_literals;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
+            {
+                std::swap(state[i], state[i + pow2(qn1) - pow2(qn2)]);
+                if (is_dagger)
+                {
+                    state[i] *= -1i;
+                    state[i + pow2(qn1) - pow2(qn2)] *= -1i;
+                }
+                else
+                {
+                    state[i] *= 1i;
+                    state[i + pow2(qn1) - pow2(qn2)] *= 1i;
+                }
+            }
+        }
+    }
+
+    inline void xy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
+    {
+        using namespace std::literals::complex_literals;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+            // |01>
+            if (((i >> qn1) & 0) && ((i >> qn2) & 1))
+            {
+                size_t i2 = i + pow2(qn1) - pow2(qn2);
+                complex_t s1 = state[i];
+                complex_t s2 = state[i2];
+                if (is_dagger)
+                {
+                    state[i] = s1 * cos(theta / 2) + s2 * 1i * sin(theta / 2);
+                    state[i2] = s1 * 1i * sin(theta / 2) + cos(theta / 2) * s2;
+                }
+                else
+                {
+                    state[i] = s1 * cos(theta / 2) - s2 * 1i * sin(theta / 2);
+                    state[i2] = -s1 * 1i * sin(theta / 2) + cos(theta / 2) * s2;
+                }
+            }
+        }
+    }
+
+    inline void cnot_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target, size_t total_qubit, size_t controller_mask)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if (((i >> controller) & 1) && ((i >> target) & 1))
+            {
+                std::swap(state[i], state[i - pow2(target)]);
+            }
+        }
+    }
+
+    inline void rz_unsafe_impl(std::vector<complex_t>& state, size_t qn, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if (((i >> qn) & 1) ^ is_dagger)
+            {
+                // 0 and not dagger -> exp(-it/2)
+                // 1 and dagger -> exp(-it/2)
+                state[i] *= std::complex(cos(theta / 2), -sin(theta / 2));
+            }
+            else
+            {
+                // 0 and dagger -> exp(it/2)
+                // 1 and not dagger -> exp(it/2)
+                state[i] *= std::complex(cos(theta / 2), sin(theta / 2));
+            }
+        }
+    }
+
+    inline void toffoli_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t target, size_t total_qubit, size_t controller_mask)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if (((i >> qn1) & 1) && ((i >> qn2) & 1) && ((i >> target) & 1))
+            {
+                std::swap(state[i], state[i - pow2(target)]);
+            }
+        }
+    }
+
+    inline void cswap_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target1, size_t target2, size_t total_qubit, size_t controller_mask)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if (!((i >> controller) & 1))
+                continue;
+
+            bool v1 = (i >> target1) & 1;
+            bool v2 = (i >> target2) & 1;
+            if (v1 && (!v2))
+            {
+                // |10>
+                // let it swap with |01>
+                std::swap(state[i - pow2(target1) + pow2(target2)], state[i]);
+            }
+        }
+    }
+
+    inline void zz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 != v2)
+            {
+                state[i] *= complex_t(cos(-theta / 2), sin(-theta / 2));
+            }
+        }
+    }
+
+    inline void xx_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask)
+    {
+        using namespace std::literals::complex_literals;
+        complex_t ctheta = cos(theta);
+        complex_t stheta = sin(theta);
+        complex_t istheta = 1i * stheta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 == false && v2 == false) /* 00 */
+            {
+                /* only 00 will be operated */
+                size_t i00 = i;
+                size_t i01 = i + pow2(qn1);
+                size_t i10 = i + pow2(qn2);
+                size_t i11 = i + pow2(qn1) + pow2(qn2);
+
+                complex_t a00 = state[i00];
+                complex_t a01 = state[i01];
+                complex_t a10 = state[i10];
+                complex_t a11 = state[i11];
+
+                state[i00] = a00 * ctheta + a11 * istheta;
+                state[i01] = a01 * ctheta + a10 * istheta;
+                state[i10] = a01 * istheta + a10 * ctheta;
+                state[i11] = a00 * istheta + a11 * ctheta;
+            }
+        }
+    }
+
+    inline void yy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask)
+    {
+        using namespace std::literals::complex_literals;
+        complex_t ctheta = cos(theta);
+        complex_t stheta = sin(theta);
+        complex_t istheta = 1i * stheta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 == false && v2 == false) /* 00 */
+            {
+                /* only 00 will be operated */
+                size_t i00 = i;
+                size_t i01 = i + pow2(qn1);
+                size_t i10 = i + pow2(qn2);
+                size_t i11 = i + pow2(qn1) + pow2(qn2);
+
+                complex_t a00 = state[i00];
+                complex_t a01 = state[i01];
+                complex_t a10 = state[i10];
+                complex_t a11 = state[i11];
+
+                state[i00] = a00 * ctheta - a11 * istheta;
+                state[i01] = a01 * ctheta + a10 * istheta;
+                state[i10] = a01 * istheta + a10 * ctheta;
+                state[i11] = -a00 * istheta + a11 * ctheta;
+            }
+        }
+    }
 }

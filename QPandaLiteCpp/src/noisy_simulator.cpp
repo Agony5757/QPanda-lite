@@ -388,107 +388,107 @@ namespace qpandalite {
 		_insert_global_error(qubits);
 	}
 	
-	void NoisySimulator::id(size_t qn, bool is_dagger)
-	{
-		id_cont(qn, {}, is_dagger);
-	}
+	//void NoisySimulator::id(size_t qn, bool is_dagger)
+	//{
+	//	id_cont(qn, {}, is_dagger);
+	//}
 
-	void NoisySimulator::hadamard(size_t qn, bool is_dagger)
-	{
-		hadamard_cont(qn, {}, is_dagger);
-	}
+	//void NoisySimulator::hadamard(size_t qn, bool is_dagger)
+	//{
+	//	hadamard_cont(qn, {}, is_dagger);
+	//}
 
-	void NoisySimulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
-	{
-		u22_cont(qn, unitary, {}, is_dagger);
-	}
+	//void NoisySimulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
+	//{
+	//	u22_cont(qn, unitary, {}, is_dagger);
+	//}
 
-	void NoisySimulator::x(size_t qn, bool is_dagger)
-	{
-		x_cont(qn, {}, is_dagger);
-	}
+	//void NoisySimulator::x(size_t qn, bool is_dagger)
+	//{
+	//	x_cont(qn, {}, is_dagger);
+	//}
 
-	void NoisySimulator::y(size_t qn, bool is_dagger)
-	{
-		y_cont(qn, {}, is_dagger);
-	}
+	//void NoisySimulator::y(size_t qn, bool is_dagger)
+	//{
+	//	y_cont(qn, {}, is_dagger);
+	//}
 
-	void NoisySimulator::z(size_t qn, bool is_dagger)
-	{
-		z_cont(qn, {}, is_dagger);
-	}
+	//void NoisySimulator::z(size_t qn, bool is_dagger)
+	//{
+	//	z_cont(qn, {}, is_dagger);
+	//}
 
-	void NoisySimulator::sx(size_t qn, bool is_dagger)
-	{
-		sx_cont(qn, {}, is_dagger);
-	}
+	//void NoisySimulator::sx(size_t qn, bool is_dagger)
+	//{
+	//	sx_cont(qn, {}, is_dagger);
+	//}
 
-	void NoisySimulator::cz(size_t qn1, size_t qn2, bool is_dagger)
-	{
-		cz_cont(qn1, qn2, {}, is_dagger);
-	}
+	//void NoisySimulator::cz(size_t qn1, size_t qn2, bool is_dagger)
+	//{
+	//	cz_cont(qn1, qn2, {}, is_dagger);
+	//}
 
-	void NoisySimulator::swap(size_t qn1, size_t qn2, bool is_dagger)
-	{
-		swap_cont(qn1, qn2, {}, is_dagger);
-	}
+	//void NoisySimulator::swap(size_t qn1, size_t qn2, bool is_dagger)
+	//{
+	//	swap_cont(qn1, qn2, {}, is_dagger);
+	//}
 
-	void NoisySimulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
-	{
-		iswap_cont(qn1, qn2, {}, is_dagger);
-	}
+	//void NoisySimulator::iswap(size_t qn1, size_t qn2, bool is_dagger)
+	//{
+	//	iswap_cont(qn1, qn2, {}, is_dagger);
+	//}
 
-	void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, bool is_dagger)
-	{
-		xy_cont(qn1, qn2, theta, {}, is_dagger);
-	}
+	//void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, bool is_dagger)
+	//{
+	//	xy_cont(qn1, qn2, theta, {}, is_dagger);
+	//}
 
-	void NoisySimulator::cnot(size_t controller, size_t target, bool is_dagger)
-	{
-		cnot_cont(controller, target, {}, is_dagger);
-	}
+	//void NoisySimulator::cnot(size_t controller, size_t target, bool is_dagger)
+	//{
+	//	cnot_cont(controller, target, {}, is_dagger);
+	//}
 
-	void NoisySimulator::rx(size_t qn, double angle, bool is_dagger)
-	{
-		rx_cont(qn, angle, {}, is_dagger);
-	}
+	//void NoisySimulator::rx(size_t qn, double angle, bool is_dagger)
+	//{
+	//	rx_cont(qn, angle, {}, is_dagger);
+	//}
 
-	void NoisySimulator::ry(size_t qn, double angle, bool is_dagger)
-	{
-		ry_cont(qn, angle, {}, is_dagger);
-	}
+	//void NoisySimulator::ry(size_t qn, double angle, bool is_dagger)
+	//{
+	//	ry_cont(qn, angle, {}, is_dagger);
+	//}
 
-	void NoisySimulator::rz(size_t qn, double angle, bool is_dagger)
-	{
-		rz_cont(qn, angle, {}, is_dagger);
-	}
+	//void NoisySimulator::rz(size_t qn, double angle, bool is_dagger)
+	//{
+	//	rz_cont(qn, angle, {}, is_dagger);
+	//}
 
-	void NoisySimulator::rphi90(size_t qn, double phi, bool is_dagger)
-	{
-		rphi90_cont(qn, phi, {}, is_dagger);
-	}
+	//void NoisySimulator::rphi90(size_t qn, double phi, bool is_dagger)
+	//{
+	//	rphi90_cont(qn, phi, {}, is_dagger);
+	//}
 
-	void NoisySimulator::rphi180(size_t qn, double phi, bool is_dagger)
-	{
-		rphi180_cont(qn, phi, {}, is_dagger);
-	}
+	//void NoisySimulator::rphi180(size_t qn, double phi, bool is_dagger)
+	//{
+	//	rphi180_cont(qn, phi, {}, is_dagger);
+	//}
 
-	void NoisySimulator::rphi(size_t qn, double phi, double theta, bool is_dagger)
-	{
-		rphi_cont(qn, phi, theta, {}, is_dagger);
-    }
-	
-	void NoisySimulator::toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger)
-	{
-		toffoli_cont(qn1, qn2, target, {}, is_dagger);
-	}
+	//void NoisySimulator::rphi(size_t qn, double phi, double theta, bool is_dagger)
+	//{
+	//	rphi_cont(qn, phi, theta, {}, is_dagger);
+ //   }
+	//
+	//void NoisySimulator::toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger)
+	//{
+	//	toffoli_cont(qn1, qn2, target, {}, is_dagger);
+	//}
 
-	void NoisySimulator::cswap(size_t qn1, size_t qn2, size_t target, bool is_dagger)
-	{
-		cswap_cont(qn1, qn2, target, {}, is_dagger);
-	}
+	//void NoisySimulator::cswap(size_t qn1, size_t qn2, size_t target, bool is_dagger)
+	//{
+	//	cswap_cont(qn1, qn2, target, {}, is_dagger);
+	//}
 
-	void NoisySimulator::id_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::id(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -501,7 +501,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::IDENTITY);
 	}
 
-	void NoisySimulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::hadamard(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -514,7 +514,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::HADAMARD);
 	}
 
-	void NoisySimulator::u22_cont(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -530,7 +530,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::U22);
 	}
 
-	void NoisySimulator::x_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::x(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -544,7 +544,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::X);
 	}
 
-	void NoisySimulator::y_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::y(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -557,7 +557,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::Y);
 	}
 
-	void NoisySimulator::z_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::z(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -570,7 +570,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::Z);
 	}
 
-	void NoisySimulator::sx_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::sx(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -583,7 +583,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::SX);
 	}
 
-	void NoisySimulator::cz_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::cz(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -596,7 +596,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, SupportOperationType::CZ);
 	}
 
-	void NoisySimulator::swap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::swap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -609,7 +609,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, SupportOperationType::SWAP);
 	}
 
-	void NoisySimulator::xy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -622,7 +622,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, SupportOperationType::XY);
 	}
 
-	void NoisySimulator::iswap_cont(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::iswap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -635,7 +635,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, SupportOperationType::ISWAP);
 	}
 
-	void NoisySimulator::cnot_cont(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::cnot(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -648,7 +648,7 @@ namespace qpandalite {
 		insert_error({ controller, target }, SupportOperationType::CNOT);
 	}
 
-	void NoisySimulator::rx_cont(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::rx(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -661,7 +661,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::RX);
 	}
 
-	void NoisySimulator::ry_cont(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::ry(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -674,7 +674,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::RY);
 	}
 
-	void NoisySimulator::rz_cont(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::rz(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -687,7 +687,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::RZ);
 	}
 
-	void NoisySimulator::rphi90_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::rphi90(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -700,7 +700,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::RPHI90);
 	}
 
-	void NoisySimulator::rphi180_cont(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::rphi180(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -713,7 +713,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::RPHI180);
 	}
 
-	void NoisySimulator::rphi_cont(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::rphi(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -726,7 +726,7 @@ namespace qpandalite {
 		insert_error({ qn }, SupportOperationType::RPHI);
 	}
 
-	void NoisySimulator::toffoli_cont(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -739,7 +739,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2, target }, SupportOperationType::TOFFOLI);
 	}
 
-	void NoisySimulator::cswap_cont(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisySimulator::cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -801,55 +801,55 @@ namespace qpandalite {
 				}
 				break;
 			case (uint32_t)SupportOperationType::HADAMARD:
-				simulator.hadamard_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
+				simulator.hadamard(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::X:
-				simulator.x_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
+				simulator.x(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::SX:
-				simulator.sx_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
+				simulator.sx(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::Y:
-				simulator.y_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
+				simulator.y(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::Z:
-				simulator.z_cont(opcode.qubits[0], opcode.global_controller, opcode.dagger);
+				simulator.z(opcode.qubits[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RX:
-				simulator.rx_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
+				simulator.rx(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RY:
-				simulator.ry_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
+				simulator.ry(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RZ:
-				simulator.rz_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
+				simulator.rz(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::CZ:
-				simulator.cz_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
+				simulator.cz(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::CNOT:
 				simulator.cnot(opcode.qubits[0], opcode.qubits[1]);
 				break;
 			case (uint32_t)SupportOperationType::ISWAP:
-				simulator.iswap_cont(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
+				simulator.iswap(opcode.qubits[0], opcode.qubits[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::XY:
-				simulator.xy_cont(opcode.qubits[0], opcode.qubits[1], opcode.parameters[0], opcode.global_controller, opcode.dagger);
+				simulator.xy(opcode.qubits[0], opcode.qubits[1], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RPHI90:
-				simulator.rphi90_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
+				simulator.rphi90(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RPHI180:
-				simulator.rphi180_cont(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
+				simulator.rphi180(opcode.qubits[0], opcode.parameters[0], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::RPHI:
-				simulator.rphi_cont(opcode.qubits[0], opcode.parameters[0], opcode.parameters[1], opcode.global_controller, opcode.dagger);
+				simulator.rphi(opcode.qubits[0], opcode.parameters[0], opcode.parameters[1], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::TOFFOLI:
-				simulator.toffoli_cont(opcode.qubits[0], opcode.qubits[1], opcode.qubits[2], opcode.global_controller, opcode.dagger);
+				simulator.toffoli(opcode.qubits[0], opcode.qubits[1], opcode.qubits[2], opcode.global_controller, opcode.dagger);
 				break;
 			case (uint32_t)SupportOperationType::CSWAP:
-				simulator.cswap_cont(opcode.qubits[0], opcode.qubits[1], opcode.qubits[2], opcode.global_controller, opcode.dagger);
+				simulator.cswap(opcode.qubits[0], opcode.qubits[1], opcode.qubits[2], opcode.global_controller, opcode.dagger);
 				break;
 			default:
 				ThrowRuntimeError(fmt::format("Failed to handle opcode = {}\nPlease check.", opcode.op));

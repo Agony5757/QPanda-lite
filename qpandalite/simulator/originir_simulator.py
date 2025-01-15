@@ -30,125 +30,71 @@ class OriginIR_Simulator:
 
     def _make_simulator(self):        
         self.simulator = Simulator()
-
-    def _simulate_controlled_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):        
-        if operation == 'RX':
-            self.simulator.rx_cont(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
-        elif operation == 'RY':
-            self.simulator.ry_cont(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
-        elif operation == 'RZ':
-            self.simulator.rz_cont(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
-        elif operation == 'H':
-            self.simulator.hadamard_cont(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
-        elif operation == 'X':
-            self.simulator.x_cont(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
-        elif operation == 'SX':
-            self.simulator.sx_cont(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
-        elif operation == 'Y':
-            self.simulator.y_cont(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
-        elif operation == 'Z':
-            self.simulator.z_cont(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
-        elif operation == 'CZ':
-            self.simulator.cz_cont(self.qubit_mapping[int(qubit[0])], 
-                            self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
-        elif operation == 'SWAP':
-            self.simulator.swap_cont(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
-        elif operation == 'ISWAP':
-            self.simulator.iswap_cont(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
-        elif operation == 'TOFFOLI':
-            self.simulator.toffoli_cont(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], 
-                                self.qubit_mapping[int(qubit[2])], control_qubits_set, is_dagger)
-        elif operation == 'CSWAP':
-            self.simulator.cswap_cont(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], 
-                                self.qubit_mapping[int(qubit[2])], control_qubits_set, is_dagger)
-        elif operation == 'XY':
-            self.simulator.xy_cont(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
-        elif operation == 'CNOT':
-            self.simulator.cnot_cont(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
-        elif operation == 'RPhi':
-            self.simulator.rphi_cont(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
-        elif operation == 'RPhi90':
-            self.simulator.rphi90_cont(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
-        elif operation == 'RPhi180':
-            self.simulator.rphi180_cont(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
-        else:
-            raise RuntimeError('Unknown OriginIR operation. '
-                                f'Operation: {operation}. '
-                                f'Full opcode: {(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)}')
     
-    def _simulate_common_gate(self, operation, qubit, cbit, parameter, is_dagger, ):
+    def _simulate_common_gate(self, operation, qubit, cbit, parameter, control_qubits_set, is_dagger):
         if operation == 'RX':
-            self.simulator.rx(self.qubit_mapping[int(qubit)], parameter, is_dagger)
+            self.simulator.rx(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
         elif operation == 'RY':
-            self.simulator.ry(self.qubit_mapping[int(qubit)], parameter, is_dagger)
+            self.simulator.ry(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
         elif operation == 'RZ':
-            self.simulator.rz(self.qubit_mapping[int(qubit)], parameter, is_dagger)
+            self.simulator.rz(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
         elif operation == 'H':
-            self.simulator.hadamard(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.hadamard(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'X':
-            self.simulator.x(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.x(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'SX':
-            self.simulator.sx(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.sx(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'Y':
-            self.simulator.y(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.y(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'Z':
-            self.simulator.z(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.z(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'CZ':
             self.simulator.cz(self.qubit_mapping[int(qubit[0])], 
-                            self.qubit_mapping[int(qubit[1])], is_dagger)
+                            self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'SWAP':
             self.simulator.swap(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'ISWAP':
             self.simulator.iswap(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'TOFFOLI':
             self.simulator.toffoli(self.qubit_mapping[int(qubit[0])], 
                                 self.qubit_mapping[int(qubit[1])], 
-                                self.qubit_mapping[int(qubit[2])], is_dagger)
+                                self.qubit_mapping[int(qubit[2])], control_qubits_set, is_dagger)
         elif operation == 'CSWAP':
             self.simulator.cswap(self.qubit_mapping[int(qubit[0])], 
                                 self.qubit_mapping[int(qubit[1])], 
-                                self.qubit_mapping[int(qubit[2])], is_dagger)
+                                self.qubit_mapping[int(qubit[2])], control_qubits_set, is_dagger)
         elif operation == 'XY':
             self.simulator.xy(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'CNOT':
             self.simulator.cnot(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'RPhi':
             self.simulator.rphi(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], is_dagger)  
+                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
         elif operation == 'RPhi90':
             self.simulator.rphi90(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], is_dagger)  
+                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
         elif operation == 'RPhi180':
             self.simulator.rphi180(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], is_dagger) 
+                                parameter[0], parameter[1], control_qubits_set, is_dagger) 
         elif operation == 'U3':
             self.simulator.u3(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], parameter[2], is_dagger) 
+                                parameter[0], parameter[1], parameter[2], control_qubits_set, is_dagger) 
         elif operation == 'XX':
             self.simulator.xx(self.qubit_mapping[int(qubit[0])],
                               self.qubit_mapping[int(qubit[1])],
-                              parameter, is_dagger) 
+                              parameter, control_qubits_set, is_dagger) 
         elif operation == 'YY':
             self.simulator.yy(self.qubit_mapping[int(qubit[0])],
                               self.qubit_mapping[int(qubit[1])],
-                              parameter, is_dagger) 
+                              parameter, control_qubits_set, is_dagger) 
         elif operation == 'ZZ':
             self.simulator.zz(self.qubit_mapping[int(qubit[0])],
                               self.qubit_mapping[int(qubit[1])],
-                              parameter, is_dagger) 
+                              parameter, control_qubits_set, is_dagger) 
         elif operation == 'MEASURE':
             # In fact, I don't know the real implementation
             # This is a guessed implementation.
@@ -164,13 +110,10 @@ class OriginIR_Simulator:
         else:
             raise RuntimeError('Unknown OriginIR operation. '
                                 f'Operation: {operation}.'
-                                f'Full opcode: {(operation, qubit, cbit, parameter, is_dagger)}')
+                                f'Full opcode: {(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)}')
 
     def simulate_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):
-        if control_qubits_set:
-            self._simulate_controlled_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-        else:
-            self._simulate_common_gate(operation, qubit, cbit, parameter, is_dagger)            
+        self._simulate_common_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)            
 
     def _add_used_qubit(self, qubit):
         if qubit in self.qubit_mapping:
@@ -279,39 +222,39 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
                                         self.gate_noise_description,
                                         self.measurement_error)
 
-    def simulate_gate(self, operation, qubit, cbit, parameter, is_dagger):
+    def simulate_gate(self, operation, qubit, cbit, parameter, control_qubits_set, is_dagger):
         # print(operation, qubit, cbit, parameter, is_dagger)
         if operation == 'RX':
-            self.simulator.rx(self.qubit_mapping[int(qubit)], parameter, is_dagger)
+            self.simulator.rx(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
         elif operation == 'RY':
-            self.simulator.ry(self.qubit_mapping[int(qubit)], parameter, is_dagger)
+            self.simulator.ry(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
         elif operation == 'RZ':
-            self.simulator.rz(self.qubit_mapping[int(qubit)], parameter, is_dagger)
+            self.simulator.rz(self.qubit_mapping[int(qubit)], parameter, control_qubits_set, is_dagger)
         elif operation == 'H':
-            self.simulator.hadamard(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.hadamard(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'X':
-            self.simulator.x(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.x(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'SX':
-            self.simulator.sx(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.sx(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'Y':
-            self.simulator.y(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.y(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'Z':
-            self.simulator.z(self.qubit_mapping[int(qubit)], is_dagger)
+            self.simulator.z(self.qubit_mapping[int(qubit)], control_qubits_set, is_dagger)
         elif operation == 'CZ':
             self.simulator.cz(self.qubit_mapping[int(qubit[0])], 
-                              self.qubit_mapping[int(qubit[1])], is_dagger)
+                              self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'ISWAP':
             self.simulator.iswap(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'XY':
             self.simulator.xy(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'CNOT':
             self.simulator.cnot(self.qubit_mapping[int(qubit[0])], 
-                                self.qubit_mapping[int(qubit[1])], is_dagger)
+                                self.qubit_mapping[int(qubit[1])], control_qubits_set, is_dagger)
         elif operation == 'RPhi':
             self.simulator.rphi(self.qubit_mapping[int(qubit)], 
-                                parameter[0], parameter[1], is_dagger)  
+                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
         elif operation == 'MEASURE':
             # In fact, I don't know the real implementation
             # This is a guessed implementation.

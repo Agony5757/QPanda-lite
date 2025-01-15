@@ -134,6 +134,21 @@ class OriginIR_Simulator:
         elif operation == 'RPhi180':
             self.simulator.rphi180(self.qubit_mapping[int(qubit)], 
                                 parameter[0], parameter[1], is_dagger) 
+        elif operation == 'U3':
+            self.simulator.u3(self.qubit_mapping[int(qubit)], 
+                                parameter[0], parameter[1], parameter[2], is_dagger) 
+        elif operation == 'XX':
+            self.simulator.xx(self.qubit_mapping[int(qubit[0])],
+                              self.qubit_mapping[int(qubit[1])],
+                              parameter, is_dagger) 
+        elif operation == 'YY':
+            self.simulator.yy(self.qubit_mapping[int(qubit[0])],
+                              self.qubit_mapping[int(qubit[1])],
+                              parameter, is_dagger) 
+        elif operation == 'ZZ':
+            self.simulator.zz(self.qubit_mapping[int(qubit[0])],
+                              self.qubit_mapping[int(qubit[1])],
+                              parameter, is_dagger) 
         elif operation == 'MEASURE':
             # In fact, I don't know the real implementation
             # This is a guessed implementation.

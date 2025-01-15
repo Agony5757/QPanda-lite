@@ -151,7 +151,7 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_1q3p(line):
-        matches = OriginIR_Parser.regexp_1q2p.match(line)
+        matches = OriginIR_Parser.regexp_1q3p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter1 = float(matches.group(3))
@@ -161,7 +161,7 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_1q4p(line):
-        matches = OriginIR_Parser.regexp_1q2p.match(line)
+        matches = OriginIR_Parser.regexp_1q4p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter1 = float(matches.group(3))
@@ -288,7 +288,13 @@ class OriginIR_Parser:
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('Z1'):
                 raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_Parser.handle_1q(line)                
+            elif line.startswith('XX'):
+                operation, q, parameter = OriginIR_Parser.handle_2q1p(line)       
+            elif line.startswith('YY'):
+                operation, q, parameter = OriginIR_Parser.handle_2q1p(line)   
+            elif line.startswith('ZZ'):
+                operation, q, parameter = OriginIR_Parser.handle_2q1p(line)
             elif line.startswith('X'):
                 operation, q = OriginIR_Parser.handle_1q(line)
             elif line.startswith('Y'):
@@ -326,6 +332,8 @@ class OriginIR_Parser:
                 operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
             elif line.startswith('RPhi'):
                 operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+            elif line.startswith('U3'):
+                operation, q, parameter = OriginIR_Parser.handle_1q3p(line)
             elif line.startswith('BARRIER'):
                 operation = 'BARRIER'
                 operation, q = OriginIR_Parser.handle_barrier(line)

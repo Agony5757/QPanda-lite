@@ -35,6 +35,10 @@ namespace qpandalite {
         RPHI,
         TOFFOLI,
         CSWAP,
+        ZZ,
+        XX,
+        YY,
+        U3,
         __SupportOperationTypeEnd,
     };
 
@@ -54,12 +58,16 @@ namespace qpandalite {
         case SupportOperationType::RPHI90:
         case SupportOperationType::RPHI180:
         case SupportOperationType::RPHI:
+        case SupportOperationType::U3:
             return 1;
         case SupportOperationType::CZ:
         case SupportOperationType::SWAP:
         case SupportOperationType::ISWAP:
         case SupportOperationType::XY:
         case SupportOperationType::CNOT:
+        case SupportOperationType::XX:
+        case SupportOperationType::YY:
+        case SupportOperationType::ZZ:
             return 2;
         case SupportOperationType::TOFFOLI:
         case SupportOperationType::CSWAP:
@@ -112,6 +120,10 @@ namespace qpandalite {
            {"RPHI", SupportOperationType::RPHI},
            {"TOFFOLI", SupportOperationType::TOFFOLI},
            {"CSWAP", SupportOperationType::CSWAP},
+           {"ZZ", SupportOperationType::ZZ},
+           {"XX", SupportOperationType::XX},
+           {"YY", SupportOperationType::YY},
+           {"U3", SupportOperationType::U3},
         };
 
         auto iter = op_type_map.find(gate_str);
@@ -215,6 +227,10 @@ namespace qpandalite {
         void rphi(size_t qn, double phi, double theta, bool is_dagger = false);
         void toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger = false);
         void cswap(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
+        void zz(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
+        void xx(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
+        void yy(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
+        void u3(size_t qn1, double theta, double phi, double lambda, bool is_dagger = false);
 
         void id_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
@@ -236,6 +252,10 @@ namespace qpandalite {
         void rphi_cont(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void toffoli_cont(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void cswap_cont(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void zz_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void xx_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void yy_cont(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
+        void u3_cont(size_t qn1, double theta, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger = false);
 
         void measure(const std::vector<size_t> measure_qubits_);
 

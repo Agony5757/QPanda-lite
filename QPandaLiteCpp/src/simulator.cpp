@@ -1,5 +1,4 @@
 #include "simulator.h"
-
 namespace qpandalite{
 
     void Simulator::init_n_qubit(size_t nqubit)
@@ -17,36 +16,15 @@ namespace qpandalite{
 
     void Simulator::hadamard(size_t qn, bool is_dagger)
     {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
-
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            if ((i >> qn) & 1) continue;
-            size_t i0 = i;
-            size_t i1 = i + pow2(qn);
-
-            complex_t a0 = state[i0];
-            complex_t a1 = state[i1];
-
-            complex_t new_a0 = (a0 + a1) * INVSQRT2;
-            complex_t new_a1 = (a0 - a1) * INVSQRT2;
-
-            state[i0] = new_a0;
-            state[i1] = new_a1;
-        }
+        CHECK_QUBIT_RANGE(qn)
+        
+        hadamard_unsafe_impl(state, qn, total_qubit);
     }
 
     void Simulator::u22(size_t qn, const u22_t& unitary, bool is_dagger)
     {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
+        CHECK_QUBIT_RANGE(qn)
+
         if (!_assert_u22(unitary))
         {
             auto errstr = fmt::format("Input is not a unitary.");
@@ -68,95 +46,32 @@ namespace qpandalite{
             u10 = unitary[2];
             u11 = unitary[3];
         }
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            if ((i >> qn) & 1) continue;
-            size_t i0 = i;
-            size_t i1 = i + pow2(qn);
-
-            complex_t a0 = state[i0];
-            complex_t a1 = state[i1];
-
-            complex_t new_a0 = u00 * a0 + u01 * a1;
-            complex_t new_a1 = u10 * a0 + u11 * a1;
-
-            state[i0] = new_a0;
-            state[i1] = new_a1;
-        }
+        u22_unsafe_impl(state, qn, u00, u01, u10, u11, total_qubit);
     }
 
     void Simulator::x(size_t qn, bool is_dagger)
     {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
-
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            if ((i >> qn) & 1)
-            {
-                std::swap(state[i], state[i - pow2(qn)]);
-            }
-        }
+        CHECK_QUBIT_RANGE(qn)
+        x_unsafe_impl(state, qn, total_qubit);
     }
 
     void Simulator::y(size_t qn, bool is_dagger)
     {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
-
-        using namespace std::literals::complex_literals;
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            if ((i >> qn) & 1)
-            {
-                std::swap(state[i], state[i - pow2(qn)]);
-                state[i - pow2(qn)] *= -1i;
-                state[i] *= 1i;
-            }
-        }
+        CHECK_QUBIT_RANGE(qn)
+        y_unsafe_impl(state, qn, total_qubit);
     }
 
     void Simulator::z(size_t qn, bool is_dagger)
     {
-        if (qn >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
-        }
-
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            if ((i >> qn) & 1)
-            {
-                state[i] *= -1;
-            }
-        }
+        CHECK_QUBIT_RANGE(qn)
+        z_unsafe_impl(state, qn, total_qubit);
     }
     
     void Simulator::cz(size_t qn1, size_t qn2, bool is_dagger)
     {
-        if (qn1 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input1 = {})", total_qubit, qn1);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn2 >= total_qubit)
-        {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, input2 = {})", total_qubit, qn2);
-            ThrowInvalidArgument(errstr);
-        }
-        if (qn1 == qn2)
-        {
-            auto errstr = fmt::format("qn1 = qn2");
-            ThrowInvalidArgument(errstr);
-        }
-
+        CHECK_QUBIT_RANGE2(qn1, input1);
+        CHECK_QUBIT_RANGE2(qn2, input2);
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
@@ -543,6 +458,163 @@ namespace qpandalite{
                 std::swap(state[i - pow2(target1) + pow2(target2)], state[i]);
             }
         }
+    }
+
+    /* ZZ interaction
+    *    |00> -> |00>
+    *    |01> -> -exp(it/2) * |01>
+    *    |10> -> -exp(it/2) * |10>
+    *    |11> -> |11> 
+    */
+    void Simulator::zz(size_t qn1, size_t qn2, double theta, bool is_dagger)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        if (is_dagger)
+            theta = -theta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 != v2)
+            {
+                state[i] *= complex_t(cos(-theta / 2), sin(-theta / 2));
+            }
+        }
+    }
+
+    /* XX interaction
+    *    |00> -> [ cos(t)    0       0      isin(t) ]
+    *    |01> -> [   0     cos(t)  isin(t)    0     ]
+    *    |10> -> [   0     isin(t)  cos(t)    0     ]
+    *    |11> -> [ isin(t)   0       0       cos(t) ]
+    */
+    void Simulator::xx(size_t qn1, size_t qn2, double theta, bool is_dagger)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        if (is_dagger)
+            theta = -theta;
+        using namespace std::literals::complex_literals;
+        complex_t ctheta = cos(theta);
+        complex_t stheta = sin(theta);
+        complex_t istheta = 1i * stheta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 == false && v2 == false) /* 00 */
+            {
+                /* only 00 will be operated */
+                size_t i00 = i;
+                size_t i01 = i + pow2(qn1);
+                size_t i10 = i + pow2(qn2);
+                size_t i11 = i + pow2(qn1) + pow2(qn2);
+
+                complex_t a00 = state[i00];
+                complex_t a01 = state[i01];
+                complex_t a10 = state[i10];
+                complex_t a11 = state[i11];
+
+                state[i00] = a00 * ctheta + a11 * istheta;
+                state[i01] = a01 * ctheta + a10 * istheta;
+                state[i10] = a01 * istheta + a10 * ctheta;
+                state[i11] = a00 * istheta + a11 * ctheta;
+            }
+        }
+    }
+
+    /* YY interaction
+   *    |00> -> [ cos(t)    0       0      -isin(t) ]
+   *    |01> -> [   0     cos(t)  isin(t)    0     ]
+   *    |10> -> [   0     isin(t)  cos(t)    0     ]
+   *    |11> -> [ -isin(t)   0       0       cos(t) ]
+   */
+    void Simulator::yy(size_t qn1, size_t qn2, double theta, bool is_dagger)
+    {
+        if (qn1 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn1);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qn2 >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn2 = {})", total_qubit, qn2);
+            ThrowInvalidArgument(errstr);
+        }
+
+        if (is_dagger)
+            theta = -theta;
+        using namespace std::literals::complex_literals;
+        complex_t ctheta = cos(theta);
+        complex_t stheta = sin(theta);
+        complex_t istheta = 1i * stheta;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            bool v1 = (i >> qn1) & 1;
+            bool v2 = (i >> qn2) & 1;
+            if (v1 == false && v2 == false) /* 00 */
+            {
+                /* only 00 will be operated */
+                size_t i00 = i;
+                size_t i01 = i + pow2(qn1);
+                size_t i10 = i + pow2(qn2);
+                size_t i11 = i + pow2(qn1) + pow2(qn2);
+
+                complex_t a00 = state[i00];
+                complex_t a01 = state[i01];
+                complex_t a10 = state[i10];
+                complex_t a11 = state[i11];
+
+                state[i00] = a00 * ctheta - a11 * istheta;
+                state[i01] = a01 * ctheta + a10 * istheta;
+                state[i10] = a01 * istheta + a10 * ctheta;
+                state[i11] = -a00 * istheta + a11 * ctheta;
+            }
+        }
+    }
+
+    void Simulator::u3(size_t qn, double theta, double phi, double lambda, bool is_dagger)
+    {
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn1 = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        /* build the matrix */
+        complex_t ctheta = cos(theta / 2);
+        complex_t stheta = sin(theta / 2);
+        complex_t eilambda = complex_t(cos(lambda), sin(lambda));
+        complex_t eiphi = complex_t(cos(phi), sin(phi));
+        complex_t eiphi_plus_lambda = complex_t(cos(phi + lambda), sin(phi + lambda));
+        complex_t u00 = ctheta;
+        complex_t u01 = -eilambda * stheta;
+        complex_t u10 = eiphi * stheta;
+        complex_t u11 = eiphi_plus_lambda * ctheta;
+
+        u22(qn, { u00, u01, u10, u11 }, is_dagger);
     }
 
     void Simulator::hadamard_cont(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)

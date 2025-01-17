@@ -4,7 +4,7 @@ from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.library import TdgGate, RXGate
 from qiskit import BasicAer
 from qpandalite.simulator import Simulator, NoisySimulator
-from qpandalite.qasm_origin import OpenQASM2_Parser
+from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 
 

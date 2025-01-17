@@ -1,3 +1,5 @@
+from .qasm_line_parser import QASM_LineParser
+
 class OpenQASM2_BaseParser:    
     def __init__(self):
         self.n_qubit = None

@@ -2,7 +2,7 @@ import numpy as np
 import math
 
 from qpandalite.simulator import Simulator, NoisySimulator
-from qpandalite.qasm_origin import OpenQASM2_Parser
+from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 
 global_shots = 10000

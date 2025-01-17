@@ -7,7 +7,7 @@ from qiskit.transpiler import CouplingMap
 from qiskit.compiler import transpile
 from qiskit.circuit.random import random_circuit
 import qpandalite.simulator as sim
-from qpandalite.qasm_origin import OpenQASM2_Parser
+from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 
 c = Circuit()
@@ -83,7 +83,7 @@ for _ in range(100):
 	qasm_string = result.qasm()
 	
 
-	circuit_origin = OpenQASM2_Parser.build_from_qasm_str(qasm_string)
+	circuit_origin = OpenQASM2_LineParser.build_from_qasm_str(qasm_string)
 	origin_qc = QuantumCircuit.from_qasm_str(circuit_origin.qasm)
 
 	if not circuit_origin.depth == origin_qc.depth():

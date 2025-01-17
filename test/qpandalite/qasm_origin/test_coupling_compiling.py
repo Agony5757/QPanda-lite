@@ -5,7 +5,7 @@ from qiskit.circuit.random import random_circuit
 from qiskit.compiler import transpile
 from qiskit.transpiler import CouplingMap
 import qpandalite.simulator as sim
-from qpandalite.qasm_origin import OpenQASM2_Parser
+from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 
 """
@@ -45,7 +45,7 @@ for _ in range(100):
 	# print("---Circuit created using Qiskit(QASM)---")
 	# print(qasm_string)
 	# # Create a Circuit instance from the QASM string
-	circuit_origin = OpenQASM2_Parser.build_from_qasm_str(qasm_string)
+	circuit_origin = OpenQASM2_LineParser.build_from_qasm_str(qasm_string)
 	# print("---OriginIR Circuit coverted from QASM---")
 	# print(circuit_origin.circuit)
 

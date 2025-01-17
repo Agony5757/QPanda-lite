@@ -6,6 +6,7 @@ def change_working_directory(new_directory):
         
 from .circuit_builder import Circuit
 from .originir import OriginIR_LineParser
+from .qasm import OpenQASM2_LineParser
 try:
     from .simulator import OriginIR_Simulator
 except:

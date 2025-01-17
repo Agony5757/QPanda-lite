@@ -3,14 +3,15 @@ from qpandalite.simulator import (Simulator,
                                   NoisySimulator,
                                   NoisySimulator_GateDependent, 
                                   NoisySimulator_GateSpecificError)
-from qpandalite.qasm_origin import OpenQASM2_Parser
+from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import seed
-from qpandalite.test._utils import qpandalite_test
 
 import time
 
-@qpandalite_test('Simulator')
+from qpandalite.test._utils import qpandalite_test
+
+@qpandalite_test('Test Simulator')
 def run_test_simulator():
     test_noisy_simulator()
 

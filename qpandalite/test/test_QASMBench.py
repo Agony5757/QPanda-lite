@@ -12,19 +12,23 @@ def load_QASMBench(path):
     path = Path(path)
     filename = path / 'QASMBench.pkl'
 
-    # with open(filename, 'rb') as fp:
-    #     pickle.load(fp)
+    with open(filename, 'rb') as fp:
+        dataset = pickle.load(fp)
 
-    sim = qsim.Simulator()
-    sim.init_n_qubit(3)   
-    sim.sx(1)
-    sim.xy(0, 1, 0)
-    
-    print(sim.state)
+    return dataset
 
 def test_qasm(path = './qpandalite/test'):
     dataset = load_QASMBench(path)
     print(dataset)
+    print(len(dataset))
+
+    count = 0
+    for circuit in dataset:
+        if 'gate' not in circuit:
+            count += 1
+            print(circuit)
+            
+    print(count)
 
 def run_test_qasm():
     test_qasm()

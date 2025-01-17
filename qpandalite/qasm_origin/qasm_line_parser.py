@@ -44,6 +44,8 @@ class OpenQASM2_Parser:
         try:
             if not line:
                 pass 
+            elif line.startswith('//'):
+                pass
             elif line.startswith('qreg'):
                 pass
             elif line.startswith('creg'):

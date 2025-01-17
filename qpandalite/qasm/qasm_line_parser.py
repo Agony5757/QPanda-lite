@@ -53,7 +53,6 @@ basic_gates = set([
 
 class OpenQASM2_LineParser:
     
-
     identifier = r'([A-Za-z][A-Za-z\d]*)'
     blank = r' *'    
     comma = r','

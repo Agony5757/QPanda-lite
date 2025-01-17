@@ -1,0 +1,3 @@
+
+class NotSupportedGateError(Exception):
+    pass

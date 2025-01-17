@@ -5,9 +5,8 @@ import numpy as np
 import qpandalite.simulator as sim
 from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
+from qpandalite.test._utils import qpandalite_test
 
-def run_test_originir_parser():
-    pass
 
 # def barrier_test():
 #     circ = QuantumCircuit(3)
@@ -42,5 +41,9 @@ def run_test_originir_parser():
 
 #     return origin_qc.qasm() == qasm_string
 
+@qpandalite_test('Test OriginIR Parser')
+def run_test_originir_parser():
+    pass
+
 if __name__ == '__main__':
-    barrier_test()
+    run_test_originir_parser()

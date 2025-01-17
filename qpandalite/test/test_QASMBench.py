@@ -7,6 +7,7 @@ from qpandalite.qasm_origin import OpenQASM2_Parser
 from qpandalite.circuit_builder import Circuit
 from pathlib import Path
 import pickle
+from qpandalite.test._utils import qpandalite_test
 
 def load_QASMBench(path):
     path = Path(path)
@@ -30,6 +31,7 @@ def test_qasm(path = './qpandalite/test'):
             
     print(count)
 
+@qpandalite_test('Test QASMBench')
 def run_test_qasm():
     test_qasm()
 

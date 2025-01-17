@@ -11,12 +11,8 @@ import time
 
 from qpandalite.test._utils import qpandalite_test
 
-@qpandalite_test('Test Simulator')
-def run_test_simulator():
-    test_noisy_simulator()
 
 def test_noisy_simulator():
-
     measure_qubits = [0, 1]
     shots = 1024
 
@@ -41,3 +37,8 @@ def test_noisy_simulator():
     simulator = NoisySimulator(2,noise_description, measurement_error)
 
     measurement_results = simulator.measure_shots(measure_qubits=measure_qubits, shots=shots)
+
+
+@qpandalite_test('Test Simulator')
+def run_test_simulator():
+    test_noisy_simulator()

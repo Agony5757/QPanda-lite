@@ -544,7 +544,7 @@ if __name__ == '__main__':
     import numpy as np
     import math
     from qiskit import BasicAer
-    from qpandalite.qasm_origin import OpenQASM2_Parser
+    from qpandalite.qasm import OpenQASM2_LineParser
     # The quantum circuit in qiskit
     circ = QuantumCircuit(3)
     

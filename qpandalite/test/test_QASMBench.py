@@ -28,8 +28,8 @@ def load_QASMBench(path):
 
 def test_qasm(path = './qpandalite/test'):
     dataset = load_QASMBench(path)
-    print(dataset)
-    print(len(dataset))
+    # print(dataset)
+    # print(len(dataset))
 
     count_passed = 0
     passed_list = []

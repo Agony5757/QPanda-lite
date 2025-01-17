@@ -194,7 +194,9 @@ setup(
                       'pandas',
                       'seaborn',
                       'matplotlib',
-                      'rb_generator'],
+                      'rb_generator',
+                      'qiskit',
+                      'qiskit-aer'],
     zip_safe = False,
     python_requires='>=3.8',    
 )

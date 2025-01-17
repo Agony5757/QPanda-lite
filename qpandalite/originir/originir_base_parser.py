@@ -1,10 +1,6 @@
 from copy import deepcopy
 
-
-if __name__ == '__main__':
-    from originir_line_parser import OriginIR_Parser
-else:
-    from .originir_line_parser import OriginIR_Parser
+from .originir_line_parser import OriginIR_LineParser
 
 def opcode_to_line(opcode):                    
     (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) = opcode
@@ -54,7 +50,7 @@ class OriginIR_BaseParser:
 
     def _extract_qinit_statement(self, lines):
         for i, line in enumerate(lines):
-            operation, q, c, parameter = OriginIR_Parser.parse_line(line.strip())
+            operation, q, c, parameter = OriginIR_LineParser.parse_line(line.strip())
             if operation is None:
                 continue
             if operation != 'QINIT':
@@ -67,7 +63,7 @@ class OriginIR_BaseParser:
     
     def _extract_creg_statement(self, lines, start_lineno):
         for i in range(start_lineno, len(lines)):
-            operation, q, c, parameter = OriginIR_Parser.parse_line(lines[i].strip())
+            operation, q, c, parameter = OriginIR_LineParser.parse_line(lines[i].strip())
             
             if operation is None:
                 continue
@@ -102,7 +98,7 @@ class OriginIR_BaseParser:
         for lineno in range(current_lineno, len(lines)): 
             # handle the line
             line = lines[lineno]
-            operation, qubits, cbit, parameter = OriginIR_Parser.parse_line(line.strip())
+            operation, qubits, cbit, parameter = OriginIR_LineParser.parse_line(line.strip())
             if operation is None:
                 continue
             
@@ -214,40 +210,3 @@ class OriginIR_BaseParser:
     def __str__(self):
         return self.to_extended_originir()
 
-
-if __name__ == '__main__':
-    originir = '''
-    QINIT 11
-    CREG 5
-    H q[6]
-    H q[7]
-    DAGGER
-    Z q[2]
-    DAGGER
-    Z q[5]
-    X q[10]
-    ENDDAGGER
-    ENDDAGGER
-    DAGGER
-    Z q[5]
-    X q[10]
-    CONTROL q[0], q[1]
-    X q[3]
-    ENDCONTROL q[0], q[1]
-    ENDDAGGER
-    H q[8]
-    H q[9]
-    MEASURE q[0], c[0]
-    MEASURE q[1], c[1]
-    MEASURE q[2], c[2]
-    MEASURE q[3], c[3]
-    MEASURE q[4], c[4]
-    '''
-
-    parser = OriginIR_BaseParser()
-    parser.parse(originir)
-
-    print(parser.program_body)
-    print(parser.to_extended_originir())
-    print(parser.raw_originir)
-    print(parser.originir)

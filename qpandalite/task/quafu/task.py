@@ -11,7 +11,7 @@ import time
 from json.decoder import JSONDecodeError
 
 
-from qpandalite.originir.originir_line_parser import OriginIR_Parser
+from qpandalite.originir.originir_line_parser import OriginIR_LineParser
 from ..task_utils import load_all_online_info, write_taskinfo
 
 # Initialize default_online_config with a default or dummy value
@@ -54,7 +54,7 @@ if os.getenv('SPHINX_DOC_GEN') != '1':
                           'Unknown import error. Original exception is:\n'
                           f'{str(e)}')
 
-class Translation_OriginIR_to_QuafuCircuit(OriginIR_Parser):
+class Translation_OriginIR_to_QuafuCircuit(OriginIR_LineParser):
     @staticmethod
     def reconstruct_qasm(qc: quafu.QuantumCircuit, operation, qubit, cbit, parameter):
         if operation == 'RX':
@@ -88,7 +88,7 @@ class Translation_OriginIR_to_QuafuCircuit(OriginIR_Parser):
         lines = originir.splitlines()
         qc : quafu.QuantumCircuit = None
         for line in lines:
-            operation, qubit, cbit, parameter = OriginIR_Parser.parse_line(line)
+            operation, qubit, cbit, parameter = OriginIR_LineParser.parse_line(line)
             if operation == 'QINIT':
                 qc = quafu.QuantumCircuit(qubit)
                 continue

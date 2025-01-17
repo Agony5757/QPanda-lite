@@ -1,2 +1,2 @@
-from .originir_line_parser import OriginIR_Parser
+from .originir_line_parser import OriginIR_LineParser
 from .originir_base_parser import OriginIR_BaseParser

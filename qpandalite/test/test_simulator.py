@@ -6,9 +6,11 @@ from qpandalite.simulator import (Simulator,
 from qpandalite.qasm_origin import OpenQASM2_Parser
 from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import seed
+from qpandalite.test._utils import qpandalite_test
 
 import time
 
+@qpandalite_test('Simulator')
 def run_test_simulator():
     test_noisy_simulator()
 

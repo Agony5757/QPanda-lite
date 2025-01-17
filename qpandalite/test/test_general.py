@@ -3,9 +3,8 @@ import qpandalite.simulator as qsim
 import numpy as np
 
 import qpandalite.simulator as sim
-from qpandalite.qasm_origin import OpenQASM2_Parser
 from qpandalite.circuit_builder import Circuit
-
+from qpandalite.test._utils import qpandalite_test
 
 def iswap_test():
     sim = qsim.Simulator()
@@ -15,8 +14,9 @@ def iswap_test():
     
     print(sim.state)
 
+@qpandalite_test('General')
 def run_test_general():
-    pass
+    iswap_test()
 
 if __name__ == '__main__':
     iswap_test()

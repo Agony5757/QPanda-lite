@@ -5,7 +5,7 @@ from qpandalite.qasm_origin import OpenQASM2_Parser
 import numpy as np
 import qpandalite.simulator as qsim
 from qpandalite.circuit_builder import Circuit
-from qpandalite.originir import OriginIR_Parser, OriginIR_BaseParser
+from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 
 c = Circuit()
 

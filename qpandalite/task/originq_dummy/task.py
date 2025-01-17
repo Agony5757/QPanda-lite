@@ -2,7 +2,7 @@ import datetime
 import time
 from typing import List, Union
 import warnings
-from qpandalite.originir import OriginIR_Parser, OriginIR_BaseParser
+from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 import qpandalite.simulator as sim
 try:
     from qpandalite.simulator.originir_simulator import OriginIR_Simulator, OriginIR_NoisySimulator

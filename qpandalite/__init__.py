@@ -5,7 +5,7 @@ def change_working_directory(new_directory):
         os.chdir(new_directory)
         
 from .circuit_builder import Circuit
-from .originir import OriginIR_Parser
+from .originir import OriginIR_LineParser
 try:
     from .simulator import OriginIR_Simulator
 except:

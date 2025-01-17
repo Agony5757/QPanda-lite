@@ -1,6 +1,6 @@
 from typing import Dict
 from copy import deepcopy
-from qpandalite.originir import OriginIR_Parser, OriginIR_BaseParser
+from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 import re
 
 class CircuitControlContext:
@@ -94,14 +94,14 @@ class Circuit:
 
     def covert_1q1p_qasm(self, line):
         # Match 1-qubit operations with one parameter/ RX, RY, RZ
-        operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+        operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
 
         return f"{operation.lower()}({parameter}) q[{q}]"
 
     def covert_1q2p_qasm(self, line):
         from numpy import pi
         # Match 1-qubit operations with two parameters/ Rphi
-        operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+        operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
 
         return f"u3({parameter[1]},{parameter[0]}-pi/2, -{parameter[0]}+pi/2) q[{q}]"
 
@@ -185,8 +185,8 @@ class Circuit:
         for line in lines:
             # Check if the line isn't just whitespace or empty
             if line.strip():
-                match_1q1p = OriginIR_Parser.regexp_1q1p.match(line)
-                match_1q2p = OriginIR_Parser.regexp_1q2p.match(line)
+                match_1q1p = OriginIR_LineParser.regexp_1q1p.match(line)
+                match_1q2p = OriginIR_LineParser.regexp_1q2p.match(line)
                 if match_1q1p:
                     line = self.covert_1q1p_qasm(line)
                 if match_1q2p:

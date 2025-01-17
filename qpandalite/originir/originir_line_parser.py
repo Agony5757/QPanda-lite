@@ -1,6 +1,6 @@
 import re
 
-class OriginIR_Parser:    
+class OriginIR_LineParser:    
 
     opname = r'([A-Za-z][A-Za-z\d]*)'
     blank = r' *'
@@ -110,14 +110,14 @@ class OriginIR_Parser:
 
     @staticmethod
     def handle_1q(line):
-        matches = OriginIR_Parser.regexp_1q.match(line)
+        matches = OriginIR_LineParser.regexp_1q.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         return operation, q
 
     @staticmethod
     def handle_2q(line):
-        matches = OriginIR_Parser.regexp_2q.match(line)
+        matches = OriginIR_LineParser.regexp_2q.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
@@ -125,7 +125,7 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_3q(line):
-        matches = OriginIR_Parser.regexp_2q.match(line)
+        matches = OriginIR_LineParser.regexp_2q.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
@@ -134,7 +134,7 @@ class OriginIR_Parser:
 
     @staticmethod
     def handle_1q1p(line):
-        matches = OriginIR_Parser.regexp_1q1p.match(line)
+        matches = OriginIR_LineParser.regexp_1q1p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter = float(matches.group(3))
@@ -142,7 +142,7 @@ class OriginIR_Parser:
 
     @staticmethod
     def handle_1q2p(line):
-        matches = OriginIR_Parser.regexp_1q2p.match(line)
+        matches = OriginIR_LineParser.regexp_1q2p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter1 = float(matches.group(3))
@@ -151,7 +151,7 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_1q3p(line):
-        matches = OriginIR_Parser.regexp_1q3p.match(line)
+        matches = OriginIR_LineParser.regexp_1q3p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter1 = float(matches.group(3))
@@ -161,7 +161,7 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_1q4p(line):
-        matches = OriginIR_Parser.regexp_1q4p.match(line)
+        matches = OriginIR_LineParser.regexp_1q4p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter1 = float(matches.group(3))
@@ -172,7 +172,7 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_2q1p(line):
-        matches = OriginIR_Parser.regexp_2q1p.match(line)
+        matches = OriginIR_LineParser.regexp_2q1p.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
@@ -181,16 +181,16 @@ class OriginIR_Parser:
     
     @staticmethod
     def handle_measure(line):
-        matches = OriginIR_Parser.regexp_meas.match(line)
+        matches = OriginIR_LineParser.regexp_meas.match(line)
         q = int(matches.group(1))
         c = int(matches.group(2))
         return q, c
     
     @staticmethod
     def handle_barrier(line):
-        matches = OriginIR_Parser.regexp_barrier.match(line)
+        matches = OriginIR_LineParser.regexp_barrier.match(line)
         # Extract individual qubit patterns
-        qubits = OriginIR_Parser.regexp_qid.findall(line)
+        qubits = OriginIR_LineParser.regexp_qid.findall(line)
         # Extract only the numeric part of each qubit pattern
         qubit_indices = [int(q) for q in qubits]
         return "BARRIER", qubit_indices
@@ -222,10 +222,10 @@ class OriginIR_Parser:
         ENDCONTROL patterns in OriginIR language. This regular expression should be predefined
         and properly constructed to capture the necessary information from the line.
         """
-        matches = OriginIR_Parser.regexp_control.match(line)        
+        matches = OriginIR_LineParser.regexp_control.match(line)        
         # Extracting the operation type and multiple control qubits
         operation_type = matches.group(1)
-        qubits = OriginIR_Parser.regexp_qid.findall(matches.group(2))
+        qubits = OriginIR_LineParser.regexp_qid.findall(matches.group(2))
         controls = [int(ctrl) for ctrl in qubits]
         return operation_type, controls
     
@@ -277,77 +277,77 @@ class OriginIR_Parser:
                 c = int(line.strip().split()[1])
                 operation = 'CREG'
             elif line.startswith('H'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('SX'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('X1'):
                 raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('Y1'):
                 raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('Z1'):
                 raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_Parser.handle_1q(line)                
+                operation, q = OriginIR_LineParser.handle_1q(line)                
             elif line.startswith('XX'):
-                operation, q, parameter = OriginIR_Parser.handle_2q1p(line)       
+                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)       
             elif line.startswith('YY'):
-                operation, q, parameter = OriginIR_Parser.handle_2q1p(line)   
+                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)   
             elif line.startswith('ZZ'):
-                operation, q, parameter = OriginIR_Parser.handle_2q1p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)
             elif line.startswith('X'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('Y'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('Z'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('T'):
                 raise NotImplementedError(f'Unsupported operation: {line}.')
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('S'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('CZ'):
-                operation, q = OriginIR_Parser.handle_2q(line)
+                operation, q = OriginIR_LineParser.handle_2q(line)
             elif line.startswith('ISWAP'):
-                operation, q = OriginIR_Parser.handle_2q(line)
+                operation, q = OriginIR_LineParser.handle_2q(line)
             elif line.startswith('I'):
-                operation, q = OriginIR_Parser.handle_1q(line)
+                operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('XY'):
-                operation, q = OriginIR_Parser.handle_2q1p(line)
+                operation, q = OriginIR_LineParser.handle_2q1p(line)
             elif line.startswith('CNOT'):
-                operation, q = OriginIR_Parser.handle_2q(line)
+                operation, q = OriginIR_LineParser.handle_2q(line)
             elif line.startswith('TOFFOLI'):
-                operation, q = OriginIR_Parser.handle_3q(line)
+                operation, q = OriginIR_LineParser.handle_3q(line)
             elif line.startswith('CSWAP'):
-                operation, q = OriginIR_Parser.handle_3q(line)
+                operation, q = OriginIR_LineParser.handle_3q(line)
             elif line.startswith('RX'):
-                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             elif line.startswith('RY'):
-                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             elif line.startswith('RZ'):
-                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             elif line.startswith('RPhi90'):
-                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             elif line.startswith('RPhi180'):
-                operation, q, parameter = OriginIR_Parser.handle_1q1p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             elif line.startswith('RPhi'):
-                operation, q, parameter = OriginIR_Parser.handle_1q2p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
             elif line.startswith('U3'):
-                operation, q, parameter = OriginIR_Parser.handle_1q3p(line)
+                operation, q, parameter = OriginIR_LineParser.handle_1q3p(line)
             elif line.startswith('BARRIER'):
                 operation = 'BARRIER'
-                operation, q = OriginIR_Parser.handle_barrier(line)
+                operation, q = OriginIR_LineParser.handle_barrier(line)
             elif line.startswith('MEASURE'):
                 operation = 'MEASURE'
-                q, c = OriginIR_Parser.handle_measure(line)
+                q, c = OriginIR_LineParser.handle_measure(line)
             elif line.startswith('CONTROL'):
-                operation, q = OriginIR_Parser.handle_control(line)
+                operation, q = OriginIR_LineParser.handle_control(line)
             elif line.startswith('ENDCONTROL'):
                 operation = 'ENDCONTROL'
             elif line.startswith('DAGGER'):
-                operation = OriginIR_Parser.handle_dagger(line)
+                operation = OriginIR_LineParser.handle_dagger(line)
             elif line.startswith('ENDDAGGER'):
-                operation = OriginIR_Parser.handle_dagger(line)
+                operation = OriginIR_LineParser.handle_dagger(line)
             else:
                 # print("something wrong")
                 raise NotImplementedError(f'A invalid line: {line}.')      
@@ -358,14 +358,14 @@ class OriginIR_Parser:
     
 if __name__ == '__main__':
     
-    print(OriginIR_Parser.regexp_1q_str)
-    matches = OriginIR_Parser.regexp_1q.match('H  q [ 45 ]')
+    print(OriginIR_LineParser.regexp_1q_str)
+    matches = OriginIR_LineParser.regexp_1q.match('H  q [ 45 ]')
     print(matches.group(0))
     print(matches.group(1)) # H
     print(matches.group(2)) # 45
     
-    print(OriginIR_Parser.regexp_1q1p_str)
-    matches = OriginIR_Parser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
+    print(OriginIR_LineParser.regexp_1q1p_str)
+    matches = OriginIR_LineParser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
     print(matches.group(0))
     print(matches.group(1)) # RX
     print(matches.group(2)) # 45
@@ -373,8 +373,8 @@ if __name__ == '__main__':
     print(matches.group(4)) # 
     print(matches.group(5)) # 
 
-    print(OriginIR_Parser.regexp_1q2p_str)
-    matches = OriginIR_Parser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
+    print(OriginIR_LineParser.regexp_1q2p_str)
+    matches = OriginIR_LineParser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
     print(matches.group(0))
     print(matches.group(1)) # Rphi
     print(matches.group(2)) # 45
@@ -385,8 +385,8 @@ if __name__ == '__main__':
     print(matches.group(7)) #
     print(matches.group(8)) #
 
-    print(OriginIR_Parser.regexp_1q3p_str)
-    matches = OriginIR_Parser.regexp_1q3p.match('U3 q[ 45 ], ( -1.1 , 1.2e-5 , 0.11)')
+    print(OriginIR_LineParser.regexp_1q3p_str)
+    matches = OriginIR_LineParser.regexp_1q3p.match('U3 q[ 45 ], ( -1.1 , 1.2e-5 , 0.11)')
     print(matches.group(0))
     print(matches.group(1)) # U3
     print(matches.group(2)) # 45
@@ -400,8 +400,8 @@ if __name__ == '__main__':
     print(matches.group(10)) #
     print(matches.group(11)) #
 
-    print(OriginIR_Parser.regexp_1q4p_str)
-    matches = OriginIR_Parser.regexp_1q4p.match('U4 q[ 45 ], ( -1.1 , 1.2e-5, 0 , 0.11)')
+    print(OriginIR_LineParser.regexp_1q4p_str)
+    matches = OriginIR_LineParser.regexp_1q4p.match('U4 q[ 45 ], ( -1.1 , 1.2e-5, 0 , 0.11)')
     print(matches.group(0))
     print(matches.group(1)) # U4
     print(matches.group(2)) # 45
@@ -418,39 +418,39 @@ if __name__ == '__main__':
     print(matches.group(13)) #
     print(matches.group(14)) #
         
-    print(OriginIR_Parser.regexp_2q_str)
-    matches = OriginIR_Parser.regexp_2q.match('CNOT q[ 45], q[46 ]')
+    print(OriginIR_LineParser.regexp_2q_str)
+    matches = OriginIR_LineParser.regexp_2q.match('CNOT q[ 45], q[46 ]')
     print(matches.group(0)) 
     print(matches.group(1)) # CNOT
     print(matches.group(2)) # 45
     print(matches.group(3)) # 46
         
-    print(OriginIR_Parser.regexp_3q_str)
-    matches = OriginIR_Parser.regexp_3q.match('TOFFOLI q[ 45], q[46 ], q [ 42 ]')
+    print(OriginIR_LineParser.regexp_3q_str)
+    matches = OriginIR_LineParser.regexp_3q.match('TOFFOLI q[ 45], q[46 ], q [ 42 ]')
     print(matches.group(0)) 
     print(matches.group(1)) # TOFFOLI
     print(matches.group(2)) # 45
     print(matches.group(3)) # 46
     print(matches.group(4)) # 42
     
-    print(OriginIR_Parser.regexp_2q1p_str)
-    matches = OriginIR_Parser.regexp_2q1p.match('XY q[ 45], q[46 ], ( -1.1 )')
+    print(OriginIR_LineParser.regexp_2q1p_str)
+    matches = OriginIR_LineParser.regexp_2q1p.match('XY q[ 45], q[46 ], ( -1.1 )')
     print(matches.group(0)) 
     print(matches.group(1)) # XY
     print(matches.group(2)) # 45
     print(matches.group(3)) # 46
     print(matches.group(4)) # -1.1
 
-    print(OriginIR_Parser.regexp_measure_str)
-    matches = OriginIR_Parser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
+    print(OriginIR_LineParser.regexp_measure_str)
+    matches = OriginIR_LineParser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')
     print(matches.group(0))
     print(matches.group(1)) # 45
     print(matches.group(2)) # 11
     
-    print(OriginIR_Parser.regexp_control_str)
-    matches = OriginIR_Parser.regexp_control.match('CONTROL   q [ 45] , q[ 46]  ,  q [  999 ]')
+    print(OriginIR_LineParser.regexp_control_str)
+    matches = OriginIR_LineParser.regexp_control.match('CONTROL   q [ 45] , q[ 46]  ,  q [  999 ]')
     print(matches.group(0))
     print(matches.group(1)) # CONTROL
     print(matches.group(2)) #    q [ 45] , q[ 46]  ,  q [  999 ]
-    all_matches = OriginIR_Parser.regexp_qid.findall(matches.group(2))
+    all_matches = OriginIR_LineParser.regexp_qid.findall(matches.group(2))
     print(all_matches) # ['45', '46', '999']

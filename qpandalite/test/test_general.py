@@ -10,7 +10,7 @@ def iswap_test():
     sim = qsim.Simulator()
     sim.init_n_qubit(3)   
     sim.sx(1)
-    sim.xy(0, 1)
+    sim.xy(0, 1, 0)
     
     print(sim.state)
 

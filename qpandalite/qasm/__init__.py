@@ -1,1 +1,2 @@
 from .qasm_line_parser import OpenQASM2_LineParser
+from .qasm_base_parser import OpenQASM2_BaseParser

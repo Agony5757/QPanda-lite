@@ -188,7 +188,7 @@ setup(
     },
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
     packages = find_packages(),
-    package_data = ['test/QASMBench.pkl'],
+    package_data = {'qpandalite':['test/QASMBench.pkl']},
     install_requires=['numpy',
                       'requests',
                       'pandas',

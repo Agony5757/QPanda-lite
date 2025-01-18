@@ -53,7 +53,7 @@ basic_gates = set([
 
 class OpenQASM2_LineParser:
     
-    identifier = r'([A-Za-z][A-Za-z\d]*)'
+    identifier = r'([A-Za-z_][A-Za-z_\d]*)'
     blank = r' *'    
     comma = r','
     index = r'\[ *(\d+) *\]'
@@ -342,8 +342,12 @@ class OpenQASM2_LineParser:
             elif line.startswith('u2'):
                 operation, parameter, qreg_name, qubit_index = OpenQASM2_LineParser.handle_1q2p(line)
                 q = (qreg_name, qubit_index)
+            elif line.startswith('u0'):
+                raise NotImplementedError(f'This line of OpenQASM 2 has not been supported yet: {line}.')
             # 1-qubit 3-parameter gates
-            elif line.startswith('u3'):
+            elif line.startswith('u3') or \
+                 line.startswith('u ') or \
+                 line.startswith('u('):
                 operation, parameter, qreg_name, qubit_index = OpenQASM2_LineParser.handle_1q3p(line)
                 q = (qreg_name, qubit_index)
             # 2-qubit 1-parameter gates

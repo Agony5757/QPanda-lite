@@ -40,7 +40,10 @@ def test_qasm(path = './qpandalite/test'):
 
         parser = OpenQASM2_BaseParser()
         try:
-            parser.parse(transpiled_circuit)        
+            print('-- Parse --')
+            print(transpiled_circuit)
+            parser.parse(transpiled_circuit)   
+            print('-- Parse OK --')     
             print(parser.formatted_qasm)
             count_passed += 1
             passed_list.append(circuit)

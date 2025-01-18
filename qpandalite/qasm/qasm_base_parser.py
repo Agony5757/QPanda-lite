@@ -8,6 +8,12 @@ class OpenQASM2_BaseParser:
         self.raw_qasm = None
         self.formatted_qasm = None
 
+        # for qasm statement collection
+        self.collected_qregs_str = list()
+        self.collected_cregs_str = list()
+        self.collected_measurements_str = list()
+        self.program_body_str = list()
+
     def _format_and_check(self):
         '''Format the original qasm code and check if it is valid.
            Currently, this is a simple parser, so that "gate" defines are not
@@ -81,8 +87,8 @@ class OpenQASM2_BaseParser:
                         ';\n'.join(program_body),
                         ';\n'.join(collected_measurements)
                     ))
-        
-        return ret_qasm
+
+        return ret_qasm, collected_qregs, collected_cregs, program_body, collected_measurements
                 
     def _extract_qregs(self, lines):
         for line in lines:
@@ -92,4 +98,11 @@ class OpenQASM2_BaseParser:
 
     def parse(self, raw_qasm):
         self.raw_qasm = raw_qasm
-        self.formatted_qasm = self._format_and_check()
+
+        # format, and check if QASM code is valid
+        # also return the collected statements
+        (self.formatted_qasm, 
+         self.collected_qregs_str, 
+         self.collected_cregs_str, 
+         self.program_body, 
+         self.collected_measurements_str) = self._format_and_check()

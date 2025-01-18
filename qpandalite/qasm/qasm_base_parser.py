@@ -101,19 +101,19 @@ class OpenQASM2_BaseParser:
                 qreg_name, qreg_size = OpenQASM2_LineParser.handle_qreg(line)
     
     @staticmethod
-    def _compute_id(collected_regs, reg_name, reg_id):
+    def _compute_id(regs, reg_name, reg_id):
         id = 0
-        for collected_reg_name, collected_reg_size in collected_regs:
-            if collected_reg_name == reg_name:
+        for reg_name, reg_size in regs:
+            if reg_name == reg_name:
                 return id + reg_id
             
-            id += collected_reg_size
+            id += reg_size
             
         raise RegisterNotFoundError()
     
     def _get_qubit_id(self, qreg_name, qreg_id):
         try:
-            qubit_id = OpenQASM2_BaseParser._compute_id(self.collected_qregs_str, qreg_name, qreg_id)
+            qubit_id = OpenQASM2_BaseParser._compute_id(self.qregs, qreg_name, qreg_id)
             return qubit_id
         except RegisterNotFoundError:
             raise RegisterNotFoundError('Cannot find qreg {}, (defined = {})'.format(
@@ -122,7 +122,7 @@ class OpenQASM2_BaseParser:
         
     def _get_cbit_id(self, creg_name, creg_id):
         try:
-            cbit_id = OpenQASM2_BaseParser._compute_id(self.collected_cregs_str, creg_name, creg_id)
+            cbit_id = OpenQASM2_BaseParser._compute_id(self.cregs, creg_name, creg_id)
             return cbit_id
         except RegisterNotFoundError:
             raise RegisterNotFoundError('Cannot find creg {}, (defined = {})'.format(
@@ -133,6 +133,7 @@ class OpenQASM2_BaseParser:
     def _check_regs(collected_regs, reg_handler):
         # check whether qregs have the same name
         names = set()
+        regs = list()
         total_size = 0
         if len(collected_regs) == 0:
             raise RegisterDefinitionError("Register is empty")
@@ -142,9 +143,10 @@ class OpenQASM2_BaseParser:
                 raise RegisterDefinitionError("Duplicate name")
             
             names.add(name)
+            regs.append((name, size))
             total_size += size
 
-        return total_size
+        return total_size, regs
     
     def _process_measurements(self):
         for measurement in self.collected_measurements_str:
@@ -166,14 +168,14 @@ class OpenQASM2_BaseParser:
         
         # process the total number of qubit
         try:
-            self.n_qubit = OpenQASM2_BaseParser._check_regs(self.collected_qregs_str, OpenQASM2_LineParser.handle_qreg)
+            self.n_qubit, self.qregs = OpenQASM2_BaseParser._check_regs(self.collected_qregs_str, OpenQASM2_LineParser.handle_qreg)
         except RegisterDefinitionError as e:
             raise RegisterDefinitionError("QReg Definition Error.\n"
                                           f"Internal error: \n{str(e)}")
         
         # process the total number of cbit
         try:
-            self.n_cbit = OpenQASM2_BaseParser._check_regs(self.collected_cregs_str, OpenQASM2_LineParser.handle_creg)
+            self.n_cbit, self.cregs = OpenQASM2_BaseParser._check_regs(self.collected_cregs_str, OpenQASM2_LineParser.handle_creg)
         except RegisterDefinitionError as e:
             raise RegisterDefinitionError("CReg Definition Error.\n"
                                           f"Internal error: \n{str(e)}")

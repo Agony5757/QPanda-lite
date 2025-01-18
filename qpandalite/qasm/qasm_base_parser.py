@@ -1,9 +1,11 @@
 from .qasm_line_parser import OpenQASM2_LineParser
-from .exceptions import NotSupportedGateError
+from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError
 class OpenQASM2_BaseParser:    
     def __init__(self):
         self.qregs = list()
         self.cregs = list()        
+        self.n_qubit = None
+        self.n_cbit = None
         self.program_body = list()
         self.raw_qasm = None
         self.formatted_qasm = None
@@ -13,6 +15,9 @@ class OpenQASM2_BaseParser:
         self.collected_cregs_str = list()
         self.collected_measurements_str = list()
         self.program_body_str = list()
+
+        # for measurement mapping
+        self.measure_qubit = list()
 
     def _format_and_check(self):
         '''Format the original qasm code and check if it is valid.
@@ -94,7 +99,59 @@ class OpenQASM2_BaseParser:
         for line in lines:
             if line.startswith('qreg'):
                 qreg_name, qreg_size = OpenQASM2_LineParser.handle_qreg(line)
-                
+    
+    @staticmethod
+    def _compute_id(collected_regs, reg_name, reg_id):
+        id = 0
+        for collected_reg_name, collected_reg_size in collected_regs:
+            if collected_reg_name == reg_name:
+                return id + reg_id
+            
+            id += collected_reg_size
+            
+        raise RegisterNotFoundError()
+    
+    def _get_qubit_id(self, qreg_name, qreg_id):
+        try:
+            qubit_id = OpenQASM2_BaseParser._compute_id(self.collected_qregs_str, qreg_name, qreg_id)
+            return qubit_id
+        except RegisterNotFoundError:
+            raise RegisterNotFoundError('Cannot find qreg {}, (defined = {})'.format(
+                qreg_name, self.collected_qregs_str
+            ))
+        
+    def _get_cbit_id(self, creg_name, creg_id):
+        try:
+            cbit_id = OpenQASM2_BaseParser._compute_id(self.collected_cregs_str, creg_name, creg_id)
+            return cbit_id
+        except RegisterNotFoundError:
+            raise RegisterNotFoundError('Cannot find creg {}, (defined = {})'.format(
+                creg_name, self.collected_cregs_str
+            ))
+    
+    @staticmethod
+    def _check_regs(collected_regs, reg_handler):
+        # check whether qregs have the same name
+        names = set()
+        total_size = 0
+        if len(collected_regs) == 0:
+            raise RegisterDefinitionError("Register is empty")
+        for reg_str in collected_regs:
+            name, size = reg_handler(reg_str)
+            if name in names:
+                raise RegisterDefinitionError("Duplicate name")
+            
+            names.add(name)
+            total_size += size
+
+        return total_size
+    
+    def _process_measurements(self):
+        for measurement in self.collected_measurements_str:
+            qreg_name, qreg_id, creg_name, creg_id = OpenQASM2_LineParser.handle_measure(measurement)
+            qid = self._get_qubit_id(qreg_name, qreg_id)
+            cid = self._get_cbit_id(creg_name, creg_id)
+            self.measure_qubit.append((qid, cid))
 
     def parse(self, raw_qasm):
         self.raw_qasm = raw_qasm
@@ -106,3 +163,35 @@ class OpenQASM2_BaseParser:
          self.collected_cregs_str, 
          self.program_body, 
          self.collected_measurements_str) = self._format_and_check()
+        
+        # process the total number of qubit
+        try:
+            self.n_qubit = OpenQASM2_BaseParser._check_regs(self.collected_qregs_str, OpenQASM2_LineParser.handle_qreg)
+        except RegisterDefinitionError as e:
+            raise RegisterDefinitionError("QReg Definition Error.\n"
+                                          f"Internal error: \n{str(e)}")
+        
+        # process the total number of cbit
+        try:
+            self.n_cbit = OpenQASM2_BaseParser._check_regs(self.collected_cregs_str, OpenQASM2_LineParser.handle_creg)
+        except RegisterDefinitionError as e:
+            raise RegisterDefinitionError("CReg Definition Error.\n"
+                                          f"Internal error: \n{str(e)}")
+        
+        # process measurements
+        self._process_measurements()
+
+        # process program body
+        for line in self.program_body:
+            operation, qubits, cbits, parameters = OpenQASM2_LineParser.parse_line(line)
+            if operation is None:
+                continue
+                
+            if isinstance(qubits, list):
+                qubit_ids = [self._get_qubit_id(qubit[0], qubit[1]) for qubit in qubits]
+            else:
+                qubit_ids = self._get_qubit_id(qubits[0], qubits[1])
+                    
+
+        
+        

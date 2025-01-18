@@ -63,13 +63,13 @@ class OpenQASM2_LineParser:
                         'qreg' + blank + 
                         identifier + blank + 
                         index + blank + 
-                        ';$')
+                        '$')
     
     regexp_creg_str = ('^' +
                         'creg' + blank + 
                         identifier + blank + 
                         index + blank + 
-                        ';$')
+                        '$')
     
     qreg_str = (identifier + blank +  # qreg name
                 index + blank)  # qubit index
@@ -77,40 +77,40 @@ class OpenQASM2_LineParser:
     regexp_1q_str = ('^' +
                       identifier + blank +  # op name
                       qreg_str +
-                      ';$')
+                      '$')
     
     regexp_2q_str = ('^' +
                       identifier + blank +  # op name
                       qreg_str + comma + blank + qreg_str + 
-                      ';$')
+                      '$')
     
     regexp_3q_str = ('^' +
                       identifier + blank +  # op name
                       qreg_str + comma + blank + qreg_str + comma + blank + qreg_str + 
-                      ';$')
+                      '$')
     
     regexp_1qnp_str = ('^' +
                       identifier + blank +  # op name
                       any_parameters + blank +  # parameter
                       qreg_str +
-                      ';$')
+                      '$')
     
     regexp_2qnp_str = ('^' +
                       identifier + blank +  # op name
                       any_parameters + blank +  # parameter
                       qreg_str + comma + blank + qreg_str + 
-                      ';$')
+                      '$')
         
     regexp_3qnp_str = ('^' +
                       identifier + blank +  # op name
                       any_parameters + blank +  # parameter
                       qreg_str + comma + blank + qreg_str + comma + blank + qreg_str + 
-                      ';$')
+                      '$')
     
     regexp_measure_str = ('^' +
                       'measure' + blank +  
                       qreg_str + '->' + blank +  qreg_str + 
-                      ';$')
+                      '$')
 
     regexp_qreg = re.compile(regexp_qreg_str)
     regexp_creg = re.compile(regexp_creg_str)
@@ -402,26 +402,26 @@ class OpenQASM2_LineParser:
 if __name__ == '__main__':
 
     print('----------qreg test------------')
-    matches = OpenQASM2_LineParser.regexp_qreg.match('qreg q [ 12 ];')
+    matches = OpenQASM2_LineParser.regexp_qreg.match('qreg q [ 12 ]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
 
     print('----------creg test------------')
-    matches = OpenQASM2_LineParser.regexp_creg.match('creg c [ 12 ];')
+    matches = OpenQASM2_LineParser.regexp_creg.match('creg c [ 12 ]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
 
     print('----------op 1q test-----------')
-    matches = OpenQASM2_LineParser.regexp_1q.match('h q[0];')
+    matches = OpenQASM2_LineParser.regexp_1q.match('h q[0]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
     print(matches.group(3))
 
     print('----------op 2q test-----------')
-    matches = OpenQASM2_LineParser.regexp_2q.match('cx q[0],q[12];')
+    matches = OpenQASM2_LineParser.regexp_2q.match('cx q[0],q[12]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
@@ -430,7 +430,7 @@ if __name__ == '__main__':
     print(matches.group(5))
 
     print('----------op 3q test-----------')
-    matches = OpenQASM2_LineParser.regexp_3q.match('ccx q[0],q[12],q[11];')
+    matches = OpenQASM2_LineParser.regexp_3q.match('ccx q[0],q[12],q[11]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
@@ -441,51 +441,51 @@ if __name__ == '__main__':
     print(matches.group(7))
 
     print('----------op 1q1p test---------')
-    matches = OpenQASM2_LineParser.regexp_1qnp.match('ry (-0.5*pi) q[0];')
+    matches = OpenQASM2_LineParser.regexp_1qnp.match('ry (-0.5*pi) q[0]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
     print(matches.group(3))
     print(matches.group(4))
     
-    results = OpenQASM2_LineParser.handle_1q1p('ry (-0.5*pi) q[0];')
+    results = OpenQASM2_LineParser.handle_1q1p('ry (-0.5*pi) q[0]')
     print(results)
 
     print('----------op 1q2p test---------')
-    matches = OpenQASM2_LineParser.regexp_1qnp.match('u2 (-0.5*pi, 11) q[0];')
+    matches = OpenQASM2_LineParser.regexp_1qnp.match('u2 (-0.5*pi, 11) q[0]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
     print(matches.group(3))
     print(matches.group(4))
     
-    results = OpenQASM2_LineParser.handle_1q2p('u2 (-0.5*pi, 11) q[0];')
+    results = OpenQASM2_LineParser.handle_1q2p('u2 (-0.5*pi, 11) q[0]')
     print(results)
 
     print('----------op 1q3p test---------')
-    matches = OpenQASM2_LineParser.regexp_1qnp.match('u3 (-0.5*pi, 11, 888.1111) q[0];')
+    matches = OpenQASM2_LineParser.regexp_1qnp.match('u3 (-0.5*pi, 11, 888.1111) q[0]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
     print(matches.group(3))
     print(matches.group(4))
     
-    results = OpenQASM2_LineParser.handle_1q3p('u3 (-0.5*pi, 11, 888.1111) q[0];')
+    results = OpenQASM2_LineParser.handle_1q3p('u3 (-0.5*pi, 11, 888.1111) q[0]')
     print(results)
 
     print('----------op 2q1p test---------')
-    matches = OpenQASM2_LineParser.regexp_2qnp.match('rxx (-0.5*pi) q[0], q[108];')
+    matches = OpenQASM2_LineParser.regexp_2qnp.match('rxx (-0.5*pi) q[0], q[108]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))
     print(matches.group(3))
     print(matches.group(4))
     
-    results = OpenQASM2_LineParser.handle_2q1p('rxx (-0.5*pi) q[0], q[108];')
+    results = OpenQASM2_LineParser.handle_2q1p('rxx (-0.5*pi) q[0], q[108]')
     print(results)
 
     print('----------measure test---------')
-    matches = OpenQASM2_LineParser.regexp_measure.match('measure q[0] -> c[18];')
+    matches = OpenQASM2_LineParser.regexp_measure.match('measure q[0] -> c[18]')
     print(matches.group(0))
     print(matches.group(1))
     print(matches.group(2))

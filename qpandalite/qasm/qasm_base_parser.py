@@ -1,12 +1,21 @@
 from .qasm_line_parser import OpenQASM2_LineParser
-from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError
+from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError, RegisterOutOfRangeError
+
+def _get_opcode_from_QASM2(operation, qubits, cbits, parameters):
+    '''Here list all supported operations of OpenQASM2.0 and its corresponding operation in OriginIR in QPanda-lite
+    '''
+    if operation == 'id':
+        
+
+
+
 class OpenQASM2_BaseParser:    
     def __init__(self):
         self.qregs = list()
         self.cregs = list()        
         self.n_qubit = None
         self.n_cbit = None
-        self.program_body = list()
+        self.program_body = list() # contain the opcodes
         self.raw_qasm = None
         self.formatted_qasm = None
 
@@ -14,7 +23,7 @@ class OpenQASM2_BaseParser:
         self.collected_qregs_str = list()
         self.collected_cregs_str = list()
         self.collected_measurements_str = list()
-        self.program_body_str = list()
+        self.program_body_str = list() # contain strs of the program body
 
         # for measurement mapping
         self.measure_qubit = list()
@@ -105,6 +114,8 @@ class OpenQASM2_BaseParser:
         id = 0
         for reg_name, reg_size in regs:
             if reg_name == reg_name:
+                if id >= reg_size:
+                    raise RegisterOutOfRangeError()
                 return id + reg_id
             
             id += reg_size
@@ -119,6 +130,10 @@ class OpenQASM2_BaseParser:
             raise RegisterNotFoundError('Cannot find qreg {}, (defined = {})'.format(
                 qreg_name, self.collected_qregs_str
             ))
+        except RegisterOutOfRangeError:
+            raise RegisterOutOfRangeError('qreg {}[{}] out of range.)'.format(
+                qreg_name, qreg_id
+            ))
         
     def _get_cbit_id(self, creg_name, creg_id):
         try:
@@ -127,6 +142,10 @@ class OpenQASM2_BaseParser:
         except RegisterNotFoundError:
             raise RegisterNotFoundError('Cannot find creg {}, (defined = {})'.format(
                 creg_name, self.collected_cregs_str
+            ))
+        except RegisterOutOfRangeError:
+            raise RegisterOutOfRangeError('creg {}[{}] out of range.)'.format(
+                creg_name, creg_id
             ))
     
     @staticmethod
@@ -163,7 +182,7 @@ class OpenQASM2_BaseParser:
         (self.formatted_qasm, 
          self.collected_qregs_str, 
          self.collected_cregs_str, 
-         self.program_body, 
+         self.program_body_str, 
          self.collected_measurements_str) = self._format_and_check()
         
         # process the total number of qubit
@@ -184,16 +203,27 @@ class OpenQASM2_BaseParser:
         self._process_measurements()
 
         # process program body
-        for line in self.program_body:
+        for line in self.program_body_str:
             operation, qubits, cbits, parameters = OpenQASM2_LineParser.parse_line(line)
             if operation is None:
                 continue
-                
+            
+            # transform the qubit from regname+index to qubit_id
+            # Note: register's validity is checked through _get_qubit_id
             if isinstance(qubits, list):
-                qubit_ids = [self._get_qubit_id(qubit[0], qubit[1]) for qubit in qubits]
+                qubits = [self._get_qubit_id(qubit[0], qubit[1]) for qubit in qubits]
             else:
-                qubit_ids = self._get_qubit_id(qubits[0], qubits[1])
-                    
+                qubits = self._get_qubit_id(qubits[0], qubits[1])
 
+            if isinstance(cbits, list):
+                cbits = [self._get_cbit_id(cbit[0], cbit[1]) for cbit in cbits]
+            else:
+                cbits = self._get_cbit_id(cbits[0], cbits[1])
+
+            # transform into opcodes
+            # opcodes = (operation,qubits,cbit,parameter,dagger_flag,control_qubits_set)
         
-        
+            # match operation is QASM to OriginIR
+            opcode = _get_opcode_from_QASM2(operation, qubits, cbits, parameters)
+
+            self.program_body.append(opcode)

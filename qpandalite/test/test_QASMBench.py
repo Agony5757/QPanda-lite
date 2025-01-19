@@ -16,7 +16,7 @@ from qiskit_aer import AerSimulator
 from qiskit import transpile
 
 
-def load_QASMBench(path):
+def _load_QASMBench(path):
     path = Path(path)
     filename = path / 'QASMBench.pkl'
 
@@ -26,8 +26,17 @@ def load_QASMBench(path):
     return dataset
 
 
+def _transpile_circuit(qc):
+    # Use the Aer simulator
+    backend = AerSimulator()
+    quantum_circuit = qasm.loads(qc)
+    # Transpile the circuit for the backend
+    transpiled_qc = transpile(quantum_circuit, backend=backend, optimization_level=0)
+    
+    return qasm.dumps(transpiled_qc)
+
 def test_qasm(path = './qpandalite/test'):
-    dataset = load_QASMBench(path)
+    dataset = _load_QASMBench(path)
     # print(dataset)
     # print(len(dataset))
 
@@ -36,7 +45,7 @@ def test_qasm(path = './qpandalite/test'):
     count_not_supported = 0
     not_supported_list = []
     for circuit in dataset:
-        transpiled_circuit = transpile_circuit(circuit)
+        transpiled_circuit = _transpile_circuit(circuit)
 
         parser = OpenQASM2_BaseParser()
         try:
@@ -56,15 +65,6 @@ def test_qasm(path = './qpandalite/test'):
     # print(passed_list)
     print(not_supported_list)
 
-
-def transpile_circuit(qc):
-    # Use the Aer simulator
-    backend = AerSimulator()
-    quantum_circuit = qasm.loads(qc)
-    # Transpile the circuit for the backend
-    transpiled_qc = transpile(quantum_circuit, backend=backend, optimization_level=0)
-    
-    return qasm.dumps(transpiled_qc)
 
 
 @qpandalite_test('Test QASMBench')

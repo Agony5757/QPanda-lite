@@ -86,7 +86,17 @@ class OpenQASM2_LineParser:
     
     regexp_3q_str = ('^' +
                       identifier + blank +  # op name
-                      qreg_str + comma + blank + qreg_str + comma + blank + qreg_str + 
+                      qreg_str + comma + blank + 
+                      qreg_str + comma + blank + 
+                      qreg_str + 
+                      '$')
+    
+    regexp_4q_str = ('^' +
+                      identifier + blank +  # op name
+                      qreg_str + comma + blank + 
+                      qreg_str + comma + blank + 
+                      qreg_str + comma + blank + 
+                      qreg_str + 
                       '$')
     
     regexp_1qnp_str = ('^' +
@@ -117,6 +127,7 @@ class OpenQASM2_LineParser:
     regexp_1q = re.compile(regexp_1q_str)
     regexp_2q = re.compile(regexp_2q_str)
     regexp_3q = re.compile(regexp_3q_str)
+    regexp_4q = re.compile(regexp_4q_str)
     regexp_1qnp = re.compile(regexp_1qnp_str)
     regexp_2qnp = re.compile(regexp_2qnp_str)
     regexp_3qnp = re.compile(regexp_3qnp_str)
@@ -177,8 +188,29 @@ class OpenQASM2_LineParser:
         qubit_index2 = int(matches.group(5))
         qreg_name3 = matches.group(6)
         qubit_index3 = int(matches.group(7))
-        return op_name, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3
+        return (op_name, 
+                qreg_name1, qubit_index1, 
+                qreg_name2, qubit_index2, 
+                qreg_name3, qubit_index3)
 
+    @staticmethod
+    def handle_4q(line):
+        matches = OpenQASM2_LineParser.regexp_4q.match(line)
+        op_name = matches.group(1)
+        qreg_name1 = matches.group(2)
+        qubit_index1 = int(matches.group(3))
+        qreg_name2 = matches.group(4)
+        qubit_index2 = int(matches.group(5))
+        qreg_name3 = matches.group(6)
+        qubit_index3 = int(matches.group(7))
+        qreg_name4 = matches.group(8)
+        qubit_index4 = int(matches.group(9))
+        return (op_name, 
+                qreg_name1, qubit_index1, 
+                qreg_name2, qubit_index2, 
+                qreg_name3, qubit_index3, 
+                qreg_name4, qubit_index4)
+    
     @staticmethod
     def handle_1qnp(line, n_parameters):
         matches = OpenQASM2_LineParser.regexp_1qnp.match(line)
@@ -225,8 +257,12 @@ class OpenQASM2_LineParser:
                              f'should be {n_parameters}, '
                              f'but got {len(parameters)}.')
         
-        return op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3
-
+        return (op_name, 
+                parameters, 
+                qreg_name1, qubit_index1, 
+                qreg_name2, qubit_index2, 
+                qreg_name3, qubit_index3)
+    
     @staticmethod
     def handle_1q1p(line):
         return OpenQASM2_LineParser.handle_1qnp(line, 1)
@@ -331,6 +367,13 @@ class OpenQASM2_LineParser:
                  line.startswith('cswap'):
                 operation, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3 = OpenQASM2_LineParser.handle_3q(line)
                 q = [(qreg_name1, qubit_index1), (qreg_name2, qubit_index2), (qreg_name3, qubit_index3)]
+            # 4-qubit gates
+            elif line.startswith('c3x'):
+                operation, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3, qreg_name4, qubit_index4 = OpenQASM2_LineParser.handle_4q(line)
+                q = [(qreg_name1, qubit_index1), 
+                     (qreg_name2, qubit_index2), 
+                     (qreg_name3, qubit_index3), 
+                     (qreg_name4, qubit_index4)]
             # 1-qubit 1-parameter gates
             elif line.startswith('rx') or \
                  line.startswith('ry') or \

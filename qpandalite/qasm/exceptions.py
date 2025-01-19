@@ -5,5 +5,8 @@ class NotSupportedGateError(Exception):
 class RegisterNotFoundError(Exception):
     pass
 
+class RegisterOutOfRangeError(Exception):
+    pass
+
 class RegisterDefinitionError(Exception):
     pass

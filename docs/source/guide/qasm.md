@@ -6,7 +6,7 @@ QPanda-lite对QASM2.0有不完整的支持。
 
 | QASM指令 | 矩阵形式 |
 |----------|----------|
-| `X`      | $\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ |
+| `X`      | $aaa$ |
 | `Y`      | $\begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}$ |
 | `Z`      | $\left(\begin{matrix} 1 & 0 \\0 & -1 \end{matrix}\right)$ |
 | `H`      | $\frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$ |

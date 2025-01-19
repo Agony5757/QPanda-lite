@@ -222,4 +222,14 @@ class OpenQASM2_BaseParser:
             # match operation is QASM to OriginIR
             opcode = get_opcode_from_QASM2(operation, qubits, cbits, parameters)
 
+            # check if opcode is correctely converted
+            # if opcode is None:
+            #     raise NotImplementedError("Opcode is not converted correctly for "
+            #                               f"line: {line}.\n"
+            #                               f"operation: {operation}"
+            #                               f"qubits: {qubits}"
+            #                               f"cbits: {cbits}"
+            #                               f"parameters: {parameters}"
+            #                               )
+
             self.program_body.append(opcode)

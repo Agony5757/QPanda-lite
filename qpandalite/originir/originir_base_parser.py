@@ -87,6 +87,7 @@ class OriginIR_BaseParser:
         # Extract the QINIT statement and CBIT statement
         # Note: always return current line number (current_lineno)
         # Will raise ValueError when the statement does not follow the grammar.
+        # The remaining part will not have QINIT and CBIT statements
         current_lineno = self._extract_qinit_statement(lines)
         current_lineno = self._extract_creg_statement(lines, current_lineno)
         

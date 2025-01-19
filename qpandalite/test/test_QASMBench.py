@@ -1,12 +1,8 @@
-import qpandalite
-import qpandalite.simulator as qsim
 import numpy as np
-
-import qpandalite.simulator as sim
 from qpandalite.qasm import OpenQASM2_BaseParser, OpenQASM2_LineParser
-from qpandalite.circuit_builder import Circuit
 from pathlib import Path
 import pickle
+from qpandalite.simulator.qasm_simulator import QASM_Simulator
 from qpandalite.test._utils import qpandalite_test
 from qpandalite.qasm import NotSupportedGateError
 
@@ -34,6 +30,20 @@ def _transpile_circuit(qc):
     transpiled_qc = transpile(quantum_circuit, backend=backend, optimization_level=0)
     
     return qasm.dumps(transpiled_qc)
+
+def _reference_result_to_array(result):
+    for key in result:
+        n_qubit = len(key)
+        break
+
+    result_list = np.zeros(2**n_qubit)
+    for key in result:
+        index = int(key, base=2)
+        result_list[index] = result[key]
+
+    return result_list
+
+
 
 def test_qasm(path = './qpandalite/test'):
     dataset = _load_QASMBench(path)
@@ -65,6 +75,16 @@ def test_qasm(path = './qpandalite/test'):
     # print(passed_list)
     print(not_supported_list)
 
+    for circuit in passed_list:
+        print('---------------')
+        transpiled_circuit = _transpile_circuit(circuit)
+        print(transpiled_circuit)
+        print(dataset[circuit])
+        print('---------------')
+
+        reference_result = _reference_result_to_array(dataset[circuit])
+
+        qasm_simulator = QASM_Simulator()
 
 
 @qpandalite_test('Test QASMBench')

@@ -33,9 +33,7 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
        in OriginIR in QPanda-lite.
 
        Opcode Definition:
-       opcodes = (operation,qubits,cbit,parameter,dagger_flag,control_qubits_set)
-    
-    
+       opcodes = (operation,qubits,cbit,parameter,dagger_flag,control_qubits_set)    
     '''
 
     # 1-qubit gates
@@ -79,6 +77,35 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
         return ('CSWAP', qubits, cbits, parameters, False, None)
     # 4-qubit gates
     elif operation == 'cccx':
-        return ('X', qubits[0], cbits, parameters, False, qubits[1:4])
+        return ('X', qubits[3], cbits, parameters, False, qubits[0:3])
+    # 1-qubit 1-parameter gates
     elif operation == 'rx':
         return ('RX', qubits, cbits, parameters, False, None)
+    elif operation == 'ry':
+        return ('RY', qubits, cbits, parameters, False, None)
+    elif operation == 'rz':
+        return ('RZ', qubits, cbits, parameters, False, None)
+    elif operation == 'u1':
+        return ('U1', qubits, cbits, parameters, False, None)      
+    # 1-qubit 2-parameter gates
+    elif operation == 'u2':
+        return ('U2', qubits, cbits, parameters, False, None) 
+    elif operation == 'u0':
+        return ('U0', qubits, cbits, parameters, False, None)
+    # 1-qubit 3-parameter gates
+    elif operation == 'u' or operation == 'u3':
+        return ('U3', qubits, cbits, parameters, False, None)
+    # 2-qubit 1-parameter gates
+    elif operation == 'rxx':
+        return ('XX', qubits, cbits, parameters, False, None)
+    elif operation == 'ryy':
+        return ('YY', qubits, cbits, parameters, False, None)
+    elif operation == 'rzz':
+        return ('ZZ', qubits, cbits, parameters, False, None)
+    elif operation == 'cu1':
+        return ('U1', qubits[1], cbits, parameters, False, qubits[0])
+    # 2-qubit 3-parameter gates
+    elif operation == 'cu3':
+        return ('U3', qubits[1], cbits, parameters, False, qubits[0])
+    
+    return None

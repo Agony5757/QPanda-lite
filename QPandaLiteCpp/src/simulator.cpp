@@ -104,6 +104,32 @@ namespace qpandalite{
         z_unsafe_impl(state, qn, total_qubit, controller_mask);
     }
 
+    /* S gate
+
+      matrix form
+       [ 1  0 ]
+       [ 0 -1 ]
+    */
+    void Simulator::s(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE(qn)
+            size_t controller_mask = make_controller_mask(global_controller);
+        z_unsafe_impl(state, qn, total_qubit, controller_mask);
+    }
+
+    /* T gate
+
+      matrix form
+       [ 1  0 ]
+       [ 0 -1 ]
+    */
+    void Simulator::t(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE(qn)
+            size_t controller_mask = make_controller_mask(global_controller);
+        z_unsafe_impl(state, qn, total_qubit, controller_mask);
+    }
+
 
     /* CZ gate
 

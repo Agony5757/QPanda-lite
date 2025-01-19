@@ -73,18 +73,33 @@ def test_qasm(path = './qpandalite/test'):
     print(count_passed, 'circuits passed')
     print(count_not_supported, 'circuits not supported')
     # print(passed_list)
-    print(not_supported_list)
+    # print(not_supported_list)
 
     for circuit in passed_list:
-        print('---------------')
         transpiled_circuit = _transpile_circuit(circuit)
-        print(transpiled_circuit)
-        print(dataset[circuit])
-        print('---------------')
 
         reference_result = _reference_result_to_array(dataset[circuit])
 
         qasm_simulator = QASM_Simulator()
+        my_result = qasm_simulator.simulate(transpiled_circuit)
+
+        if len(reference_result) != len(my_result):
+            print('---------------')
+            print(transpiled_circuit)
+            print(dataset[circuit])
+            print('---------------')
+            raise ValueError('Size not match!'
+                             'Reference = {}\n'
+                             'My Result = {}\n'.format(reference_result, my_result))
+
+        if not np.allclose(reference_result, my_result):            
+            print('---------------')
+            print(transpiled_circuit)
+            print(dataset[circuit])
+            print('---------------')
+            raise ValueError('Result not match!'
+                             'Reference = {}\n'
+                             'My Result = {}\n'.format(reference_result, my_result))
 
 
 @qpandalite_test('Test QASMBench')

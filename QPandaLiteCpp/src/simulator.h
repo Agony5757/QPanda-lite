@@ -46,8 +46,10 @@ namespace qpandalite {
         void hadamard(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void x(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
-        void z(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void y(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
+        void z(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
+        void s(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
+        void t(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void sx(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void cz(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void swap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);

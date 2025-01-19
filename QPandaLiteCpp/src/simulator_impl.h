@@ -237,6 +237,37 @@ namespace qpandalite {
         }
     }
 
+
+    inline void s_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
+    {
+        using namespace std::literals::complex_literals;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if ((i >> qn) & 1)
+            {
+                state[i] *= 1i;
+            }
+        }
+    }
+
+    inline void t_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
+    {
+        using namespace std::literals::complex_literals;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if ((i >> qn) & 1)
+            {
+                state[i] *= complex_t(INVSQRT2, INVSQRT2);
+            }
+        }
+    }
+
     inline void cz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t total_qubit, size_t controller_mask)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)

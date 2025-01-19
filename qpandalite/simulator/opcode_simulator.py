@@ -40,6 +40,10 @@ class OpcodeSimulator:
             self.simulator.y(qubit, control_qubits_set, is_dagger)
         elif operation == 'Z':
             self.simulator.z(qubit, control_qubits_set, is_dagger)
+        elif operation == 'S':
+            self.simulator.s(qubit, control_qubits_set, is_dagger)
+        elif operation == 'T':
+            self.simulator.t(qubit, control_qubits_set, is_dagger)
         elif operation == 'CZ':
             self.simulator.cz(qubit[0], 
                             qubit[1], control_qubits_set, is_dagger)
@@ -104,7 +108,14 @@ class OpcodeSimulator:
 
     def simulate_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):
         # convert from set to list (to adapt to C++ input)
-        control_qubits_set = list(control_qubits_set)
+        if control_qubits_set:
+            control_qubits_set = list(control_qubits_set)
+        else:
+            control_qubits_set = list()
+
+        # when there is only 1 parameter, convert it to a scalar
+        if parameter and len(parameter) == 1:
+            parameter = parameter[0]
 
         self._simulate_common_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)    
 

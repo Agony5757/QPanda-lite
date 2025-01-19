@@ -106,13 +106,13 @@ class OpenQASM2_BaseParser:
     @staticmethod
     def _compute_id(regs, reg_name, reg_id):
         id = 0
-        for reg_name, reg_size in regs:
-            if reg_name == reg_name:
-                if id >= reg_size:
+        for stored_reg_name, stored_reg_size in regs:
+            if stored_reg_name == reg_name:
+                if reg_id >= stored_reg_size:
                     raise RegisterOutOfRangeError()
                 return id + reg_id
             
-            id += reg_size
+            id += stored_reg_size
             
         raise RegisterNotFoundError()
     

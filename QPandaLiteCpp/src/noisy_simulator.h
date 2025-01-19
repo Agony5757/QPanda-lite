@@ -21,6 +21,8 @@ namespace qpandalite {
         X,
         Y,
         Z,
+        S,
+        T,
         SX,
         CZ,
         SWAP,

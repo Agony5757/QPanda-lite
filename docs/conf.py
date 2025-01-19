@@ -46,8 +46,27 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'recommonmark',
-    'sphinx_markdown_tables',
+    'myst_parser',
     'sphinx.ext.viewcode'
+]
+
+# -- Options for myst_parser
+# See https://myst-parser.readthedocs.io/en/latest/syntax/optional.html
+myst_enable_extensions = [
+    "amsmath",
+    "attrs_inline",
+    "colon_fence",
+    "deflist",
+    "dollarmath",
+    "fieldlist",
+    "html_admonition",
+    "html_image",
+    "linkify",
+    "replacements",
+    "smartquotes",
+    "strikethrough",
+    "substitution",
+    "tasklist",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

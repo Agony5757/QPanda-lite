@@ -199,12 +199,12 @@ print(sim.state)
 # [(0.4818584546987789+0j), (-0.21429383059121812+0j), (0.7824381298928546+0j), (0.33118145584500897+0j), 0j, 0j, 0j, 0j]
 ```
 
-$\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$
+$$\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$$
 
 ## Explicit look-up table for all operations in QASM and OriginIR
 | QASM指令 | 矩阵形式 |
 |----------|----------|
-| `X`      | $\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$ |
+| `X`      | $$\begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}$$ |
 | `Y`      | $\begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}$ |
 | `Z`      | $\begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}$ |
 | `H`      | $\frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}$ |

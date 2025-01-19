@@ -24,6 +24,7 @@ QPanda-lite是一个轻量级的QPanda支持。
    source/guide/simulation_simple
    source/guide/submit_task_simple
    source/guide/qasm
+   source/guide/qasm_md
 
 .. toctree::
    :maxdepth: 2

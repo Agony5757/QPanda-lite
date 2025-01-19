@@ -204,15 +204,17 @@ class OpenQASM2_BaseParser:
             
             # transform the qubit from regname+index to qubit_id
             # Note: register's validity is checked through _get_qubit_id
-            if isinstance(qubits, list):
-                qubits = [self._get_qubit_id(qubit[0], qubit[1]) for qubit in qubits]
-            else:
-                qubits = self._get_qubit_id(qubits[0], qubits[1])
+            if qubits:
+                if isinstance(qubits, list):
+                    qubits = [self._get_qubit_id(qubit[0], qubit[1]) for qubit in qubits]
+                else:
+                    qubits = self._get_qubit_id(qubits[0], qubits[1])
 
-            if isinstance(cbits, list):
-                cbits = [self._get_cbit_id(cbit[0], cbit[1]) for cbit in cbits]
-            else:
-                cbits = self._get_cbit_id(cbits[0], cbits[1])
+            if cbits:
+                if isinstance(cbits, list):
+                    cbits = [self._get_cbit_id(cbit[0], cbit[1]) for cbit in cbits]
+                else:
+                    cbits = self._get_cbit_id(cbits[0], cbits[1])
 
             # transform into opcodes
             # opcodes = (operation,qubits,cbit,parameter,dagger_flag,control_qubits_set)

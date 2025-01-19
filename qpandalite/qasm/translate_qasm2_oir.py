@@ -37,9 +37,48 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
     
     
     '''
+
+    # 1-qubit gates
     if operation == 'id':
-        return ('I', qubits, cbits, parameters, None, None)
+        return ('I', qubits, cbits, parameters, False, None)
     elif operation == 'h':
-        return ('H', qubits,)
+        return ('H', qubits, cbits, parameters, False, None)
+    elif operation == 'x':
+        return ('X', qubits, cbits, parameters, False, None)
+    elif operation == 'y':
+        return ('Y', qubits, cbits, parameters, False, None)
+    elif operation == 'z':
+        return ('Z', qubits, cbits, parameters, False, None)
+    elif operation == 's':
+        return ('S', qubits, cbits, parameters, False, None)
+    elif operation == 'sdg':
+        return ('S', qubits, cbits, parameters, True, None)
+    elif operation == 'sx':
+        return ('SX', qubits, cbits, parameters, False, None)
+    elif operation == 'sxdg':
+        return ('SX', qubits, cbits, parameters, True, None)
+    elif operation == 't':
+        return ('T', qubits, cbits, parameters, False, None)
+    elif operation == 'tdg':
+        return ('T', qubits, cbits, parameters, True, None)
+    # 2-qubit gates
+    elif operation == 'cx':
+        return ('CNOT', qubits, cbits, parameters, False, None)
+    elif operation == 'cy':
+        return ('CY', qubits, cbits, parameters, False, None)
+    elif operation == 'cz':
+        return ('CZ', qubits, cbits, parameters, False, None)
+    elif operation == 'swap':
+        return ('SWAP', qubits, cbits, parameters, False, None)
+    elif operation == 'ch':
+        return ('CH', qubits, cbits, parameters, False, None)
+    # 3-qubit gates
+    elif operation == 'ccx':
+        return ('TOFFOLI', qubits, cbits, parameters, False, None)
+    elif operation == 'cswap':
+        return ('CSWAP', qubits, cbits, parameters, False, None)
+    # 4-qubit gates
+    elif operation == 'cccx':
+        return ('X', qubits[0], cbits, parameters, False, qubits[1:4])
     elif operation == 'rx':
-        return ('RX', qubits, cbits, parameters, None, None)
+        return ('RX', qubits, cbits, parameters, False, None)

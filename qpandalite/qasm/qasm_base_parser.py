@@ -1,12 +1,6 @@
+from .translate_qasm2_oir import get_opcode_from_QASM2
 from .qasm_line_parser import OpenQASM2_LineParser
 from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError, RegisterOutOfRangeError
-
-def _get_opcode_from_QASM2(operation, qubits, cbits, parameters):
-    '''Here list all supported operations of OpenQASM2.0 and its corresponding operation in OriginIR in QPanda-lite
-    '''
-    if operation == 'id':
-        
-
 
 
 class OpenQASM2_BaseParser:    
@@ -224,6 +218,6 @@ class OpenQASM2_BaseParser:
             # opcodes = (operation,qubits,cbit,parameter,dagger_flag,control_qubits_set)
         
             # match operation is QASM to OriginIR
-            opcode = _get_opcode_from_QASM2(operation, qubits, cbits, parameters)
+            opcode = get_opcode_from_QASM2(operation, qubits, cbits, parameters)
 
             self.program_body.append(opcode)

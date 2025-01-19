@@ -99,6 +99,8 @@ class OriginIR_Simulator:
             # In fact, I don't know the real implementation
             # This is a guessed implementation.
             self.measure_qubit.append((self.qubit_mapping[int(qubit)], int(cbit)))
+        elif operation == 'I':
+            pass
         elif operation == None:
             pass
         elif operation == 'QINIT':

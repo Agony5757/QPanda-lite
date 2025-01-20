@@ -43,7 +43,54 @@ def _reference_result_to_array(result):
 
     return result_list
 
+class NotMatchError(Exception):
+    pass
 
+def _check_result(circuit, reference_result):
+    transpiled_circuit = _transpile_circuit(circuit)
+
+    reference_array = _reference_result_to_array(reference_result)
+
+    # print('Testing circuit: ', transpiled_circuit)
+    # print('Reference Result: ', reference_result)
+
+    qasm_simulator = QASM_Simulator()
+    my_result = qasm_simulator.simulate(transpiled_circuit)
+
+    if len(reference_array) != len(my_result):
+        print('---------------')
+        print(transpiled_circuit)
+        print(reference_result)
+        print('---------------')
+        raise NotMatchError('Size not match!\n'
+                        'Reference = {}\n'
+                        'My Result = {}\n'.format(reference_array, my_result))
+    try:
+        v = np.allclose(reference_array, my_result)
+    except Exception as e:       
+        error_message = (
+            '---------------\n'
+            'Unexpected error occurred!!!\n'
+            f'Transpiled Circuit: {transpiled_circuit}\n'
+            f'Reference Result: {reference_result}\n'
+            '---------------\n'
+            f'The exception is: {str(e)}\n'
+        )
+        e.args = (error_message,) + e.args
+        raise e
+        
+    if not np.allclose(reference_array, my_result):            
+        raise NotMatchError(
+            '---------------\n'
+            f'{transpiled_circuit}\n'
+            f'{reference_result}\n'
+            '---------------\n'
+            'Result not match!\n'
+            f'Reference = {reference_array}\n'
+            f'My Result = {my_result}\n'
+        )
+
+    print('Test passed!')
 
 def test_qasm(path = './qpandalite/test'):
     dataset = _load_QASMBench(path)
@@ -59,47 +106,40 @@ def test_qasm(path = './qpandalite/test'):
 
         parser = OpenQASM2_BaseParser()
         try:
-            print('-- Parse --')
-            print(transpiled_circuit)
+            # print('-- Parse --')
+            # print(transpiled_circuit)
             parser.parse(transpiled_circuit)   
             print('-- Parse OK --')     
-            print(parser.formatted_qasm)
+            # print(parser.formatted_qasm)
             count_passed += 1
             passed_list.append(circuit)
         except NotSupportedGateError as e:
             count_not_supported += 1
             not_supported_list.append(circuit)
+        except Exception as e:
+            raise e
     
     print(count_passed, 'circuits passed')
     print(count_not_supported, 'circuits not supported')
     # print(passed_list)
     # print(not_supported_list)
 
+    err_list = []
     for circuit in passed_list:
-        transpiled_circuit = _transpile_circuit(circuit)
+        try:
+            _check_result(circuit, dataset[circuit])
+        except NotMatchError as e:
+            err_list.append(e)
+    
+    if not err_list:
+        print('All circuits passed!')
+        return
+    
+    for i, e in enumerate(err_list):
+        print('Circuit', i, 'failed:', e)
 
-        reference_result = _reference_result_to_array(dataset[circuit])
-
-        qasm_simulator = QASM_Simulator()
-        my_result = qasm_simulator.simulate(transpiled_circuit)
-
-        if len(reference_result) != len(my_result):
-            print('---------------')
-            print(transpiled_circuit)
-            print(dataset[circuit])
-            print('---------------')
-            raise ValueError('Size not match!'
-                             'Reference = {}\n'
-                             'My Result = {}\n'.format(reference_result, my_result))
-
-        if not np.allclose(reference_result, my_result):            
-            print('---------------')
-            print(transpiled_circuit)
-            print(dataset[circuit])
-            print('---------------')
-            raise ValueError('Result not match!'
-                             'Reference = {}\n'
-                             'My Result = {}\n'.format(reference_result, my_result))
+    print(len(err_list), 'circuits failed')
+    print(len(passed_list) - len(err_list), 'circuits passed')
 
 
 @qpandalite_test('Test QASMBench')

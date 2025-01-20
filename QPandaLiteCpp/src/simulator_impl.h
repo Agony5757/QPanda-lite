@@ -389,6 +389,23 @@ namespace qpandalite {
         }
     }
 
+    inline void u1_unsafe_impl(std::vector<complex_t>& state, size_t qn, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
+    {
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if ((i >> qn) & 1)
+            {
+                if (is_dagger)
+                    state[i] *= std::complex(cos(theta), -sin(theta));
+                else
+                    state[i] *= std::complex(cos(theta), sin(theta));
+            }
+        }
+    }
+
     inline void toffoli_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t target, size_t total_qubit, size_t controller_mask)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)

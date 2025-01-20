@@ -322,6 +322,20 @@ namespace qpandalite{
         rz_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
     }
 
+    /* U1 gate
+
+      matrix form
+       [     1     0     ]
+       [     0     exp(it) ]
+    */
+    void Simulator::u1(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE(qn)
+
+        size_t controller_mask = make_controller_mask(global_controller);
+        u1_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
+    }
+
     /* Rphi90 gate
 
       matrix form

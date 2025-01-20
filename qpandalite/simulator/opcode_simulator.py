@@ -30,6 +30,8 @@ class OpcodeSimulator:
             self.simulator.ry(qubit, parameter, control_qubits_set, is_dagger)
         elif operation == 'RZ':
             self.simulator.rz(qubit, parameter, control_qubits_set, is_dagger)
+        elif operation == 'U1':
+            self.simulator.u1(qubit, parameter, control_qubits_set, is_dagger)
         elif operation == 'H':
             self.simulator.hadamard(qubit, control_qubits_set, is_dagger)
         elif operation == 'X':

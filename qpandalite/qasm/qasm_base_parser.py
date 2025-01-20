@@ -1,3 +1,4 @@
+from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 from .translate_qasm2_oir import get_opcode_from_QASM2
 from .qasm_line_parser import OpenQASM2_LineParser
 from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError, RegisterOutOfRangeError
@@ -235,3 +236,11 @@ class OpenQASM2_BaseParser:
                                           )
 
             self.program_body.append(opcode)
+    
+    def to_originir(self):
+        oir_parser = OriginIR_BaseParser()
+        oir_parser.n_qubit = self.n_qubit
+        oir_parser.n_cbit = self.n_cbit
+        oir_parser.program_body = self.program_body
+
+        return oir_parser.to_extended_originir()

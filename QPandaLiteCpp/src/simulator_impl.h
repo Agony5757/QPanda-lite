@@ -253,7 +253,8 @@ namespace qpandalite {
         }
     }
 
-    inline void t_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
+
+    inline void sdg_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
     {
         using namespace std::literals::complex_literals;
         for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -263,7 +264,39 @@ namespace qpandalite {
 
             if ((i >> qn) & 1)
             {
+                state[i] *= -1i;
+            }
+        }
+    }
+
+    inline void t_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
+    {
+        using namespace std::literals::complex_literals;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if ((i >> qn) & 1)
+            {
                 state[i] *= complex_t(INVSQRT2, INVSQRT2);
+            }
+        }
+    }
+
+    inline void tdg_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
+    {
+        using namespace std::literals::complex_literals;
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i & controller_mask) != controller_mask)
+                continue;
+
+            if ((i >> qn) & 1)
+            {
+                state[i] *= complex_t(INVSQRT2, -INVSQRT2);
             }
         }
     }
@@ -378,13 +411,13 @@ namespace qpandalite {
             {
                 // 0 and not dagger -> exp(-it/2)
                 // 1 and dagger -> exp(-it/2)
-                state[i] *= std::complex(cos(theta / 2), -sin(theta / 2));
+                state[i] *= std::complex(cos(theta / 2), sin(theta / 2));
             }
             else
             {
                 // 0 and dagger -> exp(it/2)
                 // 1 and not dagger -> exp(it/2)
-                state[i] *= std::complex(cos(theta / 2), sin(theta / 2));
+                state[i] *= std::complex(cos(theta / 2), -sin(theta / 2));
             }
         }
     }

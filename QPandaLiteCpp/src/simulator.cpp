@@ -114,7 +114,10 @@ namespace qpandalite{
     {
         CHECK_QUBIT_RANGE(qn)
             size_t controller_mask = make_controller_mask(global_controller);
-        z_unsafe_impl(state, qn, total_qubit, controller_mask);
+        if (is_dagger)
+            sdg_unsafe_impl(state, qn, total_qubit, controller_mask);
+        else
+            s_unsafe_impl(state, qn, total_qubit, controller_mask);
     }
 
     /* T gate
@@ -127,7 +130,10 @@ namespace qpandalite{
     {
         CHECK_QUBIT_RANGE(qn)
             size_t controller_mask = make_controller_mask(global_controller);
-        z_unsafe_impl(state, qn, total_qubit, controller_mask);
+        if (is_dagger)
+            tdg_unsafe_impl(state, qn, total_qubit, controller_mask);
+        else
+            t_unsafe_impl(state, qn, total_qubit, controller_mask);
     }
 
 

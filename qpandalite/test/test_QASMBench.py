@@ -46,8 +46,7 @@ def _reference_result_to_array(result):
 class NotMatchError(Exception):
     pass
 
-def _check_result(circuit, reference_result):
-    transpiled_circuit = _transpile_circuit(circuit)
+def _check_result(transpiled_circuit, reference_result):
 
     reference_array = _reference_result_to_array(reference_result)
 
@@ -125,11 +124,16 @@ def test_qasm(path = './qpandalite/test'):
     # print(not_supported_list)
 
     err_list = []
+    bad_circuit_list = []
+    good_circuit_list = []
     for circuit in passed_list:
         try:
-            _check_result(circuit, dataset[circuit])
+            transpiled_circuit = _transpile_circuit(circuit)
+            _check_result(transpiled_circuit, dataset[circuit])
+            good_circuit_list.append(transpiled_circuit)
         except NotMatchError as e:
             err_list.append(e)
+            bad_circuit_list.append(transpiled_circuit)
     
     if not err_list:
         print('All circuits passed!')
@@ -140,6 +144,17 @@ def test_qasm(path = './qpandalite/test'):
 
     print(len(err_list), 'circuits failed')
     print(len(passed_list) - len(err_list), 'circuits passed')
+
+    # log good and bad circuits
+    # with open('good_circuits.txt', 'w') as f:
+    #     for circuit in good_circuit_list:
+    #         f.write(circuit + '\n-----------------\n\n')
+
+    # with open('bad_circuits.txt', 'w') as f:
+    #     for circuit in bad_circuit_list:
+    #         f.write(circuit + '\n-----------------\n\n')
+
+    raise ValueError('Some circuits failed!')
 
 
 @qpandalite_test('Test QASMBench')

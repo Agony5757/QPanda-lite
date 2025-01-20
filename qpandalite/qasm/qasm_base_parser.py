@@ -215,13 +215,15 @@ class OpenQASM2_BaseParser:
                     cbits = [self._get_cbit_id(cbit[0], cbit[1]) for cbit in cbits]
                 else:
                     cbits = self._get_cbit_id(cbits[0], cbits[1])
+            
+            # convert parameter to a scalar value
+            if parameters and isinstance(parameters, list) and len(parameters) == 1:
+                parameters = parameters[0]
 
             # transform into opcodes
             # opcodes = (operation,qubits,cbit,parameter,dagger_flag,control_qubits_set)
-        
-            # match operation is QASM to OriginIR
             opcode = get_opcode_from_QASM2(operation, qubits, cbits, parameters)
-
+            
             # check if opcode is correctely converted
             if opcode is None:
                 raise NotImplementedError("Opcode is not converted correctly for "

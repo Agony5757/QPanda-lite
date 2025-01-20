@@ -464,10 +464,10 @@ namespace qpandalite{
     }
 
     /* ZZ interaction
-    *    |00> -> |00>
-    *    |01> -> -exp(it/2) * |01>
-    *    |10> -> -exp(it/2) * |10>
-    *    |11> -> |11> 
+    *    |00> -> exp(-it/2) * |00>
+    *    |01> -> exp(it/2) * |01>
+    *    |10> -> exp(it/2) * |10>
+    *    |11> -> exp(-it/2) * |11> 
     */
     void Simulator::zz(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {

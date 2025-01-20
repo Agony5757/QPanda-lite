@@ -482,9 +482,13 @@ namespace qpandalite {
                 continue;
             bool v1 = (i >> qn1) & 1;
             bool v2 = (i >> qn2) & 1;
-            if (v1 != v2)
+            if (v1 == v2)
             {
-                state[i] *= complex_t(cos(-theta / 2), sin(-theta / 2));
+                state[i] *= complex_t(cos(theta / 2), sin(-theta / 2));
+            }
+            else
+            {
+                state[i] *= complex_t(cos(theta / 2), sin(theta / 2));
             }
         }
     }

@@ -62,7 +62,7 @@ namespace qpandalite {
         void u1(size_t qn, double angle, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void rphi90(size_t qn, double phi, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void rphi180(size_t qn, double phi, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
-        void rphi(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
+        void rphi(size_t qn, double theta, double phi, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void zz(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);

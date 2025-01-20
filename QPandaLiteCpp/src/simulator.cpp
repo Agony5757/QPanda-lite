@@ -409,7 +409,7 @@ namespace qpandalite{
        [ -iexp(i*phi)*sin(theta/2)         cos(theta/2)         ]
     
     */
-    void Simulator::rphi(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    void Simulator::rphi(size_t qn, double theta, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 

@@ -113,10 +113,6 @@ class OpcodeSimulator:
         else:
             control_qubits_set = list()
 
-        # when there is only 1 parameter, convert it to a scalar
-        if parameter and len(parameter) == 1:
-            parameter = parameter[0]
-
         self._simulate_common_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)    
 
     def simulate_opcodes_pmeasure(self, n_qubit, program_body, measure_qubits):

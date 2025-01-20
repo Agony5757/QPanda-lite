@@ -474,6 +474,13 @@ namespace qpandalite {
         }
     }
 
+    /* ZZ interaction
+    * exp(-i*theta/2 * ZZ)
+    *    |00> -> exp(-i*theta/2) * |00>
+    *    |01> -> exp(i*theta/2) * |01>
+    *    |10> -> exp(i*theta/2) * |10>
+    *    |11> -> exp(-i*theta/2) * |11>
+    */
     inline void zz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask)
     {
         for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -482,20 +489,32 @@ namespace qpandalite {
                 continue;
             bool v1 = (i >> qn1) & 1;
             bool v2 = (i >> qn2) & 1;
-            if (v1 == v2)
+            if (v1 == v2) /* 00 or 11 */
             {
                 state[i] *= complex_t(cos(theta / 2), sin(-theta / 2));
             }
-            else
+            else /* 01 or 10 */
             {
                 state[i] *= complex_t(cos(theta / 2), sin(theta / 2));
             }
         }
     }
 
+
+    /* XX interaction
+    * exp(-i*theta/2 * XX)
+    *    |00> -> [ cos(t)    0       0      isin(t) ]
+    *    |01> -> [   0     cos(t)  isin(t)    0     ]
+    *    |10> -> [   0     isin(t)  cos(t)    0     ]
+    *    |11> -> [ isin(t)   0       0       cos(t) ] where t=-theta/2
+    */
     inline void xx_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask)
     {
         using namespace std::literals::complex_literals;
+
+        /* the RXX will be implemented as exp(-i*theta/2 * XX) */
+        theta = -theta / 2;
+
         complex_t ctheta = cos(theta);
         complex_t stheta = sin(theta);
         complex_t istheta = 1i * stheta;
@@ -527,9 +546,21 @@ namespace qpandalite {
         }
     }
 
+    /* YY interaction
+    *
+    * exp(-i*theta/2 * YY)
+   *    |00> -> [ cos(t)    0       0      -isin(t) ]
+   *    |01> -> [   0     cos(t)  isin(t)    0     ]
+   *    |10> -> [   0     isin(t)  cos(t)    0     ]
+   *    |11> -> [ -isin(t)   0       0       cos(t) ] where t=-theta/2
+   */
     inline void yy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask)
     {
         using namespace std::literals::complex_literals;
+
+        /* the RYY will be implemented as exp(-i*theta/2 * YY) */
+        theta = -theta / 2;
+
         complex_t ctheta = cos(theta);
         complex_t stheta = sin(theta);
         complex_t istheta = 1i * stheta;

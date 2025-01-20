@@ -504,10 +504,12 @@ namespace qpandalite{
     }
 
     /* YY interaction
+    *
+    * exp(-i*theta/2 * YY)
    *    |00> -> [ cos(t)    0       0      -isin(t) ]
    *    |01> -> [   0     cos(t)  isin(t)    0     ]
    *    |10> -> [   0     isin(t)  cos(t)    0     ]
-   *    |11> -> [ -isin(t)   0       0       cos(t) ]
+   *    |11> -> [ -isin(t)   0       0       cos(t) ] where t=-theta/2
    */
     void Simulator::yy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {

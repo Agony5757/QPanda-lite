@@ -302,7 +302,6 @@ class OriginIR_LineParser:
             elif line.startswith('Z'):
                 operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('T'):
-                raise NotImplementedError(f'Unsupported operation: {line}.')
                 operation, q = OriginIR_LineParser.handle_1q(line)
             elif line.startswith('S'):
                 operation, q = OriginIR_LineParser.handle_1q(line)

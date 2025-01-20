@@ -76,11 +76,11 @@ class OriginIR_Simulator:
                     raise ValueError('Unsupported topology.\n'
                                      f'Line {i + 2} ({self.splitted_lines[i + 2]}).')
             
-            if qubit:
+            if qubit is not None:
                 if isinstance(qubit, list):
-                    mapped_qubit = [self.qubit_mapping[int(q)] for q in qubit]
+                    mapped_qubit = [self.qubit_mapping[q] for q in qubit]
                 else:
-                    mapped_qubit = self.qubit_mapping[int(qubit)]
+                    mapped_qubit = self.qubit_mapping[qubit]
 
             if operation == 'MEASURE':
                 # In fact, I don't know the real implementation

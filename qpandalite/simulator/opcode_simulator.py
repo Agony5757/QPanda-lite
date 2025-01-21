@@ -92,7 +92,15 @@ class OpcodeSimulator:
         elif operation == 'ZZ':
             self.simulator.zz(qubit[0],
                               qubit[1],
-                              parameter, control_qubits_set, is_dagger) 
+                              parameter, control_qubits_set, is_dagger)
+        elif operation == 'UU15':
+            self.simulator.uu15(qubit[0],
+                                qubit[1],
+                                parameter, control_qubits_set, is_dagger)
+        elif operation == 'PHASE2Q':
+            self.simulator.phase2q(qubit[0], qubit[1],
+                parameter[0], parameter[1], parameter[2], 
+                control_qubits_set, is_dagger)
         elif operation == 'I':
             pass
         elif operation == None:

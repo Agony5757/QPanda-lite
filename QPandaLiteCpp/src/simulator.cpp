@@ -540,6 +540,25 @@ namespace qpandalite{
         u3_unsafe_impl(state, qn, theta, phi, lambda, total_qubit, controller_mask, is_dagger);
     }
 
+    void Simulator::phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
+
+        if (is_dagger)
+        {
+            theta1 = -theta1;
+            theta2 = -theta2;
+            thetazz = -thetazz;
+        }
+
+        size_t controller_mask = make_controller_mask(global_controller);
+        phase2q_unsafe_impl(state, qn1, qn2, theta1, theta2, thetazz, total_qubit, controller_mask);
+    }
+
+
     void Simulator::uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)

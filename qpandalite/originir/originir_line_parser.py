@@ -79,6 +79,61 @@ class OriginIR_LineParser:
                         parameter + blank + 
                         rbracket +
                         '$')    
+    
+    regexp_2q3p_str = ('^' + 
+                        opname + blank + 
+                        qid + blank +  
+                        comma + blank + 
+                        qid + blank +  
+                        comma + blank + 
+                        lbracket + blank + 
+                        parameter + blank +  # 1
+                        comma + blank + 
+                        parameter + blank +  # 2 
+                        comma + blank + 
+                        parameter + blank +  # 3
+                        rbracket +
+                        '$')    
+
+    regexp_2q15p_str = ('^' + 
+                        opname + blank + 
+                        qid + blank +  
+                        comma + blank + 
+                        qid + blank +  
+                        comma + blank + 
+                        lbracket + blank + 
+                        parameter + blank +  # 1
+                        comma + blank + 
+                        parameter + blank +  # 1
+                        comma + blank + 
+                        parameter + blank +  # 3
+                        comma + blank + 
+                        parameter + blank +  # 4
+                        comma + blank + 
+                        parameter + blank +  # 5
+                        comma + blank + 
+                        parameter + blank +  # 6
+                        comma + blank + 
+                        parameter + blank +  # 7
+                        comma + blank + 
+                        parameter + blank +  # 8
+                        comma + blank + 
+                        parameter + blank +  # 9
+                        comma + blank + 
+                        parameter + blank +  # 10
+                        comma + blank + 
+                        parameter + blank +  # 11
+                        comma + blank + 
+                        parameter + blank +  # 12
+                        comma + blank + 
+                        parameter + blank +  # 13
+                        comma + blank + 
+                        parameter + blank +  # 14
+                        comma + blank + 
+                        parameter + blank +  # 15
+                        rbracket +
+                        '$') 
+    
     regexp_measure_str = ('^' + 
                         r'MEASURE' + blank + 
                         qid + blank + 
@@ -100,6 +155,8 @@ class OriginIR_LineParser:
     regexp_1q3p = re.compile(regexp_1q3p_str)
     regexp_1q4p = re.compile(regexp_1q4p_str)
     regexp_2q1p = re.compile(regexp_2q1p_str)
+    regexp_2q3p = re.compile(regexp_2q3p_str)
+    regexp_2q15p = re.compile(regexp_2q15p_str)
     regexp_meas = re.compile(regexp_measure_str)
     regexp_barrier = re.compile(regexp_barrier_str)
     regexp_control = re.compile(regexp_control_str)
@@ -178,6 +235,28 @@ class OriginIR_LineParser:
         q2 = int(matches.group(3))
         parameter1 = float(matches.group(4))
         return operation, [q1, q2], parameter1
+        
+    @staticmethod
+    def handle_2q3p(line):
+        matches = OriginIR_LineParser.regexp_2q1p.match(line)
+        operation = matches.group(1)
+        q1 = int(matches.group(2))
+        q2 = int(matches.group(3))
+        parameter1 = float(matches.group(4))
+        parameter2 = float(matches.group(7))
+        parameter3 = float(matches.group(10))
+        return operation, [q1, q2], [parameter1, parameter2, parameter3]
+        
+    @staticmethod
+    def handle_2q15p(line):
+        matches = OriginIR_LineParser.regexp_2q1p.match(line)
+        operation = matches.group(1)
+        q1 = int(matches.group(2))
+        q2 = int(matches.group(3))
+        parameters = []
+        for i in range(15):
+            parameters.append(float(matches.group(4 + i * 3)))
+        return operation, [q1, q2], parameters
     
     @staticmethod
     def handle_measure(line):
@@ -333,6 +412,10 @@ class OriginIR_LineParser:
                 operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
             elif line.startswith('U3'):
                 operation, q, parameter = OriginIR_LineParser.handle_1q3p(line)
+            elif line.startswith('PHASE2Q'):
+                operation, q, parameter = OriginIR_LineParser.handle_2q3p(line)
+            elif line.startswith('UU15'):
+                operation, q, parameter = OriginIR_LineParser.handle_2q15p(line)
             elif line.startswith('BARRIER'):
                 operation = 'BARRIER'
                 operation, q = OriginIR_LineParser.handle_barrier(line)
@@ -439,6 +522,20 @@ if __name__ == '__main__':
     print(matches.group(2)) # 45
     print(matches.group(3)) # 46
     print(matches.group(4)) # -1.1
+    
+    print(OriginIR_LineParser.regexp_2q3p_str)
+    matches = OriginIR_LineParser.regexp_2q3p.match('PHASE2Q q[ 45], q[46 ], ( -1.1, 1.5, 8 )')
+    print(matches.group(0)) 
+    print(matches.group(1)) # XY
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # 46
+    print(matches.group(4)) # -1.1
+    print(matches.group(5)) 
+    print(matches.group(6)) 
+    print(matches.group(7)) # 1.5
+    print(matches.group(8)) 
+    print(matches.group(9)) 
+    print(matches.group(10)) # 8
 
     print(OriginIR_LineParser.regexp_measure_str)
     matches = OriginIR_LineParser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')

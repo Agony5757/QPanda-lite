@@ -154,6 +154,14 @@ namespace qpandalite {
    */
     void yy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask);
 
+    /* phase2q gate =
+       u1(qn1, theta1),
+       u1(qn2, theta2),
+       zz(qn1, qn2, thetazz)
+    */
+    void phase2q_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta1, double theta2, double thetazz,
+        size_t total_qubit, size_t controller_mask);
+
     /* uu15 gate using KAK decomposition
 
         U is implemented by

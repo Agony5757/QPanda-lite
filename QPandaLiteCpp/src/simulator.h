@@ -69,6 +69,7 @@ namespace qpandalite {
         void xx(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void yy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void u3(size_t qn, double theta, double phi, double lambda, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
+        void phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
 
         // static bool control_enable(size_t idx, const std::vector<size_t>& global_controller);

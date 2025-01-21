@@ -99,11 +99,6 @@ class OpenQASM2_BaseParser:
 
         return ret_qasm, collected_qregs, collected_cregs, program_body, collected_measurements
                 
-    def _extract_qregs(self, lines):
-        for line in lines:
-            if line.startswith('qreg'):
-                qreg_name, qreg_size = OpenQASM2_LineParser.handle_qreg(line)
-    
     @staticmethod
     def _compute_id(regs, reg_name, reg_id):
         id = 0

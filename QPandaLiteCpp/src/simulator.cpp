@@ -536,28 +536,19 @@ namespace qpandalite{
     {
         CHECK_QUBIT_RANGE(qn)
 
-        /* build the matrix */
-        complex_t ctheta = cos(theta / 2);
-        complex_t stheta = sin(theta / 2);
-        complex_t eilambda = complex_t(cos(lambda), sin(lambda));
-        complex_t eiphi = complex_t(cos(phi), sin(phi));
-        complex_t eiphi_plus_lambda = complex_t(cos(phi + lambda), sin(phi + lambda));
-        complex_t u00 = ctheta;
-        complex_t u01 = -eilambda * stheta;
-        complex_t u10 = eiphi * stheta;
-        complex_t u11 = eiphi_plus_lambda * ctheta;
+        size_t controller_mask = make_controller_mask(global_controller);
+        u3_unsafe_impl(state, qn, theta, phi, lambda, total_qubit, controller_mask, is_dagger);
+    }
 
-        if (is_dagger)
-        {
-            u00 = std::conj(u00);
-            u01 = std::conj(u01);
-            u11 = std::conj(u11);
-            u10 = std::conj(u10);
-            std::swap(u01, u10);
-        }
+    void Simulator::uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
         size_t controller_mask = make_controller_mask(global_controller);
-        u22_unsafe_impl(state, qn, u00, u01, u10, u11, total_qubit, controller_mask);
+        uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
 
     dtype Simulator::get_prob_map(const std::map<size_t, int> &measure_qubits)

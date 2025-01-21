@@ -359,6 +359,15 @@ namespace qpandalite {
         }
     }
 
+    /* H = 1/2 * (XX+YY) 
+    
+       XY(theta) = exp(-i*theta/2 * H)
+          = [ 1 0 0 0 ]
+            [ 0 cos(theta/2) -i sin(theta/2) 0 ]
+            [ 0 -i sin(theta/2) cos(theta/2) 0 ]
+            [ 0 0 0 1 ]
+    
+    */
     inline void xy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
     {
         using namespace std::literals::complex_literals;
@@ -544,7 +553,7 @@ namespace qpandalite {
                 state[i11] = a00 * istheta + a11 * ctheta;
             }
         }
-    }
+    } 
 
     /* YY interaction
     *

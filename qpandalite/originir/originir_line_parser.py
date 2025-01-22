@@ -238,7 +238,7 @@ class OriginIR_LineParser:
         
     @staticmethod
     def handle_2q3p(line):
-        matches = OriginIR_LineParser.regexp_2q1p.match(line)
+        matches = OriginIR_LineParser.regexp_2q3p.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
@@ -249,7 +249,7 @@ class OriginIR_LineParser:
         
     @staticmethod
     def handle_2q15p(line):
-        matches = OriginIR_LineParser.regexp_2q1p.match(line)
+        matches = OriginIR_LineParser.regexp_2q15p.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))

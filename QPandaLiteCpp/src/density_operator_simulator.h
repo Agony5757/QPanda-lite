@@ -15,7 +15,7 @@ namespace qpandalite {
 
     struct DensityOperatorSimulator
     {
-        static inline size_t max_qubit_num = 6;
+        static inline size_t max_qubit_num = 10;
         size_t total_qubit = 0;
         std::vector<complex_t> state;
 

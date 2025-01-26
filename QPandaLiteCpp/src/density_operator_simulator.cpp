@@ -369,7 +369,7 @@ namespace qpandalite
     {
         CHECK_QUBIT_RANGE(qn)
 
-            using namespace std::literals::complex_literals;
+        using namespace std::literals::complex_literals;
         u22_t unitary;
 
         if (is_dagger)
@@ -401,7 +401,7 @@ namespace qpandalite
     {
         CHECK_QUBIT_RANGE(qn)
 
-            using namespace std::literals::complex_literals;
+        using namespace std::literals::complex_literals;
         u22_t unitary;
         if (is_dagger)
         {
@@ -432,7 +432,7 @@ namespace qpandalite
     {
         CHECK_QUBIT_RANGE(qn)
 
-            using namespace std::literals::complex_literals;
+        using namespace std::literals::complex_literals;
         u22_t unitary;
         if (is_dagger)
         {
@@ -464,7 +464,7 @@ namespace qpandalite
     {
         CHECK_QUBIT_RANGE(qn)
 
-            using namespace std::literals::complex_literals;
+        using namespace std::literals::complex_literals;
         u22_t unitary;
         if (is_dagger)
         {
@@ -503,14 +503,14 @@ namespace qpandalite
     void DensityOperatorSimulator::cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(controller, controller)
-            CHECK_QUBIT_RANGE2(target1, target1)
-            CHECK_QUBIT_RANGE2(target2, target2)
+        CHECK_QUBIT_RANGE2(target1, target1)
+        CHECK_QUBIT_RANGE2(target2, target2)
 
-            CHECK_DUPLICATE_QUBIT(controller, target1)
-            CHECK_DUPLICATE_QUBIT(target1, target2)
-            CHECK_DUPLICATE_QUBIT(controller, target2)
+        CHECK_DUPLICATE_QUBIT(controller, target1)
+        CHECK_DUPLICATE_QUBIT(target1, target2)
+        CHECK_DUPLICATE_QUBIT(controller, target2)
 
-            size_t controller_mask = make_controller_mask({ controller });
+        size_t controller_mask = make_controller_mask({ controller });
         cswap_unsafe_impl(state, controller, target1, target2, total_qubit, controller_mask);
     }
 
@@ -523,12 +523,12 @@ namespace qpandalite
     void DensityOperatorSimulator::zz(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
-            CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
 
-            CHECK_DUPLICATE_QUBIT(qn1, qn2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
-            if (is_dagger)
-                theta = -theta;
+        if (is_dagger)
+            theta = -theta;
 
         size_t controller_mask = make_controller_mask(global_controller);
         zz_unsafe_impl(state, qn1, qn2, theta, total_qubit, controller_mask);
@@ -543,12 +543,12 @@ namespace qpandalite
     void DensityOperatorSimulator::xx(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
-            CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
 
-            CHECK_DUPLICATE_QUBIT(qn1, qn2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
-            if (is_dagger)
-                theta = -theta;
+        if (is_dagger)
+            theta = -theta;
 
         size_t controller_mask = make_controller_mask(global_controller);
         xx_unsafe_impl(state, qn1, qn2, theta, total_qubit, controller_mask);
@@ -565,12 +565,12 @@ namespace qpandalite
     void DensityOperatorSimulator::yy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
-            CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
 
-            CHECK_DUPLICATE_QUBIT(qn1, qn2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
-            if (is_dagger)
-                theta = -theta;
+        if (is_dagger)
+            theta = -theta;
 
         size_t controller_mask = make_controller_mask(global_controller);
         yy_unsafe_impl(state, qn1, qn2, theta, total_qubit, controller_mask);
@@ -587,23 +587,23 @@ namespace qpandalite
     {
         CHECK_QUBIT_RANGE(qn)
 
-            size_t controller_mask = make_controller_mask(global_controller);
+        size_t controller_mask = make_controller_mask(global_controller);
         u3_unsafe_impl(state, qn, theta, phi, lambda, total_qubit, controller_mask, is_dagger);
     }
 
     void DensityOperatorSimulator::phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
-            CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
 
-            CHECK_DUPLICATE_QUBIT(qn1, qn2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
-            if (is_dagger)
-            {
-                theta1 = -theta1;
-                theta2 = -theta2;
-                thetazz = -thetazz;
-            }
+        if (is_dagger)
+        {
+            theta1 = -theta1;
+            theta2 = -theta2;
+            thetazz = -thetazz;
+        }
 
         size_t controller_mask = make_controller_mask(global_controller);
         phase2q_unsafe_impl(state, qn1, qn2, theta1, theta2, thetazz, total_qubit, controller_mask);
@@ -613,11 +613,11 @@ namespace qpandalite
     void DensityOperatorSimulator::uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
-            CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
 
-            CHECK_DUPLICATE_QUBIT(qn1, qn2)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
 
-            size_t controller_mask = make_controller_mask(global_controller);
+        size_t controller_mask = make_controller_mask(global_controller);
         uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
 

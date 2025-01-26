@@ -8,17 +8,18 @@ if TYPE_CHECKING:
     from .QPandaLitePy import *
 
 class QASM_Simulator:
-    def __init__(self):
+    def __init__(self, backend_type = 'statevector'):
         self.qubit_num = 0
         self.measure_qubit = []
         self.parser = OpenQASM2_BaseParser()
-        self.opcode_simulator = OpcodeSimulator()
+        self.backend_type = backend_type
+        self.opcode_simulator = OpcodeSimulator(self.backend_type)
 
-    def _clear(self):    
+    def _clear(self):
         self.qubit_num = 0
         self.measure_qubit = []
         self.parser = OpenQASM2_BaseParser()
-        self.opcode_simulator = OpcodeSimulator()
+        self.opcode_simulator = OpcodeSimulator(self.backend_type)
 
     def _simulate_preprocess(self, qasm):
         self._clear()

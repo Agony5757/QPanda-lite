@@ -663,6 +663,11 @@ namespace qpandalite {
             return state[i * N + j];
         }
 
+        complex_t val(const std::vector<complex_t>& state, size_t i, size_t j, size_t N)
+        {
+            return state[i * N + j];
+        }
+
         void evolve_u22(const u22_t& mat, complex_t& i0j0, complex_t& i1j0, complex_t& i0j1, complex_t& i1j1)
         {
             const complex_t& U00 = mat[0];

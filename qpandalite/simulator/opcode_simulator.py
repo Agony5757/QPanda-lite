@@ -8,20 +8,49 @@ import numpy as np
 if TYPE_CHECKING:
     from .QPandaLitePy import *
 
-class OpcodeSimulator:   
-    def __init__(self):
-        '''OpcodeSimulator is a quantum circuit simulation based on C++ which runs locally on your PC.
+def backend_alias(backend_type):
+    ''' Backend alias for different backends.
+    Supported backends: statevector, density_matrix
 
-        Args:
-            reverse_key (bool, optional): _description_. Defaults to False.
+    Note: Uppercase and lowercase are both supported.
+
+    Supported aliases: ['statevector', 'state_vector',
+    'density_matrix', 'density_operator', 'DensityMatrix', 'DensityOperator']
+    '''
+    statevector_alias = ['statevector', 'state_vector']
+    density_operator_alias = ['density_matrix', 'density_operator',
+                              'DensityMatrix', 'DensityOperator']
+
+    backend_type = backend_type.lower()
+    if backend_type in statevector_alias:
+        return 'statevector'
+    elif backend_type in density_operator_alias:
+        return 'density_operator'
+    else:
+        raise ValueError(f'Unknown backend type: {backend_type}')
+
+
+class OpcodeSimulator:   
+    def __init__(self, backend_type = 'statevector'):
+        '''OpcodeSimulator is a quantum circuit simulation based on C++ which runs locally on your PC.
         '''
         self.qubit_num = None
         self.measure_qubit = None
-        self.program_body = None
-        self.simulator = Simulator()
+
+        backend_type = backend_alias(backend_type)        
+        if backend_type =='statevector':
+            self.SimulatorType = Simulator
+            self.simulator_typestr = 'statevector'
+        elif backend_type == 'density_operator':
+            self.SimulatorType = DensityOperatorSimulator
+            self.simulator_typestr = 'density_operator'
+        else:
+            raise ValueError(f'Unknown backend type: {backend_type}')
         
+        self.simulator = self.SimulatorType()
+
     def _clear(self):
-        self.simulator = Simulator()  
+        self.simulator = self.SimulatorType()
 
     def _simulate_common_gate(self, operation, qubit, cbit, parameter, control_qubits_set, is_dagger):
         if operation == 'RX':
@@ -135,6 +164,9 @@ class OpcodeSimulator:
         return prob_list
     
     def simulate_opcodes_statevector(self, n_qubit, program_body):
+        if self.simulator_typestr == 'density_matrix':
+            raise ValueError('Density matrix is not supported for statevector simulation.')
+
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
             operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
@@ -144,8 +176,17 @@ class OpcodeSimulator:
         return statevector
     
     def simulate_opcodes_stateprob(self, n_qubit, program_body):
-        statevector = self.simulate_opcodes_statevector(n_qubit, program_body)
-        statevector = np.array(statevector)
-        return np.abs(statevector) ** 2
+        if self.simulator_typestr == 'statevector':      
+            statevector = self.simulate_opcodes_statevector(n_qubit, program_body)
+            statevector = np.array(statevector)
+            return np.abs(statevector) ** 2
         
+        if self.simulator_typestr == 'density_matrix':
+            self.simulator.init_n_qubit(n_qubit)
+            for opcode in program_body:
+                operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
+                self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
 
+            return self.simulator.stateprob()
+        
+        raise ValueError('Unknown simulator type.')

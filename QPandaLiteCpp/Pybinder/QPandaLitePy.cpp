@@ -101,6 +101,7 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("get_prob", &qpandalite::DensityOperatorSimulator::get_prob_map)
 		.def("pmeasure", &qpandalite::DensityOperatorSimulator::pmeasure)
 		.def("pmeasure", &qpandalite::DensityOperatorSimulator::pmeasure_list)
+		.def("stateprob", &qpandalite::DensityOperatorSimulator::stateprob)
 		;
 	
 	py::enum_<qpandalite::NoiseType>(m, "NoiseType")

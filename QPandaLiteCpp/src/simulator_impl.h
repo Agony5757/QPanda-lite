@@ -185,6 +185,7 @@ namespace qpandalite {
     namespace density_operator_simulator_impl
     {
         complex_t& val(std::vector<complex_t>& state, size_t i, size_t j, size_t N);
+        complex_t val(const std::vector<complex_t>& state, size_t i, size_t j, size_t N);
 
         void evolve_u22(const u22_t& mat, complex_t& i0j0, complex_t& i1j0, complex_t& i0j1, complex_t& i1j1);
 

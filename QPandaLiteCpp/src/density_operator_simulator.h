@@ -55,6 +55,6 @@ namespace qpandalite {
         std::vector<dtype> pmeasure_list(const std::vector<size_t>& measure_list);
         std::vector<dtype> pmeasure(size_t measure_qubit);
 
-    
+        std::vector<dtype> stateprob() const;
     };
 }

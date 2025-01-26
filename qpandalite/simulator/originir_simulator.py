@@ -3,9 +3,11 @@ from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 import warnings
 from .opcode_simulator import OpcodeSimulator
 
+    
 
 class OriginIR_Simulator:    
-    def __init__(self, reverse_key = False):
+        
+    def __init__(self, reverse_key = False, backend_types = 'statevector'):
         '''OriginIR_Simulator is a quantum circuit simulation based on C++ which runs locally on your PC.
 
         Args:
@@ -17,7 +19,8 @@ class OriginIR_Simulator:
         self.qubit_mapping = dict()
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.opcode_simulator = OpcodeSimulator()
+        self.backend_types = backend_types
+        self.opcode_simulator = OpcodeSimulator(self.backend_types)
         
     def _clear(self):
         self.qubit_num = 0
@@ -25,7 +28,7 @@ class OriginIR_Simulator:
         self.qubit_mapping = dict()
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.opcode_simulator = OpcodeSimulator()        
+        self.opcode_simulator = OpcodeSimulator(self.backend_types)        
 
     def _add_used_qubit(self, qubit):
         if qubit in self.qubit_mapping:

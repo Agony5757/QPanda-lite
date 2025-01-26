@@ -604,7 +604,7 @@ namespace qpandalite
                     break;
             }
             /* use the diagonal term to calculate the prob */
-            prob += abs_sqr(val(state, i, i, N));
+            prob += std::abs(val(state, i, i, N));
         }
         return prob;
     }
@@ -627,7 +627,7 @@ namespace qpandalite
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             if ((i >> qn) == qstate)
-                prob += abs_sqr(val(state, i, i, N));
+                prob += std::abs(val(state, i, i, N));
         }
         return prob;
     }
@@ -643,7 +643,7 @@ namespace qpandalite
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             size_t meas_idx = get_state_with_qubit(i, measure_map);
-            ret[meas_idx] += abs_sqr(val(state, i, i, N));
+            ret[meas_idx] += std::abs(val(state, i, i, N));
         }
         return ret;
     }
@@ -652,4 +652,15 @@ namespace qpandalite
     {
         return pmeasure_list(std::vector{ measure_qubit });
     }
+
+    std::vector<dtype> DensityOperatorSimulator::stateprob() const
+    {
+        size_t N = pow2(total_qubit);
+        std::vector<dtype> ret;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            ret[i] += std::abs(val(state, i, i, N));
+        }
+        return ret;
+    } 
 }

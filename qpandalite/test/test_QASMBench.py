@@ -46,14 +46,14 @@ def _reference_result_to_array(result):
 class NotMatchError(Exception):
     pass
 
-def _check_result(transpiled_circuit, reference_result):
+def _check_result(transpiled_circuit, reference_result, backend_type):
 
     reference_array = _reference_result_to_array(reference_result)
 
     # print('Testing circuit: ', transpiled_circuit)
     # print('Reference Result: ', reference_result)
 
-    qasm_simulator = QASM_Simulator()
+    qasm_simulator = QASM_Simulator(backend_type)
     my_result = qasm_simulator.simulate(transpiled_circuit)
 
     if len(reference_array) != len(my_result):
@@ -129,7 +129,8 @@ def test_qasm(path = './qpandalite/test'):
     for circuit in passed_list:
         try:
             transpiled_circuit = _transpile_circuit(circuit)
-            _check_result(transpiled_circuit, dataset[circuit])
+            _check_result(transpiled_circuit, dataset[circuit], 'statevector')
+            _check_result(transpiled_circuit, dataset[circuit], 'density_operator')
             good_circuit_list.append(transpiled_circuit)
         except NotMatchError as e:
             err_list.append(e)

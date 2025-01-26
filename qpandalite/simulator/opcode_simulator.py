@@ -181,7 +181,7 @@ class OpcodeSimulator:
             statevector = np.array(statevector)
             return np.abs(statevector) ** 2
         
-        if self.simulator_typestr == 'density_matrix':
+        if self.simulator_typestr == 'density_operator':
             self.simulator.init_n_qubit(n_qubit)
             for opcode in program_body:
                 operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode

@@ -34,7 +34,7 @@ def test_noisy_simulator():
     measurement_error = [(0.01, 0.01), (0.02, 0.02)]
     
     # Create an instance of the NoisySimulator
-    simulator = NoisySimulator(2,noise_description, measurement_error)
+    simulator = NoisySimulator(2, noise_description, measurement_error)
 
     measurement_results = simulator.measure_shots(measure_qubits=measure_qubits, shots=shots)
 

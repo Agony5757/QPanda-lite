@@ -49,5 +49,12 @@ namespace qpandalite {
         void u3(size_t qn, double theta, double phi, double lambda, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
+    
+        dtype get_prob_map(const std::map<size_t, int>& measure_qubits);
+        dtype get_prob(size_t qn, int state);
+        std::vector<dtype> pmeasure_list(const std::vector<size_t>& measure_list);
+        std::vector<dtype> pmeasure(size_t measure_qubit);
+
+    
     };
 }

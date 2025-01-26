@@ -577,4 +577,79 @@ namespace qpandalite
             size_t controller_mask = make_controller_mask(global_controller);
         uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
+
+    dtype DensityOperatorSimulator::get_prob_map(const std::map<size_t, int>& measure_qubits)
+    {
+        size_t N = pow2(total_qubit);
+        for (auto&& [qn, qstate] : measure_qubits)
+        {
+            if (qn >= total_qubit)
+            {
+                auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+                ThrowInvalidArgument(errstr);
+            }
+            if (qstate != 0 && qstate != 1)
+            {
+                auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
+                ThrowInvalidArgument(errstr);
+            }
+        }
+
+        double prob = 0;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            for (auto&& [qid, qstate] : measure_qubits)
+            {
+                if ((i >> qid) != qstate)
+                    break;
+            }
+            /* use the diagonal term to calculate the prob */
+            prob += abs_sqr(val(state, i, i, N));
+        }
+        return prob;
+    }
+
+    dtype DensityOperatorSimulator::get_prob(size_t qn, int qstate)
+    {
+        size_t N = pow2(total_qubit);
+        if (qn >= total_qubit)
+        {
+            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
+            ThrowInvalidArgument(errstr);
+        }
+        if (qstate != 0 && qstate != 1)
+        {
+            auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
+            ThrowInvalidArgument(errstr);
+        }
+
+        double prob = 0;
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            if ((i >> qn) == qstate)
+                prob += abs_sqr(val(state, i, i, N));
+        }
+        return prob;
+    }
+
+    std::vector<dtype> DensityOperatorSimulator::pmeasure_list(const std::vector<size_t>& measure_list)
+    {
+        size_t N = pow2(total_qubit);
+        auto measure_map = preprocess_measure_list(measure_list, total_qubit);
+
+        std::vector<dtype> ret;
+        ret.resize(pow2(measure_list.size()));
+
+        for (size_t i = 0; i < pow2(total_qubit); ++i)
+        {
+            size_t meas_idx = get_state_with_qubit(i, measure_map);
+            ret[meas_idx] += abs_sqr(val(state, i, i, N));
+        }
+        return ret;
+    }
+
+    std::vector<dtype> DensityOperatorSimulator::pmeasure(size_t measure_qubit)
+    {
+        return pmeasure_list(std::vector{ measure_qubit });
+    }
 }

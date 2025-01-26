@@ -166,5 +166,5 @@ def test_random_qasm_density_operator():
 
 
 if __name__ == '__main__':
-    # test_random_qasm_statevector()
+    test_random_qasm_statevector()
     test_random_qasm_density_operator()

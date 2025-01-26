@@ -353,6 +353,9 @@ namespace qpandalite
             size_t controller_mask = make_controller_mask(global_controller);
             u1_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
         }
+
+        //size_t controller_mask = make_controller_mask(global_controller);
+        //u1_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
     }
 
 

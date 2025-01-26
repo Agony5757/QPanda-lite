@@ -192,6 +192,20 @@ namespace qpandalite {
         void evolve_u22(const complex_t& U00, const complex_t& U01, const complex_t& U10, const complex_t& U11,
             complex_t& i0j0, complex_t& i1j0, complex_t& i0j1, complex_t& i1j1);
 
+        void apply_irho_udag(
+            const complex_t& U00, const complex_t& U01,
+            const complex_t& U10, const complex_t& U11,
+            complex_t& i0j0, complex_t& i0j1,
+            complex_t& i1j0, complex_t& i1j1
+        );
+
+        void apply_urho_i(
+            const complex_t& U00, const complex_t& U01,
+            const complex_t& U10, const complex_t& U11,
+            complex_t& i0j0, complex_t& i0j1,
+            complex_t& i1j0, complex_t& i1j1
+        );
+
         void hadamard_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask);
 
         void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn,

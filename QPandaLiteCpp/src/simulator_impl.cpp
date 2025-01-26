@@ -703,6 +703,28 @@ namespace qpandalite {
             i1j1 = T10 * std::conj(U10) + T11 * std::conj(U11); // (1,1)
         }
 
+        void apply_irho_udag(const complex_t& U00, const complex_t& U01, const complex_t& U10, const complex_t& U11, complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1) {
+            const complex_t orig_i0j0 = i0j0, orig_i0j1 = i0j1;
+            const complex_t orig_i1j0 = i1j0, orig_i1j1 = i1j1;
+
+            // ρ_block' = ρ_block * U† （仅右乘 U†）
+            i0j0 = orig_i0j0 * std::conj(U00) + orig_i0j1 * std::conj(U10);
+            i0j1 = orig_i0j0 * std::conj(U01) + orig_i0j1 * std::conj(U11);
+            i1j0 = orig_i1j0 * std::conj(U00) + orig_i1j1 * std::conj(U10);
+            i1j1 = orig_i1j0 * std::conj(U01) + orig_i1j1 * std::conj(U11);
+        }
+
+        void apply_urho_i(const complex_t& U00, const complex_t& U01, const complex_t& U10, const complex_t& U11, complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1) {
+            const complex_t orig_i0j0 = i0j0, orig_i0j1 = i0j1;
+            const complex_t orig_i1j0 = i1j0, orig_i1j1 = i1j1;
+
+            // ρ_block' = U * ρ_block （仅左乘 U）
+            i0j0 = U00 * orig_i0j0 + U01 * orig_i1j0;
+            i0j1 = U00 * orig_i0j1 + U01 * orig_i1j1;
+            i1j0 = U10 * orig_i0j0 + U11 * orig_i1j0;
+            i1j1 = U10 * orig_i0j1 + U11 * orig_i1j1;
+        }
+
         void evolve_u44(
             const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03,
             const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13,
@@ -790,39 +812,19 @@ namespace qpandalite {
                     const bool b = ((j & controller_mask) == controller_mask);
 
                     // 提取目标量子比特的子矩阵元素
-                    complex_t& elem_00 = val(state, i, j, N);
-                    complex_t& elem_01 = val(state, i, j + mask, N);
-                    complex_t& elem_10 = val(state, i + mask, j, N);
-                    complex_t& elem_11 = val(state, i + mask, j + mask, N);
+                    complex_t& i0j0 = val(state, i, j, N);
+                    complex_t& i0j1 = val(state, i, j + mask, N);
+                    complex_t& i1j0 = val(state, i + mask, j, N);
+                    complex_t& i1j1 = val(state, i + mask, j + mask, N);
 
-                    // 根据 (a, b) 组合处理子矩阵
-                    if (!a && !b) {
-                        // Case 00: IρI → 无需修改
-                        continue;
+                    if (a && b) {
+                        evolve_u22(u00, u01, u10, u11, i0j0, i0j1, i1j0, i1j1);
                     }
                     else if (!a && b) {
-                        // Case 01: IρU† → 右乘 U†
-                        const complex_t orig_00 = elem_00, orig_01 = elem_01;
-                        const complex_t orig_10 = elem_10, orig_11 = elem_11;
-
-                        elem_00 = orig_00 * std::conj(u00) + orig_01 * std::conj(u10);
-                        elem_01 = orig_00 * std::conj(u01) + orig_01 * std::conj(u11);
-                        elem_10 = orig_10 * std::conj(u00) + orig_11 * std::conj(u10);
-                        elem_11 = orig_10 * std::conj(u01) + orig_11 * std::conj(u11);
+                        apply_irho_udag(u00, u01, u10, u11, i0j0, i0j1, i1j0, i1j1);
                     }
                     else if (a && !b) {
-                        // Case 10: UρI → 左乘 U
-                        const complex_t orig_00 = elem_00, orig_01 = elem_01;
-                        const complex_t orig_10 = elem_10, orig_11 = elem_11;
-
-                        elem_00 = u00 * orig_00 + u01 * orig_10;
-                        elem_01 = u00 * orig_01 + u01 * orig_11;
-                        elem_10 = u10 * orig_00 + u11 * orig_10;
-                        elem_11 = u10 * orig_01 + u11 * orig_11;
-                    }
-                    else {
-                        // Case 11: UρU† → 完全演化
-                        evolve_u22(u00, u01, u10, u11, elem_00, elem_01, elem_10, elem_11);
+                        apply_urho_i(u00, u01, u10, u11, i0j0, i0j1, i1j0, i1j1);
                     }
                 }
             }
@@ -1070,12 +1072,15 @@ namespace qpandalite {
         void cnot_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target,
             size_t total_qubit, size_t controller_mask) {
 
-            //// 合并控制位掩码：原有控制位 + qn1 和 qn2
-            //const size_t new_controller_mask = controller_mask | pow2(controller);
+            // 合并控制位掩码：原有控制位 + qn1 和 qn2
+            const size_t new_controller_mask = controller_mask | pow2(controller);
 
-            //// 调用 X 门，目标为 target，控制位为 new_controller_mask
-            //x_unsafe_impl(state, target, total_qubit, new_controller_mask);
+            // 调用 X 门，目标为 target，控制位为 new_controller_mask
+            x_unsafe_impl(state, target, total_qubit, new_controller_mask);
+            
             // 定义 4x4 酉矩阵（例如 CNOT 门）
+            /*
+            * 
             complex_t u00 = 1, u01 = 0, u02 = 0, u03 = 0;
             complex_t u10 = 0, u11 = 1, u12 = 0, u13 = 0;
             complex_t u20 = 0, u21 = 0, u22 = 0, u23 = 1;
@@ -1087,6 +1092,7 @@ namespace qpandalite {
                 u20, u21, u22, u23,
                 u30, u31, u32, u33,
                 total_qubit, controller_mask);
+            */
 
         }
 

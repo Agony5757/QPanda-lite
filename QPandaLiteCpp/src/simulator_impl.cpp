@@ -1350,6 +1350,26 @@ namespace qpandalite {
             }
         }
 
+        void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state)
+        {
+            for (size_t i = 0; i < target_state.size(); ++i)
+            {
+                target_state[i] += add_state[i];
+            }
+        }
+
+        void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const Kraus1Q& kraus1q, size_t total_qubit)
+        {
+            std::vector<complex_t> init_state(state.size());
+            for (size_t i = 0; i < kraus1q.size(); ++i)
+            {
+                std::vector<complex_t> copy_state = state;
+
+                u22_unsafe_impl(copy_state, qn, kraus1q[i], total_qubit, 0);
+                merge_state(init_state, copy_state);
+            }
+        }
+
     } // namespace density_operator_simulator_impl
 
 

@@ -35,6 +35,7 @@ namespace qpandalite {
     using dtype = double;
     using complex_t = std::complex<dtype>;
     using u22_t = std::array<complex_t, 4>;
+    using Kraus1Q = std::vector<u22_t>;
 
     constexpr dtype SQRT2 = 1.4142135623730951;
     constexpr dtype INVSQRT2 = 1.0 / SQRT2;
@@ -319,6 +320,10 @@ namespace qpandalite {
         */
         void uu15_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
             const std::vector<double>& parameters, size_t total_qubit, size_t controller_mask, bool is_dagger);
+
+        void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state);
+
+        void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const Kraus1Q& kraus1q, size_t total_qubit);
     }
 
 } // namespace qpandalite

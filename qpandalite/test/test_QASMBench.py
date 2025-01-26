@@ -50,9 +50,8 @@ def _check_result(transpiled_circuit, reference_result, backend_type):
 
     reference_array = _reference_result_to_array(reference_result)
 
-    # print('Testing circuit: ', transpiled_circuit)
-    # print('Reference Result: ', reference_result)
-
+    #print('Testing circuit: ', transpiled_circuit)
+    #print('Reference Result: ', reference_result)
     qasm_simulator = QASM_Simulator(backend_type)
     my_result = qasm_simulator.simulate(transpiled_circuit)
 
@@ -131,10 +130,10 @@ def test_qasm(path = './qpandalite/test'):
             transpiled_circuit = _transpile_circuit(circuit)
             _check_result(transpiled_circuit, dataset[circuit], 'statevector')
             _check_result(transpiled_circuit, dataset[circuit], 'density_operator')
-            good_circuit_list.append(transpiled_circuit)
+            good_circuit_list.append((transpiled_circuit, dataset[circuit]))
         except NotMatchError as e:
             err_list.append(e)
-            bad_circuit_list.append(transpiled_circuit)
+            bad_circuit_list.append((transpiled_circuit, dataset[circuit]))
     
     if not err_list:
         print('All circuits passed!')
@@ -147,13 +146,16 @@ def test_qasm(path = './qpandalite/test'):
     print(len(passed_list) - len(err_list), 'circuits passed')
 
     # log good and bad circuits
-    # with open('good_circuits.txt', 'w') as f:
-    #     for circuit in good_circuit_list:
-    #         f.write(circuit + '\n-----------------\n\n')
+    with open('good_circuits.txt', 'w') as f:
+        for circuit, result in good_circuit_list:
+            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
-    # with open('bad_circuits.txt', 'w') as f:
-    #     for circuit in bad_circuit_list:
-    #         f.write(circuit + '\n-----------------\n\n')
+    with open('bad_circuits.txt', 'w') as f:
+        for circuit, result in bad_circuit_list:
+            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
+
+        for e in err_list:
+            f.write(str(e) + '\n')
 
     raise ValueError('Some circuits failed!')
 

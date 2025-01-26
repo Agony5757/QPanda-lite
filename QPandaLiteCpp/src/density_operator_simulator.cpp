@@ -226,10 +226,10 @@ namespace qpandalite
     void DensityOperatorSimulator::cnot(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(controller, controller)
-            CHECK_QUBIT_RANGE2(target, target)
-            CHECK_DUPLICATE_QUBIT(controller, target)
+        CHECK_QUBIT_RANGE2(target, target)
+        CHECK_DUPLICATE_QUBIT(controller, target)
 
-            size_t controller_mask = make_controller_mask(global_controller);
+        size_t controller_mask = make_controller_mask(global_controller);
         cnot_unsafe_impl(state, controller, target, total_qubit, controller_mask);
     }
 
@@ -446,14 +446,14 @@ namespace qpandalite
     void DensityOperatorSimulator::toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
-            CHECK_QUBIT_RANGE2(qn2, qn2)
-            CHECK_QUBIT_RANGE2(target, target)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_QUBIT_RANGE2(target, target)
 
-            CHECK_DUPLICATE_QUBIT(qn1, qn2)
-            CHECK_DUPLICATE_QUBIT(qn2, target)
-            CHECK_DUPLICATE_QUBIT(qn1, target)
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
+        CHECK_DUPLICATE_QUBIT(qn2, target)
+        CHECK_DUPLICATE_QUBIT(qn1, target)
 
-            size_t controller_mask = make_controller_mask(global_controller);
+        size_t controller_mask = make_controller_mask(global_controller);
         toffoli_unsafe_impl(state, qn1, qn2, target, total_qubit, controller_mask);
     }
 
@@ -656,10 +656,10 @@ namespace qpandalite
     std::vector<dtype> DensityOperatorSimulator::stateprob() const
     {
         size_t N = pow2(total_qubit);
-        std::vector<dtype> ret;
+        std::vector<dtype> ret(N);
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
-            ret[i] += std::abs(val(state, i, i, N));
+            ret[i] = std::abs(val(state, i, i, N));
         }
         return ret;
     } 

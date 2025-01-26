@@ -668,18 +668,18 @@ namespace qpandalite {
             return state[i * N + j];
         }
 
-        void evolve_u22(const u22_t& mat, complex_t& i0j0, complex_t& i1j0, complex_t& i0j1, complex_t& i1j1)
+        void evolve_u22(const u22_t& mat, complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1)
         {
             const complex_t& U00 = mat[0];
             const complex_t& U01 = mat[1];
             const complex_t& U10 = mat[2];
             const complex_t& U11 = mat[3];
 
-            evolve_u22(U00, U01, U10, U11, i0j0, i1j0, i0j1, i1j1);
+            evolve_u22(U00, U01, U10, U11, i0j0, i0j1, i1j0, i1j1);
         }
 
         void evolve_u22(const complex_t& U00, const complex_t & U01, const complex_t & U10, const complex_t & U11,
-            complex_t &i0j0, complex_t &i1j0, complex_t &i0j1, complex_t &i1j1)
+            complex_t &i0j0, complex_t& i0j1, complex_t &i1j0, complex_t &i1j1)
         {
             const complex_t orig_i0j0 = i0j0;
             const complex_t orig_i0j1 = i0j1;
@@ -912,18 +912,12 @@ namespace qpandalite {
 
         void cz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
             size_t total_qubit, size_t controller_mask) {
-            // CZ 门的 4x4 矩阵（仅修改 |11> 态的相位）
-            complex_t U00 = 1, U01 = 0, U02 = 0, U03 = 0;
-            complex_t U10 = 0, U11 = 1, U12 = 0, U13 = 0;
-            complex_t U20 = 0, U21 = 0, U22 = 1, U23 = 0;
-            complex_t U30 = 0, U31 = 0, U32 = 0, U33 = -1;
 
-            u44_unsafe_impl(state, qn1, qn2,
-                U00, U01, U02, U03,
-                U10, U11, U12, U13,
-                U20, U21, U22, U23,
-                U30, U31, U32, U33,
-                total_qubit, controller_mask);
+            // 合并控制位掩码：原有控制位 + qn1
+            const size_t new_controller_mask = controller_mask | pow2(qn1);
+
+            // 调用 X 门，目标为 qn2，控制位为 new_controller_mask
+            z_unsafe_impl(state, qn2, total_qubit, new_controller_mask);
         }
 
         void swap_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
@@ -981,18 +975,13 @@ namespace qpandalite {
 
         void cnot_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target,
             size_t total_qubit, size_t controller_mask) {
-            // CNOT 门的 4x4 矩阵（控制量子比特在前）
-            complex_t U00 = 1, U01 = 0, U02 = 0, U03 = 0;
-            complex_t U10 = 0, U11 = 1, U12 = 0, U13 = 0;
-            complex_t U20 = 0, U21 = 0, U22 = 0, U23 = 1;
-            complex_t U30 = 0, U31 = 0, U32 = 1, U33 = 0;
 
-            u44_unsafe_impl(state, controller, target,
-                U00, U01, U02, U03,
-                U10, U11, U12, U13,
-                U20, U21, U22, U23,
-                U30, U31, U32, U33,
-                total_qubit, controller_mask);
+            // 合并控制位掩码：原有控制位 + qn1 和 qn2
+            const size_t new_controller_mask = controller_mask | pow2(controller);
+
+            // 调用 X 门，目标为 target，控制位为 new_controller_mask
+            x_unsafe_impl(state, target, total_qubit, new_controller_mask);
+
         }
 
         void rx_unsafe_impl(std::vector<complex_t>& state, size_t qn, double theta,

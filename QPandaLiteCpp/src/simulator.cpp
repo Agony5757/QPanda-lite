@@ -344,6 +344,38 @@ namespace qpandalite {
         u1_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
     }
 
+    /* U2 gate
+        
+       matrix form
+
+       1/sqrt(2) * [     1         -exp(i*lambda) ]
+                   [ exp(i*phi)  exp(i*(phi+lambda)]
+    */
+    void Simulator::u2(size_t qn, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE(qn)
+
+        using namespace std::literals::complex_literals;
+        u22_t unitary;
+        if (is_dagger)
+        {
+            unitary[0] = INVSQRT2;
+            unitary[2] = INVSQRT2 * -1 * std::complex<double>(cos(lambda), -sin(lambda));
+            unitary[1] = INVSQRT2 * std::complex<double>(cos(phi), -sin(phi));
+            unitary[3] = INVSQRT2 * std::complex<double>(cos(phi + lambda), -sin(phi + lambda));
+        }
+        else
+        {
+            unitary[0] = INVSQRT2;
+            unitary[1] = INVSQRT2 * -1 * std::complex<double>(cos(lambda), sin(lambda)); 
+            unitary[2] = INVSQRT2 * std::complex<double>(cos(phi), sin(phi));
+            unitary[3] = INVSQRT2 * std::complex<double>(cos(phi + lambda), sin(phi + lambda));
+        }
+
+        size_t controller_mask = make_controller_mask(global_controller);
+        u22_unsafe_impl(state, qn, unitary, total_qubit, controller_mask);
+    }
+
     /* Rphi90 gate
 
       matrix form

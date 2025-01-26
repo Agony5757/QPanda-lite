@@ -328,88 +328,100 @@ class OpenQASM2_LineParser:
             operation = None
             parameter = None
 
+            # remove comments and whitespace
             if not line:
-                pass 
-            elif line.startswith('qreg'):
+                return q, c, operation, parameter
+            if line.startswith('//'):
+                return q, c, operation, parameter
+
+            # extract operation and qubits
+            # there are two cases:
+            # 1. operation with no parameter (split by space)
+            # 2. operation with parameter (split by '(')
+            if '(' in line:
+                operation = line.split('(')[0].strip()
+            else:
+                operation = line.split()[0].strip()
+
+
+
+            if operation == 'qreg':
                 qreg_name, qreg_size = OpenQASM2_LineParser.handle_qreg(line)
-                operation = 'qreg'
                 q = (qreg_name, qreg_size)
-            elif line.startswith('creg'):
+            elif operation == 'creg':
                 creg_name, creg_size = OpenQASM2_LineParser.handle_creg(line)
-                operation = 'creg'
                 c = (creg_name, creg_size)
             # 1-qubit gates            
-            elif line.startswith('//'):
+            elif operation == '//':
                 pass
-            elif line.startswith('id') or \
-                 line.startswith('h') or \
-                 line.startswith('x') or \
-                 line.startswith('y') or \
-                 line.startswith('z') or \
-                 line.startswith('s') or \
-                 line.startswith('sdg') or \
-                 line.startswith('sx') or \
-                 line.startswith('sxdg') or \
-                 line.startswith('t') or \
-                 line.startswith('tdg'):
+            elif operation == 'id' or \
+                 operation == 'h' or \
+                 operation == 'x' or \
+                 operation == 'y' or \
+                 operation == 'z' or \
+                 operation == 's' or \
+                 operation == 'sdg' or \
+                 operation == 'sx' or \
+                 operation == 'sxdg' or \
+                 operation == 't' or \
+                 operation == 'tdg':
                 operation, qreg_name, qubit_index = OpenQASM2_LineParser.handle_1q(line)
                 q = (qreg_name, qubit_index)
             # 2-qubit gates
-            elif line.startswith('cx') or \
-                 line.startswith('cy') or \
-                 line.startswith('cz') or \
-                 line.startswith('swap') or \
-                 line.startswith('ch'):
+            elif operation == 'cx' or \
+                 operation == 'cy' or \
+                 operation == 'cz' or \
+                 operation == 'swap' or \
+                 operation == 'ch':
                 operation, qreg_name1, qubit_index1, qreg_name2, qubit_index2 = OpenQASM2_LineParser.handle_2q(line)
                 q = [(qreg_name1, qubit_index1), (qreg_name2, qubit_index2)]
             # 3-qubit gates
-            elif line.startswith('ccx') or \
-                 line.startswith('cswap'):
+            elif operation == 'ccx' or \
+                 operation == 'cswap':
                 operation, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3 = OpenQASM2_LineParser.handle_3q(line)
                 q = [(qreg_name1, qubit_index1), (qreg_name2, qubit_index2), (qreg_name3, qubit_index3)]
             # 4-qubit gates
-            elif line.startswith('c3x'):
+            elif operation == 'c3x':
                 operation, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3, qreg_name4, qubit_index4 = OpenQASM2_LineParser.handle_4q(line)
                 q = [(qreg_name1, qubit_index1), 
                      (qreg_name2, qubit_index2), 
                      (qreg_name3, qubit_index3), 
                      (qreg_name4, qubit_index4)]
             # 1-qubit 1-parameter gates
-            elif line.startswith('rx') or \
-                 line.startswith('ry') or \
-                 line.startswith('rz') or \
-                 line.startswith('u1'):
+            elif operation == 'rx' or \
+                 operation == 'ry' or \
+                 operation == 'rz' or \
+                 operation == 'u1':
                 operation, parameter, qreg_name, qubit_index = OpenQASM2_LineParser.handle_1q1p(line)
                 q = (qreg_name, qubit_index)            
             # 1-qubit 2-parameter gates
-            elif line.startswith('u2'):
+            elif operation == 'u2':
                 operation, parameter, qreg_name, qubit_index = OpenQASM2_LineParser.handle_1q2p(line)
                 q = (qreg_name, qubit_index)
-            elif line.startswith('u0'):
+            elif operation == 'u0':
                 raise NotImplementedError(f'This line of OpenQASM 2 has not been supported yet: {line}.')
             # 1-qubit 3-parameter gates
-            elif line.startswith('u3') or \
-                 line.startswith('u ') or \
-                 line.startswith('u('):
+            elif operation == 'u3' or \
+                 operation == 'u':
                 operation, parameter, qreg_name, qubit_index = OpenQASM2_LineParser.handle_1q3p(line)
                 q = (qreg_name, qubit_index)
             # 2-qubit 1-parameter gates
-            elif line.startswith('rxx') or \
-                 line.startswith('ryy') or \
-                 line.startswith('rzz') or \
-                 line.startswith('cu1') or \
-                 line.startswith('crx') or \
-                 line.startswith('cry') or \
-                 line.startswith('crz'):
+            elif operation == 'rxx' or \
+                 operation == 'ryy' or \
+                 operation == 'rzz' or \
+                 operation == 'cu1' or \
+                 operation == 'crx' or \
+                 operation == 'cry' or \
+                 operation == 'crz':
                 operation, parameter, qreg_name1, qubit_index1, qreg_name2, qubit_index2 = OpenQASM2_LineParser.handle_2q1p(line)
                 q = [(qreg_name1, qubit_index1), (qreg_name2, qubit_index2)]
             # 2-qubit 3-parameter gates
-            elif line.startswith('cu3'):
+            elif operation == 'cu3':
                 operation, parameter, qreg_name1, qubit_index1, qreg_name2, qubit_index2 = OpenQASM2_LineParser.handle_2q3p(line)
                 q = [(qreg_name1, qubit_index1), (qreg_name2, qubit_index2)]                
-            elif line.startswith('barrier'):
+            elif operation == 'barrier':
                 pass
-            elif line.startswith('measure'):
+            elif operation == 'measure':
                 qreg_name, qubit_index, creg_name, creg_index = OpenQASM2_LineParser.handle_measure(line)
                 operation ='measure'
                 q = (qreg_name, qubit_index)

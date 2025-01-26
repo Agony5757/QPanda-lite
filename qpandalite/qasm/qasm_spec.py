@@ -51,3 +51,6 @@ available_qasm_gates.update({
     for gatename in available_qasm_2q1p_gates
 })
 
+def generate_sub_gateset(gate_list):
+    return {k : v for k, v in available_qasm_gates.items() if k in gate_list}
+    

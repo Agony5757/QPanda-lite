@@ -63,7 +63,7 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
     elif operation == 'cx':
         return ('CNOT', qubits, cbits, parameters, False, None)
     elif operation == 'cy':
-        return ('CY', qubits, cbits, parameters, False, None)
+        return ('Y', qubits[1], cbits, parameters, False, [qubits[0]])
     elif operation == 'cz':
         return ('CZ', qubits, cbits, parameters, False, None)
     elif operation == 'swap':

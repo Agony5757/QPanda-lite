@@ -699,6 +699,69 @@ namespace qpandalite {
             i1j1 = T10 * std::conj(U10) + T11 * std::conj(U11); // (1,1)
         }
 
+        void evolve_u44(
+            const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03,
+            const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13,
+            const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23,
+            const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33,
+            complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11,
+            complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11,
+            complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11,
+            complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11
+        ) {
+            // 保存原始值
+            const complex_t orig_i00j00 = i00j00, orig_i00j01 = i00j01, orig_i00j10 = i00j10, orig_i00j11 = i00j11;
+            const complex_t orig_i01j00 = i01j00, orig_i01j01 = i01j01, orig_i01j10 = i01j10, orig_i01j11 = i01j11;
+            const complex_t orig_i10j00 = i10j00, orig_i10j01 = i10j01, orig_i10j10 = i10j10, orig_i10j11 = i10j11;
+            const complex_t orig_i11j00 = i11j00, orig_i11j01 = i11j01, orig_i11j10 = i11j10, orig_i11j11 = i11j11;
+
+            // 计算中间矩阵 T = U * ρ_block
+            const complex_t T00 = U00 * orig_i00j00 + U01 * orig_i01j00 + U02 * orig_i10j00 + U03 * orig_i11j00;
+            const complex_t T01 = U00 * orig_i00j01 + U01 * orig_i01j01 + U02 * orig_i10j01 + U03 * orig_i11j01;
+            const complex_t T02 = U00 * orig_i00j10 + U01 * orig_i01j10 + U02 * orig_i10j10 + U03 * orig_i11j10;
+            const complex_t T03 = U00 * orig_i00j11 + U01 * orig_i01j11 + U02 * orig_i10j11 + U03 * orig_i11j11;
+
+            const complex_t T10 = U10 * orig_i00j00 + U11 * orig_i01j00 + U12 * orig_i10j00 + U13 * orig_i11j00;
+            const complex_t T11 = U10 * orig_i00j01 + U11 * orig_i01j01 + U12 * orig_i10j01 + U13 * orig_i11j01;
+            const complex_t T12 = U10 * orig_i00j10 + U11 * orig_i01j10 + U12 * orig_i10j10 + U13 * orig_i11j10;
+            const complex_t T13 = U10 * orig_i00j11 + U11 * orig_i01j11 + U12 * orig_i10j11 + U13 * orig_i11j11;
+
+            const complex_t T20 = U20 * orig_i00j00 + U21 * orig_i01j00 + U22 * orig_i10j00 + U23 * orig_i11j00;
+            const complex_t T21 = U20 * orig_i00j01 + U21 * orig_i01j01 + U22 * orig_i10j01 + U23 * orig_i11j01;
+            const complex_t T22 = U20 * orig_i00j10 + U21 * orig_i01j10 + U22 * orig_i10j10 + U23 * orig_i11j10;
+            const complex_t T23 = U20 * orig_i00j11 + U21 * orig_i01j11 + U22 * orig_i10j11 + U23 * orig_i11j11;
+
+            const complex_t T30 = U30 * orig_i00j00 + U31 * orig_i01j00 + U32 * orig_i10j00 + U33 * orig_i11j00;
+            const complex_t T31 = U30 * orig_i00j01 + U31 * orig_i01j01 + U32 * orig_i10j01 + U33 * orig_i11j01;
+            const complex_t T32 = U30 * orig_i00j10 + U31 * orig_i01j10 + U32 * orig_i10j10 + U33 * orig_i11j10;
+            const complex_t T33 = U30 * orig_i00j11 + U31 * orig_i01j11 + U32 * orig_i10j11 + U33 * orig_i11j11;
+
+            // 计算最终结果 ρ_block' = T * U†
+            // 第一行
+            i00j00 = T00 * std::conj(U00) + T01 * std::conj(U10) + T02 * std::conj(U20) + T03 * std::conj(U30);
+            i00j01 = T00 * std::conj(U01) + T01 * std::conj(U11) + T02 * std::conj(U21) + T03 * std::conj(U31);
+            i00j10 = T00 * std::conj(U02) + T01 * std::conj(U12) + T02 * std::conj(U22) + T03 * std::conj(U32);
+            i00j11 = T00 * std::conj(U03) + T01 * std::conj(U13) + T02 * std::conj(U23) + T03 * std::conj(U33);
+
+            // 第二行
+            i01j00 = T10 * std::conj(U00) + T11 * std::conj(U10) + T12 * std::conj(U20) + T13 * std::conj(U30);
+            i01j01 = T10 * std::conj(U01) + T11 * std::conj(U11) + T12 * std::conj(U21) + T13 * std::conj(U31);
+            i01j10 = T10 * std::conj(U02) + T11 * std::conj(U12) + T12 * std::conj(U22) + T13 * std::conj(U32);
+            i01j11 = T10 * std::conj(U03) + T11 * std::conj(U13) + T12 * std::conj(U23) + T13 * std::conj(U33);
+
+            // 第三行
+            i10j00 = T20 * std::conj(U00) + T21 * std::conj(U10) + T22 * std::conj(U20) + T23 * std::conj(U30);
+            i10j01 = T20 * std::conj(U01) + T21 * std::conj(U11) + T22 * std::conj(U21) + T23 * std::conj(U31);
+            i10j10 = T20 * std::conj(U02) + T21 * std::conj(U12) + T22 * std::conj(U22) + T23 * std::conj(U32);
+            i10j11 = T20 * std::conj(U03) + T21 * std::conj(U13) + T22 * std::conj(U23) + T23 * std::conj(U33);
+
+            // 第四行
+            i11j00 = T30 * std::conj(U00) + T31 * std::conj(U10) + T32 * std::conj(U20) + T33 * std::conj(U30);
+            i11j01 = T30 * std::conj(U01) + T31 * std::conj(U11) + T32 * std::conj(U21) + T33 * std::conj(U31);
+            i11j10 = T30 * std::conj(U02) + T31 * std::conj(U12) + T32 * std::conj(U22) + T33 * std::conj(U32);
+            i11j11 = T30 * std::conj(U03) + T31 * std::conj(U13) + T32 * std::conj(U23) + T33 * std::conj(U33);
+        }
+
         void hadamard_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
         {
             return u22_unsafe_impl(state, qn,
@@ -714,11 +777,13 @@ namespace qpandalite {
 
             for (size_t i = 0; i < N; ++i) {
                 // 检查控制位是否满足且目标比特为 0
-                if ((i & controller_mask) != controller_mask || (i & mask) != 0) continue;
+                if (((i & controller_mask) != controller_mask) || 
+                    ((i & mask) != 0)) continue;
 
                 // 遍历所有满足控制位且目标比特为 0 的 j
                 for (size_t j = 0; j < N; ++j) {
-                    if ((j & controller_mask) != controller_mask || (j & mask) != 0) continue;
+                    if (((j & controller_mask) != controller_mask) || 
+                        ((j & mask) != 0)) continue;
 
                     // 提取子矩阵元素（无需重复计算索引）
                     complex_t& i0j0 = val(state, i, j, N);
@@ -742,23 +807,14 @@ namespace qpandalite {
             const size_t N = pow2(total_qubit);
             const size_t mask1 = pow2(qn1);
             const size_t mask2 = pow2(qn2);
-            const size_t ctrl_mask = controller_mask;
-
-            // 将 U 转换为 4x4 矩阵（行主序）
-            const complex_t U[4][4] = {
-                {u00, u01, u02, u03},
-                {u10, u11, u12, u13},
-                {u20, u21, u22, u23},
-                {u30, u31, u32, u33}
-            };
 
             for (size_t i = 0; i < N; ++i) {
                 // 提前过滤条件：控制位 + 目标量子比特为 0
-                if ((i & ctrl_mask) != ctrl_mask) continue;
+                if ((i & controller_mask) != controller_mask) continue;
                 if ((i & (mask1 | mask2)) != 0) continue;
 
                 for (size_t j = 0; j < N; ++j) {
-                    if ((j & ctrl_mask) != ctrl_mask) continue;
+                    if ((j & controller_mask) != controller_mask) continue;
                     if ((j & (mask1 | mask2)) != 0) continue;
 
                     // 提取子矩阵引用
@@ -782,48 +838,17 @@ namespace qpandalite {
                     complex_t& i10j11 = val(state, i + mask2, j + mask1 + mask2, N);
                     complex_t& i11j11 = val(state, i + mask1 + mask2, j + mask1 + mask2, N);
 
-                    // 保存原始值（必须拷贝，不能引用！）
-                    const complex_t orig[4][4] = {
-                        {i00j00, i01j00, i10j00, i11j00},
-                        {i00j01, i01j01, i10j01, i11j01},
-                        {i00j10, i01j10, i10j10, i11j10},
-                        {i00j11, i01j11, i10j11, i11j11}
-                    };
-
-                    // 临时存储计算结果
-                    complex_t temp[4][4] = { 0 };
-                    complex_t final[4][4] = { 0 };
-
-                    // 计算 temp = U * orig
-                    for (int row = 0; row < 4; ++row) {
-                        for (int col = 0; col < 4; ++col) {
-                            for (int k = 0; k < 4; ++k) {
-                                temp[row][col] += U[row][k] * orig[k][col];
-                            }
-                        }
-                    }
-
-                    // 计算 final = temp * U† (U†[m][n] = conj(U[n][m]))
-                    for (int row = 0; row < 4; ++row) {
-                        for (int col = 0; col < 4; ++col) {
-                            for (int m = 0; m < 4; ++m) {
-                                final[row][col] += temp[row][m] * std::conj(U[col][m]);
-                            }
-                        }
-                    }
-
-                    // 写回结果（保持索引一致性）
-                    i00j00 = final[0][0]; i01j00 = final[1][0];
-                    i10j00 = final[2][0]; i11j00 = final[3][0];
-
-                    i00j01 = final[0][1]; i01j01 = final[1][1];
-                    i10j01 = final[2][1]; i11j01 = final[3][1];
-
-                    i00j10 = final[0][2]; i01j10 = final[1][2];
-                    i10j10 = final[2][2]; i11j10 = final[3][2];
-
-                    i00j11 = final[0][3]; i01j11 = final[1][3];
-                    i10j11 = final[2][3]; i11j11 = final[3][3];
+                    // evolve_u44 
+                    evolve_u44(u00, u01, u02, u03,
+                        u10, u11, u12, u13,
+                        u20, u21, u22, u23,
+                        u30, u31, u32, u33,
+                        i00j00, i01j00, i10j00, i11j00,
+                        i00j01, i01j01, i10j01, i11j01,
+                        i00j10, i01j10, i10j10, i11j10,
+                        i00j11, i01j11, i10j11, i11j11
+                    );
+                   
                 }
             }
         }
@@ -976,11 +1001,23 @@ namespace qpandalite {
         void cnot_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target,
             size_t total_qubit, size_t controller_mask) {
 
-            // 合并控制位掩码：原有控制位 + qn1 和 qn2
-            const size_t new_controller_mask = controller_mask | pow2(controller);
+            //// 合并控制位掩码：原有控制位 + qn1 和 qn2
+            //const size_t new_controller_mask = controller_mask | pow2(controller);
 
-            // 调用 X 门，目标为 target，控制位为 new_controller_mask
-            x_unsafe_impl(state, target, total_qubit, new_controller_mask);
+            //// 调用 X 门，目标为 target，控制位为 new_controller_mask
+            //x_unsafe_impl(state, target, total_qubit, new_controller_mask);
+            // 定义 4x4 酉矩阵（例如 CNOT 门）
+            complex_t u00 = 1, u01 = 0, u02 = 0, u03 = 0;
+            complex_t u10 = 0, u11 = 1, u12 = 0, u13 = 0;
+            complex_t u20 = 0, u21 = 0, u22 = 0, u23 = 1;
+            complex_t u30 = 0, u31 = 0, u32 = 1, u33 = 0;
+
+            u44_unsafe_impl(state, target, controller,
+                u00, u01, u02, u03,
+                u10, u11, u12, u13,
+                u20, u21, u22, u23,
+                u30, u31, u32, u33,
+                total_qubit, controller_mask);
 
         }
 
@@ -1045,7 +1082,7 @@ namespace qpandalite {
         void toffoli_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t target,
             size_t total_qubit, size_t controller_mask) {
             // 合并控制位掩码：原有控制位 + qn1 和 qn2
-            const size_t new_controller_mask = controller_mask | (1ULL << qn1) | (1ULL << qn2);
+            const size_t new_controller_mask = controller_mask | pow2(qn1) | pow2(qn2);
 
             // 调用 X 门，目标为 target，控制位为 new_controller_mask
             x_unsafe_impl(state, target, total_qubit, new_controller_mask);

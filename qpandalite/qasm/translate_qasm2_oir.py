@@ -1,21 +1,21 @@
 
 
-# qasm2_oir_mapping = {
-#     ('id', 'I'),
-#     ('h', 'H'),
-#     ('x', 'X'),
-#     ('y', 'Y'),
-#     ('z', 'Z'),
+qasm2_oir_mapping = {
+    ('id', 'I'),
+    ('h', 'H'),
+    ('x', 'X'),
+    ('y', 'Y'),
+    ('z', 'Z'),
 
-# }
+}
 
-# QASM2_OriginIR_dict = {
-#     qasm : oir for (qasm, oir) in qasm2_oir_mapping
-# }
+QASM2_OriginIR_dict = {
+    qasm : oir for (qasm, oir) in qasm2_oir_mapping
+}
 
-# OriginIR_QASM2_dict = {
-#     oir : qasm for (qasm, oir) in qasm2_oir_mapping
-# }
+OriginIR_QASM2_dict = {
+    oir : qasm for (qasm, oir) in qasm2_oir_mapping
+}
 
 def direct_mapping_qasm2_to_oir(qasm2_operation):
     '''
@@ -76,7 +76,7 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
     elif operation == 'cswap':
         return ('CSWAP', qubits, cbits, parameters, False, None)
     # 4-qubit gates
-    elif operation == 'cccx':
+    elif operation == 'c3x':
         return ('X', qubits[3], cbits, parameters, False, qubits[0:3])
     # 1-qubit 1-parameter gates
     elif operation == 'rx':
@@ -104,6 +104,12 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
         return ('ZZ', qubits, cbits, parameters, False, None)
     elif operation == 'cu1':
         return ('U1', qubits[1], cbits, parameters, False, [qubits[0]])
+    elif operation == 'crx':
+        return ('RX', qubits[1], cbits, parameters, False, [qubits[0]])
+    elif operation == 'cry':
+        return ('RY', qubits[1], cbits, parameters, False, [qubits[0]])
+    elif operation == 'crz':
+        return ('RZ', qubits[1], cbits, parameters, False, [qubits[0]])
     # 2-qubit 3-parameter gates
     elif operation == 'cu3':
         return ('U3', qubits[1], cbits, parameters, False, [qubits[0]])

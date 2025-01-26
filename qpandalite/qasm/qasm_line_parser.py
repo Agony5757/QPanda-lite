@@ -397,7 +397,10 @@ class OpenQASM2_LineParser:
             elif line.startswith('rxx') or \
                  line.startswith('ryy') or \
                  line.startswith('rzz') or \
-                 line.startswith('cu1'):
+                 line.startswith('cu1') or \
+                 line.startswith('crx') or \
+                 line.startswith('cry') or \
+                 line.startswith('crz'):
                 operation, parameter, qreg_name1, qubit_index1, qreg_name2, qubit_index2 = OpenQASM2_LineParser.handle_2q1p(line)
                 q = [(qreg_name1, qubit_index1), (qreg_name2, qubit_index2)]
             # 2-qubit 3-parameter gates
@@ -529,6 +532,9 @@ if __name__ == '__main__':
     print(matches.group(4))
     
     results = OpenQASM2_LineParser.handle_2q1p('rxx (-0.5*pi) q[0], q[108]')
+    print(results)
+    
+    results = OpenQASM2_LineParser.handle_2q1p('rzz(0.8342297582553907) q[2],q[0] ')
     print(results)
 
     print('----------measure test---------')

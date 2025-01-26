@@ -344,8 +344,15 @@ namespace qpandalite
     {
         CHECK_QUBIT_RANGE(qn)
 
+        if (global_controller.size() == 1)
+        {
+            cu1_unsafe_impl(state, global_controller[0], qn, angle, total_qubit, 0, is_dagger);
+        }
+        else
+        {
             size_t controller_mask = make_controller_mask(global_controller);
-        u1_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
+            u1_unsafe_impl(state, qn, angle, total_qubit, controller_mask, is_dagger);
+        }
     }
 
 

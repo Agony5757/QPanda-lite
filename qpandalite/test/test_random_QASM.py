@@ -70,7 +70,6 @@ def _check_result(transpiled_circuit, reference_array, backend_type):
             f'My Result = {my_result}\n'
         )
 
-    print('Test passed!')
 
 def test_random_qasm(circuit, backend_type):
     # simulate via qiskit
@@ -104,9 +103,11 @@ def test_random_qasm_batch(
                                 instruction_set=instruction_set)
         err = test_random_qasm(qasm_code, backend_type)
         if err:
+            print('Test failed!')
             err_list.append(err)
             bad_circuit_list.append((qasm_code, err))
         else:
+            print('Test passed!')
             good_circuit_list.append((qasm_code, None))
 
 
@@ -134,12 +135,12 @@ def test_random_qasm_statevector():
 
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg',  
+                's', 'sdg', 't', 'tdg', 
                 'ccx', 'cu1', ]
     gate_set = generate_sub_gateset(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
-                           n_qubit=5, n_gates=20, 
+                           n_qubit=5, n_gates=50, 
                            instruction_set=gate_set,
                            backend_type='statevector')
 
@@ -147,10 +148,10 @@ def test_random_qasm_statevector():
 @qpandalite_test('Test Random QASM Density Operator')
 def test_random_qasm_density_operator():
     
-    gate_set = ['h', 'rx', 'ry', 'rz',
+    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg',
-                'cx', ]
+                's', 'sdg', 't', 'tdg',  
+                'ccx', 'cu1', ]
 
     # gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
     #             'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -159,7 +160,7 @@ def test_random_qasm_density_operator():
     gate_set = generate_sub_gateset(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
-                           n_qubit=5, n_gates=20, 
+                           n_qubit=5, n_gates=50, 
                            instruction_set=gate_set,
                            backend_type='density_operator')
 

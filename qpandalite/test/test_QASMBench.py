@@ -132,6 +132,7 @@ def test_qasm(path = './qpandalite/test'):
             _check_result(transpiled_circuit, dataset[circuit], 'density_operator')
             good_circuit_list.append((transpiled_circuit, dataset[circuit]))
         except NotMatchError as e:
+            print('Test Failed!')
             err_list.append(e)
             bad_circuit_list.append((transpiled_circuit, dataset[circuit]))
     

@@ -349,6 +349,7 @@ namespace qpandalite {
                 }
             }
         }
+
         void rz_unsafe_impl(std::vector<complex_t>& state, size_t qn, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
         {
             for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -370,6 +371,7 @@ namespace qpandalite {
                 }
             }
         }
+
         void u1_unsafe_impl(std::vector<complex_t>& state, size_t qn, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
         {
             for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -386,6 +388,7 @@ namespace qpandalite {
                 }
             }
         }
+
         void toffoli_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t target, size_t total_qubit, size_t controller_mask)
         {
             for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -399,6 +402,7 @@ namespace qpandalite {
                 }
             }
         }
+
         void cswap_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target1, size_t target2, size_t total_qubit, size_t controller_mask)
         {
             for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -770,20 +774,79 @@ namespace qpandalite {
             );
         }
 
+        void _u22_unsafe_impl_ctrl(std::vector<std::complex<double>>& state, size_t qn, complex_t u00, complex_t u01, complex_t u10, complex_t u11, size_t total_qubit, size_t controller_mask)
+        {
+            const size_t N = pow2(total_qubit);
+            const size_t mask = pow2(qn);
+
+            for (size_t i = 0; i < N; ++i) {
+                if ((i & mask) != 0) continue;
+                // 行控制位状态 (a): 0 或 1
+                const bool a = ((i & controller_mask) == controller_mask);
+
+                for (size_t j = 0; j < N; ++j) {
+                    if ((j & mask) != 0) continue;
+                    // 列控制位状态 (b): 0 或 1
+                    const bool b = ((j & controller_mask) == controller_mask);
+
+                    // 提取目标量子比特的子矩阵元素
+                    complex_t& elem_00 = val(state, i, j, N);
+                    complex_t& elem_01 = val(state, i, j + mask, N);
+                    complex_t& elem_10 = val(state, i + mask, j, N);
+                    complex_t& elem_11 = val(state, i + mask, j + mask, N);
+
+                    // 根据 (a, b) 组合处理子矩阵
+                    if (!a && !b) {
+                        // Case 00: IρI → 无需修改
+                        continue;
+                    }
+                    else if (!a && b) {
+                        // Case 01: IρU† → 右乘 U†
+                        const complex_t orig_00 = elem_00, orig_01 = elem_01;
+                        const complex_t orig_10 = elem_10, orig_11 = elem_11;
+
+                        elem_00 = orig_00 * std::conj(u00) + orig_01 * std::conj(u10);
+                        elem_01 = orig_00 * std::conj(u01) + orig_01 * std::conj(u11);
+                        elem_10 = orig_10 * std::conj(u00) + orig_11 * std::conj(u10);
+                        elem_11 = orig_10 * std::conj(u01) + orig_11 * std::conj(u11);
+                    }
+                    else if (a && !b) {
+                        // Case 10: UρI → 左乘 U
+                        const complex_t orig_00 = elem_00, orig_01 = elem_01;
+                        const complex_t orig_10 = elem_10, orig_11 = elem_11;
+
+                        elem_00 = u00 * orig_00 + u01 * orig_10;
+                        elem_01 = u00 * orig_01 + u01 * orig_11;
+                        elem_10 = u10 * orig_00 + u11 * orig_10;
+                        elem_11 = u10 * orig_01 + u11 * orig_11;
+                    }
+                    else {
+                        // Case 11: UρU† → 完全演化
+                        evolve_u22(u00, u01, u10, u11, elem_00, elem_01, elem_10, elem_11);
+                    }
+                }
+            }
+        }
+
         void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, complex_t u00, complex_t u01, complex_t u10, complex_t u11, size_t total_qubit, size_t controller_mask)
         {
+            /* control version must be specially handled */
+            if (controller_mask != 0)
+            {
+                _u22_unsafe_impl_ctrl(state, qn, u00, u01, u10, u11, total_qubit, controller_mask);
+                return;
+            }
+
             const size_t N = pow2(total_qubit);
             const size_t mask = pow2(qn);            // 目标量子比特的掩码
 
             for (size_t i = 0; i < N; ++i) {
                 // 检查控制位是否满足且目标比特为 0
-                if (((i & controller_mask) != controller_mask) || 
-                    ((i & mask) != 0)) continue;
+                if ((i & mask) != 0) continue;
 
                 // 遍历所有满足控制位且目标比特为 0 的 j
                 for (size_t j = 0; j < N; ++j) {
-                    if (((j & controller_mask) != controller_mask) || 
-                        ((j & mask) != 0)) continue;
+                    if ((j & mask) != 0) continue;
 
                     // 提取子矩阵元素（无需重复计算索引）
                     complex_t& i0j0 = val(state, i, j, N);
@@ -796,6 +859,7 @@ namespace qpandalite {
                 }
             }
         }
+
 
         void u44_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn1, size_t qn2,
             complex_t u00, complex_t u01, complex_t u02, complex_t u03,
@@ -937,12 +1001,17 @@ namespace qpandalite {
 
         void cz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
             size_t total_qubit, size_t controller_mask) {
+            complex_t U00 = 1, U01 = 0, U02 = 0, U03 = 0;
+            complex_t U10 = 0, U11 = 1, U12 = 0, U13 = 0;
+            complex_t U20 = 0, U21 = 0, U22 = 1, U23 = 0;
+            complex_t U30 = 0, U31 = 0, U32 = 0, U33 = -1;
 
-            // 合并控制位掩码：原有控制位 + qn1
-            const size_t new_controller_mask = controller_mask | pow2(qn1);
-
-            // 调用 X 门，目标为 qn2，控制位为 new_controller_mask
-            z_unsafe_impl(state, qn2, total_qubit, new_controller_mask);
+            u44_unsafe_impl(state, qn1, qn2,
+                U00, U01, U02, U03,
+                U10, U11, U12, U13,
+                U20, U21, U22, U23,
+                U30, U31, U32, U33,
+                total_qubit, controller_mask);
         }
 
         void swap_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
@@ -1074,6 +1143,7 @@ namespace qpandalite {
         void u1_unsafe_impl(std::vector<complex_t>& state, size_t qn, double theta,
             size_t total_qubit, size_t controller_mask, bool is_dagger) {
             complex_t phase = std::exp(complex_t(0, (is_dagger ? -1 : 1) * theta));
+            
             complex_t U00 = 1, U01 = 0, U10 = 0, U11 = phase;
 
             u22_unsafe_impl(state, qn, U00, U01, U10, U11, total_qubit, controller_mask);
@@ -1092,10 +1162,23 @@ namespace qpandalite {
             size_t target1, size_t target2,
             size_t total_qubit, size_t controller_mask) {
             // 合并控制位掩码：原有控制位 + controller
-            const size_t new_controller_mask = controller_mask | (1ULL << controller);
+            const size_t new_controller_mask = controller_mask | pow2(controller);
 
             // 调用 SWAP 门，目标为 target1 和 target2，控制位为 new_controller_mask
             swap_unsafe_impl(state, target1, target2, total_qubit, new_controller_mask);
+        }
+
+        void cu1_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta,
+            size_t total_qubit, size_t controller_mask, bool is_dagger) {
+            const complex_t phase_11 = std::exp(complex_t(0, is_dagger ? -theta : theta)); // |11> 的相位
+
+            // 定义 ZZ 门的对角矩阵
+            u44_unsafe_impl(state, qn1, qn2,
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, phase_11,
+                total_qubit, controller_mask);
         }
 
         void zz_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta,

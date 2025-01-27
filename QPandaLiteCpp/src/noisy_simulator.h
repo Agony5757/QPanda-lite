@@ -1,141 +1,7 @@
 #include "simulator.h"
+#include "qopcode.h"
 
 namespace qpandalite {
-    enum class NoiseType : uint32_t
-    {
-        __NoiseTypeBegin,
-        Depolarizing,
-        Damping,
-        BitFlip,
-        PhaseFlip,
-        TwoQubitDepolarizing,
-        __NoiseTypeEnd,
-    };
-
-    enum class SupportOperationType : uint32_t
-    {
-        __SupportOperationTypeBegin = 1000,
-        HADAMARD,
-        IDENTITY,
-        U22,
-        X,
-        Y,
-        Z,
-        S,
-        T,
-        SX,
-        CZ,
-        SWAP,
-        ISWAP,
-        XY,
-        CNOT,
-        RX,
-        RY,
-        RZ,
-        RPHI90,
-        RPHI180,
-        RPHI,
-        TOFFOLI,
-        CSWAP,
-        ZZ,
-        XX,
-        YY,
-        U3,
-        __SupportOperationTypeEnd,
-    };
-
-    inline int gate_qubit_count(SupportOperationType type)
-    {
-        switch (type)
-        {
-        case SupportOperationType::HADAMARD:
-        case SupportOperationType::U22:
-        case SupportOperationType::X:
-        case SupportOperationType::Y:
-        case SupportOperationType::Z:
-        case SupportOperationType::SX:
-        case SupportOperationType::RX:
-        case SupportOperationType::RY:
-        case SupportOperationType::RZ:
-        case SupportOperationType::RPHI90:
-        case SupportOperationType::RPHI180:
-        case SupportOperationType::RPHI:
-        case SupportOperationType::U3:
-            return 1;
-        case SupportOperationType::CZ:
-        case SupportOperationType::SWAP:
-        case SupportOperationType::ISWAP:
-        case SupportOperationType::XY:
-        case SupportOperationType::CNOT:
-        case SupportOperationType::XX:
-        case SupportOperationType::YY:
-        case SupportOperationType::ZZ:
-            return 2;
-        case SupportOperationType::TOFFOLI:
-        case SupportOperationType::CSWAP:
-            return 3;
-        default:
-            ThrowOutOfRange("Input does not belong to SupportOperationType.");
-        }
-    }
-
-    inline NoiseType string_to_NoiseType(const std::string& noise_str)
-    {
-        static const std::map<std::string, NoiseType> noise_type_map =
-        {
-           {"depolarizing", NoiseType::Depolarizing},
-           {"damping", NoiseType::Damping},
-           {"bitflip", NoiseType::BitFlip},
-           {"phaseflip", NoiseType::PhaseFlip},
-           {"twoqubit_depolarizing", NoiseType::TwoQubitDepolarizing},
-        };
-
-        auto iter = noise_type_map.find(noise_str);
-        if (iter != noise_type_map.end())
-            return iter->second;
-
-        // Handle the default case where the string doesn't match any known NoiseType        
-        ThrowRuntimeError(fmt::format("Failed to handle noise_str: {}\nPlease check.", noise_str));
-    }
-
-    inline SupportOperationType string_to_SupportOperationType(const std::string& gate_str)
-    {
-        static const std::map<std::string, SupportOperationType> op_type_map =
-        {
-           {"HADAMARD", SupportOperationType::HADAMARD},
-           {"IDENTITY", SupportOperationType::IDENTITY},
-           {"U22", SupportOperationType::U22},
-           {"X", SupportOperationType::X},
-           {"Y", SupportOperationType::Y},
-           {"Z", SupportOperationType::Z},
-           {"SX", SupportOperationType::SX},
-           {"CZ", SupportOperationType::CZ},
-           {"SWAP", SupportOperationType::SWAP},
-           {"ISWAP", SupportOperationType::ISWAP},
-           {"XY", SupportOperationType::XY},
-           {"CNOT", SupportOperationType::CNOT},
-           {"RX", SupportOperationType::RX},
-           {"RY", SupportOperationType::RY},
-           {"RZ", SupportOperationType::RZ},
-           {"RPHI90", SupportOperationType::RPHI90},
-           {"RPHI180", SupportOperationType::RPHI180},
-           {"RPHI", SupportOperationType::RPHI},
-           {"TOFFOLI", SupportOperationType::TOFFOLI},
-           {"CSWAP", SupportOperationType::CSWAP},
-           {"ZZ", SupportOperationType::ZZ},
-           {"XX", SupportOperationType::XX},
-           {"YY", SupportOperationType::YY},
-           {"U3", SupportOperationType::U3},
-        };
-
-        auto iter = op_type_map.find(gate_str);
-        if (iter != op_type_map.end())
-            return iter->second;
-
-        // Handle the default case where the string doesn't match any known SupportOperationType
-        ThrowRuntimeError(fmt::format("Failed to handle gate_str: {}\nPlease check.", gate_str));
-        
-    }
 
     // A simulator that specifically models quantum noise. It is derived from a base class named StatevectorSimulator. 
     struct NoiseSimulatorImpl : public StatevectorSimulator
@@ -154,24 +20,6 @@ namespace qpandalite {
         void normalize_state_vector();
     };
 
-    struct OpcodeType
-    {
-        uint32_t op;
-        std::vector<size_t> qubits;
-        std::vector<double> parameters;
-        bool dagger;
-        std::vector<size_t> global_controller;
-        OpcodeType(uint32_t op_,
-            const std::vector<size_t>& qubits_,
-            const std::vector<double>& parameters_,
-            bool dagger_,
-            const std::vector<size_t>& global_controller_
-        ) :op(op_), qubits(qubits_),
-            parameters(parameters_), dagger(dagger_),
-            global_controller(global_controller_)
-        {
-        }
-    };
 
     struct NoisySimulator
     {
@@ -186,8 +34,7 @@ namespace qpandalite {
         std::vector<size_t> measure_qubits;
         std::map<size_t, size_t> measure_map;
         std::vector<OpcodeType> opcodes; // opcode + noisy
-        std::vector<OpcodeType> original_opcodes; // perfect, without noise
-
+        
         NoisySimulator(size_t n_qubit,
             const std::map<std::string, double>& noise_description,
             const std::vector<std::array<double, 2>>& measurement_error);
@@ -204,7 +51,7 @@ namespace qpandalite {
         void _insert_global_error(const std::vector<size_t>& qn);
         void _insert_generic_error(const std::vector<size_t>& qubits, const std::map<NoiseType, double>& generic_noise_map);
 
-        void insert_error(const std::vector<size_t>& qn, SupportOperationType gateType);
+        void insert_error(const std::vector<size_t>& qn, UnitaryType gateType);
 
         // Model the gate error
         // Perform bit flip based on measurement 
@@ -272,7 +119,7 @@ namespace qpandalite {
 
     struct NoisySimulator_GateDependent : public NoisySimulator
     {
-        using GateDependentNoise_t = std::map<SupportOperationType, std::map<NoiseType, double>>;
+        using GateDependentNoise_t = std::map<UnitaryType, std::map<NoiseType, double>>;
         using GateDependentNoise_Description_t = std::map<std::string, std::map<std::string, double>>;
         GateDependentNoise_t gate_dependent_noise;
 
@@ -284,15 +131,15 @@ namespace qpandalite {
         void _load_gate_dependent_noise(const GateDependentNoise_Description_t& gate_noise_description);
 
         /* Noisy simulation */
-        void insert_error(const std::vector<size_t>& qn, SupportOperationType gateType);
-        void _insert_gate_dependent_error(const std::vector<size_t>& qubits, SupportOperationType gateType);
+        void insert_error(const std::vector<size_t>& qn, UnitaryType gateType);
+        void _insert_gate_dependent_error(const std::vector<size_t>& qubits, UnitaryType gateType);
         
     };
 
     struct NoisySimulator_GateSpecificError : public NoisySimulator
     {
-        using GateError1q_t = std::map<std::pair<SupportOperationType, size_t>, std::map<NoiseType, double>>;
-        using GateError2q_t = std::map<std::pair<SupportOperationType, std::pair<size_t, size_t>>, std::map<NoiseType, double>>;
+        using GateError1q_t = std::map<std::pair<UnitaryType, size_t>, std::map<NoiseType, double>>;
+        using GateError2q_t = std::map<std::pair<UnitaryType, std::pair<size_t, size_t>>, std::map<NoiseType, double>>;
         using GateError1q_Description_t = std::map<std::pair<std::string, size_t>, std::map<std::string, double>>;
         using GateError2q_Description_t = std::map<std::pair<std::string, std::pair<size_t, size_t>>, std::map<std::string, double>>;
         GateError1q_t gate_error1q;
@@ -308,9 +155,9 @@ namespace qpandalite {
         void _load_gate_error2q(const GateError2q_Description_t& gate_noise_description);
 
         /* Noisy simulation */
-        void insert_error(const std::vector<size_t>& qn, SupportOperationType gateType);
-        void _insert_gate_error1q(SupportOperationType gateType, size_t qn);
-        void _insert_gate_error2q(SupportOperationType gateType, size_t qn1, size_t qn2);
+        void insert_error(const std::vector<size_t>& qn, UnitaryType gateType);
+        void _insert_gate_error1q(UnitaryType gateType, size_t qn);
+        void _insert_gate_error2q(UnitaryType gateType, size_t qn1, size_t qn2);
     };
 
 }

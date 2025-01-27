@@ -5,6 +5,14 @@
 #include "fmt/core.h"
 #include <string>
 
+#include <array>
+#include <complex>
+#include <iostream>
+#include <vector>
+#include <set>
+#include <map>
+#include <cstdint>
+
 #define ThrowRuntimeError(errinfo) throw_runtime_error((errinfo), __LINE__, __FILE__, __FUNCTION__)
 #define ThrowInvalidArgument(errinfo) throw_invalid_argument((errinfo), __LINE__, __FILE__, __FUNCTION__)
 #define ThrowOutOfRange(errinfo) throw_out_of_range((errinfo), __LINE__, __FILE__, __FUNCTION__)

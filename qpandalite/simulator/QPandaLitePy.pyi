@@ -3,7 +3,7 @@
 """
 from __future__ import annotations
 import typing
-__all__ = ['BitFlip', 'CNOT', 'CSWAP', 'CZ', 'Damping', 'DensityOperatorSimulator', 'Depolarizing', 'HADAMARD', 'IDENTITY', 'ISWAP', 'NoiseType', 'NoisySimulator', 'NoisySimulator_GateDependent', 'NoisySimulator_GateSpecificError', 'OpcodeType', 'PhaseFlip', 'RPHI', 'RPHI180', 'RPHI90', 'RX', 'RY', 'RZ', 'S', 'SX', 'StatevectorSimulator', 'SupportOperationType', 'T', 'TOFFOLI', 'TwoQubitDepolarizing', 'U22', 'X', 'XY', 'Y', 'Z', 'rand', 'seed']
+__all__ = ['BitFlip', 'CNOT', 'CSWAP', 'CZ', 'Damping', 'DensityOperatorSimulator', 'Depolarizing', 'HADAMARD', 'IDENTITY', 'ISWAP', 'NoiseType', 'NoisySimulator', 'NoisySimulator_GateDependent', 'NoisySimulator_GateSpecificError', 'OpcodeType', 'PhaseFlip', 'RPHI', 'RPHI180', 'RPHI90', 'RX', 'RY', 'RZ', 'S', 'SX', 'StatevectorSimulator', 'T', 'TOFFOLI', 'TwoQubitDepolarizing', 'U22', 'UnitaryType', 'X', 'XY', 'Y', 'Z', 'rand', 'seed']
 class DensityOperatorSimulator:
     max_qubit_num: typing.ClassVar[int] = 10
     def __init__(self) -> None:
@@ -102,12 +102,12 @@ class NoiseType:
     
       TwoQubitDepolarizing
     """
-    BitFlip: typing.ClassVar[NoiseType]  # value = <NoiseType.BitFlip: 3>
-    Damping: typing.ClassVar[NoiseType]  # value = <NoiseType.Damping: 2>
-    Depolarizing: typing.ClassVar[NoiseType]  # value = <NoiseType.Depolarizing: 1>
-    PhaseFlip: typing.ClassVar[NoiseType]  # value = <NoiseType.PhaseFlip: 4>
-    TwoQubitDepolarizing: typing.ClassVar[NoiseType]  # value = <NoiseType.TwoQubitDepolarizing: 5>
-    __members__: typing.ClassVar[dict[str, NoiseType]]  # value = {'Depolarizing': <NoiseType.Depolarizing: 1>, 'Damping': <NoiseType.Damping: 2>, 'BitFlip': <NoiseType.BitFlip: 3>, 'PhaseFlip': <NoiseType.PhaseFlip: 4>, 'TwoQubitDepolarizing': <NoiseType.TwoQubitDepolarizing: 5>}
+    BitFlip: typing.ClassVar[NoiseType]  # value = <NoiseType.BitFlip: 20003>
+    Damping: typing.ClassVar[NoiseType]  # value = <NoiseType.Damping: 20002>
+    Depolarizing: typing.ClassVar[NoiseType]  # value = <NoiseType.Depolarizing: 20001>
+    PhaseFlip: typing.ClassVar[NoiseType]  # value = <NoiseType.PhaseFlip: 20004>
+    TwoQubitDepolarizing: typing.ClassVar[NoiseType]  # value = <NoiseType.TwoQubitDepolarizing: 20005>
+    __members__: typing.ClassVar[dict[str, NoiseType]]  # value = {'Depolarizing': <NoiseType.Depolarizing: 20001>, 'Damping': <NoiseType.Damping: 20002>, 'BitFlip': <NoiseType.BitFlip: 20003>, 'PhaseFlip': <NoiseType.PhaseFlip: 20004>, 'TwoQubitDepolarizing': <NoiseType.TwoQubitDepolarizing: 20005>}
     def __eq__(self, other: typing.Any) -> bool:
         ...
     def __getstate__(self) -> int:
@@ -147,7 +147,7 @@ class NoisySimulator:
         ...
     def hadamard(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
         ...
-    def insert_error(self, arg0: list[int], arg1: SupportOperationType) -> None:
+    def insert_error(self, arg0: list[int], arg1: UnitaryType) -> None:
         ...
     def iswap(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
         ...
@@ -284,7 +284,7 @@ class StatevectorSimulator:
     @property
     def total_qubit(self) -> int:
         ...
-class SupportOperationType:
+class UnitaryType:
     """
     Members:
     
@@ -330,28 +330,28 @@ class SupportOperationType:
     
       CSWAP
     """
-    CNOT: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.CNOT: 1014>
-    CSWAP: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.CSWAP: 1022>
-    CZ: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.CZ: 1010>
-    HADAMARD: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.HADAMARD: 1001>
-    IDENTITY: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.IDENTITY: 1002>
-    ISWAP: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.ISWAP: 1012>
-    RPHI: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RPHI: 1020>
-    RPHI180: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RPHI180: 1019>
-    RPHI90: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RPHI90: 1018>
-    RX: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RX: 1015>
-    RY: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RY: 1016>
-    RZ: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RZ: 1017>
-    S: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.S: 1007>
-    SX: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.SX: 1009>
-    T: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.T: 1008>
-    TOFFOLI: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.TOFFOLI: 1021>
-    U22: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.U22: 1003>
-    X: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.X: 1004>
-    XY: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.XY: 1013>
-    Y: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.Y: 1005>
-    Z: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.Z: 1006>
-    __members__: typing.ClassVar[dict[str, SupportOperationType]]  # value = {'HADAMARD': <SupportOperationType.HADAMARD: 1001>, 'IDENTITY': <SupportOperationType.IDENTITY: 1002>, 'U22': <SupportOperationType.U22: 1003>, 'X': <SupportOperationType.X: 1004>, 'Y': <SupportOperationType.Y: 1005>, 'Z': <SupportOperationType.Z: 1006>, 'S': <SupportOperationType.S: 1007>, 'T': <SupportOperationType.T: 1008>, 'SX': <SupportOperationType.SX: 1009>, 'CZ': <SupportOperationType.CZ: 1010>, 'ISWAP': <SupportOperationType.ISWAP: 1012>, 'XY': <SupportOperationType.XY: 1013>, 'CNOT': <SupportOperationType.CNOT: 1014>, 'RX': <SupportOperationType.RX: 1015>, 'RY': <SupportOperationType.RY: 1016>, 'RZ': <SupportOperationType.RZ: 1017>, 'RPHI90': <SupportOperationType.RPHI90: 1018>, 'RPHI180': <SupportOperationType.RPHI180: 1019>, 'RPHI': <SupportOperationType.RPHI: 1020>, 'TOFFOLI': <SupportOperationType.TOFFOLI: 1021>, 'CSWAP': <SupportOperationType.CSWAP: 1022>}
+    CNOT: typing.ClassVar[UnitaryType]  # value = <UnitaryType.CNOT: 1014>
+    CSWAP: typing.ClassVar[UnitaryType]  # value = <UnitaryType.CSWAP: 1024>
+    CZ: typing.ClassVar[UnitaryType]  # value = <UnitaryType.CZ: 1010>
+    HADAMARD: typing.ClassVar[UnitaryType]  # value = <UnitaryType.HADAMARD: 1002>
+    IDENTITY: typing.ClassVar[UnitaryType]  # value = <UnitaryType.IDENTITY: 1001>
+    ISWAP: typing.ClassVar[UnitaryType]  # value = <UnitaryType.ISWAP: 1012>
+    RPHI: typing.ClassVar[UnitaryType]  # value = <UnitaryType.RPHI: 1022>
+    RPHI180: typing.ClassVar[UnitaryType]  # value = <UnitaryType.RPHI180: 1021>
+    RPHI90: typing.ClassVar[UnitaryType]  # value = <UnitaryType.RPHI90: 1020>
+    RX: typing.ClassVar[UnitaryType]  # value = <UnitaryType.RX: 1015>
+    RY: typing.ClassVar[UnitaryType]  # value = <UnitaryType.RY: 1016>
+    RZ: typing.ClassVar[UnitaryType]  # value = <UnitaryType.RZ: 1017>
+    S: typing.ClassVar[UnitaryType]  # value = <UnitaryType.S: 1007>
+    SX: typing.ClassVar[UnitaryType]  # value = <UnitaryType.SX: 1009>
+    T: typing.ClassVar[UnitaryType]  # value = <UnitaryType.T: 1008>
+    TOFFOLI: typing.ClassVar[UnitaryType]  # value = <UnitaryType.TOFFOLI: 1023>
+    U22: typing.ClassVar[UnitaryType]  # value = <UnitaryType.U22: 1003>
+    X: typing.ClassVar[UnitaryType]  # value = <UnitaryType.X: 1004>
+    XY: typing.ClassVar[UnitaryType]  # value = <UnitaryType.XY: 1013>
+    Y: typing.ClassVar[UnitaryType]  # value = <UnitaryType.Y: 1005>
+    Z: typing.ClassVar[UnitaryType]  # value = <UnitaryType.Z: 1006>
+    __members__: typing.ClassVar[dict[str, UnitaryType]]  # value = {'HADAMARD': <UnitaryType.HADAMARD: 1002>, 'IDENTITY': <UnitaryType.IDENTITY: 1001>, 'U22': <UnitaryType.U22: 1003>, 'X': <UnitaryType.X: 1004>, 'Y': <UnitaryType.Y: 1005>, 'Z': <UnitaryType.Z: 1006>, 'S': <UnitaryType.S: 1007>, 'T': <UnitaryType.T: 1008>, 'SX': <UnitaryType.SX: 1009>, 'CZ': <UnitaryType.CZ: 1010>, 'ISWAP': <UnitaryType.ISWAP: 1012>, 'XY': <UnitaryType.XY: 1013>, 'CNOT': <UnitaryType.CNOT: 1014>, 'RX': <UnitaryType.RX: 1015>, 'RY': <UnitaryType.RY: 1016>, 'RZ': <UnitaryType.RZ: 1017>, 'RPHI90': <UnitaryType.RPHI90: 1020>, 'RPHI180': <UnitaryType.RPHI180: 1021>, 'RPHI': <UnitaryType.RPHI: 1022>, 'TOFFOLI': <UnitaryType.TOFFOLI: 1023>, 'CSWAP': <UnitaryType.CSWAP: 1024>}
     def __eq__(self, other: typing.Any) -> bool:
         ...
     def __getstate__(self) -> int:
@@ -382,29 +382,29 @@ def rand() -> float:
     ...
 def seed(arg0: int) -> None:
     ...
-BitFlip: NoiseType  # value = <NoiseType.BitFlip: 3>
-CNOT: SupportOperationType  # value = <SupportOperationType.CNOT: 1014>
-CSWAP: SupportOperationType  # value = <SupportOperationType.CSWAP: 1022>
-CZ: SupportOperationType  # value = <SupportOperationType.CZ: 1010>
-Damping: NoiseType  # value = <NoiseType.Damping: 2>
-Depolarizing: NoiseType  # value = <NoiseType.Depolarizing: 1>
-HADAMARD: SupportOperationType  # value = <SupportOperationType.HADAMARD: 1001>
-IDENTITY: SupportOperationType  # value = <SupportOperationType.IDENTITY: 1002>
-ISWAP: SupportOperationType  # value = <SupportOperationType.ISWAP: 1012>
-PhaseFlip: NoiseType  # value = <NoiseType.PhaseFlip: 4>
-RPHI: SupportOperationType  # value = <SupportOperationType.RPHI: 1020>
-RPHI180: SupportOperationType  # value = <SupportOperationType.RPHI180: 1019>
-RPHI90: SupportOperationType  # value = <SupportOperationType.RPHI90: 1018>
-RX: SupportOperationType  # value = <SupportOperationType.RX: 1015>
-RY: SupportOperationType  # value = <SupportOperationType.RY: 1016>
-RZ: SupportOperationType  # value = <SupportOperationType.RZ: 1017>
-S: SupportOperationType  # value = <SupportOperationType.S: 1007>
-SX: SupportOperationType  # value = <SupportOperationType.SX: 1009>
-T: SupportOperationType  # value = <SupportOperationType.T: 1008>
-TOFFOLI: SupportOperationType  # value = <SupportOperationType.TOFFOLI: 1021>
-TwoQubitDepolarizing: NoiseType  # value = <NoiseType.TwoQubitDepolarizing: 5>
-U22: SupportOperationType  # value = <SupportOperationType.U22: 1003>
-X: SupportOperationType  # value = <SupportOperationType.X: 1004>
-XY: SupportOperationType  # value = <SupportOperationType.XY: 1013>
-Y: SupportOperationType  # value = <SupportOperationType.Y: 1005>
-Z: SupportOperationType  # value = <SupportOperationType.Z: 1006>
+BitFlip: NoiseType  # value = <NoiseType.BitFlip: 20003>
+CNOT: UnitaryType  # value = <UnitaryType.CNOT: 1014>
+CSWAP: UnitaryType  # value = <UnitaryType.CSWAP: 1024>
+CZ: UnitaryType  # value = <UnitaryType.CZ: 1010>
+Damping: NoiseType  # value = <NoiseType.Damping: 20002>
+Depolarizing: NoiseType  # value = <NoiseType.Depolarizing: 20001>
+HADAMARD: UnitaryType  # value = <UnitaryType.HADAMARD: 1002>
+IDENTITY: UnitaryType  # value = <UnitaryType.IDENTITY: 1001>
+ISWAP: UnitaryType  # value = <UnitaryType.ISWAP: 1012>
+PhaseFlip: NoiseType  # value = <NoiseType.PhaseFlip: 20004>
+RPHI: UnitaryType  # value = <UnitaryType.RPHI: 1022>
+RPHI180: UnitaryType  # value = <UnitaryType.RPHI180: 1021>
+RPHI90: UnitaryType  # value = <UnitaryType.RPHI90: 1020>
+RX: UnitaryType  # value = <UnitaryType.RX: 1015>
+RY: UnitaryType  # value = <UnitaryType.RY: 1016>
+RZ: UnitaryType  # value = <UnitaryType.RZ: 1017>
+S: UnitaryType  # value = <UnitaryType.S: 1007>
+SX: UnitaryType  # value = <UnitaryType.SX: 1009>
+T: UnitaryType  # value = <UnitaryType.T: 1008>
+TOFFOLI: UnitaryType  # value = <UnitaryType.TOFFOLI: 1023>
+TwoQubitDepolarizing: NoiseType  # value = <NoiseType.TwoQubitDepolarizing: 20005>
+U22: UnitaryType  # value = <UnitaryType.U22: 1003>
+X: UnitaryType  # value = <UnitaryType.X: 1004>
+XY: UnitaryType  # value = <UnitaryType.XY: 1013>
+Y: UnitaryType  # value = <UnitaryType.Y: 1005>
+Z: UnitaryType  # value = <UnitaryType.Z: 1006>

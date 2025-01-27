@@ -35,7 +35,7 @@ gate_noise_description = {
     "ISWAP": {"depolarizing": 0.0}
 }
 sim = OriginIR_Simulator()
-sim.simulate(qc.originir)
+sim.simulate_pmeasure(qc.originir)
 result0 = np.abs(sim.state)**2
 print(f'ideal result: {result0}')
 
@@ -47,7 +47,7 @@ print(qc.measure_list)
 print(qc.used_qubit_list)
 # print(qc.circuit_str)
 # print(f'remapping:{remapping}')
-result = nsim.simulate(qc.originir, shots=10000)
+result = nsim.simulate_pmeasure(qc.originir, shots=10000)
 
 _sum = 0
 for key, value in result.items():

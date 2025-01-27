@@ -16,7 +16,7 @@ MEASURE q[46],c[2]
 MEASURE q[52],c[1]
 '''
 
-res = sim.simulate(originir)
+res = sim.simulate_pmeasure(originir)
 print(res)
 print(sim.state)
 
@@ -36,6 +36,6 @@ MEASURE q[46],c[1]
 MEASURE q[52],c[2]
 '''
 
-res = sim.simulate(originir)
+res = sim.simulate_pmeasure(originir)
 print(res)
 print(sim.state)

@@ -402,7 +402,7 @@ if __name__ == '__main__':
     import qpandalite.simulator as sim
     qsim = sim.OriginIR_Simulator()
 
-    result = qsim.simulate(c.circuit)
+    result = qsim.simulate_pmeasure(c.circuit)
 
     print(result)
     # The qasm file from previous circuit object in OriginIR

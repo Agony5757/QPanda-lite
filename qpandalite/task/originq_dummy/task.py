@@ -201,9 +201,9 @@ def _submit_task_group_dummy_impl(
                                              measurement_error, reverse_key=False)
             
             if auto_mapping:
-                prob_result = my_sim.simulate(circuit, shots)
+                prob_result = my_sim.simulate_pmeasure(circuit, shots)
             else:
-                prob_result = my_sim.simulate(circuit, shots=shots, 
+                prob_result = my_sim.simulate_pmeasure(circuit, shots=shots, 
                                                  available_qubits=available_qubits, 
                                                  available_topology=available_topology)
             # n_qubits = my_sim.qubit_num
@@ -224,9 +224,9 @@ def _submit_task_group_dummy_impl(
             simulator = sim.OriginIR_Simulator()
 
             if auto_mapping:
-                prob_result = simulator.simulate(circuit)
+                prob_result = simulator.simulate_pmeasure(circuit)
             else:
-                prob_result = simulator.simulate(circuit, 
+                prob_result = simulator.simulate_pmeasure(circuit, 
                                                 available_qubits=available_qubits,
                                                 available_topology=available_topology)
             n_qubits = simulator.qubit_num

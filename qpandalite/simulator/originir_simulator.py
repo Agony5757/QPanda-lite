@@ -2,17 +2,25 @@ from typing import List, Tuple, TYPE_CHECKING
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 import warnings
 from .opcode_simulator import OpcodeSimulator
-
+from .base_simulator import BaseSimulator
 if TYPE_CHECKING:
     from .QPandaLitePy import *
 
-class OriginIR_Simulator:    
+class OriginIR_Simulator(BaseSimulator):    
         
-    def __init__(self, reverse_key = False, backend_types = 'statevector'):
+    def __init__(self, 
+                 reverse_key = False, 
+                 backend_type = 'statevector',                 
+                 available_qubits : List[int] = None, 
+                 available_topology : List[List[int]] = None):
         '''OriginIR_Simulator is a quantum circuit simulation based on C++ which runs locally on your PC.
+        
 
         Args:
-            reverse_key (bool, optional): _description_. Defaults to False.
+            reverse_key (bool, optional): Whether to reverse the qubit index when performing measurements. Defaults to False.            
+            backend_type (str, optional): The backend type. Defaults to 'statevector'. (optional = 'statevector', 'densitymatrix')
+            available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
+            available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
         '''
         self.reverse_key = reverse_key
         self.qubit_num = 0
@@ -20,8 +28,10 @@ class OriginIR_Simulator:
         self.qubit_mapping = dict()
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.backend_types = backend_types
+        self.backend_types = backend_type
         self.opcode_simulator = OpcodeSimulator(self.backend_types)
+        self.available_qubits = available_qubits
+        self.available_topology = available_topology
         
     def _clear(self):
         self.qubit_num = 0
@@ -39,9 +49,7 @@ class OriginIR_Simulator:
         self.qubit_mapping[qubit] = n
 
     def extract_actual_used_qubits(self, program_body):
-        for (operation, qubit, cbit, parameter, 
-             dagger_flag, control_qubits_set) in program_body:
-                        
+        for (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) in program_body:                        
             if isinstance(qubit, list):
                 for q in qubit:
                     self._add_used_qubit(int(q))
@@ -125,24 +133,18 @@ class OriginIR_Simulator:
         return processed_program_body, measure_qubit
 
 
-    def simulate(self, 
-                 originir, 
-                 available_qubits : List[int] = None, 
-                 available_topology : List[List[int]] = None):
+    def simulate_pmeasure(self, originir):
         '''Simulate originir.
         Free mode: let available_qubits = None, then simulate any topology.
         Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
 
         Args:
             originir (str): OriginIR.
-            available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
-            available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
-
         Returns:
             List[float]: The probability list of output from the ideal simulator
         '''
         processed_program_body, measure_qubit = self._simulate_preprocess(
-            originir, available_qubits, available_topology
+            originir, self.available_qubits, self.available_topology
         )
             
         prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
@@ -228,7 +230,7 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
             raise RuntimeError('Unknown OriginIR operation. '
                                f'Operation: {operation}.')
 
-    def simulate(self, 
+    def simulate_pmeasure(self, 
                  originir, 
                  shots = 1000,
                  available_qubits : List[int] = None, 

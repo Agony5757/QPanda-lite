@@ -2,12 +2,12 @@ from typing import List, Tuple, TYPE_CHECKING
 from qpandalite.qasm import OpenQASM2_BaseParser
 import warnings
 from .opcode_simulator import OpcodeSimulator
-
+from .base_simulator import BaseSimulator
 import numpy as np
 if TYPE_CHECKING:
     from .QPandaLitePy import *
 
-class QASM_Simulator:
+class QASM_Simulator(BaseSimulator):
     def __init__(self, backend_type = 'statevector'):
         self.qubit_num = 0
         self.measure_qubit = []
@@ -35,7 +35,7 @@ class QASM_Simulator:
         return program_body
 
 
-    def simulate(self, qasm):
+    def simulate_pmeasure(self, qasm):
         program_body = self._simulate_preprocess(qasm)
         
         prob_list = self.opcode_simulator.simulate_opcodes_stateprob(

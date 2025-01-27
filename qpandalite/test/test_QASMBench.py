@@ -53,7 +53,7 @@ def _check_result(transpiled_circuit, reference_result, backend_type):
     #print('Testing circuit: ', transpiled_circuit)
     #print('Reference Result: ', reference_result)
     qasm_simulator = QASM_Simulator(backend_type)
-    my_result = qasm_simulator.simulate(transpiled_circuit)
+    my_result = qasm_simulator.simulate_pmeasure(transpiled_circuit)
 
     if len(reference_array) != len(my_result):
         print('---------------')

@@ -35,7 +35,7 @@ class NotMatchError(Exception):
 def _check_result(transpiled_circuit, reference_array, backend_type):
 
     qasm_simulator = QASM_Simulator(backend_type)
-    my_result = qasm_simulator.simulate(transpiled_circuit)
+    my_result = qasm_simulator.simulate_pmeasure(transpiled_circuit)
 
     if len(reference_array) != len(my_result):
         print('---------------')

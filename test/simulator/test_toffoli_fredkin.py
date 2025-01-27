@@ -1,4 +1,4 @@
-from qpandalite.simulator import Simulator, NoisySimulator, NoisySimulator_GateDependent
+from qpandalite.simulator import StatevectorSimulator, NoisySimulator, NoisySimulator_GateDependent
 from qpandalite.simulator import seed
 import numpy as np
 import json

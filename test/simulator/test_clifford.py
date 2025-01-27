@@ -1,4 +1,4 @@
-from qpandalite.simulator import Simulator, NoisySimulator
+from qpandalite.simulator import StatevectorSimulator, NoisySimulator
 from qpandalite.simulator import seed
 import numpy as np
 import time

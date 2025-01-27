@@ -1,5 +1,5 @@
 import qpandalite
-from qpandalite.simulator import (Simulator, 
+from qpandalite.simulator import (StatevectorSimulator, 
                                   NoisySimulator,
                                   NoisySimulator_GateDependent, 
                                   NoisySimulator_GateSpecificError)

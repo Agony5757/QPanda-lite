@@ -8,7 +8,7 @@ from qpandalite.circuit_builder import Circuit
 from qpandalite.test._utils import qpandalite_test
 
 def iswap_test():
-    sim = qsim.Simulator()
+    sim = qsim.StatevectorSimulator()
     sim.init_n_qubit(3)   
     sim.sx(1)
     sim.xy(0, 1)

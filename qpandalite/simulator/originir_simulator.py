@@ -3,7 +3,8 @@ from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 import warnings
 from .opcode_simulator import OpcodeSimulator
 
-    
+if TYPE_CHECKING:
+    from .QPandaLitePy import *
 
 class OriginIR_Simulator:    
         

@@ -3,7 +3,7 @@ import math
 from qiskit import QuantumCircuit, transpile
 from qiskit.circuit.library import TdgGate, RXGate
 from qiskit import BasicAer
-from qpandalite.simulator import Simulator, NoisySimulator
+from qpandalite.simulator import StatevectorSimulator, NoisySimulator
 from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 
@@ -79,7 +79,7 @@ measurement_results = simulator.measure_shots(shots)
 
 import qpandalite.simulator as qsim
 
-sim = qsim.Simulator()
+sim = qsim.StatevectorSimulator()
 
 sim.init_n_qubit(2)
 sim.hadamard(0, False)

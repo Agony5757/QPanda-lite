@@ -137,10 +137,10 @@ namespace qpandalite {
         
     }
 
-    // A simulator that specifically models quantum noise. It is derived from a base class named Simulator. 
-    struct NoiseSimulatorImpl : public Simulator
+    // A simulator that specifically models quantum noise. It is derived from a base class named StatevectorSimulator. 
+    struct NoiseSimulatorImpl : public StatevectorSimulator
     {
-        // NoiseSimulatorImpl can make use of all the public and protected members (methods, variables, etc.) of the Simulator class.
+        // NoiseSimulatorImpl can make use of all the public and protected members (methods, variables, etc.) of the StatevectorSimulator class.
         void depolarizing(size_t qn, double p);
         void damping(size_t qn, double gamma);
         void bitflip(size_t qn, double p);

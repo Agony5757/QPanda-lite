@@ -39,7 +39,7 @@ class OpcodeSimulator:
 
         backend_type = backend_alias(backend_type)        
         if backend_type =='statevector':
-            self.SimulatorType = Simulator
+            self.SimulatorType = StatevectorSimulator
             self.simulator_typestr = 'statevector'
         elif backend_type == 'density_operator':
             self.SimulatorType = DensityOperatorSimulator

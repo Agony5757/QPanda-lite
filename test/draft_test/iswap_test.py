@@ -1,7 +1,7 @@
 import math
 import qpandalite.simulator as qsim
 
-sim = qsim.Simulator()
+sim = qsim.StatevectorSimulator()
 
 sim.init_n_qubit(3)
 

@@ -3,7 +3,7 @@ namespace qpandalite {
 
     using namespace statevector_simulator_impl;
 
-    void Simulator::init_n_qubit(size_t nqubit)
+    void StatevectorSimulator::init_n_qubit(size_t nqubit)
     {
         if (nqubit > max_qubit_num)
         {
@@ -21,7 +21,7 @@ namespace qpandalite {
       1/sqrt(2) * [ 1 1 ]
                   [ 1 -1 ]
     */
-    void Simulator::hadamard(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::hadamard(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -34,7 +34,7 @@ namespace qpandalite {
        [ u00 u01 ]
        [ u10 u11 ]
     */
-    void Simulator::u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -70,7 +70,7 @@ namespace qpandalite {
        [ 0 1 ]
        [ 1 0 ]
     */
-    void Simulator::x(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::x(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -86,7 +86,7 @@ namespace qpandalite {
 
        Note: global phase is effective when controlled qubits are applied.
     */
-    void Simulator::y(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::y(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
         size_t controller_mask = make_controller_mask(global_controller);
@@ -99,7 +99,7 @@ namespace qpandalite {
        [ 1  0 ]
        [ 0 -1 ]    
     */
-    void Simulator::z(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::z(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
         size_t controller_mask = make_controller_mask(global_controller);
@@ -112,7 +112,7 @@ namespace qpandalite {
        [ 1  0 ]
        [ 0 -1 ]
     */
-    void Simulator::s(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::s(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
             size_t controller_mask = make_controller_mask(global_controller);
@@ -128,7 +128,7 @@ namespace qpandalite {
        [ 1  0 ]
        [ 0 -1 ]
     */
-    void Simulator::t(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::t(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
             size_t controller_mask = make_controller_mask(global_controller);
@@ -147,7 +147,7 @@ namespace qpandalite {
        [ 0  0  1  0 ]
        [ 0  0  0 -1 ]
     */
-    void Simulator::cz(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::cz(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, input1)
         CHECK_QUBIT_RANGE2(qn2, input2)
@@ -165,7 +165,7 @@ namespace qpandalite {
        [ 0  1  0  0 ]
        [ 0  0  0  1 ]
     */
-    void Simulator::swap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::swap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, input1)
         CHECK_QUBIT_RANGE2(qn2, input2)
@@ -183,7 +183,7 @@ namespace qpandalite {
        [ 0  1j 0  0 ]
        [ 0  0  0  1 ]
     */
-    void Simulator::iswap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::iswap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, input1)
         CHECK_QUBIT_RANGE2(qn2, input2)
@@ -203,7 +203,7 @@ namespace qpandalite {
 
       where c = cos(theta/2), s = -1j * sin(theta/2)
     */
-    void Simulator::xy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::xy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, input1)
         CHECK_QUBIT_RANGE2(qn2, input2)
@@ -221,7 +221,7 @@ namespace qpandalite {
        [ 0  0  0  1 ]
        [ 0  0  1  0 ]
     */
-    void Simulator::cnot(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::cnot(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(controller, controller)
         CHECK_QUBIT_RANGE2(target, target)
@@ -237,7 +237,7 @@ namespace qpandalite {
        [ cos(theta/2)    -i*sin(theta/2) ]
        [ -i*sin(theta/2)    cos(theta/2) ]
     */
-    void Simulator::rx(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::rx(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -266,7 +266,7 @@ namespace qpandalite {
 
        Note: global phase is effective when controlled qubits are applied.
     */
-    void Simulator::sx(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::sx(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -296,7 +296,7 @@ namespace qpandalite {
        [ cos(theta/2)   -sin(theta/2) ]
        [ sin(theta/2)    cos(theta/2) ]
     */
-    void Simulator::ry(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::ry(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -322,7 +322,7 @@ namespace qpandalite {
        [ exp(-it/2)     0     ]
        [     0      exp(it/2) ]
     */
-    void Simulator::rz(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::rz(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -336,7 +336,7 @@ namespace qpandalite {
        [     1     0     ]
        [     0     exp(it) ]
     */
-    void Simulator::u1(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::u1(size_t qn, double angle, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -351,7 +351,7 @@ namespace qpandalite {
        1/sqrt(2) * [     1         -exp(i*lambda) ]
                    [ exp(i*phi)  exp(i*(phi+lambda)]
     */
-    void Simulator::u2(size_t qn, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::u2(size_t qn, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -382,7 +382,7 @@ namespace qpandalite {
        1/sqrt(2) * [     1           -iexp(-i*phi) ]
                    [ -iexp(i*phi)        1         ]
     */
-    void Simulator::rphi90(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::rphi90(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -412,7 +412,7 @@ namespace qpandalite {
        [   0           -i*exp(-i*phi) ]
        [ -i*exp(i*phi)      0         ]    
     */
-    void Simulator::rphi180(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::rphi180(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -443,7 +443,7 @@ namespace qpandalite {
        [ -iexp(i*phi)*sin(theta/2)         cos(theta/2)         ]
     
     */
-    void Simulator::rphi(size_t qn, double theta, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::rphi(size_t qn, double theta, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -469,7 +469,7 @@ namespace qpandalite {
     }
 
     /* Toffoli gate */
-    void Simulator::toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
@@ -483,7 +483,7 @@ namespace qpandalite {
         toffoli_unsafe_impl(state, qn1, qn2, target, total_qubit, controller_mask);
     }
 
-    void Simulator::cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(controller, controller)
         CHECK_QUBIT_RANGE2(target1, target1)
@@ -503,7 +503,7 @@ namespace qpandalite {
     *    |10> -> exp(it/2) * |10>
     *    |11> -> exp(-it/2) * |11> 
     */
-    void Simulator::zz(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::zz(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
@@ -523,7 +523,7 @@ namespace qpandalite {
     *    |10> -> [   0     isin(t)  cos(t)    0     ]
     *    |11> -> [ isin(t)   0       0       cos(t) ]
     */
-    void Simulator::xx(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::xx(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
@@ -545,7 +545,7 @@ namespace qpandalite {
    *    |10> -> [   0     isin(t)  cos(t)    0     ]
    *    |11> -> [ -isin(t)   0       0       cos(t) ] where t=-theta/2
    */
-    void Simulator::yy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::yy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
@@ -566,7 +566,7 @@ namespace qpandalite {
         [  cos(theta/2)                -exp(i*lambda)*sin(theta/2)     ]
         [  exp(i*phi)*sin(theta/2)   exp(i*(phi+lambda))*cos(theta/2)  ]
     */
-    void Simulator::u3(size_t qn, double theta, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::u3(size_t qn, double theta, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE(qn)
 
@@ -574,7 +574,7 @@ namespace qpandalite {
         u3_unsafe_impl(state, qn, theta, phi, lambda, total_qubit, controller_mask, is_dagger);
     }
 
-    void Simulator::phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
@@ -593,7 +593,7 @@ namespace qpandalite {
     }
 
 
-    void Simulator::uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller, bool is_dagger)
+    void StatevectorSimulator::uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller, bool is_dagger)
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
@@ -604,7 +604,7 @@ namespace qpandalite {
         uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
 
-    dtype Simulator::get_prob_map(const std::map<size_t, int> &measure_qubits)
+    dtype StatevectorSimulator::get_prob_map(const std::map<size_t, int> &measure_qubits)
     {
         for (auto &&[qn, qstate] : measure_qubits)
         {
@@ -633,7 +633,7 @@ namespace qpandalite {
         return prob;
     }
 
-    dtype Simulator::get_prob(size_t qn, int qstate)
+    dtype StatevectorSimulator::get_prob(size_t qn, int qstate)
     {
         if (qn >= total_qubit)
         {
@@ -655,7 +655,7 @@ namespace qpandalite {
         return prob;
     }
 
-    std::vector<dtype> Simulator::pmeasure_list(const std::vector<size_t> &measure_list)
+    std::vector<dtype> StatevectorSimulator::pmeasure_list(const std::vector<size_t> &measure_list)
     {
         auto measure_map = preprocess_measure_list(measure_list, total_qubit);
 
@@ -670,7 +670,7 @@ namespace qpandalite {
         return ret;
     }
 
-    std::vector<dtype> Simulator::pmeasure(size_t measure_qubit)
+    std::vector<dtype> StatevectorSimulator::pmeasure(size_t measure_qubit)
     {
         return pmeasure_list(std::vector{measure_qubit});
     }

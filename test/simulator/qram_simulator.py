@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-from qpandalite.simulator import Simulator, NoisySimulator
+from qpandalite.simulator import StatevectorSimulator, NoisySimulator
 from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import seed

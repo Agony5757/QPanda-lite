@@ -1,749 +1,410 @@
-'''Interface for quantum circuit simulator written in C++
-
-Note:
-    You can find implementation at QPandaLiteCpp/src/simulator.cpp. The python interface is implemented by pybind11, which can be found at QPandaLiteCpp/Pybinder/QPandaLitePy.cpp.
-
-'''
-from typing import Dict, Mapping, List, Optional, Tuple
-from typing_extensions import override
-
-# from numpy.typing import ArrayLike
-
-def seed(seed_: int) -> None: ...
-def rand() -> float: ...
-
-def seed(seed_: int) -> None: ...
-def rand() -> float: ...
-
-class Simulator:
-    def __init__(self) -> None: 
-        '''Create a simulator instance (implemented by C++).
-        The simulator has two accessible variables: ``total_qubit'' and ``state''.
-        total_qubit is initialized with init_n_qubit method.
-        state represents the quantum state, which can be modified by calling the gate method.
-        '''
-        ...
-
-    @property
-    def state(self) -> List[complex]:
-        '''The quantum state
-
-        Returns:
-            List[complex]: The representation of the quantum state.
-        '''
-        ...
-
-    @property
-    def total_qubit(self) -> int:
-        '''The number of qubit.
-
-        Returns:
-            int: The number of qubit of the simulator.
-        '''
-        ...
-
-    def init_n_qubit(self, n : int) -> None:
-        '''Initialize a |0...0> state of n qubits.
-
-        Args:
-            n (int): The number of qubits.
-        '''
-        ...
-
-    def hadamard(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Hadamard gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def x(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
-        '''X gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def sx(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''SX gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def y(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Y gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def z(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Z gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def u22(self, qn : int, control : List[int], unitary : List[complex]) -> None:
-        '''Any 2*2 unitary.
-
-        Args:
-            qn (int): The gate qubit.
-            unitary (List[complex]): A list with 4 complex elements, representing u00, u01, u10, u11 respectively.
-        '''
-        ...   
-
-    def cz(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CZ gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def iswap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''iSWAP gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def xy(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''XX+YY gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def cnot(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ...    
-
-    def rx(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rx gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def ry(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Ry gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rz(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rz gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rphi90(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi90 gate (pi/2 pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi180(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi180 gate (pi pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi gate.
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-            theta (float): The rotation angle.
-        '''
-        ...
-
-    @override
-    def get_prob(self, measure_qubit : int, measure_state : int) -> float:
-        '''Measure
-
-        Args:
-            measure_qubit (int): The measured qubit.
-            measure_state (int): The state of the measured qubit (either 0 or 1).
-
-        Returns:
-            float: The probability of the matching qubit & state.
-        '''
-        ...
-    
-    @override
-    def get_prob(self, measure_qubits_and_states : Mapping[int,int] ) -> float:
-        '''Measure
-
-        Args:
-            measure_qubits_and_states (Mapping[int,int]): A mapping for measured qubits and corresponding states (either 0 or 1).
-
-        Returns:
-            float: The probability of all qubits & states are matched.
-        '''
-        ...
-
-    @override
-    def pmeasure(self, measure_qubit: int) -> List[float]:
-        '''Measure one qubit and get the prob list.
-
-        Args:
-            measure_qubit (List[int]): Measure qubits
-
-        Returns:
-            List[Float]: Probability of 0 and 1
-        '''
-        ...
-
-    @override
-    def pmeasure(self, measure_qubit : List[int]) -> List[float]:
-        '''Measure many qubits and get the prob list.
-
-        Args:
-            measure_qubit (List[int]): Measure qubits
-
-        Returns:
-            List[Float]: Probability of 000... to 111...
-        '''
-        ...
-
+"""
+[Module QPandaLitePy]
+"""
+from __future__ import annotations
+import typing
+__all__ = ['BitFlip', 'CNOT', 'CSWAP', 'CZ', 'Damping', 'DensityOperatorSimulator', 'Depolarizing', 'HADAMARD', 'IDENTITY', 'ISWAP', 'NoiseType', 'NoisySimulator', 'NoisySimulator_GateDependent', 'NoisySimulator_GateSpecificError', 'OpcodeType', 'PhaseFlip', 'RPHI', 'RPHI180', 'RPHI90', 'RX', 'RY', 'RZ', 'S', 'SX', 'StatevectorSimulator', 'SupportOperationType', 'T', 'TOFFOLI', 'TwoQubitDepolarizing', 'U22', 'X', 'XY', 'Y', 'Z', 'rand', 'seed']
 class DensityOperatorSimulator:
+    max_qubit_num: typing.ClassVar[int] = 10
     def __init__(self) -> None:
-        '''Create a density operator simulator instance (implemented by C++).
-        The simulator has two accessible variables: ``total_qubit'' and ``state''.
-        total_qubit is initialized with init_n_qubit method.
-        state represents the quantum state, which can be modified by calling the gate method.
-        '''
         ...
-
+    def cnot(self, controller: int, target: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def cswap(self, controller: int, target1: int, target2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def cz(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    @typing.overload
+    def get_prob(self, arg0: int, arg1: int) -> float:
+        ...
+    @typing.overload
+    def get_prob(self, arg0: dict[int, int]) -> float:
+        ...
+    def hadamard(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def init_n_qubit(self, arg0: int) -> None:
+        ...
+    def iswap(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def phase2q(self, qn1: int, qn2: int, theta1: float, theta2: float, thetazz: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    @typing.overload
+    def pmeasure(self, arg0: int) -> list[float]:
+        ...
+    @typing.overload
+    def pmeasure(self, arg0: list[int]) -> list[float]:
+        ...
+    def rphi(self, qn: int, theta: float, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rphi180(self, qn: int, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rphi90(self, qn: int, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rx(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def ry(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rz(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def s(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def stateprob(self) -> list[float]:
+        ...
+    def swap(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def sx(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def t(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def toffoli(self, controller1: int, controller2: int, target: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u1(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u2(self, qn: int, phi: float, lamda: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u22(self, qn: int, unitary: list[complex[4]], global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u3(self, qn: int, theta: float, phi: float, lamda: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def uu15(self, qn1: int, qn2: int, parameters: list[float], global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def x(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def xx(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def xy(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def y(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def yy(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def z(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def zz(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
     @property
-    def state(self) -> List[complex]:
-        '''The quantum state
-
-        Returns:
-            List[complex]: The representation of the quantum state.
-        '''
+    def state(self) -> list[complex]:
         ...
-
     @property
     def total_qubit(self) -> int:
-        '''The number of qubit.
-
-        Returns:
-            int: The number of qubit of the simulator.
-        '''
         ...
-
-    def init_n_qubit(self, n : int) -> None:
-        '''Initialize a |0...0> state of n qubits.
-
-        Args:
-            n (int): The number of qubits.
-        '''
-        ...
-
-    def hadamard(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Hadamard gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def x(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
-        '''X gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def sx(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''SX gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def y(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Y gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def z(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Z gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def u22(self, qn : int, control : List[int], unitary : List[complex]) -> None:
-        '''Any 2*2 unitary.
-
-        Args:
-            qn (int): The gate qubit.
-            unitary (List[complex]): A list with 4 complex elements, representing u00, u01, u10, u11 respectively.
-        '''
-        ...   
-
-    def cz(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CZ gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def iswap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''iSWAP gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def xy(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''XX+YY gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    def cnot(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ...    
-
-    def rx(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rx gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def ry(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Ry gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rz(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rz gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rphi90(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi90 gate (pi/2 pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi180(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi180 gate (pi pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi gate.
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-            theta (float): The rotation angle.
-        '''
-        ...
-
-    def stateprob(self) -> List[float]:
-        '''Get the probability
-        Returns:
-            List[float]: The probability of each state.
-        '''
-        ...
-
-    def pmeasure(self, measure_qubit: int) -> List[float]:
-        '''Measure one qubit and get the prob list.
-
-        Args:
-            measure_qubit (List[int]): Measure qubits
-
-        Returns:
-            List[Float]: Probability of 0 and 1
-        '''
-        ...
-
-    def pmeasure(self, measure_qubit : List[int]) -> List[float]:
-        '''Measure many qubits and get the prob list.
-
-        Args:
-            measure_qubit (List[int]): Measure qubits
-
-        Returns:
-            List[Float]: Probability of 000... to 111...
-        '''
-        ...
-    
 class NoiseType:
-    Depolarizing: int
-    Damping: int
-    BitFlip: int
-    PhaseFlip: int
-    TwoQubitDepolarizing : int
-
-class SupportOperationType:
-    HADAMARD : int
-    IDENTITY : int
-    U22 : int
-    X : int
-    Y : int
-    Z : int
-    SX : int
-    CZ : int
-    ISWAP : int
-    XY : int
-    CNOT : int
-    RX : int
-    RY : int
-    RZ : int
-    RPHI90 : int
-    RPHI180 : int
-    RPHI : int
-    TOFFOLI : int
-    CSWAP : int
-
-class NoisySimulator:    
-    noise: Dict[str, float]
-    measurement_error_matrices: List[Tuple[float, float]]
-
-    def __init__(self,
-                n_qubit: int, 
-                noise_description: Optional[Dict[str, float]] = None, 
-                measurement_error: Optional[List[Tuple[float, float]]] = None):
-        """
-        Create a simulator instance (implemented by C++).
-        The simulator has three accessible variables: `total_qubit`, `noise`, and `gate_dependent_noise`.
-        `total_qubit` is the number of qubits for the simulation.
-        `noise` is a dictionary mapping global noise types to their probabilities.
-        `gate_dependent_noise` is a dictionary mapping gate names to dictionaries of noise types and probabilities.
-        `measurement_error_matrices` represents the measurement error for the simulator.
-        
-        :param n_qubit: The number of qubits for the simulation.
-        :param noise_description: A dictionary mapping global noise types to their probabilities.
-        :param gate_noise_description: A dictionary mapping gate names to dictionaries of noise types and probabilities.
-        :param measurement_error: A list of tuples representing measurement error matrices.
-        """
-        # self.simulator_instance = qpandalite.NoisySimulator(
-        #     n_qubit, noise_description, gate_noise_description, measurement_error
-        # )
+    """
+    Members:
+    
+      Depolarizing
+    
+      Damping
+    
+      BitFlip
+    
+      PhaseFlip
+    
+      TwoQubitDepolarizing
+    """
+    BitFlip: typing.ClassVar[NoiseType]  # value = <NoiseType.BitFlip: 3>
+    Damping: typing.ClassVar[NoiseType]  # value = <NoiseType.Damping: 2>
+    Depolarizing: typing.ClassVar[NoiseType]  # value = <NoiseType.Depolarizing: 1>
+    PhaseFlip: typing.ClassVar[NoiseType]  # value = <NoiseType.PhaseFlip: 4>
+    TwoQubitDepolarizing: typing.ClassVar[NoiseType]  # value = <NoiseType.TwoQubitDepolarizing: 5>
+    __members__: typing.ClassVar[dict[str, NoiseType]]  # value = {'Depolarizing': <NoiseType.Depolarizing: 1>, 'Damping': <NoiseType.Damping: 2>, 'BitFlip': <NoiseType.BitFlip: 3>, 'PhaseFlip': <NoiseType.PhaseFlip: 4>, 'TwoQubitDepolarizing': <NoiseType.TwoQubitDepolarizing: 5>}
+    def __eq__(self, other: typing.Any) -> bool:
         ...
-
+    def __getstate__(self) -> int:
+        ...
+    def __hash__(self) -> int:
+        ...
+    def __index__(self) -> int:
+        ...
+    def __init__(self, value: int) -> None:
+        ...
+    def __int__(self) -> int:
+        ...
+    def __ne__(self, other: typing.Any) -> bool:
+        ...
+    def __repr__(self) -> str:
+        ...
+    def __setstate__(self, state: int) -> None:
+        ...
+    def __str__(self) -> str:
+        ...
+    @property
+    def name(self) -> str:
+        ...
+    @property
+    def value(self) -> int:
+        ...
+class NoisySimulator:
+    def __init__(self, n_qubit: int, noise_description: dict[str, float] = {}, measurement_error: list[list[float[2]]] = []) -> None:
+        ...
+    def cnot(self, controller: int, target: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def cz(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def get_measure(self) -> int:
+        ...
+    def get_measure_no_readout_error(self) -> int:
+        ...
+    def hadamard(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def insert_error(self, arg0: list[int], arg1: SupportOperationType) -> None:
+        ...
+    def iswap(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def load_opcode(self, arg0: str, arg1: list[int], arg2: list[float], arg3: bool, arg4: list[int]) -> None:
+        ...
+    @typing.overload
+    def measure_shots(self, measure_qubits: list[int], shots: int) -> dict[int, int]:
+        ...
+    @typing.overload
+    def measure_shots(self, shots: int) -> dict[int, int]:
+        ...
+    def rphi(self, qn: int, phi: float, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rphi180(self, qn: int, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rphi90(self, qn: int, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rx(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def ry(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rz(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def sx(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u22(self, qn: int, unitary: list[complex[4]], global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def x(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def xy(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def y(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def z(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    @property
+    def measurement_error_matrices(self) -> list[list[float[2]]]:
+        ...
+    @property
+    def noise(self) -> dict[NoiseType, float]:
+        ...
     @property
     def total_qubit(self) -> int:
-        '''The number of qubit.
-
-        Returns:
-            int: The number of qubit of the simulator.
-        '''
         ...
-    
-    def load_opcode(self, opstr: str,                # Operation name as a string
-                    qubits: List[int],              # List of qubits
-                    parameters: List[float],         # List of parameters
-                    dagger: bool,                   # Dagger flag
-                    global_controller: List[int]) -> None:  # List of control qubits
-
-        """
-        Loads an opcode into the simulator.       
-        """
-        ...
-
-    def insert_error(self, qubits: List[int]) -> None: 
-        '''insert_error based on the noise_description
-
-        Args:
-            qubits List[int]: The list of gate qubit.
-        '''
-        ...
-
-    def hadamard(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Hadamard gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def x(self, qn: int, control : List[int], is_dagger : bool = False) -> None: 
-        '''X gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def sx(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''SX gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def y(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Y gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-
-    def z(self, qn : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Z gate.
-
-        Args:
-            qn (int): The gate qubit.
-        '''
-        ...
-    
-    def cz(self, qn1 : int, qn2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CZ gate.
-
-        Args:
-            qn1 (int): The gate qubit.
-            qn2 (int): The gate qubit.
-        '''
-        ...
-
-    def iswap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''iSWAP gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-
-    
-    def xy(self, q1 : int, q2 : int, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''XX+YY gate.
-
-        Args:
-            q1 (int): The first qubit.
-            q2 (int): The second qubit.
-        '''
-        ...
-    
-    def cnot(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ...  
-    
-    def swap(self, q1 : int, q2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ...  
-
-    def rx(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rx gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def ry(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Ry gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-
-    def rz(self, qn : int, angle : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rz gate.
-
-        Args:
-            qn (int): Qubit.
-            angle (float): The rotation angle.
-        '''
-        ...
-    
-    def rphi90(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi90 gate (pi/2 pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi180(self, qn : int, phi : float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi180 gate (pi pulse).
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-        '''
-        ...
-
-    def rphi(self, qn : int, phi : float, theta: float, control : List[int], is_dagger : bool = False) -> None:
-        '''Rphi gate.
-
-        Args:
-            qn (int): Qubit.
-            phi (float): The phase angle.
-            theta (float): The rotation angle.
-        '''
-        ...
-    
-    def toffoli(self, qn1 : int, qn2 : int, target : int, control : List[int], is_dagger : bool = False) -> None:
-        '''Toffoli gate.
-
-        Args:
-            qn1 (int): The controller qubit1.
-            qn2 (int): The controller qubit2.
-            target (int): The target qubit.
-        '''
-        ... 
-    
-    def cswap(self, controller : int, target1 : int, target2 : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CSWAP gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target1 (int): The target qubit1.
-            target2 (int): The target qubit2.
-        '''
-        ... 
-
-    def cnot(self, controller : int, target : int, control : List[int], is_dagger : bool = False) -> None:
-        '''CNOT gate.
-
-        Args:
-            controller (int): The controller qubit.
-            target (int): The target qubit.
-        '''
-        ... 
-
-
-    def measure_shots(self, measure_qubits: List[int], shots: int) -> Dict[int, int]:
-        """
-        Simulate a quantum measurement multiple times and tally the results.
-        
-        Args:
-            measure_qubits (List[int]): The list of measured qubits.
-            shots (int): The number of times the quantum measurement is simulated.
-        
-        Returns:
-            Dict[int, int]: A dictionary where keys represent unique measurement results 
-            (as integers) and values represent the frequency of each result.
-        """
-        ...        
-
-    def measure_shots(self, shots: int) -> Dict[int, int]:
-        """
-        Simulate a quantum measurement multiple times and tally the results.
-        The measure qubits are set empty, so all qubits are measured.
-        
-        Args:
-            shots (int): The number of times the quantum measurement is simulated.
-        
-        Returns:
-            Dict[int, int]: A dictionary where keys represent unique measurement results 
-            (as integers) and values represent the frequency of each result.
-        """
-        ...
-        
 class NoisySimulator_GateDependent(NoisySimulator):
-    
-    gate_dependent_noise: Dict[str, Dict[str, float]]
-    
-    def __init__(self,
-        n_qubit: int, 
-        noise_description: Optional[Dict[str, float]] = None, 
-        gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
-        measurement_error: Optional[List[Tuple[float, float]]] = None):
+    def __init__(self, n_qubit: int, noise_description: dict[str, float] = {}, gate_noise_description: dict[str, dict[str, float]] = {}, measurement_error: list[list[float[2]]] = []) -> None:
         ...
-
-GateError1q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
-GateError2q_t = Dict[Tuple[SupportOperationType, int], Dict[NoiseType, float]]
-class NoisySimulator_GateErrorSpecific(NoisySimulator):
-    
-    gate_error1q: Dict[str, Dict[str, float]]
-    
-    def __init__(self,
-        n_qubit: int, 
-        noise_description: Optional[Dict[str, float]] = None, 
-        gate_noise_description: Optional[Dict[str, Dict[str, float]]] = None, 
-        measurement_error: Optional[List[Tuple[float, float]]] = None):
+class NoisySimulator_GateSpecificError(NoisySimulator):
+    def __init__(self, n_qubit: int, noise_description: dict[str, float] = {}, gate_error1q_description: dict[tuple[str, int], dict[str, float]] = {}, gate_error2q_description: dict[tuple[str, tuple[int, int]], dict[str, float]] = {}, measurement_error: list[list[float[2]]] = []) -> None:
         ...
+class OpcodeType:
+    op: int
+    def __init__(self, arg0: int, arg1: list[int], arg2: list[float], arg3: bool, arg4: list[int]) -> None:
+        ...
+class StatevectorSimulator:
+    max_qubit_num: typing.ClassVar[int] = 30
+    def __init__(self) -> None:
+        ...
+    def cnot(self, controller: int, target: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def cswap(self, controller: int, target1: int, target2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def cz(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    @typing.overload
+    def get_prob(self, arg0: int, arg1: int) -> float:
+        ...
+    @typing.overload
+    def get_prob(self, arg0: dict[int, int]) -> float:
+        ...
+    def hadamard(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def init_n_qubit(self, arg0: int) -> None:
+        ...
+    def iswap(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def phase2q(self, qn1: int, qn2: int, theta1: float, theta2: float, thetazz: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    @typing.overload
+    def pmeasure(self, arg0: int) -> list[float]:
+        ...
+    @typing.overload
+    def pmeasure(self, arg0: list[int]) -> list[float]:
+        ...
+    def rphi(self, qn: int, theta: float, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rphi180(self, qn: int, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rphi90(self, qn: int, phi: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rx(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def ry(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def rz(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def s(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def swap(self, qn1: int, qn2: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def sx(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def t(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def toffoli(self, controller1: int, controller2: int, target: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u1(self, qn: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u2(self, qn: int, phi: float, lamda: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u22(self, qn: int, unitary: list[complex[4]], global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def u3(self, qn: int, theta: float, phi: float, lamda: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def uu15(self, qn1: int, qn2: int, parameters: list[float], global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def x(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def xx(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def xy(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def y(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def yy(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def z(self, qn: int, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    def zz(self, qn1: int, qn2: int, theta: float, global_controller: list[int] = [], dagger: bool = False) -> None:
+        ...
+    @property
+    def state(self) -> list[complex]:
+        ...
+    @property
+    def total_qubit(self) -> int:
+        ...
+class SupportOperationType:
+    """
+    Members:
+    
+      HADAMARD
+    
+      IDENTITY
+    
+      U22
+    
+      X
+    
+      Y
+    
+      Z
+    
+      S
+    
+      T
+    
+      SX
+    
+      CZ
+    
+      ISWAP
+    
+      XY
+    
+      CNOT
+    
+      RX
+    
+      RY
+    
+      RZ
+    
+      RPHI90
+    
+      RPHI180
+    
+      RPHI
+    
+      TOFFOLI
+    
+      CSWAP
+    """
+    CNOT: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.CNOT: 1014>
+    CSWAP: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.CSWAP: 1022>
+    CZ: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.CZ: 1010>
+    HADAMARD: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.HADAMARD: 1001>
+    IDENTITY: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.IDENTITY: 1002>
+    ISWAP: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.ISWAP: 1012>
+    RPHI: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RPHI: 1020>
+    RPHI180: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RPHI180: 1019>
+    RPHI90: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RPHI90: 1018>
+    RX: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RX: 1015>
+    RY: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RY: 1016>
+    RZ: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.RZ: 1017>
+    S: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.S: 1007>
+    SX: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.SX: 1009>
+    T: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.T: 1008>
+    TOFFOLI: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.TOFFOLI: 1021>
+    U22: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.U22: 1003>
+    X: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.X: 1004>
+    XY: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.XY: 1013>
+    Y: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.Y: 1005>
+    Z: typing.ClassVar[SupportOperationType]  # value = <SupportOperationType.Z: 1006>
+    __members__: typing.ClassVar[dict[str, SupportOperationType]]  # value = {'HADAMARD': <SupportOperationType.HADAMARD: 1001>, 'IDENTITY': <SupportOperationType.IDENTITY: 1002>, 'U22': <SupportOperationType.U22: 1003>, 'X': <SupportOperationType.X: 1004>, 'Y': <SupportOperationType.Y: 1005>, 'Z': <SupportOperationType.Z: 1006>, 'S': <SupportOperationType.S: 1007>, 'T': <SupportOperationType.T: 1008>, 'SX': <SupportOperationType.SX: 1009>, 'CZ': <SupportOperationType.CZ: 1010>, 'ISWAP': <SupportOperationType.ISWAP: 1012>, 'XY': <SupportOperationType.XY: 1013>, 'CNOT': <SupportOperationType.CNOT: 1014>, 'RX': <SupportOperationType.RX: 1015>, 'RY': <SupportOperationType.RY: 1016>, 'RZ': <SupportOperationType.RZ: 1017>, 'RPHI90': <SupportOperationType.RPHI90: 1018>, 'RPHI180': <SupportOperationType.RPHI180: 1019>, 'RPHI': <SupportOperationType.RPHI: 1020>, 'TOFFOLI': <SupportOperationType.TOFFOLI: 1021>, 'CSWAP': <SupportOperationType.CSWAP: 1022>}
+    def __eq__(self, other: typing.Any) -> bool:
+        ...
+    def __getstate__(self) -> int:
+        ...
+    def __hash__(self) -> int:
+        ...
+    def __index__(self) -> int:
+        ...
+    def __init__(self, value: int) -> None:
+        ...
+    def __int__(self) -> int:
+        ...
+    def __ne__(self, other: typing.Any) -> bool:
+        ...
+    def __repr__(self) -> str:
+        ...
+    def __setstate__(self, state: int) -> None:
+        ...
+    def __str__(self) -> str:
+        ...
+    @property
+    def name(self) -> str:
+        ...
+    @property
+    def value(self) -> int:
+        ...
+def rand() -> float:
+    ...
+def seed(arg0: int) -> None:
+    ...
+BitFlip: NoiseType  # value = <NoiseType.BitFlip: 3>
+CNOT: SupportOperationType  # value = <SupportOperationType.CNOT: 1014>
+CSWAP: SupportOperationType  # value = <SupportOperationType.CSWAP: 1022>
+CZ: SupportOperationType  # value = <SupportOperationType.CZ: 1010>
+Damping: NoiseType  # value = <NoiseType.Damping: 2>
+Depolarizing: NoiseType  # value = <NoiseType.Depolarizing: 1>
+HADAMARD: SupportOperationType  # value = <SupportOperationType.HADAMARD: 1001>
+IDENTITY: SupportOperationType  # value = <SupportOperationType.IDENTITY: 1002>
+ISWAP: SupportOperationType  # value = <SupportOperationType.ISWAP: 1012>
+PhaseFlip: NoiseType  # value = <NoiseType.PhaseFlip: 4>
+RPHI: SupportOperationType  # value = <SupportOperationType.RPHI: 1020>
+RPHI180: SupportOperationType  # value = <SupportOperationType.RPHI180: 1019>
+RPHI90: SupportOperationType  # value = <SupportOperationType.RPHI90: 1018>
+RX: SupportOperationType  # value = <SupportOperationType.RX: 1015>
+RY: SupportOperationType  # value = <SupportOperationType.RY: 1016>
+RZ: SupportOperationType  # value = <SupportOperationType.RZ: 1017>
+S: SupportOperationType  # value = <SupportOperationType.S: 1007>
+SX: SupportOperationType  # value = <SupportOperationType.SX: 1009>
+T: SupportOperationType  # value = <SupportOperationType.T: 1008>
+TOFFOLI: SupportOperationType  # value = <SupportOperationType.TOFFOLI: 1021>
+TwoQubitDepolarizing: NoiseType  # value = <NoiseType.TwoQubitDepolarizing: 5>
+U22: SupportOperationType  # value = <SupportOperationType.U22: 1003>
+X: SupportOperationType  # value = <SupportOperationType.X: 1004>
+XY: SupportOperationType  # value = <SupportOperationType.XY: 1013>
+Y: SupportOperationType  # value = <SupportOperationType.Y: 1005>
+Z: SupportOperationType  # value = <SupportOperationType.Z: 1006>

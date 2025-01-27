@@ -4,9 +4,9 @@
 namespace qpandalite {
 
     // A simulator that specifically models quantum noise. It is derived from a base class named StatevectorSimulator. 
-    struct NoiseSimulatorImpl : public StatevectorSimulator
+    struct StatevectorSimulator_IncludeNoise : public StatevectorSimulator
     {
-        // NoiseSimulatorImpl can make use of all the public and protected members (methods, variables, etc.) of the StatevectorSimulator class.
+        // StatevectorSimulator_IncludeNoise can make use of all the public and protected members (methods, variables, etc.) of the StatevectorSimulator class.
         void depolarizing(size_t qn, double p);
         void damping(size_t qn, double gamma);
         void bitflip(size_t qn, double p);
@@ -20,67 +20,45 @@ namespace qpandalite {
         void normalize_state_vector();
     };
 
-
-    struct NoisySimulator
+    struct NoisyStatevectorSimulator
     {
-        std::map<NoiseType, double> noise;
+        std::vector<OpcodeType> opcodes; // opcode + noisy
 
+        size_t nqubit;
+        std::vector<size_t> measure_qubits;
+        std::map<size_t, size_t> measure_map;
+
+        void load_opcode(const std::string& opstr,
+            const std::vector<size_t>& qubits,
+            const std::vector<double>& parameters,
+            bool dagger,
+            const std::vector<size_t>& global_controller);
+
+        void measure(const std::vector<size_t> measure_qubits_);
+
+
+        // ********* Noise Components ********* //
+        std::map<NoiseType, double> noise;
         // The measurement error is described by 1-P00 and 1-P11
         // When measured to 1, then it flips qi by measurement_error_matrices[qi][1] probability 
         std::vector<std::array<double, 2>> measurement_error_matrices;
-        NoiseSimulatorImpl simulator;
-        size_t nqubit;
-        //std::vector<complex_t> state;
-        std::vector<size_t> measure_qubits;
-        std::map<size_t, size_t> measure_map;
-        std::vector<OpcodeType> opcodes; // opcode + noisy
-        
-        NoisySimulator(size_t n_qubit,
-            const std::map<std::string, double>& noise_description,
-            const std::vector<std::array<double, 2>>& measurement_error);
 
         void _load_noise(std::map<std::string, double> noise_description);
 
-        void load_opcode(const std::string& opstr,
-                const std::vector<size_t>& qubits, 
-                const std::vector<double>& parameters,
-                bool dagger, 
-                const std::vector<size_t>& global_controller);
-        
         /* Noisy simulation */
         void _insert_global_error(const std::vector<size_t>& qn);
         void _insert_generic_error(const std::vector<size_t>& qubits, const std::map<NoiseType, double>& generic_noise_map);
 
         void insert_error(const std::vector<size_t>& qn, UnitaryType gateType);
 
+        StatevectorSimulator_IncludeNoise simulator;
+        
+        NoisyStatevectorSimulator(size_t n_qubit,
+            const std::map<std::string, double>& noise_description,
+            const std::vector<std::array<double, 2>>& measurement_error);
+
         // Model the gate error
         // Perform bit flip based on measurement 
-
-        //void hadamard(size_t qn, bool is_dagger = false);
-        //void id(size_t qn, bool is_dagger = false);
-        //void u22(size_t qn, const u22_t& unitary, bool is_dagger = false);
-        //void x(size_t qn, bool is_dagger = false);
-        //void z(size_t qn, bool is_dagger = false);
-        //void y(size_t qn, bool is_dagger = false);
-        //void sx(size_t qn, bool is_dagger = false);
-        //void cz(size_t qn1, size_t qn2, bool is_dagger = false);
-        //void swap(size_t qn1, size_t qn2, bool is_dagger = false);
-        //void iswap(size_t qn1, size_t qn2, bool is_dagger = false);
-        //void xy(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
-        //void cnot(size_t controller, size_t target, bool is_dagger = false);
-        //void rx(size_t qn, double angle, bool is_dagger = false);
-        //void ry(size_t qn, double angle, bool is_dagger = false);
-        //void rz(size_t qn, double angle, bool is_dagger = false);
-        //void rphi90(size_t qn, double phi, bool is_dagger = false);
-        //void rphi180(size_t qn, double phi, bool is_dagger = false);
-        //void rphi(size_t qn, double phi, double theta, bool is_dagger = false);
-        //void toffoli(size_t qn1, size_t qn2, size_t target, bool is_dagger = false);
-        //void cswap(size_t controller, size_t target1, size_t target2, bool is_dagger = false);
-        //void zz(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
-        //void xx(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
-        //void yy(size_t qn1, size_t qn2, double theta, bool is_dagger = false);
-        //void u3(size_t qn1, double theta, double phi, double lambda, bool is_dagger = false);
-
         void id(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void hadamard(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger = false);
@@ -106,8 +84,6 @@ namespace qpandalite {
         void yy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger = false);
         void u3(size_t qn1, double theta, double phi, double lambda, const std::vector<size_t>& global_controller, bool is_dagger = false);
 
-        void measure(const std::vector<size_t> measure_qubits_);
-
         void execute_once();
         std::pair<size_t, double> _get_state_prob(size_t i);
         size_t get_measure_no_readout_error();
@@ -117,7 +93,7 @@ namespace qpandalite {
 
     };
 
-    struct NoisySimulator_GateDependent : public NoisySimulator
+    struct NoisySimulator_GateDependent : public NoisyStatevectorSimulator
     {
         using GateDependentNoise_t = std::map<UnitaryType, std::map<NoiseType, double>>;
         using GateDependentNoise_Description_t = std::map<std::string, std::map<std::string, double>>;
@@ -136,7 +112,7 @@ namespace qpandalite {
         
     };
 
-    struct NoisySimulator_GateSpecificError : public NoisySimulator
+    struct NoisySimulator_GateSpecificError : public NoisyStatevectorSimulator
     {
         using GateError1q_t = std::map<std::pair<UnitaryType, size_t>, std::map<NoiseType, double>>;
         using GateError2q_t = std::map<std::pair<UnitaryType, std::pair<size_t, size_t>>, std::map<NoiseType, double>>;

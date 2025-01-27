@@ -3,7 +3,7 @@
 
 namespace qpandalite {
 
-	void NoiseSimulatorImpl::depolarizing(size_t qn, double p)
+	void StatevectorSimulator_IncludeNoise::depolarizing(size_t qn, double p)
 	{
 		double r = qpandalite::rand();
 		if (r > p)
@@ -16,7 +16,7 @@ namespace qpandalite {
 			z(qn);
 	}
 
-	void NoiseSimulatorImpl::damping(size_t qn, double p)
+	void StatevectorSimulator_IncludeNoise::damping(size_t qn, double p)
 	{
 		// // Damping noise involves the kraus operator that is not unitary,
 		// // so the state might need to be re-normalized in both cases of Kraus operators.
@@ -88,7 +88,7 @@ namespace qpandalite {
 
 	}
 
-	void NoiseSimulatorImpl::bitflip(size_t qn, double p)
+	void StatevectorSimulator_IncludeNoise::bitflip(size_t qn, double p)
 	{
 		double r = qpandalite::rand();
 		if (r > p)
@@ -97,7 +97,7 @@ namespace qpandalite {
 			x(qn);
 	}
 
-	void NoiseSimulatorImpl::phaseflip(size_t qn, double p)
+	void StatevectorSimulator_IncludeNoise::phaseflip(size_t qn, double p)
 	{
 		double r = qpandalite::rand();
 		if (r > p)
@@ -106,7 +106,7 @@ namespace qpandalite {
 			z(qn);
 	}
 
-	void NoiseSimulatorImpl::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
+	void StatevectorSimulator_IncludeNoise::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
 	{
 		double r = qpandalite::rand();
 		if (r > p)
@@ -155,7 +155,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoiseSimulatorImpl::reset(size_t qn)
+	void StatevectorSimulator_IncludeNoise::reset(size_t qn)
 	{
 		if (qn >= total_qubit)
 		{
@@ -180,7 +180,7 @@ namespace qpandalite {
 		}
 	}
 
-	bool NoiseSimulatorImpl::is_qubit_one(size_t qn)
+	bool StatevectorSimulator_IncludeNoise::is_qubit_one(size_t qn)
 	{
 		// You will need to check if the qubit qn is in the |1> state.
 		// This requires knowledge about how the quantum state is represented in your simulator.
@@ -198,7 +198,7 @@ namespace qpandalite {
 		return qubit_is_one;
 	}
 
-	void NoiseSimulatorImpl::scale_amplitude(size_t qn, double scale_factor)
+	void StatevectorSimulator_IncludeNoise::scale_amplitude(size_t qn, double scale_factor)
 	{
 		// This function is to scale the amplitude of the |1> state of qn by scale_factor due to the damping noise.
 		for (size_t i = 0; i < pow2(total_qubit); ++i)
@@ -210,7 +210,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoiseSimulatorImpl::normalize_state_vector()
+	void StatevectorSimulator_IncludeNoise::normalize_state_vector()
 	{
 		double norm = 0;
 
@@ -226,7 +226,7 @@ namespace qpandalite {
 		}
 	}
 
-	NoisySimulator::NoisySimulator(size_t n_qubit,
+	NoisyStatevectorSimulator::NoisyStatevectorSimulator(size_t n_qubit,
 		const std::map<std::string, double>& noise_description,
 		const std::vector<std::array<double, 2>>& measurement_error)
 		: nqubit(n_qubit),
@@ -236,7 +236,7 @@ namespace qpandalite {
 		_load_noise(noise_description); // Load global noise
 	}
 
-	void NoisySimulator::_load_noise(std::map<std::string, double> noise_description)
+	void NoisyStatevectorSimulator::_load_noise(std::map<std::string, double> noise_description)
 	{
 		auto it_depol = noise_description.find("depolarizing");
 		if (it_depol != noise_description.end())
@@ -263,7 +263,7 @@ namespace qpandalite {
 
 	}
 
-	void NoisySimulator::load_opcode(const std::string& opstr,
+	void NoisyStatevectorSimulator::load_opcode(const std::string& opstr,
 		const std::vector<size_t>& qubits,
 		const std::vector<double>& parameters,
 		bool dagger,
@@ -281,7 +281,7 @@ namespace qpandalite {
 		insert_error({ qubits }, op);
 	}
 
-	void NoisySimulator::_insert_global_error(const std::vector<size_t>& qubits)
+	void NoisyStatevectorSimulator::_insert_global_error(const std::vector<size_t>& qubits)
 	{
 		// Iterate through each noise type in the generic noise map
 		for (const auto& noise_pair : noise) {
@@ -304,7 +304,7 @@ namespace qpandalite {
 		}
 	}
 
-	void NoisySimulator::_insert_generic_error(const std::vector<size_t>& qubits,
+	void NoisyStatevectorSimulator::_insert_generic_error(const std::vector<size_t>& qubits,
 		const std::map<NoiseType, double>& generic_noise_map)
 	{
 		// Iterate through each noise type in the generic noise map
@@ -323,12 +323,12 @@ namespace qpandalite {
 		}
 	}
 
-	void NoisySimulator::insert_error(const std::vector<size_t>& qubits, UnitaryType gate_type)
+	void NoisyStatevectorSimulator::insert_error(const std::vector<size_t>& qubits, UnitaryType gate_type)
 	{
 		_insert_global_error(qubits);
 	}
 	
-	void NoisySimulator::id(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::id(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -341,7 +341,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::IDENTITY);
 	}
 
-	void NoisySimulator::hadamard(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::hadamard(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -354,7 +354,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::HADAMARD);
 	}
 
-	void NoisySimulator::u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -370,7 +370,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::U22);
 	}
 
-	void NoisySimulator::x(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::x(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -384,7 +384,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::X);
 	}
 
-	void NoisySimulator::y(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::y(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -397,7 +397,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::Y);
 	}
 
-	void NoisySimulator::z(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::z(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -410,7 +410,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::Z);
 	}
 
-	void NoisySimulator::sx(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::sx(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -423,7 +423,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::SX);
 	}
 
-	void NoisySimulator::cz(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::cz(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -436,7 +436,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, UnitaryType::CZ);
 	}
 
-	void NoisySimulator::swap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::swap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -449,7 +449,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, UnitaryType::SWAP);
 	}
 
-	void NoisySimulator::xy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::xy(size_t qn1, size_t qn2, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -462,7 +462,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, UnitaryType::XY);
 	}
 
-	void NoisySimulator::iswap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::iswap(size_t qn1, size_t qn2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -475,7 +475,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2 }, UnitaryType::ISWAP);
 	}
 
-	void NoisySimulator::cnot(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::cnot(size_t controller, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -488,7 +488,7 @@ namespace qpandalite {
 		insert_error({ controller, target }, UnitaryType::CNOT);
 	}
 
-	void NoisySimulator::rx(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::rx(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -501,7 +501,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::RX);
 	}
 
-	void NoisySimulator::ry(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::ry(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -514,7 +514,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::RY);
 	}
 
-	void NoisySimulator::rz(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::rz(size_t qn, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -527,7 +527,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::RZ);
 	}
 
-	void NoisySimulator::rphi90(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::rphi90(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -540,7 +540,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::RPHI90);
 	}
 
-	void NoisySimulator::rphi180(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::rphi180(size_t qn, double phi, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -553,7 +553,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::RPHI180);
 	}
 
-	void NoisySimulator::rphi(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::rphi(size_t qn, double phi, double theta, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -566,7 +566,7 @@ namespace qpandalite {
 		insert_error({ qn }, UnitaryType::RPHI);
 	}
 
-	void NoisySimulator::toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::toffoli(size_t qn1, size_t qn2, size_t target, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -579,7 +579,7 @@ namespace qpandalite {
 		insert_error({ qn1, qn2, target }, UnitaryType::TOFFOLI);
 	}
 
-	void NoisySimulator::cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
+	void NoisyStatevectorSimulator::cswap(size_t controller, size_t target1, size_t target2, const std::vector<size_t>& global_controller, bool is_dagger)
 	{
 		opcodes.emplace_back(
 			OpcodeType(
@@ -592,13 +592,13 @@ namespace qpandalite {
 		insert_error({ controller, target1, target2 }, UnitaryType::CSWAP);
 	}
 
-	void NoisySimulator::measure(const std::vector<size_t> measure_qubits_)
+	void NoisyStatevectorSimulator::measure(const std::vector<size_t> measure_qubits_)
 	{
 		measure_qubits = measure_qubits_;
 		measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
 	}
 
-	void NoisySimulator::execute_once()
+	void NoisyStatevectorSimulator::execute_once()
 	{
 		// It initializes the simulator object with a specified number of qubits, given by nqubit.
 		simulator.init_n_qubit(nqubit);
@@ -703,7 +703,7 @@ namespace qpandalite {
 		// std::cout << std::endl;
 	}
 
-	std::pair<size_t, double> NoisySimulator::_get_state_prob(size_t i)
+	std::pair<size_t, double> NoisyStatevectorSimulator::_get_state_prob(size_t i)
 	{
 		auto measure_map = preprocess_measure_list(measure_qubits, simulator.total_qubit);
 		size_t meas_idx = get_state_with_qubit(i, measure_map);
@@ -711,7 +711,7 @@ namespace qpandalite {
 		return { meas_idx, prob };
 	}
 
-	size_t NoisySimulator::get_measure_no_readout_error()
+	size_t NoisyStatevectorSimulator::get_measure_no_readout_error()
 	{
 		// Generate a random number between 0 and 1
 		double r = qpandalite::rand();
@@ -732,10 +732,10 @@ namespace qpandalite {
 				// std::cout << r << " ";
 			}
 		}
-		ThrowRuntimeError("NoisySimulator::get_measure() internal fatal error!");
+		ThrowRuntimeError("NoisyStatevectorSimulator::get_measure() internal fatal error!");
 	}
 
-	size_t NoisySimulator::get_measure()
+	size_t NoisyStatevectorSimulator::get_measure()
 	{
 		size_t meas_result = get_measure_no_readout_error();
 		if (measurement_error_matrices.size() == 0)
@@ -768,7 +768,7 @@ namespace qpandalite {
 	}
 
 
-	std::map<size_t, size_t> NoisySimulator::measure_shots(size_t shots)
+	std::map<size_t, size_t> NoisyStatevectorSimulator::measure_shots(size_t shots)
 	{
 		/* The measure qubits are set empty - so every qubit is measured. */
 
@@ -798,7 +798,7 @@ namespace qpandalite {
 		return measured_result;
 	}
 
-	std::map<size_t, size_t> NoisySimulator::measure_shots(const std::vector<size_t>& measure_list, size_t shots)
+	std::map<size_t, size_t> NoisyStatevectorSimulator::measure_shots(const std::vector<size_t>& measure_list, size_t shots)
 	{
 		// Initialize an empty map to hold the frequency of each measured quantum state.
 
@@ -835,7 +835,7 @@ namespace qpandalite {
 		const std::map<std::string, double>& noise_description_,
 		const std::map<std::string, std::map<std::string, double>>& gate_noise_description_,
 		const std::vector<std::array<double, 2>>& measurement_error_
-	) : NoisySimulator(n_qubit_, noise_description_, measurement_error_)
+	) : NoisyStatevectorSimulator(n_qubit_, noise_description_, measurement_error_)
 	{
 		_load_gate_dependent_noise(gate_noise_description_);
 	}
@@ -881,7 +881,7 @@ namespace qpandalite {
 		const GateError1q_Description_t& gate_error1q_description,
 		const GateError2q_Description_t& gate_error2q_description,
 		const std::vector<std::array<double, 2>>& measurement_error)
-		: NoisySimulator(n_qubit, noise_description, measurement_error)
+		: NoisyStatevectorSimulator(n_qubit, noise_description, measurement_error)
 	{
 		_load_gate_error1q(gate_error1q_description);
 		_load_gate_error2q(gate_error2q_description);

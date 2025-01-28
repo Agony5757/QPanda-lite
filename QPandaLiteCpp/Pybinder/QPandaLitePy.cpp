@@ -131,7 +131,7 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("stateprob", &qpandalite::DensityOperatorSimulator::stateprob)
 		;
 	
-	py::enum_<qpandalite::NoiseType>(m, "NoiseType")
+	/*py::enum_<qpandalite::NoiseType>(m, "NoiseType")
 		.value("Depolarizing", qpandalite::NoiseType::Depolarizing)
 		.value("Damping", qpandalite::NoiseType::Damping)
 		.value("BitFlip", qpandalite::NoiseType::BitFlip)
@@ -162,83 +162,83 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.value("RPHI", qpandalite::UnitaryType::RPHI)
 		.value("TOFFOLI", qpandalite::UnitaryType::TOFFOLI)
 		.value("CSWAP", qpandalite::UnitaryType::CSWAP)
-        .export_values();
+        .export_values();*/
 
-	py::class_<qpandalite::OpcodeType>(m, "OpcodeType")
-		.def(py::init<uint32_t, 
-                  const std::vector<size_t>&, 
-                  const std::vector<double>&, 
-                  bool, 
-                  const std::vector<size_t>&>())
-		.def_readwrite("op", &qpandalite::OpcodeType::op)
-		// There might be others
-		;
+	//py::class_<qpandalite::OpcodeType>(m, "OpcodeType")
+	//	.def(py::init<uint32_t, 
+ //                 const std::vector<size_t>&, 
+ //                 const std::vector<double>&, 
+ //                 bool, 
+ //                 const std::vector<size_t>&>())
+	//	.def_readwrite("op", &qpandalite::OpcodeType::op)
+	//	// There might be others
+	//	;
 
-	using measure_shots_type1 = std::map<size_t, size_t> (qpandalite::NoisySimulator::*)(const std::vector<size_t>&, size_t);
-	using measure_shots_type2 = std::map<size_t, size_t> (qpandalite::NoisySimulator::*)(size_t);
+	//using measure_shots_type1 = std::map<size_t, size_t> (qpandalite::NoisySimulator::*)(const std::vector<size_t>&, size_t);
+	//using measure_shots_type2 = std::map<size_t, size_t> (qpandalite::NoisySimulator::*)(size_t);
 
-	
-	py::class_<qpandalite::NoisySimulator>(m, "NoisySimulator")
-		.def(py::init<size_t, 
-                      const std::map<std::string, double>&, 
-                      const std::vector<std::array<double, 2>>&>(),
-			 py::arg("n_qubit"),
-             py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
-             py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
-        )
-		.def_readonly("total_qubit", &qpandalite::NoisySimulator::nqubit)
-		.def_readonly("noise", &qpandalite::NoisySimulator::noise)
-		.def_readonly("measurement_error_matrices", &qpandalite::NoisySimulator::measurement_error_matrices)
-		.def("load_opcode", &qpandalite::NoisySimulator::load_opcode)
-		.def("insert_error", &qpandalite::NoisySimulator::insert_error)	
-		.def("get_measure_no_readout_error", &qpandalite::NoisySimulator::get_measure_no_readout_error)
-		.def("get_measure", &qpandalite::NoisySimulator::get_measure)
-		.def("measure_shots", (measure_shots_type1)&qpandalite::NoisySimulator::measure_shots, py::arg("measure_qubits"), py::arg("shots"))
-		.def("measure_shots", (measure_shots_type2)&qpandalite::NoisySimulator::measure_shots, py::arg("shots"))
-		
-		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
-		.def("u22", &qpandalite::NoisySimulator::u22, py::arg("qn"), py::arg("unitary"), py_arg_global_controller, py_arg_dagger)
-		.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
-		.def("sx", &qpandalite::NoisySimulator::sx, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
-		.def("y", &qpandalite::NoisySimulator::y, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
-		.def("z", &qpandalite::NoisySimulator::z, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
-		.def("cz", &qpandalite::NoisySimulator::cz, py::arg("qn1"), py::arg("qn2"), py_arg_global_controller, py_arg_dagger)
-		.def("iswap", &qpandalite::NoisySimulator::iswap, py::arg("qn1"), py::arg("qn2"), py_arg_global_controller, py_arg_dagger)
-		.def("xy", &qpandalite::NoisySimulator::xy, py::arg("qn1"), py::arg("qn2"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
-		.def("cnot", &qpandalite::NoisySimulator::cnot, py::arg("controller"), py::arg("target"), py_arg_global_controller, py_arg_dagger)
-		.def("rx", &qpandalite::NoisySimulator::rx, py::arg("qn"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
-		.def("ry", &qpandalite::NoisySimulator::ry, py::arg("qn"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
-		.def("rz", &qpandalite::NoisySimulator::rz, py::arg("qn"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
-		.def("rphi90", &qpandalite::NoisySimulator::rphi90, py::arg("qn"), py::arg("phi"), py_arg_global_controller, py_arg_dagger)
-		.def("rphi180", &qpandalite::NoisySimulator::rphi180, py::arg("qn"), py::arg("phi"), py_arg_global_controller, py_arg_dagger)
-		.def("rphi", &qpandalite::NoisySimulator::rphi, py::arg("qn"), py::arg("phi"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
-		;
+	//
+	//py::class_<qpandalite::NoisySimulator>(m, "NoisySimulator")
+	//	.def(py::init<size_t, 
+ //                     const std::map<std::string, double>&, 
+ //                     const std::vector<std::array<double, 2>>&>(),
+	//		 py::arg("n_qubit"),
+ //            py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
+ //            py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
+ //       )
+	//	.def_readonly("total_qubit", &qpandalite::NoisySimulator::nqubit)
+	//	.def_readonly("noise", &qpandalite::NoisySimulator::noise)
+	//	.def_readonly("measurement_error_matrices", &qpandalite::NoisySimulator::measurement_error_matrices)
+	//	.def("load_opcode", &qpandalite::NoisySimulator::load_opcode)
+	//	.def("insert_error", &qpandalite::NoisySimulator::insert_error)	
+	//	.def("get_measure_no_readout_error", &qpandalite::NoisySimulator::get_measure_no_readout_error)
+	//	.def("get_measure", &qpandalite::NoisySimulator::get_measure)
+	//	.def("measure_shots", (measure_shots_type1)&qpandalite::NoisySimulator::measure_shots, py::arg("measure_qubits"), py::arg("shots"))
+	//	.def("measure_shots", (measure_shots_type2)&qpandalite::NoisySimulator::measure_shots, py::arg("shots"))
+	//	
+	//	.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
+	//	.def("u22", &qpandalite::NoisySimulator::u22, py::arg("qn"), py::arg("unitary"), py_arg_global_controller, py_arg_dagger)
+	//	.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
+	//	.def("sx", &qpandalite::NoisySimulator::sx, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
+	//	.def("y", &qpandalite::NoisySimulator::y, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
+	//	.def("z", &qpandalite::NoisySimulator::z, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
+	//	.def("cz", &qpandalite::NoisySimulator::cz, py::arg("qn1"), py::arg("qn2"), py_arg_global_controller, py_arg_dagger)
+	//	.def("iswap", &qpandalite::NoisySimulator::iswap, py::arg("qn1"), py::arg("qn2"), py_arg_global_controller, py_arg_dagger)
+	//	.def("xy", &qpandalite::NoisySimulator::xy, py::arg("qn1"), py::arg("qn2"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
+	//	.def("cnot", &qpandalite::NoisySimulator::cnot, py::arg("controller"), py::arg("target"), py_arg_global_controller, py_arg_dagger)
+	//	.def("rx", &qpandalite::NoisySimulator::rx, py::arg("qn"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
+	//	.def("ry", &qpandalite::NoisySimulator::ry, py::arg("qn"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
+	//	.def("rz", &qpandalite::NoisySimulator::rz, py::arg("qn"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
+	//	.def("rphi90", &qpandalite::NoisySimulator::rphi90, py::arg("qn"), py::arg("phi"), py_arg_global_controller, py_arg_dagger)
+	//	.def("rphi180", &qpandalite::NoisySimulator::rphi180, py::arg("qn"), py::arg("phi"), py_arg_global_controller, py_arg_dagger)
+	//	.def("rphi", &qpandalite::NoisySimulator::rphi, py::arg("qn"), py::arg("phi"), py::arg("theta"), py_arg_global_controller, py_arg_dagger)
+	//	;
 
-	py::class_<qpandalite::NoisySimulator_GateDependent, qpandalite::NoisySimulator>(m, "NoisySimulator_GateDependent")
-		.def(py::init<size_t,
-				const std::map<std::string, double>&,
-				const std::map<std::string, std::map<std::string, double>>&,
-				const std::vector<std::array<double, 2>>&>(),
-			py::arg("n_qubit"),
-			py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
-			py::arg("gate_noise_description") = std::map<std::string, std::map<std::string, double>>{},  // Default empty map
-			py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
-		)
-		;
+	//py::class_<qpandalite::NoisySimulator_GateDependent, qpandalite::NoisySimulator>(m, "NoisySimulator_GateDependent")
+	//	.def(py::init<size_t,
+	//			const std::map<std::string, double>&,
+	//			const std::map<std::string, std::map<std::string, double>>&,
+	//			const std::vector<std::array<double, 2>>&>(),
+	//		py::arg("n_qubit"),
+	//		py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
+	//		py::arg("gate_noise_description") = std::map<std::string, std::map<std::string, double>>{},  // Default empty map
+	//		py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
+	//	)
+	//	;
 
-	py::class_<qpandalite::NoisySimulator_GateSpecificError, qpandalite::NoisySimulator>(m, "NoisySimulator_GateSpecificError")
-		.def(py::init<size_t,
-			const std::map<std::string, double>&,
-			const qpandalite::NoisySimulator_GateSpecificError::GateError1q_Description_t&,
-			const qpandalite::NoisySimulator_GateSpecificError::GateError2q_Description_t&,
-			const std::vector<std::array<double, 2>>&>(),
-			py::arg("n_qubit"),
-			py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
-			py::arg("gate_error1q_description") = qpandalite::NoisySimulator_GateSpecificError::GateError1q_Description_t{},  // Default empty map
-			py::arg("gate_error2q_description") = qpandalite::NoisySimulator_GateSpecificError::GateError2q_Description_t{},  // Default empty map
-			py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
-		)
-		;
+	//py::class_<qpandalite::NoisySimulator_GateSpecificError, qpandalite::NoisySimulator>(m, "NoisySimulator_GateSpecificError")
+	//	.def(py::init<size_t,
+	//		const std::map<std::string, double>&,
+	//		const qpandalite::NoisySimulator_GateSpecificError::GateError1q_Description_t&,
+	//		const qpandalite::NoisySimulator_GateSpecificError::GateError2q_Description_t&,
+	//		const std::vector<std::array<double, 2>>&>(),
+	//		py::arg("n_qubit"),
+	//		py::arg("noise_description") = std::map<std::string, double>{},  // Default empty map
+	//		py::arg("gate_error1q_description") = qpandalite::NoisySimulator_GateSpecificError::GateError1q_Description_t{},  // Default empty map
+	//		py::arg("gate_error2q_description") = qpandalite::NoisySimulator_GateSpecificError::GateError2q_Description_t{},  // Default empty map
+	//		py::arg("measurement_error") = std::vector<std::array<double, 2>>{}  // Default empty vector
+	//	)
+	//	;
 }
 
 #ifdef __GNUC__

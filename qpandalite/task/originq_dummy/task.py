@@ -5,7 +5,7 @@ import warnings
 from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 import qpandalite.simulator as sim
 try:
-    from qpandalite.simulator.originir_simulator import OriginIR_Simulator, OriginIR_NoisySimulator
+    from qpandalite.simulator.originir_simulator import OriginIR_Simulator
 except ImportError as e:
     raise ImportError('You must install QPandaLiteCpp to enable the simulation.')
 
@@ -200,15 +200,18 @@ def _submit_task_group_dummy_impl(
             
             if auto_mapping:
                 
-                my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
-                                                measurement_error, reverse_key=False)
+                # my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
+                #                                 measurement_error, reverse_key=False)
+                my_sim = OriginIR_Simulator(reverse_key=False)
                 prob_result = my_sim.simulate_pmeasure(circuit, shots)
             else:
-                my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
-                                         measurement_error, reverse_key=False, 
-                                         available_qubits=available_qubits, 
-                                         available_topology=available_topology)
-                 
+                # my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
+                #                          measurement_error, reverse_key=False, 
+                #                          available_qubits=available_qubits, 
+                #                          available_topology=available_topology)
+                my_sim = OriginIR_Simulator(reverse_key=False, 
+                                            available_qubits=available_qubits, 
+                                            available_topology=available_topology)
                 prob_result = my_sim.simulate_pmeasure(circuit, shots=shots)
             # n_qubits = my_sim.qubit_num
             n_qubits = len(my_sim.measure_qubit)

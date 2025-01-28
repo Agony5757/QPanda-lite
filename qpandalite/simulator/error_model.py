@@ -20,7 +20,7 @@ class BitFlip(ErrorModel):
         if isinstance(qubits, int):
             qubits = [qubits]
 
-        opcodes = [('BitFlip', qubit, self.p, None, None, None) for qubit in qubits]
+        opcodes = [('BitFlip', qubit, None, self.p, None, None) for qubit in qubits]
         return opcodes
     
 class PhaseFlip(ErrorModel):
@@ -31,7 +31,7 @@ class PhaseFlip(ErrorModel):
         if isinstance(qubits, int):
             qubits = [qubits]
 
-        opcodes =[('PhaseFlip', qubit, self.p, None, None, None) for qubit in qubits]
+        opcodes =[('PhaseFlip', qubit, None, self.p, None, None) for qubit in qubits]
         return opcodes
     
 class Depolarizing(ErrorModel):
@@ -42,7 +42,7 @@ class Depolarizing(ErrorModel):
         if isinstance(qubits, int):
             qubits = [qubits]
 
-        opcodes =[('Depolarizing', qubit, self.p, None, None, None) for qubit in qubits]
+        opcodes =[('Depolarizing', qubit, None, self.p, None, None) for qubit in qubits]
         return opcodes
     
 class TwoQubitDepolarizing(ErrorModel):
@@ -53,7 +53,7 @@ class TwoQubitDepolarizing(ErrorModel):
         if not isinstance(qubits, list) or len(qubits)!= 2:
             raise ValueError("TwoQubitDepolarizing error model requires two qubits")
         
-        opcodes =[('TwoQubitDepolarizing', qubit, self.p, None, None, None) for qubit in qubits]
+        opcodes =[('TwoQubitDepolarizing', qubit, None, self.p, None, None) for qubit in qubits]
         return opcodes
     
 class AmplitudeDamping(ErrorModel):
@@ -64,7 +64,7 @@ class AmplitudeDamping(ErrorModel):
         if isinstance(qubits, int):
             qubits = [qubits]
 
-        opcodes =[('AmplitudeDamping', qubit, self.gamma, None, None, None) for qubit in qubits]
+        opcodes =[('AmplitudeDamping', qubit, None, self.gamma, None, None) for qubit in qubits]
         return opcodes
     
 class PauliError1Q(ErrorModel):
@@ -77,7 +77,7 @@ class PauliError1Q(ErrorModel):
         if isinstance(qubits, int):
             qubits = [qubits]
 
-        opcodes =[('PauliError1Q', qubit, (self.p_x, self.p_y, self.p_z), None, None, None) for qubit in qubits]
+        opcodes =[('PauliError1Q', qubit, None, (self.p_x, self.p_y, self.p_z), None, None) for qubit in qubits]
         return opcodes
     
 class PauliError2Q(ErrorModel):
@@ -88,18 +88,18 @@ class PauliError2Q(ErrorModel):
         if not isinstance(qubits, list) or len(qubits)!= 2:
             raise ValueError("PauliError2Q error model requires two qubits")
         
-        opcodes = [('PauliError2Q', qubit, self.ps, None, None, None) for qubit in qubits]
+        opcodes = [('PauliError2Q', qubit, None, self.ps, None, None) for qubit in qubits]
         return opcodes
 
 class Kraus1Q(ErrorModel):
-    def __init__(self, kraus_ops: List[np.ndarray]):
+    def __init__(self, kraus_ops: List[List[complex]]):
         self.kraus_ops = kraus_ops
 
     def generate_error_opcode(self, qubits):
         if isinstance(qubits, int):
             qubits = [qubits]
 
-        opcodes =[('Kraus1Q', qubit, self.kraus_ops, None, None, None) for qubit in qubits]
+        opcodes =[('Kraus1Q', qubit, None, self.kraus_ops, None, None) for qubit in qubits]
         return opcodes
 
 
@@ -179,8 +179,12 @@ class ErrorLoader_GateSpecificError(ErrorLoader_GateTypeError):
         # special case for CZ gate, the qubits need to be sorted
         if gate == 'CZ':
             qubits = [min(qubits[0], qubits[1]), max(qubits[0], qubits[1])]
+        
+        if isinstance(qubits, list):
+            qubits = tuple(qubits)
 
         key = (gate, qubits)
+
         gate_specific_error = self.gate_specific_error.get(key, [])
         for noise_model in gate_specific_error:
             noise_opcodes = noise_model.generate_error_opcode(qubits)

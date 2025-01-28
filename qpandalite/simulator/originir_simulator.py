@@ -327,10 +327,6 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
         return results
 
 
-
-
-
-
 # class OriginIR_NoisySimulator(OriginIR_Simulator):
 #     def __init__(self, noise_description, gate_noise_description={}, 
 #                  measurement_error=[], reverse_key=False):

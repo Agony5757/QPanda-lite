@@ -352,6 +352,9 @@ class Circuit:
         self.circuit_str += 'CNOT q[{}], q[{}]\n'.format(controller, target)
         self.record_qubit(controller, target)
 
+    def cx(self, controller, target) -> None:
+        self.cnot(controller, target)
+
     def cz(self, q1, q2) -> None:
         self.circuit_str += 'CZ q[{}], q[{}]\n'.format(q1, q2)
         self.record_qubit(q1, q2)

@@ -123,7 +123,7 @@ class OriginIR_Simulator(BaseSimulator):
 
         processed_program_body = self._process_program_body(self.parser.program_body, 
                                                   available_qubits, available_topology)
-                        
+        
         self.qubit_num = len(self.qubit_mapping)
         measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)
         measure_qubit = []

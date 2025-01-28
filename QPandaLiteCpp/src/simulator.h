@@ -2,6 +2,7 @@
 
 #include "errors.h"
 #include "simulator_impl.h"
+#include "rng.h"
 
 namespace qpandalite {
 
@@ -13,6 +14,7 @@ namespace qpandalite {
 
         void init_n_qubit(size_t nqubit);
 
+        void id(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void hadamard(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void u22(size_t qn, const u22_t& unitary, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void x(size_t qn, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
@@ -43,12 +45,21 @@ namespace qpandalite {
         void phase2q(size_t qn1, size_t qn2, double theta1, double theta2, double thetazz, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
         void uu15(size_t qn1, size_t qn2, const std::vector<double>& parameters, const std::vector<size_t>& global_controller = {}, bool is_dagger = false);
 
-        // static bool control_enable(size_t idx, const std::vector<size_t>& global_controller);
+        void pauli_error_1q(size_t qn, double px, double py, double pz);
+        void depolarizing(size_t qn, double p);
+        void bitflip(size_t qn, double p);
+        void phaseflip(size_t qn, double p);
+        void pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p);
+        void twoqubit_depolarizing(size_t qn1, size_t qn2, double p);
+        void kraus1q(size_t qn, const std::vector<u22_t>& kraus_ops);
+        void amplitude_damping(size_t qn, double gamma);
 
         dtype get_prob_map(const std::map<size_t, int>& measure_qubits);
         dtype get_prob(size_t qn, int state);
         std::vector<dtype> pmeasure_list(const std::vector<size_t>& measure_list);
         std::vector<dtype> pmeasure(size_t measure_qubit);
+
+
     };
 
 }

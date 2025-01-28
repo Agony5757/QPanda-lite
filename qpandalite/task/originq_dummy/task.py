@@ -207,7 +207,7 @@ def _submit_task_group_dummy_impl(
                                                  available_qubits=available_qubits, 
                                                  available_topology=available_topology)
             # n_qubits = my_sim.qubit_num
-            n_qubits = len(my_sim.measure_qubit)    
+            n_qubits = len(my_sim.measure_qubit)
             key = []
             value = []
 

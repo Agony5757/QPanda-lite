@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <array>
 #include <complex>
@@ -9,6 +9,8 @@
 #include <cstdint>
 
 #include "errors.h"
+#include "basic_math.h"
+#include "rng.h"
 
 #define CHECK_QUBIT_RANGE(qn) \
         if (qn >= total_qubit)\
@@ -32,43 +34,6 @@
     }
 
 namespace qpandalite {
-    using dtype = double;
-    using complex_t = std::complex<dtype>;
-    using u22_t = std::array<complex_t, 4>;
-    using Kraus1Q = std::vector<u22_t>;
-
-    constexpr dtype SQRT2 = 1.4142135623730951;
-    constexpr dtype INVSQRT2 = 1.0 / SQRT2;
-    constexpr dtype eps = 1e-7;
-
-    constexpr unsigned long long pow2(size_t n) { return 1ull << n; }
-    constexpr auto abs_sqr(complex_t c)
-    {
-        return c.real() * c.real() + c.imag() * c.imag();
-    }
-
-    constexpr auto float_equal(dtype a, dtype b)
-    {
-        dtype compare = a - b;
-        if (compare > eps) return false;
-        if (compare < -eps) return false;
-        return true;
-    }
-
-    constexpr auto complex_equal(complex_t a, complex_t b)
-    {
-        dtype compare_real = a.real() - b.real();
-        if (compare_real > eps) return false;
-        if (compare_real < -eps) return false;
-
-        dtype compare_imag = a.imag() - b.imag();
-        if (compare_imag > eps) return false;
-        if (compare_imag < -eps) return false;
-        return true;
-    }
-
-    bool _assert_u22(const u22_t& u);
-
     std::map<size_t, size_t> preprocess_measure_list(const std::vector<size_t>& measure_list, size_t total_qubit);
 
     size_t get_state_with_qubit(size_t i, const std::map<size_t, size_t>& measure_map);
@@ -181,6 +146,17 @@ namespace qpandalite {
         */
         void uu15_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
             const std::vector<double>& parameters, size_t total_qubit, size_t controller_mask, bool is_dagger);
+        
+        double prob_0(const std::vector<complex_t>& state, size_t qn, size_t total_qubit);
+
+        double prob_1(const std::vector<complex_t>& state, size_t qn, size_t total_qubit);
+
+        void rescale_state(std::vector<complex_t>& state, double norm);
+
+        void amplitude_damping_unsafe_impl(std::vector<complex_t>& state, size_t qn, double gamma, size_t total_qubit);
+
+        void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const std::vector<u22_t>& kraus, size_t total_qubit);
+
     } // namespace statevector_simulator_impl
 
     namespace density_operator_simulator_impl

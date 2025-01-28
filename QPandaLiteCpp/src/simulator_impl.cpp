@@ -1,31 +1,6 @@
 ﻿#include "simulator_impl.h"
 
 namespace qpandalite {
-    bool _assert_u22(const u22_t& u)
-    {
-        // u00 u01
-        // u10 u11
-        // U * U^dag = I
-        auto a00 = u[0], a01 = u[1], a10 = u[2], a11 = u[3];
-        auto b00 = std::conj(u[0]), b01 = std::conj(u[2]), b10 = std::conj(u[1]), b11 = std::conj(u[3]);
-        if (!complex_equal(a00 * b00 + a01 * b10, 1))
-        {
-            return false;
-        }
-        if (!complex_equal(a00 * b01 + a01 * b11, 0))
-        {
-            return false;
-        }
-        if (!complex_equal(a10 * b00 + a11 * b10, 0))
-        {
-            return false;
-        }
-        if (!complex_equal(a10 * b01 + a11 * b11, 1))
-        {
-            return false;
-        }
-        return true;
-    }
     std::map<size_t, size_t> preprocess_measure_list(const std::vector<size_t>& measure_list, size_t total_qubit)
     {
         if (measure_list.size() > total_qubit)
@@ -616,7 +591,7 @@ namespace qpandalite {
                 double lambda4 = parameters[14];
                 u3_unsafe_impl(state, qn2, theta4, phi4, lambda4, total_qubit, controller_mask, false);
             }
-            else /* dagger case*/
+            else /* dagger case */
             {
                 /* U3(q1, parameters[9:12]) */
                 double theta3 = parameters[9];
@@ -657,6 +632,117 @@ namespace qpandalite {
                 double lambda1 = parameters[2];
                 u3_unsafe_impl(state, qn1, theta1, phi1, lambda1, total_qubit, controller_mask, true);
             }
+        }
+
+        double prob_0(const std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+        {
+            const size_t mask = pow2(qn); // 确定目标量子比特的掩码
+            const size_t N = pow2(total_qubit);
+            double p0 = 0.0;
+            for (size_t i = 0; i < N; ++i) {
+                if (!(i & mask)) {
+                    p0 += abs_sqr(state[i]);
+                }
+            }
+            return p0;
+        }
+
+        double prob_1(const std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+        {
+            const size_t mask = pow2(qn); // 确定目标量子比特的掩码
+            const size_t N = pow2(total_qubit);
+            double p1 = 0.0;
+            for (size_t i = 0; i < N; ++i) {
+                if (i & mask) {
+                    p1 += abs_sqr(state[i]);
+                }
+            }
+            return p1;
+        }
+
+        void rescale_state(std::vector<complex_t>& state, double norm) {
+            if (norm < eps)
+                ThrowInvalidArgument(fmt::format("The normalization factor ({}) is invalid.", norm));
+
+            const double inv_norm = 1.0 / norm;
+            for (auto& amp : state) {
+                amp *= inv_norm;
+            }
+        }
+
+        void amplitude_damping_unsafe_impl(std::vector<complex_t>& state, size_t qn, double gamma, size_t total_qubit)
+        {
+            // 计算|1⟩态的总概率
+            double p1 = prob_1(state, qn, total_qubit);
+            size_t mask = pow2(qn);
+            size_t N = pow2(total_qubit);
+
+            const double prob_E1 = gamma * p1; // 应用E1的概率
+            const double r = qpandalite::rand();
+
+            if (r < prob_E1) {
+                for (size_t i = 0; i < N; ++i) {
+                    // 仅处理目标量子比特为0的基态
+                    if ((i & mask) != 0)
+                        continue;
+
+                    size_t i0 = i;
+                    size_t i1 = i + mask;
+
+                    state[i0] = state[i1];
+                    state[i1] = 0;
+                }
+
+                rescale_state(state, p1);
+            }
+            else {
+                // 应用E0操作：衰减|1⟩态幅度
+                for (size_t i = 0; i < N; ++i) {
+                    if (i & mask) {
+                        state[i] *= std::sqrt(1 - gamma);
+                    }
+                }
+
+                // 归一化处理
+                const double norm = 1 - prob_E1;                
+                rescale_state(state, norm);
+            }
+        }
+
+        void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const std::vector<u22_t>& kraus, size_t total_qubit)
+        {
+            const size_t mask = pow2(qn); // 使用安全的幂计算函数
+            const double r = qpandalite::rand();
+            double cumulative_prob = 0.0;
+
+            // 处理前n-1个Kraus算符
+            for (size_t k = 0; k < kraus.size() - 1; ++k) {
+                auto temp_state = state; // 按需复制当前态
+
+                // 应用Kraus算符
+                u22_unsafe_impl(temp_state, qn, kraus[k], total_qubit, 0);
+
+                // 计算概率
+                double prob = 0.0;
+                for (const auto& amp : temp_state) {
+                    prob += std::norm(amp);
+                }
+
+                // 概率决策
+                if (r < cumulative_prob + prob) {
+                    rescale_state(temp_state, std::sqrt(prob));
+                    state = std::move(temp_state);
+                    return;
+                }
+                cumulative_prob += prob;
+            }
+
+            // 处理最后一个Kraus算符（无需复制原始态）
+            u22_unsafe_impl(state, qn, kraus.back(), total_qubit, 0);
+
+            // 计算最终归一化因子（利用完备性条件）
+            const double final_norm = std::sqrt(1.0 - cumulative_prob);
+            rescale_state(state, final_norm);
         }
     } // namespace statevector_simulator_impl
 

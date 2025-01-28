@@ -1,4 +1,4 @@
-#include "simulator.h"
+﻿#include "simulator.h"
 namespace qpandalite {
 
     using namespace statevector_simulator_impl;
@@ -14,6 +14,13 @@ namespace qpandalite {
         state = std::vector<complex_t>(pow2(nqubit), 0);
         state[0] = 1;
         total_qubit = nqubit;
+    }
+
+    void StatevectorSimulator::id(size_t qn, const std::vector<size_t>& global_controller, bool is_dagger)
+    {
+        CHECK_QUBIT_RANGE(qn)
+
+        // do nothing
     }
 
     /* Hadamard gate 
@@ -604,6 +611,148 @@ namespace qpandalite {
         uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
 
+    void StatevectorSimulator::pauli_error_1q(size_t qn, double px, double py, double pz)
+    {
+        double sum = px + py + pz;
+        if (sum > 1.0)
+            ThrowInvalidArgument("The 1Q Pauli error model has total error exceeding 1.0.");
+
+        double r = qpandalite::rand();
+        if (r < px)
+        {
+            // [0, px] perform x gate
+            x(qn);
+            return;
+        }
+        r -= px;
+        if (r < py)
+        {
+            // [px, px+py] perform y gate
+            y(qn);
+            return;
+        }
+        r -= py;
+        if (r < pz)
+        {
+            // [px+py, px+py+pz] perform z gate
+            z(qn);
+            return;
+        }
+        // otherwise perform id gate
+        id(qn);
+    }
+
+    void StatevectorSimulator::depolarizing(size_t qn, double p)
+    {
+        if (p > 1.0)
+            ThrowInvalidArgument("The depolarizing model has p>1.0.");
+        return pauli_error_1q(qn, p / 3, p / 3, p / 3);
+    }
+
+    void StatevectorSimulator::bitflip(size_t qn, double p)
+    {
+        if (p > 1.0)
+            ThrowInvalidArgument("The bitflip model has p>1.0.");
+
+        return pauli_error_1q(qn, p, 0, 0);
+    }
+
+    void StatevectorSimulator::phaseflip(size_t qn, double p)
+    {
+        if (p > 1.0)
+            ThrowInvalidArgument("The phaseflip model has p>1.0.");
+        return pauli_error_1q(qn, 0, 0, p);
+    }
+
+    void StatevectorSimulator::pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p)
+    {
+        // the input must be a 15-sized vector
+        // Depolarizing matrix
+        // II  XI  YI  ZI
+        // IX  XX  YX  ZX
+        // IY  XY  YY  ZY
+        // IZ  XZ  YZ  ZZ
+        if (p.size() != 15)
+            ThrowInvalidArgument("The generalized 2q model must be a 15-sized vector, "
+                "representing p{xi, yi, zi, ix, xx, yx, zx, iy, xy, yy, zy, "
+                "iz, xz, yz, zz}, respectively");
+
+        // 解包所有概率参数
+        double xi = p[0], yi = p[1], zi = p[2];
+        double ix = p[3], xx = p[4], yx = p[5], zx = p[6];
+        double iy = p[7], xy = p[8], yy = p[9], zy = p[10];
+        double iz = p[11], xz = p[12], yz = p[13], zz = p[14];
+
+        double sum = xi + yi + zi +
+            ix + xx + yx + zx +
+            iy + xy + yy + zy +
+            iz + xz + yz + zz;
+
+        if (sum > 1.0)
+            ThrowInvalidArgument("The 2Q Pauli error model has total error exceeding 1.0.");
+
+        double r = qpandalite::rand();
+
+        // 处理XI, YI, ZI
+        if (r < xi) { x(qn1); id(qn2); return; } r -= xi;
+        if (r < yi) { y(qn1); id(qn2); return; } r -= yi;
+        if (r < zi) { z(qn1); id(qn2); return; } r -= zi;
+
+        // 处理IX, XX, YX, ZX
+        if (r < ix) { id(qn1); x(qn2); return; } r -= ix;
+        if (r < xx) { x(qn1); x(qn2); return; } r -= xx;
+        if (r < yx) { y(qn1); x(qn2); return; } r -= yx;
+        if (r < zx) { z(qn1); x(qn2); return; } r -= zx;
+
+        // 处理IY, XY, YY, ZY
+        if (r < iy) { id(qn1); y(qn2); return; } r -= iy;
+        if (r < xy) { x(qn1); y(qn2); return; } r -= xy;
+        if (r < yy) { y(qn1); y(qn2); return; } r -= yy;
+        if (r < zy) { z(qn1); y(qn2); return; } r -= zy;
+
+        // 处理IZ, XZ, YZ, ZZ
+        if (r < iz) { id(qn1); z(qn2); return; } r -= iz;
+        if (r < xz) { x(qn1); z(qn2); return; } r -= xz;
+        if (r < yz) { y(qn1); z(qn2); return; } r -= yz;
+        if (r < zz) { z(qn1); z(qn2); return; }
+
+        // Otherwise, II
+        id(qn1); id(qn2);
+    }
+
+    void StatevectorSimulator::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
+    {
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        const static std::vector<double> p_(15, p / 15);
+        pauli_error_2q(qn1, qn2, p_);
+    }
+
+
+    void StatevectorSimulator::kraus1q(size_t qn, const std::vector<u22_t>& kraus_ops) {
+
+        CHECK_QUBIT_RANGE(qn)
+
+        // 验证Kraus算符完备性（必须确保∑E_i†E_i = I）
+        if (!validate_kraus(kraus_ops)) {
+            ThrowInvalidArgument("Invalid Kraus operators: sum(E†E) != I");
+        }
+        
+        kraus1q_unsafe_impl(state, qn, kraus_ops, total_qubit);
+    }
+
+    void StatevectorSimulator::amplitude_damping(size_t qn, double gamma)
+    {
+        if (gamma > 1.0)
+            ThrowInvalidArgument("The phaseflip model has gamma>1.0.");
+
+        CHECK_QUBIT_RANGE(qn)
+
+        amplitude_damping_unsafe_impl(state, qn, gamma, total_qubit);
+    }
+
+
     dtype StatevectorSimulator::get_prob_map(const std::map<size_t, int> &measure_qubits)
     {
         for (auto &&[qn, qstate] : measure_qubits)
@@ -635,24 +784,21 @@ namespace qpandalite {
 
     dtype StatevectorSimulator::get_prob(size_t qn, int qstate)
     {
-        if (qn >= total_qubit)
+        CHECK_QUBIT_RANGE(qn)
+
+        if (qstate == 0)
         {
-            auto errstr = fmt::format("Exceed total (total_qubit = {}, qn = {})", total_qubit, qn);
-            ThrowInvalidArgument(errstr);
+            return prob_0(state, qn, total_qubit);
         }
-        if (qstate != 0 && qstate != 1)
+        else if (qstate == 1)
+        {
+            return prob_1(state, qn, total_qubit);
+        }
+        else
         {
             auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
             ThrowInvalidArgument(errstr);
         }
-
-        double prob = 0;
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            if ((i >> qn) == qstate) 
-                prob += abs_sqr(state[i]);
-        }
-        return prob;
     }
 
     std::vector<dtype> StatevectorSimulator::pmeasure_list(const std::vector<size_t> &measure_list)

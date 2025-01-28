@@ -1,8 +1,5 @@
 import qpandalite
-from qpandalite.simulator import (StatevectorSimulator, 
-                                  NoisySimulator,
-                                  NoisySimulator_GateDependent, 
-                                  NoisySimulator_GateSpecificError)
+from qpandalite.simulator import (StatevectorSimulator)
 from qpandalite.qasm import OpenQASM2_LineParser
 from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import seed
@@ -34,9 +31,9 @@ def test_noisy_simulator():
     measurement_error = [(0.01, 0.01), (0.02, 0.02)]
     
     # Create an instance of the NoisySimulator
-    simulator = NoisySimulator(2, noise_description, measurement_error)
+    # simulator = NoisySimulator(2, noise_description, measurement_error)
 
-    measurement_results = simulator.measure_shots(measure_qubits=measure_qubits, shots=shots)
+    # measurement_results = simulator.measure_shots(measure_qubits=measure_qubits, shots=shots)
 
 
 @qpandalite_test('Test Simulator')

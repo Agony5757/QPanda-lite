@@ -3,22 +3,22 @@
 
 namespace qpandalite {
 
-    // A simulator that specifically models quantum noise. It is derived from a base class named StatevectorSimulator. 
-    struct NoiseSimulatorImpl : public StatevectorSimulator
-    {
-        // NoiseSimulatorImpl can make use of all the public and protected members (methods, variables, etc.) of the StatevectorSimulator class.
-        void depolarizing(size_t qn, double p);
-        void damping(size_t qn, double gamma);
-        void bitflip(size_t qn, double p);
-        void phaseflip(size_t qn, double p);
-        void twoqubit_depolarizing(size_t qn1, size_t qn2, double p);
-        
-        // Additional methods
-        void reset(size_t qn);
-        bool is_qubit_one(size_t qn);
-        void scale_amplitude(size_t qn, double scale_factor);
-        void normalize_state_vector();
-    };
+    //// A simulator that specifically models quantum noise. It is derived from a base class named StatevectorSimulator. 
+    //struct NoiseSimulatorImpl : public StatevectorSimulator
+    //{
+    //    // NoiseSimulatorImpl can make use of all the public and protected members (methods, variables, etc.) of the StatevectorSimulator class.
+    //    void depolarizing(size_t qn, double p);
+    //    void damping(size_t qn, double gamma);
+    //    void bitflip(size_t qn, double p);
+    //    void phaseflip(size_t qn, double p);
+    //    void twoqubit_depolarizing(size_t qn1, size_t qn2, double p);
+    //    
+    //    // Additional methods
+    //    void reset(size_t qn);
+    //    bool is_qubit_one(size_t qn);
+    //    void scale_amplitude(size_t qn, double scale_factor);
+    //    void normalize_state_vector();
+    //};
 
 
     struct NoisySimulator
@@ -28,7 +28,7 @@ namespace qpandalite {
         // The measurement error is described by 1-P00 and 1-P11
         // When measured to 1, then it flips qi by measurement_error_matrices[qi][1] probability 
         std::vector<std::array<double, 2>> measurement_error_matrices;
-        NoiseSimulatorImpl simulator;
+        StatevectorSimulator simulator;
         size_t nqubit;
         //std::vector<complex_t> state;
         std::vector<size_t> measure_qubits;

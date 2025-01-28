@@ -6,7 +6,6 @@ qasm2_oir_mapping = {
     ('x', 'X'),
     ('y', 'Y'),
     ('z', 'Z'),
-
 }
 
 QASM2_OriginIR_dict = {

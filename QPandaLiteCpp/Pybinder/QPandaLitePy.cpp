@@ -29,8 +29,8 @@ PYBIND11_MODULE(QPandaLitePy, m)
 	using get_prob_type1 = qpandalite::dtype(qpandalite::StatevectorSimulator::*)(size_t, int);
 	using get_prob_type2 = qpandalite::dtype(qpandalite::StatevectorSimulator::*)(const std::map<size_t, int>&);
 
-	using pmeasure_type1 = std::vector<qpandalite::dtype>(qpandalite::StatevectorSimulator::*)(const std::vector<size_t>&);
-	using pmeasure_type2 = std::vector<qpandalite::dtype>(qpandalite::StatevectorSimulator::*)(size_t);
+	using pmeasure_type1 = std::vector<qpandalite::dtype>(qpandalite::StatevectorSimulator::*)(size_t);
+	using pmeasure_type2 = std::vector<qpandalite::dtype>(qpandalite::StatevectorSimulator::*)(const std::vector<size_t>&);
 	
 	using measure_single_shot_type1 = size_t(qpandalite::StatevectorSimulator::*)(size_t);
 	using measure_single_shot_type2 = size_t(qpandalite::StatevectorSimulator::*)(const std::vector<size_t>&);
@@ -196,24 +196,6 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("measure_shots", (measure_shots_type1)&qpandalite::NoisySimulator::measure_shots, py::arg("measure_qubits"), py::arg("shots"))
 		.def("measure_shots", (measure_shots_type2)&qpandalite::NoisySimulator::measure_shots, py::arg("shots"))
 		
-		//.def("id", &qpandalite::NoisySimulator::id, py::arg("qn"), py::arg("is_dagger") = false)
-		//.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py::arg("dagger") = false)
-		//.def("u22", &qpandalite::NoisySimulator::u22, py::arg("qn"), py::arg("unitary"), py::arg("dagger") = false)
-		//.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py::arg("dagger") = false)
-		//.def("sx", &qpandalite::NoisySimulator::sx, py::arg("qn"), py::arg("dagger") = false)
-		//.def("y", &qpandalite::NoisySimulator::y, py::arg("qn"), py::arg("dagger") = false)
-		//.def("z", &qpandalite::NoisySimulator::z, py::arg("qn"), py::arg("dagger") = false)
-		//.def("cz", &qpandalite::NoisySimulator::cz, py::arg("qn1"), py::arg("qn2"), py::arg("is_dagger") = false)
-		//.def("iswap", &qpandalite::NoisySimulator::iswap, py::arg("qn1"), py::arg("qn2"), py::arg("dagger") = false)
-		//.def("xy", &qpandalite::NoisySimulator::xy, py::arg("qn1"), py::arg("qn2"), py::arg("theta"), py::arg("dagger") = false)
-		//.def("cnot", &qpandalite::NoisySimulator::cnot, py::arg("controller"), py::arg("target"), py::arg("is_dagger") = false)
-		//.def("rx", &qpandalite::NoisySimulator::rx, py::arg("qn"), py::arg("theta"), py::arg("dagger") = false)
-		//.def("ry", &qpandalite::NoisySimulator::ry, py::arg("qn"), py::arg("theta"), py::arg("dagger") = false)
-		//.def("rz", &qpandalite::NoisySimulator::rz, py::arg("qn"), py::arg("theta"), py::arg("dagger") = false)
-		//.def("rphi90", &qpandalite::NoisySimulator::rphi90, py::arg("qn"), py::arg("phi"), py::arg("dagger") = false)
-		//.def("rphi180", &qpandalite::NoisySimulator::rphi180, py::arg("qn"), py::arg("phi"), py::arg("dagger") = false)
-		//.def("rphi", &qpandalite::NoisySimulator::rphi, py::arg("qn"), py::arg("phi"), py::arg("theta"), py::arg("dagger") = false)
-
 		.def("hadamard", &qpandalite::NoisySimulator::hadamard, py::arg("qn"), py_arg_global_controller, py_arg_dagger)
 		.def("u22", &qpandalite::NoisySimulator::u22, py::arg("qn"), py::arg("unitary"), py_arg_global_controller, py_arg_dagger)
 		.def("x", &qpandalite::NoisySimulator::x, py::arg("qn"), py_arg_global_controller, py_arg_dagger)

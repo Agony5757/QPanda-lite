@@ -3,228 +3,228 @@
 
 namespace qpandalite {
 
-	void NoiseSimulatorImpl::depolarizing(size_t qn, double p)
-	{
-		double r = qpandalite::rand();
-		if (r > p)
-			return;
-		if (r < p / 3)
-			x(qn);
-		else if (r < p / 3 * 2)
-			y(qn);
-		else
-			z(qn);
-	}
+	//void NoiseSimulatorImpl::depolarizing(size_t qn, double p)
+	//{
+	//	double r = qpandalite::rand();
+	//	if (r > p)
+	//		return;
+	//	if (r < p / 3)
+	//		x(qn);
+	//	else if (r < p / 3 * 2)
+	//		y(qn);
+	//	else
+	//		z(qn);
+	//}
 
-	void NoiseSimulatorImpl::damping(size_t qn, double p)
-	{
-		// // Damping noise involves the kraus operator that is not unitary,
-		// // so the state might need to be re-normalized in both cases of Kraus operators.
-		// double r = qpandalite::rand();
+	//void NoiseSimulatorImpl::damping(size_t qn, double p)
+	//{
+	//	// // Damping noise involves the kraus operator that is not unitary,
+	//	// // so the state might need to be re-normalized in both cases of Kraus operators.
+	//	// double r = qpandalite::rand();
 
-		// // Only apply damping if the qubit is in the |1> state
-		// if (is_qubit_one(qn))
-		// {
-		//     if (r < p)
-		//     {
-		//         // With probability p, we set the qubit qn to the ground state |0>
-		//         reset(qn);
-		//     }
-		//     else
-		//     {
-		//         // With probability (1-p), we scale the amplitude of the |1> state
-		//         // E0 operation: the qubit remains in |1> but its amplitude is scaled by sqrt(1 - p)
-		//         scale_amplitude(qn, std::sqrt(1 - p));
-		//     }
-		// }
-		// // No need to apply E1 if the qubit is already in |0>, as it has no effect.
+	//	// // Only apply damping if the qubit is in the |1> state
+	//	// if (is_qubit_one(qn))
+	//	// {
+	//	//     if (r < p)
+	//	//     {
+	//	//         // With probability p, we set the qubit qn to the ground state |0>
+	//	//         reset(qn);
+	//	//     }
+	//	//     else
+	//	//     {
+	//	//         // With probability (1-p), we scale the amplitude of the |1> state
+	//	//         // E0 operation: the qubit remains in |1> but its amplitude is scaled by sqrt(1 - p)
+	//	//         scale_amplitude(qn, std::sqrt(1 - p));
+	//	//     }
+	//	// }
+	//	// // No need to apply E1 if the qubit is already in |0>, as it has no effect.
 
-		// Kraus operators for amplitude damping
-		double E0 = std::sqrt(1 - p);
-		double E1 = std::sqrt(p);
+	//	// Kraus operators for amplitude damping
+	//	double E0 = std::sqrt(1 - p);
+	//	double E1 = std::sqrt(p);
 
-		// Calculate the probabilities for the no-decay and decay cases
-		double p0 = 0.0;
-		double p1 = 0.0;
-		for (size_t i = 0; i < pow2(total_qubit); ++i) {
-			if ((i >> qn) & 1) { // qubit qn is in the |1> state
-				p1 += abs_sqr(state[i] * E1); // Probability of decay
+	//	// Calculate the probabilities for the no-decay and decay cases
+	//	double p0 = 0.0;
+	//	double p1 = 0.0;
+	//	for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	//		if ((i >> qn) & 1) { // qubit qn is in the |1> state
+	//			p1 += abs_sqr(state[i] * E1); // Probability of decay
 
-				p0 += (abs_sqr(state[i] * E0) + abs_sqr(state[i - pow2(qn)])); // Probability of no decay
-			}
-		}
+	//			p0 += (abs_sqr(state[i] * E0) + abs_sqr(state[i - pow2(qn)])); // Probability of no decay
+	//		}
+	//	}
 
 
-		// Check if p0 + p1 equals 1
-		if (std::abs(p0 + p1 - 1.0) > 1e-10) { // Use a small epsilon for floating-point comparison
-			std::cout << p0 + p1 << " ";
-			ThrowRuntimeError("Error: Probabilities after applying Kraus operators do not sum up to 1.");
-		}
+	//	// Check if p0 + p1 equals 1
+	//	if (std::abs(p0 + p1 - 1.0) > 1e-10) { // Use a small epsilon for floating-point comparison
+	//		std::cout << p0 + p1 << " ";
+	//		ThrowRuntimeError("Error: Probabilities after applying Kraus operators do not sum up to 1.");
+	//	}
 
-		// Generate a random number between 0 and 1
-		double r = qpandalite::rand();
+	//	// Generate a random number between 0 and 1
+	//	double r = qpandalite::rand();
 
-		// Apply the appropriate Kraus operator based on the random number
-		if (r < p1) {
-			// Apply E1 - decay to the ground state |0>
-			for (size_t i = 0; i < pow2(total_qubit); ++i) {
-				if ((i >> qn) & 1) {
-					size_t zero_state_index = i - pow2(qn);
-					state[zero_state_index] = state[i]; // Transfer amplitude
-					state[i] = 0; // Qubit has decayed
-				}
-			}
-		}
-		else {
-			// Apply E0 - scale the amplitude of the |1> state
-			for (size_t i = 0; i < pow2(total_qubit); ++i) {
-				if ((i >> qn) & 1) {
-					state[i] *= E0; // Scale amplitude
-				}
-			}
-		}
-		// Re-normalize the state if necessary
-		normalize_state_vector();
+	//	// Apply the appropriate Kraus operator based on the random number
+	//	if (r < p1) {
+	//		// Apply E1 - decay to the ground state |0>
+	//		for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	//			if ((i >> qn) & 1) {
+	//				size_t zero_state_index = i - pow2(qn);
+	//				state[zero_state_index] = state[i]; // Transfer amplitude
+	//				state[i] = 0; // Qubit has decayed
+	//			}
+	//		}
+	//	}
+	//	else {
+	//		// Apply E0 - scale the amplitude of the |1> state
+	//		for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	//			if ((i >> qn) & 1) {
+	//				state[i] *= E0; // Scale amplitude
+	//			}
+	//		}
+	//	}
+	//	// Re-normalize the state if necessary
+	//	normalize_state_vector();
 
-	}
+	//}
 
-	void NoiseSimulatorImpl::bitflip(size_t qn, double p)
-	{
-		double r = qpandalite::rand();
-		if (r > p)
-			return;
-		else
-			x(qn);
-	}
+	//void NoiseSimulatorImpl::bitflip(size_t qn, double p)
+	//{
+	//	double r = qpandalite::rand();
+	//	if (r > p)
+	//		return;
+	//	else
+	//		x(qn);
+	//}
 
-	void NoiseSimulatorImpl::phaseflip(size_t qn, double p)
-	{
-		double r = qpandalite::rand();
-		if (r > p)
-			return;
-		else
-			z(qn);
-	}
+	//void NoiseSimulatorImpl::phaseflip(size_t qn, double p)
+	//{
+	//	double r = qpandalite::rand();
+	//	if (r > p)
+	//		return;
+	//	else
+	//		z(qn);
+	//}
 
-	void NoiseSimulatorImpl::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
-	{
-		double r = qpandalite::rand();
-		if (r > p)
-			return;
-		int depol_case = int(15 * r / p) + 1;
+	//void NoiseSimulatorImpl::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
+	//{
+	//	double r = qpandalite::rand();
+	//	if (r > p)
+	//		return;
+	//	int depol_case = int(15 * r / p) + 1;
 
-		// II, IX, IY, IZ,  0~3
-		// XI, XX, XY, XZ,  4~7
-		// YI, YX, YY, YZ,  8~11
-		// ZI, ZX, ZY, ZZ,  12~15
+	//	// II, IX, IY, IZ,  0~3
+	//	// XI, XX, XY, XZ,  4~7
+	//	// YI, YX, YY, YZ,  8~11
+	//	// ZI, ZX, ZY, ZZ,  12~15
 
-		switch (depol_case % 4)
-		{
-		case 0:
-			// do nothing
-			break;
-		case 1:
-			x(qn1);
-			break;
-		case 2:
-			y(qn1);
-			break;
-		case 3:
-			z(qn1);
-			break;
-		default:
-			ThrowRuntimeError("?????");
-		}
+	//	switch (depol_case % 4)
+	//	{
+	//	case 0:
+	//		// do nothing
+	//		break;
+	//	case 1:
+	//		x(qn1);
+	//		break;
+	//	case 2:
+	//		y(qn1);
+	//		break;
+	//	case 3:
+	//		z(qn1);
+	//		break;
+	//	default:
+	//		ThrowRuntimeError("?????");
+	//	}
 
-		switch (depol_case / 4)
-		{
-		case 0:
-			// do nothing
-			break;
-		case 1:
-			x(qn2);
-			break;
-		case 2:
-			y(qn2);
-			break;
-		case 3:
-			z(qn2);
-			break;
-		default:
-			ThrowRuntimeError("?????");
-		}
-	}
+	//	switch (depol_case / 4)
+	//	{
+	//	case 0:
+	//		// do nothing
+	//		break;
+	//	case 1:
+	//		x(qn2);
+	//		break;
+	//	case 2:
+	//		y(qn2);
+	//		break;
+	//	case 3:
+	//		z(qn2);
+	//		break;
+	//	default:
+	//		ThrowRuntimeError("?????");
+	//	}
+	//}
 
-	void NoiseSimulatorImpl::reset(size_t qn)
-	{
-		if (qn >= total_qubit)
-		{
-			auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
-			ThrowInvalidArgument(errstr);
-		}
+	//void NoiseSimulatorImpl::reset(size_t qn)
+	//{
+	//	if (qn >= total_qubit)
+	//	{
+	//		auto errstr = fmt::format("Exceed total (total_qubit = {}, input = {})", total_qubit, qn);
+	//		ThrowInvalidArgument(errstr);
+	//	}
 
-		for (size_t i = 0; i < pow2(total_qubit); ++i)
-		{
-			if ((i >> qn) & 1)  // If the qubit is in the |1> state
-			{
-				// We find the corresponding |0> state for this qubit
-				size_t corresponding_zero_state = i & ~(pow2(qn));
+	//	for (size_t i = 0; i < pow2(total_qubit); ++i)
+	//	{
+	//		if ((i >> qn) & 1)  // If the qubit is in the |1> state
+	//		{
+	//			// We find the corresponding |0> state for this qubit
+	//			size_t corresponding_zero_state = i & ~(pow2(qn));
 
-				// Add the amplitude from the |1> state to the |0> state
-				state[corresponding_zero_state] = std::norm(abs_sqr(state[i]));
+	//			// Add the amplitude from the |1> state to the |0> state
+	//			state[corresponding_zero_state] = std::norm(abs_sqr(state[i]));
 
-				// Set the amplitude for the |1> state to zero
-				state[i] = 0;
+	//			// Set the amplitude for the |1> state to zero
+	//			state[i] = 0;
 
-			}
-		}
-	}
+	//		}
+	//	}
+	//}
 
-	bool NoiseSimulatorImpl::is_qubit_one(size_t qn)
-	{
-		// You will need to check if the qubit qn is in the |1> state.
-		// This requires knowledge about how the quantum state is represented in your simulator.
-		// Assuming a state vector representation, you might do the following:
+	//bool NoiseSimulatorImpl::is_qubit_one(size_t qn)
+	//{
+	//	// You will need to check if the qubit qn is in the |1> state.
+	//	// This requires knowledge about how the quantum state is represented in your simulator.
+	//	// Assuming a state vector representation, you might do the following:
 
-		bool qubit_is_one = false;
-		for (size_t i = 0; i < pow2(total_qubit); ++i)
-		{
-			if (((i >> qn) & 1) && std::norm(state[i]) > 0)
-			{
-				qubit_is_one = true;
-				break;
-			}
-		}
-		return qubit_is_one;
-	}
+	//	bool qubit_is_one = false;
+	//	for (size_t i = 0; i < pow2(total_qubit); ++i)
+	//	{
+	//		if (((i >> qn) & 1) && std::norm(state[i]) > 0)
+	//		{
+	//			qubit_is_one = true;
+	//			break;
+	//		}
+	//	}
+	//	return qubit_is_one;
+	//}
 
-	void NoiseSimulatorImpl::scale_amplitude(size_t qn, double scale_factor)
-	{
-		// This function is to scale the amplitude of the |1> state of qn by scale_factor due to the damping noise.
-		for (size_t i = 0; i < pow2(total_qubit); ++i)
-		{
-			if ((i >> qn) & 1)  // If the qubit is in the |1> state
-			{
-				state[i] *= scale_factor;
-			}
-		}
-	}
+	//void NoiseSimulatorImpl::scale_amplitude(size_t qn, double scale_factor)
+	//{
+	//	// This function is to scale the amplitude of the |1> state of qn by scale_factor due to the damping noise.
+	//	for (size_t i = 0; i < pow2(total_qubit); ++i)
+	//	{
+	//		if ((i >> qn) & 1)  // If the qubit is in the |1> state
+	//		{
+	//			state[i] *= scale_factor;
+	//		}
+	//	}
+	//}
 
-	void NoiseSimulatorImpl::normalize_state_vector()
-	{
-		double norm = 0;
+	//void NoiseSimulatorImpl::normalize_state_vector()
+	//{
+	//	double norm = 0;
 
-		// Sum the squares of the absolute values of the amplitudes
-		for (size_t i = 0; i < pow2(total_qubit); ++i) {
-			norm += abs_sqr(state[i]);
-		}
-		// Take the square root to get the normalization factor
-		norm = std::sqrt(norm);
-		// Divide each amplitude by the normalization factor
-		for (size_t i = 0; i < pow2(total_qubit); ++i) {
-			state[i] /= norm;
-		}
-	}
+	//	// Sum the squares of the absolute values of the amplitudes
+	//	for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	//		norm += abs_sqr(state[i]);
+	//	}
+	//	// Take the square root to get the normalization factor
+	//	norm = std::sqrt(norm);
+	//	// Divide each amplitude by the normalization factor
+	//	for (size_t i = 0; i < pow2(total_qubit); ++i) {
+	//		state[i] /= norm;
+	//	}
+	//}
 
 	NoisySimulator::NoisySimulator(size_t n_qubit,
 		const std::map<std::string, double>& noise_description,
@@ -618,7 +618,7 @@ namespace qpandalite {
 			case (uint32_t)NoiseType::Damping:
 				for (const auto& q : opcode.qubits)
 				{
-					simulator.damping(q, opcode.parameters[0]);
+					simulator.amplitude_damping(q, opcode.parameters[0]);
 				}
 				break;
 			case (uint32_t)NoiseType::BitFlip:

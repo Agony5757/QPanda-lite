@@ -197,15 +197,19 @@ def _submit_task_group_dummy_impl(
     for circuit in circuits:
         # If there is noise_description
         if noise_description:
-            my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
-                                             measurement_error, reverse_key=False)
             
             if auto_mapping:
+                
+                my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
+                                                measurement_error, reverse_key=False)
                 prob_result = my_sim.simulate_pmeasure(circuit, shots)
             else:
-                prob_result = my_sim.simulate_pmeasure(circuit, shots=shots, 
-                                                 available_qubits=available_qubits, 
-                                                 available_topology=available_topology)
+                my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
+                                         measurement_error, reverse_key=False, 
+                                         available_qubits=available_qubits, 
+                                         available_topology=available_topology)
+                 
+                prob_result = my_sim.simulate_pmeasure(circuit, shots=shots)
             # n_qubits = my_sim.qubit_num
             n_qubits = len(my_sim.measure_qubit)
             key = []
@@ -221,14 +225,14 @@ def _submit_task_group_dummy_impl(
             results.append({'key':key, 'value': value})
 
         else:
-            simulator = sim.OriginIR_Simulator()
 
             if auto_mapping:
+                simulator = sim.OriginIR_Simulator()
                 prob_result = simulator.simulate_pmeasure(circuit)
             else:
-                prob_result = simulator.simulate_pmeasure(circuit, 
-                                                available_qubits=available_qubits,
-                                                available_topology=available_topology)
+                simulator = sim.OriginIR_Simulator(available_qubits=available_qubits,
+                                                   available_topology=available_topology)
+                prob_result = simulator.simulate_pmeasure(circuit)
             n_qubits = simulator.qubit_num
             key = []
             value = []

@@ -753,7 +753,7 @@ namespace qpandalite {
     }
 
 
-    dtype StatevectorSimulator::get_prob_map(const std::map<size_t, int> &measure_qubits)
+    dtype StatevectorSimulator::get_prob(const std::map<size_t, int> &measure_qubits)
     {
         for (auto &&[qn, qstate] : measure_qubits)
         {
@@ -769,45 +769,28 @@ namespace qpandalite {
             }
         }
 
-        double prob = 0;
-        for (size_t i = 0; i < pow2(total_qubit); ++i)
-        {
-            for (auto &&[qid, qstate] : measure_qubits)
-            {
-                if ((i >> qid) != qstate)
-                    break;
-            }
-            prob += abs_sqr(state[i]);
-        }
-        return prob;
+        return get_prob_unsafe_impl(state, measure_qubits, total_qubit);
     }
 
     dtype StatevectorSimulator::get_prob(size_t qn, int qstate)
     {
         CHECK_QUBIT_RANGE(qn)
 
-        if (qstate == 0)
-        {
-            return prob_0(state, qn, total_qubit);
-        }
-        else if (qstate == 1)
-        {
-            return prob_1(state, qn, total_qubit);
-        }
-        else
-        {
-            auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
-            ThrowInvalidArgument(errstr);
-        }
+        return get_prob_unsafe_impl(state, qn, qstate, total_qubit);
     }
 
-    std::vector<dtype> StatevectorSimulator::pmeasure_list(const std::vector<size_t> &measure_list)
+    std::vector<dtype> StatevectorSimulator::pmeasure(size_t measure_qubit)
+    {
+        return pmeasure(std::vector{ measure_qubit });
+    }
+
+    std::vector<dtype> StatevectorSimulator::pmeasure(const std::vector<size_t>& measure_list)
     {
         auto measure_map = preprocess_measure_list(measure_list, total_qubit);
 
         std::vector<dtype> ret;
         ret.resize(pow2(measure_list.size()));
-        
+
         for (size_t i = 0; i < pow2(total_qubit); ++i)
         {
             size_t meas_idx = get_state_with_qubit(i, measure_map);
@@ -816,9 +799,25 @@ namespace qpandalite {
         return ret;
     }
 
-    std::vector<dtype> StatevectorSimulator::pmeasure(size_t measure_qubit)
+    size_t StatevectorSimulator::measure_single_shot(size_t qubit)
     {
-        return pmeasure_list(std::vector{measure_qubit});
+        return measure_single_shot({ qubit });
     }
+
+    size_t StatevectorSimulator::measure_single_shot(const std::vector<size_t>& qubit)
+    {
+        double r = qpandalite::rand();
+        size_t N = pow2(total_qubit);
+
+        for (int i = 0; i < state.size() - 1; ++i)
+        {
+            if (r < abs_sqr(state[i]))
+                return extract_digits(i, qubit);
+
+            r -= abs_sqr(state[i]);
+        }
+        return extract_digits(N - 1, qubit);
+    }
+
 
 }

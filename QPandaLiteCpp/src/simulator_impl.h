@@ -157,6 +157,10 @@ namespace qpandalite {
 
         void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const std::vector<u22_t>& kraus, size_t total_qubit);
 
+        dtype get_prob_unsafe_impl(const std::vector<complex_t>& state, size_t qn, int qstate, size_t total_qubit);
+
+        dtype get_prob_unsafe_impl(const std::vector<complex_t>& state, const std::map<size_t, int> measure_map, size_t total_qubit);
+
     } // namespace statevector_simulator_impl
 
     namespace density_operator_simulator_impl

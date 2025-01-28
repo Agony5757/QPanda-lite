@@ -25,6 +25,16 @@ PYBIND11_MODULE(QPandaLitePy, m)
 
 	auto py_arg_global_controller = (py::arg("global_controller") = std::vector<size_t>{});
 	auto py_arg_dagger = (py::arg("dagger") = false);
+
+	using get_prob_type1 = qpandalite::dtype(qpandalite::StatevectorSimulator::*)(size_t, int);
+	using get_prob_type2 = qpandalite::dtype(qpandalite::StatevectorSimulator::*)(const std::map<size_t, int>&);
+
+	using pmeasure_type1 = std::vector<qpandalite::dtype>(qpandalite::StatevectorSimulator::*)(const std::vector<size_t>&);
+	using pmeasure_type2 = std::vector<qpandalite::dtype>(qpandalite::StatevectorSimulator::*)(size_t);
+	
+	using measure_single_shot_type1 = size_t(qpandalite::StatevectorSimulator::*)(size_t);
+	using measure_single_shot_type2 = size_t(qpandalite::StatevectorSimulator::*)(const std::vector<size_t>&);
+
 	py::class_<qpandalite::StatevectorSimulator>(m, "StatevectorSimulator")
 		.def(py::init<>())
 		.def_readwrite_static("max_qubit_num", &qpandalite::StatevectorSimulator::max_qubit_num)
@@ -61,19 +71,22 @@ PYBIND11_MODULE(QPandaLitePy, m)
 		.def("phase2q", &qpandalite::StatevectorSimulator::phase2q, py::arg("qn1"), py::arg("qn2"), py::arg("theta1"), py::arg("theta2"), py::arg("thetazz"), py_arg_global_controller, py_arg_dagger)
 		.def("uu15", &qpandalite::StatevectorSimulator::uu15, py::arg("qn1"), py::arg("qn2"), py::arg("parameters"), py_arg_global_controller, py_arg_dagger)
 		
-		.def("pauli_error_1q", &qpandalite::StatevectorSimulator::pauli_error_1q, py::arg("qn"), py::arg("px"), py::arg("py"), py::arg("pz"), py_arg_global_controller, py_arg_dagger)
-		.def("depolarizing", &qpandalite::StatevectorSimulator::depolarizing, py::arg("qn"), py::arg("p"), py_arg_global_controller, py_arg_dagger)
-		.def("bitflip", &qpandalite::StatevectorSimulator::bitflip, py::arg("qn"), py::arg("p"), py_arg_global_controller, py_arg_dagger)
-		.def("phaseflip", &qpandalite::StatevectorSimulator::phaseflip, py::arg("qn"), py::arg("p"), py_arg_global_controller, py_arg_dagger)
-		.def("pauli_error_2q", &qpandalite::StatevectorSimulator::pauli_error_2q, py::arg("qn1"), py::arg("qn2"), py::arg("p"), py_arg_global_controller, py_arg_dagger)
-		.def("twoqubit_depolarizing", &qpandalite::StatevectorSimulator::twoqubit_depolarizing, py::arg("qn1"), py::arg("qn2"), py::arg("p"), py_arg_global_controller, py_arg_dagger)
-		.def("kraus1q", &qpandalite::StatevectorSimulator::kraus1q, py::arg("qn"), py::arg("kraus_ops"), py_arg_global_controller, py_arg_dagger)
-		.def("amplitude_damping", &qpandalite::StatevectorSimulator::amplitude_damping, py::arg("qn"), py::arg("gamma"), py_arg_global_controller, py_arg_dagger)
+		.def("pauli_error_1q", &qpandalite::StatevectorSimulator::pauli_error_1q, py::arg("qn"), py::arg("px"), py::arg("py"), py::arg("pz"))
+		.def("depolarizing", &qpandalite::StatevectorSimulator::depolarizing, py::arg("qn"), py::arg("p"))
+		.def("bitflip", &qpandalite::StatevectorSimulator::bitflip, py::arg("qn"), py::arg("p"))
+		.def("phaseflip", &qpandalite::StatevectorSimulator::phaseflip, py::arg("qn"), py::arg("p"))
+		.def("pauli_error_2q", &qpandalite::StatevectorSimulator::pauli_error_2q, py::arg("qn1"), py::arg("qn2"), py::arg("p"))
+		.def("twoqubit_depolarizing", &qpandalite::StatevectorSimulator::twoqubit_depolarizing, py::arg("qn1"), py::arg("qn2"), py::arg("p"))
+		.def("kraus1q", &qpandalite::StatevectorSimulator::kraus1q, py::arg("qn"), py::arg("kraus_ops"))
+		.def("amplitude_damping", &qpandalite::StatevectorSimulator::amplitude_damping, py::arg("qn"), py::arg("gamma"))
 
-		.def("get_prob", &qpandalite::StatevectorSimulator::get_prob)
-		.def("get_prob", &qpandalite::StatevectorSimulator::get_prob_map)
-		.def("pmeasure", &qpandalite::StatevectorSimulator::pmeasure)
-		.def("pmeasure", &qpandalite::StatevectorSimulator::pmeasure_list)
+		.def("get_prob", (get_prob_type1)&qpandalite::StatevectorSimulator::get_prob, py::arg("qn"), py::arg("qstate"))
+		.def("get_prob", (get_prob_type2)&qpandalite::StatevectorSimulator::get_prob, py::arg("measure_map"))
+		.def("pmeasure", (pmeasure_type1)&qpandalite::StatevectorSimulator::pmeasure, py::arg("qn"))
+		.def("pmeasure", (pmeasure_type2)&qpandalite::StatevectorSimulator::pmeasure, py::arg("measure_qubits"))
+		
+		.def("measure_single_shot", (measure_single_shot_type1)&qpandalite::StatevectorSimulator::measure_single_shot, py::arg("qubit"))
+		.def("measure_single_shot", (measure_single_shot_type2)&qpandalite::StatevectorSimulator::measure_single_shot, py::arg("qubits"))
 		;
 
 	py::class_<qpandalite::DensityOperatorSimulator>(m, "DensityOperatorSimulator")

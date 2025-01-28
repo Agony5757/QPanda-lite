@@ -54,11 +54,15 @@ namespace qpandalite {
         void kraus1q(size_t qn, const std::vector<u22_t>& kraus_ops);
         void amplitude_damping(size_t qn, double gamma);
 
-        dtype get_prob_map(const std::map<size_t, int>& measure_qubits);
+        /* measurement protocol */
         dtype get_prob(size_t qn, int state);
-        std::vector<dtype> pmeasure_list(const std::vector<size_t>& measure_list);
+        dtype get_prob(const std::map<size_t, int>& measure_qubits);
+
+        std::vector<dtype> pmeasure(const std::vector<size_t>& measure_list);
         std::vector<dtype> pmeasure(size_t measure_qubit);
 
+        size_t measure_single_shot(size_t qubit);
+        size_t measure_single_shot(const std::vector<size_t>& qubit);
 
     };
 

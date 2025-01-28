@@ -13,10 +13,12 @@ namespace qpandalite {
     constexpr dtype eps = 1e-7;
 
     constexpr unsigned long long pow2(size_t n) { return 1ull << n; }
-    constexpr auto abs_sqr(complex_t c)
-    {
-        return std::norm(c);
-    }
+    
+    size_t extract_digit(size_t i, size_t digit);
+
+    size_t extract_digits(size_t index, const std::vector<size_t>& qubits);
+
+    dtype abs_sqr(complex_t c);
 
     constexpr auto float_equal(dtype a, dtype b)
     {
@@ -52,4 +54,5 @@ namespace qpandalite {
     u22_t dag(const u22_t& u);
 
     bool validate_kraus(const std::vector<u22_t>& kraus_ops);
+
 }

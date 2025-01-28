@@ -2,6 +2,24 @@
 
 namespace qpandalite
 {
+    size_t extract_digit(size_t i, size_t digit)
+    {
+        return (i >> digit) & 1;
+    }
+    size_t extract_digits(size_t index, const std::vector<size_t>& qubits)
+    {
+        size_t ret = 0;
+        for (int i = 0; i < qubits.size(); ++i)
+        {
+            size_t digit_i = extract_digit(index, qubits[i]) ? pow2(i) : 0;
+            ret += digit_i;
+        }
+        return ret;
+    }
+    dtype abs_sqr(complex_t c)
+    {
+        return std::norm(c);
+    }
     bool _assert_u22(const u22_t& u)
     {
         // u00 u01

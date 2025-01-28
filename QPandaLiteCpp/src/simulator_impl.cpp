@@ -634,7 +634,7 @@ namespace qpandalite {
             }
         }
 
-        double prob_0(const std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+        dtype prob_0(const std::vector<complex_t>& state, size_t qn, size_t total_qubit)
         {
             const size_t mask = pow2(qn); // 确定目标量子比特的掩码
             const size_t N = pow2(total_qubit);
@@ -647,7 +647,7 @@ namespace qpandalite {
             return p0;
         }
 
-        double prob_1(const std::vector<complex_t>& state, size_t qn, size_t total_qubit)
+        dtype prob_1(const std::vector<complex_t>& state, size_t qn, size_t total_qubit)
         {
             const size_t mask = pow2(qn); // 确定目标量子比特的掩码
             const size_t N = pow2(total_qubit);
@@ -744,6 +744,46 @@ namespace qpandalite {
             const double final_norm = std::sqrt(1.0 - cumulative_prob);
             rescale_state(state, final_norm);
         }
+
+        dtype get_prob_unsafe_impl(const std::vector<complex_t>& state, size_t qn, int qstate, size_t total_qubit)
+        {
+            if (qstate == 0)
+            {
+                return prob_0(state, qn, total_qubit);
+            }
+            else if (qstate == 1)
+            {
+                return prob_1(state, qn, total_qubit);
+            }
+            else
+            {
+                auto errstr = fmt::format("State must be 0 or 1. (input = {} at qn = {})", qstate, qn);
+                ThrowInvalidArgument(errstr);
+            }
+        }
+
+        dtype get_prob_unsafe_impl(const std::vector<complex_t>& state, const std::map<size_t, int> measure_map, size_t total_qubit)
+        {
+            size_t mask_qubit = 0;
+            size_t mask_state = 0;
+            for (auto&& [qid, qstate] : measure_map)
+            {
+                mask_qubit |= pow2(qid);
+                mask_state |= (qstate == 1 ? pow2(qid) : 0);
+            }
+
+            double prob = 0;
+            for (size_t i = 0; i < pow2(total_qubit); ++i)
+            {
+                for (auto&& [qid, qstate] : measure_map)
+                {
+                    if ((i & mask_qubit) == mask_state)
+                        prob += abs_sqr(state[i]);
+                }
+            }
+            return prob;
+        }
+
     } // namespace statevector_simulator_impl
 
     namespace density_operator_simulator_impl

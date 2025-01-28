@@ -1,15 +1,16 @@
-from typing import List, Tuple, TYPE_CHECKING
+from typing import List, Tuple, TYPE_CHECKING, Union
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 import warnings
 from .opcode_simulator import OpcodeSimulator
 from .base_simulator import BaseSimulator
+from .error_model import *
+
 if TYPE_CHECKING:
     from .QPandaLitePy import *
 
 class OriginIR_Simulator(BaseSimulator):    
         
     def __init__(self, 
-                 reverse_key = False, 
                  backend_type = 'statevector',                 
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None):
@@ -22,7 +23,6 @@ class OriginIR_Simulator(BaseSimulator):
             available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
             available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
         '''
-        self.reverse_key = reverse_key
         self.qubit_num = 0
         self.measure_qubit = []
         self.qubit_mapping = dict()
@@ -39,7 +39,7 @@ class OriginIR_Simulator(BaseSimulator):
         self.qubit_mapping = dict()
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.opcode_simulator = OpcodeSimulator(self.backend_types)        
+        self.opcode_simulator = OpcodeSimulator(self.backend_types)  
 
     def _add_used_qubit(self, qubit):
         if qubit in self.qubit_mapping:
@@ -125,7 +125,7 @@ class OriginIR_Simulator(BaseSimulator):
                                                   available_qubits, available_topology)
         
         self.qubit_num = len(self.qubit_mapping)
-        measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=self.reverse_key)
+        measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=False)
         measure_qubit = []
         for qubit in measure_qubit_cbit:
             measure_qubit.append(qubit[0])
@@ -152,6 +152,63 @@ class OriginIR_Simulator(BaseSimulator):
         
         return prob_list
     
+    def simulate_statevector(self, originir):
+        '''Simulate originir.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+        Returns:
+            List[float]: The probability list of output from the ideal simulator
+        '''
+        processed_program_body, measure_qubit = self._simulate_preprocess(
+            originir, self.available_qubits, self.available_topology
+        )
+            
+        statevector = self.opcode_simulator.simulate_opcodes_statevector(
+            self.qubit_num, processed_program_body)
+        
+        return statevector
+    
+    def simulate_density_matrix(self, originir):
+        '''Simulate originir.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+        Returns:
+            List[float]: The probability list of output from the ideal simulator
+        '''
+        processed_program_body, measure_qubit = self._simulate_preprocess(
+            originir, self.available_qubits, self.available_topology
+        )
+            
+        density_matrix = self.opcode_simulator.simulate_opcodes_density_operator(
+            self.qubit_num, processed_program_body)
+        
+        return density_matrix
+    
+    def simulate_single_shot(self, originir):
+        '''Simulate originir.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+        Returns:
+            int: The sampled output from the ideal simulator
+        '''
+        processed_program_body, measure_qubit = self._simulate_preprocess(
+            originir, self.available_qubits, self.available_topology
+        )
+        
+        result = self.opcode_simulator.simulate_opcodes_shot(
+            self.qubit_num, processed_program_body, measure_qubit)
+        
+        return result
+    
     @property
     def simulator(self):
         return self.opcode_simulator.simulator
@@ -159,6 +216,21 @@ class OriginIR_Simulator(BaseSimulator):
     @property
     def state(self):
         return self.opcode_simulator.simulator.state
+
+class OriginIR_NoisySimulator(OriginIR_Simulator):
+    def __init__(self, 
+                 backend_type = 'statevector',                 
+                 available_qubits : List[int] = None, 
+                 available_topology : List[List[int]] = None,
+                 error_loader : ErrorLoader = None,
+                 measurement_error : Dict[int, List[float]]={}):
+        super().__init__(backend_type, available_qubits, available_topology)        
+        self.measurement_error = measurement_error
+        self.error_loader = error_loader
+
+    def simulate_pmeasure(self, originir):
+        raise NotImplementedError('Noisy simulator does not support pmeasure.')
+
 
 
 # class OriginIR_NoisySimulator(OriginIR_Simulator):

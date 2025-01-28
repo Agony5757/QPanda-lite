@@ -34,9 +34,6 @@ class OpcodeSimulator:
     def __init__(self, backend_type = 'statevector'):
         '''OpcodeSimulator is a quantum circuit simulation based on C++ which runs locally on your PC.
         '''
-        self.qubit_num = None
-        self.measure_qubit = None
-
         backend_type = backend_alias(backend_type)        
         if backend_type =='statevector':
             self.SimulatorType = StatevectorSimulator
@@ -132,6 +129,57 @@ class OpcodeSimulator:
             self.simulator.phase2q(qubit[0], qubit[1],
                 parameter[0], parameter[1], parameter[2], 
                 control_qubits_set, is_dagger)
+        elif operation == 'PauliError1Q':
+            # parameter[0]: probability of X error
+            # parameter[1]: probability of Y error
+            # parameter[2]: probability of Z error
+            self.simulator.pauli_error_1q(qubit, parameter[0], parameter[1], parameter[2])
+        elif operation == 'Depolarizing':
+            # parameter: depolarizing probability
+            self.simulator.depolarizing(qubit, parameter)
+        elif operation == 'BitFlip':
+            # parameter: bit flip probability
+            self.simulator.bitflip(qubit, parameter)
+        elif operation == 'PhaseFlip':
+            # parameter: phase flip probability
+            self.simulator.phaseflip(qubit, parameter)
+        elif operation == 'PauliError2Q':
+            # parameter: List[float]
+            self.simulator.pauli_error_2q(qubit[0], qubit[1], parameter)
+        elif operation == 'Kraus1Q':
+            # parameter: List[List[complex]]
+            if not isinstance(parameter, list):
+                raise ValueError('Kraus1Q parameter should be a list of U22 matrices.')
+            
+            def build_u22(arr):
+                # the cases include the following:
+                # 1. a 2x2 np.ndarray
+                # 2. a 4 elements np.ndarray[complex]
+                # 3. a 2x2 List[List[complex]]
+                # 4. a 4-element List[complex]
+                # Final target is to transform into case (4), a 4-element List[complex]
+                if isinstance(arr, np.ndarray):
+                    if arr.shape == (2, 2):
+                        return [arr[0][0], arr[0][1], arr[1][0], arr[1][1]]
+                    elif arr.shape == (4,):
+                        return arr.tolist()
+                    else:
+                        raise ValueError('Kraus1Q parameter should be a 2x2 or 4-element list or numpy array.')
+                elif isinstance(arr, list):
+                    if len(arr) == 4:
+                        return arr
+                    elif len(arr) == 2 and len(arr[0]) == 2 and len(arr[1]) == 2:   
+                        return [arr[0][0], arr[0][1], arr[1][0], arr[1][1]]
+                    else:
+                        raise ValueError('Kraus1Q parameter should be a 2x2 or 4-element list or numpy array.')
+                else:
+                    raise ValueError('Kraus1Q parameter should be a 2x2 or 4-element list or numpy array.')
+                
+            parameters_ = [build_u22(arr) for arr in parameter]
+            self.simulator.kraus1q(qubit, parameters_)
+        elif operation == 'AmplitudeDamping':
+            # parameter: gamma
+            self.simulator.amplitude_damping(qubit, parameter)
         elif operation == 'I':
             pass
         elif operation == None:
@@ -192,3 +240,33 @@ class OpcodeSimulator:
             return self.simulator.stateprob()
         
         raise ValueError('Unknown simulator type.')
+    
+    def simulate_opcodes_density_operator(self, n_qubit, program_body):
+        if self.simulator_typestr == 'density_operator':
+            self.simulator.init_n_qubit(n_qubit)
+            for opcode in program_body:
+                operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
+                self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+
+            state = np.array(self.simulator.state)
+            density_matrix = np.outer(state, np.conj(state))
+            return density_matrix
+        
+        if self.simulator_typestr =='statevector':
+            statevector = self.simulate_opcodes_statevector(n_qubit, program_body)
+            statevector = np.array(statevector)
+            density_matrix = np.outer(statevector, np.conj(statevector))
+            return density_matrix
+        
+        raise ValueError('Unknown simulator type.')
+    
+    def simulate_opcodes_shot(self, n_qubit, program_body, measure_qubits):
+        if self.simulator_typestr == 'density_operator':
+            raise NotImplementedError('Density matrix is not supported for shot simulation.')
+        
+        self.simulator.init_n_qubit(n_qubit)
+        for opcode in program_body:
+            operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
+            self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+        
+        return self.simulator.measure_single_shot(measure_qubits)

@@ -1,7 +1,6 @@
 # Error model
 
-from typing import List
-
+from typing import Dict, List, Tuple
 import numpy as np
 
 
@@ -20,8 +19,8 @@ class BitFlip(ErrorModel):
     def generate_error_opcode(self, qubits):
         if isinstance(qubits, int):
             qubits = [qubits]
-        opcodes =[('BitFlip', qubit, self.p, None, None, None) for qubit in qubits]
 
+        opcodes = [('BitFlip', qubit, self.p, None, None, None) for qubit in qubits]
         return opcodes
     
 class PhaseFlip(ErrorModel):
@@ -31,8 +30,8 @@ class PhaseFlip(ErrorModel):
     def generate_error_opcode(self, qubits):
         if isinstance(qubits, int):
             qubits = [qubits]
-        opcodes =[('PhaseFlip', qubit, self.p, None, None, None) for qubit in qubits]
 
+        opcodes =[('PhaseFlip', qubit, self.p, None, None, None) for qubit in qubits]
         return opcodes
     
 class Depolarizing(ErrorModel):
@@ -42,8 +41,8 @@ class Depolarizing(ErrorModel):
     def generate_error_opcode(self, qubits):
         if isinstance(qubits, int):
             qubits = [qubits]
-        opcodes =[('Depolarizing', qubit, self.p, None, None, None) for qubit in qubits]
 
+        opcodes =[('Depolarizing', qubit, self.p, None, None, None) for qubit in qubits]
         return opcodes
     
 class TwoQubitDepolarizing(ErrorModel):
@@ -55,7 +54,6 @@ class TwoQubitDepolarizing(ErrorModel):
             raise ValueError("TwoQubitDepolarizing error model requires two qubits")
         
         opcodes =[('TwoQubitDepolarizing', qubit, self.p, None, None, None) for qubit in qubits]
-
         return opcodes
     
 class AmplitudeDamping(ErrorModel):
@@ -65,8 +63,8 @@ class AmplitudeDamping(ErrorModel):
     def generate_error_opcode(self, qubits):
         if isinstance(qubits, int):
             qubits = [qubits]
-        opcodes =[('AmplitudeDamping', qubit, self.gamma, None, None, None) for qubit in qubits]
 
+        opcodes =[('AmplitudeDamping', qubit, self.gamma, None, None, None) for qubit in qubits]
         return opcodes
     
 class PauliError1Q(ErrorModel):
@@ -78,8 +76,8 @@ class PauliError1Q(ErrorModel):
     def generate_error_opcode(self, qubits):
         if isinstance(qubits, int):
             qubits = [qubits]
-        opcodes =[('PauliError1Q', qubit, (self.p_x, self.p_y, self.p_z), None, None, None) for qubit in qubits]
 
+        opcodes =[('PauliError1Q', qubit, (self.p_x, self.p_y, self.p_z), None, None, None) for qubit in qubits]
         return opcodes
     
 class PauliError2Q(ErrorModel):
@@ -91,6 +89,7 @@ class PauliError2Q(ErrorModel):
             raise ValueError("PauliError2Q error model requires two qubits")
         
         opcodes = [('PauliError2Q', qubit, self.ps, None, None, None) for qubit in qubits]
+        return opcodes
 
 class Kraus1Q(ErrorModel):
     def __init__(self, kraus_ops: List[np.ndarray]):
@@ -102,3 +101,88 @@ class Kraus1Q(ErrorModel):
 
         opcodes =[('Kraus1Q', qubit, self.kraus_ops, None, None, None) for qubit in qubits]
         return opcodes
+
+
+class ErrorLoader:
+    '''
+    This class is used to load the opcodes into the simulator.'
+    '''
+    def __init__(self):
+        self.opcodes = []
+
+    def insert_error(self, opcode):
+        pass
+
+    def insert_opcode(self, opcode):
+        # extract opcode
+        self.opcodes.append(opcode)
+        self.insert_error(opcode)
+
+    def process_opcodes(self, opcodes):
+        for opcode in opcodes:
+            self.insert_opcode(opcode)
+
+
+class ErrorLoader_GenericError(ErrorLoader):
+    '''
+    This class is used to load the opcodes into the simulator with generic noise.'
+    '''
+    def __init__(self, generic_error : List[ErrorModel]):
+        super().__init__()
+        self.generic_error = generic_error
+        
+    def insert_error(self, opcode):
+        # extract opcode
+        _, qubits, _, _, _, _ = opcode
+
+        for noise_model in self.generic_error:
+            noise_opcodes = noise_model.generate_error_opcode(qubits)
+            self.opcodes.extend(noise_opcodes)
+        
+
+class ErrorLoader_GateTypeError(ErrorLoader_GenericError):
+    '''
+    This class is used to load the opcodes into the simulator with gate dependent noise.'
+    '''
+    def __init__(self, generic_error : List[ErrorModel], gatetype_error : Dict[str, List[ErrorModel]]):
+        super().__init__(generic_error)
+        self.generic_error = generic_error
+        self.gatetype_error = gatetype_error
+        
+    def insert_error(self, opcode):
+        # extract opcode
+        gate, qubits, _, _, _, _ = opcode
+
+        for noise_model in self.generic_error:
+            noise_opcodes = noise_model.generate_error_opcode(qubits)
+            self.opcodes.extend(noise_opcodes)
+
+        gate_error = self.gatetype_error.get(gate, [])
+        for noise_model in gate_error:
+            noise_opcodes = noise_model.generate_error_opcode(qubits)
+            self.opcodes.extend(noise_opcodes)
+
+class ErrorLoader_GateSpecificError(ErrorLoader_GateTypeError):
+    '''
+    This class is used to load the opcodes into the simulator with gate specific noise.
+    '''
+    def __init__(self, generic_error : List[ErrorModel], gatetype_error : Dict[str, List[ErrorModel]], 
+                 gate_specific_error : Dict[Tuple[str, List[int] | int], List[ErrorModel]]):
+        super().__init__(generic_error, gatetype_error)
+        self.gate_specific_error = gate_specific_error
+        
+    def insert_error(self, opcode):
+        # extract opcode
+        gate, qubits, _, _, _, _ = opcode
+
+        super().insert_error(opcode)
+        # special case for CZ gate, the qubits need to be sorted
+        if gate == 'CZ':
+            qubits = [min(qubits[0], qubits[1]), max(qubits[0], qubits[1])]
+
+        key = (gate, qubits)
+        gate_specific_error = self.gate_specific_error.get(key, [])
+        for noise_model in gate_specific_error:
+            noise_opcodes = noise_model.generate_error_opcode(qubits)
+            self.opcodes.extend(noise_opcodes)
+

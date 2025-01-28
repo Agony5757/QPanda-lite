@@ -301,7 +301,27 @@ namespace qpandalite {
         void uu15_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
             const std::vector<double>& parameters, size_t total_qubit, size_t controller_mask, bool is_dagger);
 
-        void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state);
+        template<typename Container, typename Scalar, typename BinaryOpType>
+        auto generic_operator_scalar(const Container& state, Scalar val, BinaryOpType op)
+            -> Container
+        {
+            Container ret(state);
+            for (auto& v : ret)
+            {
+                v = op(v, val);
+            }
+            return ret;
+        }
+
+        template<typename Container, typename Scalar>
+        auto multiply_scalar(const Container& state, Scalar val)
+            -> Container
+        {
+            auto mult = [](Scalar1 v1, Scalar2 v2) { return v1 * v2; };
+            return generic_operator_scalar(state, val, mult);
+        }
+
+        void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state, double coef = 1.0);
 
         void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const Kraus1Q& kraus1q, size_t total_qubit);
     }

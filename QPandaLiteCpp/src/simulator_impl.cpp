@@ -1476,11 +1476,11 @@ namespace qpandalite {
             }
         }
 
-        void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state)
+        void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state, double coef)
         {
             for (size_t i = 0; i < target_state.size(); ++i)
             {
-                target_state[i] += add_state[i];
+                target_state[i] += add_state[i] * coef;
             }
         }
 

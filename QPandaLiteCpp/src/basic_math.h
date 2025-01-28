@@ -55,4 +55,8 @@ namespace qpandalite {
 
     bool validate_kraus(const std::vector<u22_t>& kraus_ops);
 
+    constexpr u22_t pauli_x{ 0, 1, 1, 0 };
+    constexpr u22_t pauli_y{ 0, (0, -1), (0, 1), 0};
+    constexpr u22_t pauli_z{ 1, 0, 0, -1 };
+    constexpr u22_t pauli_id{ 1, 0, 0, 1 };
 }

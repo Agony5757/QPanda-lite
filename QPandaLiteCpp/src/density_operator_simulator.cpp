@@ -621,6 +621,46 @@ namespace qpandalite
         uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
 
+    void DensityOperatorSimulator::pauli_error_1q(size_t qn, double px, double py, double pz)
+    {
+        auto Ex = multiply_scalar(pauli_x, px);
+        auto Ey = multiply_scalar(pauli_y, py);
+        auto Ez = multiply_scalar(pauli_z, pz);
+        auto Ei = multiply_scalar(pauli_id, (1 - px - py - pz));
+
+        kraus1q(qn, { Ex, Ey, Ez, Ei });
+    }
+
+    void DensityOperatorSimulator::depolarizing(size_t qn, double p)
+    {
+        auto Ex = multiply_scalar(pauli_x, p / 3);
+        auto Ey = multiply_scalar(pauli_y, p / 3);
+        auto Ez = multiply_scalar(pauli_z, p / 3);
+        auto Ei = multiply_scalar(pauli_id, (1 - p));
+
+        kraus1q(qn, { Ex, Ey, Ez, Ei });
+    }
+
+    void DensityOperatorSimulator::bitflip(size_t qn, double p)
+    {
+        auto Ex = multiply_scalar(pauli_x, p);
+        auto Ei = multiply_scalar(pauli_id, (1 - p));
+
+        kraus1q(qn, { Ex, Ei });
+    }
+
+    void DensityOperatorSimulator::phaseflip(size_t qn, double p)
+    {
+        auto Ey = multiply_scalar(pauli_y, p);
+        auto Ei = multiply_scalar(pauli_id, (1 - p));
+
+        kraus1q(qn, { Ey, Ei });
+    }
+
+    void DensityOperatorSimulator::pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p)
+    {
+    }
+
     void DensityOperatorSimulator::kraus1q(size_t qn, const Kraus1Q& kraus_ops)
     {
         CHECK_QUBIT_RANGE(qn)
@@ -630,8 +670,27 @@ namespace qpandalite
             ThrowInvalidArgument("Invalid Kraus operators: sum(E†E) != I");
         }
 
+        auto ret_state = state;
+        u22_unsafe_impl(ret_state, qn, kraus_ops[0], total_qubit, 0);
         
-        
+        for (size_t i = 1; i<kraus_ops.size();++i)
+        {
+            auto copy_state = state;
+            auto& E = kraus_ops[i];
+            u22_unsafe_impl(copy_state, qn, E, total_qubit, 0);
+
+            merge_state(ret_state, copy_state);
+        }
+
+        state = std::move(ret_state);
+    }
+
+    void DensityOperatorSimulator::amplitude_damping(size_t qn, double gamma)
+    {
+        auto E0 = u22_t{ 1, 0, 0, sqrt(1 - gamma) };
+        auto E1 = u22_t{ 0, sqrt(gamma), 0, 0 };
+
+        kraus1q(qn, { E0, E1 });
     }
 
     dtype DensityOperatorSimulator::get_prob_map(const std::map<size_t, int>& measure_qubits)

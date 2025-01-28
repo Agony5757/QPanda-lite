@@ -1,3 +1,4 @@
+import random
 from typing import List, Tuple, TYPE_CHECKING, Union
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 import warnings
@@ -226,10 +227,107 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
                  measurement_error : Dict[int, List[float]]={}):
         super().__init__(backend_type, available_qubits, available_topology)        
         self.measurement_error = measurement_error
-        self.error_loader = error_loader
+        self.error_loader = error_loader 
 
     def simulate_pmeasure(self, originir):
         raise NotImplementedError('Noisy simulator does not support pmeasure.')
+
+    def simulate_statevector(self, originir):
+        raise NotImplementedError('Noisy simulator does not support statevector.')
+    
+    def simulate_density_matrix(self, originir):
+        raise NotImplementedError('Noisy simulator does not support density matrix.')
+    
+    def _add_measurement_error(self, result, measure_qubit):
+        # add measurement error to the result
+        
+        # to binary and reverse
+        measure_length = len(measure_qubit)
+        result_binary = bin(result)[2:].zfill(measure_length)[::-1]
+
+        result_binary_list = [bit for bit in result_binary]
+        # decide each measurement qubit has error or not
+        r = random.random()
+        for i in range(measure_length):
+            measure_qubit_index = measure_qubit[i]
+            measure_to = result_binary_list[i]
+            error_rate01 = self.measurement_error.get(measure_qubit_index, [0, 0])
+            if measure_to == '0':
+                rate = error_rate01[0]
+            elif measure_to == '1':
+                rate = error_rate01[1]
+            else:
+                raise ValueError(f'Unexpected measurement result {measure_to} (neither 0 nor 1).')
+            if r < rate:
+                result_binary_list[i] = '1' if measure_to == '0' else '0'
+
+        # to decimal (first flip the list, then join the bits)
+        result = int(''.join(result_binary_list[::-1]), 2)
+
+        return result
+
+    def simulate_single_shot(self, originir):
+        '''Simulate originir with error model.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+        Returns:
+            int: The sampled output from the ideal simulator
+
+        Note: Measurement protocol.
+
+        For measurement qubits, the result is returned in decimal form. Suppose the measure_qubit is [q0, q1, q2], and result is b0, b1, b2, then the decimal form is:
+
+        result = b2b1b0
+        '''
+        processed_program_body, measure_qubit = self._simulate_preprocess(
+            originir, self.available_qubits, self.available_topology
+        )
+
+        self.error_loader.process_opcodes(processed_program_body)
+        opcodes = self.error_loader.opcodes
+
+        result = self.opcode_simulator.simulate_opcodes_shot(
+            self.qubit_num, opcodes, measure_qubit)
+        
+        if self.measurement_error:
+            result = self._add_measurement_error(result, measure_qubit)
+        return result
+
+    def simulate_shots(self, originir, shots):
+        '''Simulate originir with error model.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+            shots (int): number of shots
+        Returns:
+            Dict[int, int]: Probability list produced by the noisy simulator.
+        '''
+        processed_program_body, measure_qubit = self._simulate_preprocess(
+            originir, self.available_qubits, self.available_topology
+        )
+
+        self.error_loader.process_opcodes(processed_program_body)
+        opcodes = self.error_loader.opcodes
+
+        results = {}
+        for _ in range(shots):
+            result = self.opcode_simulator.simulate_opcodes_shot(
+                self.qubit_num, opcodes, measure_qubit)
+            
+            if self.measurement_error:
+                result = self._add_measurement_error(result, measure_qubit)
+            
+            results[result] = results.get(result, 0) + 1
+
+        return results
+
+
+
 
 
 

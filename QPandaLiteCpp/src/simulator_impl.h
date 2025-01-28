@@ -317,7 +317,8 @@ namespace qpandalite {
         auto multiply_scalar(const Container& state, Scalar val)
             -> Container
         {
-            auto mult = [](Scalar1 v1, Scalar2 v2) { return v1 * v2; };
+            using Scalar2 = decltype(*(std::begin(state)));
+            auto mult = [](Scalar2 v1, Scalar v2) { return v1 * v2; };
             return generic_operator_scalar(state, val, mult);
         }
 

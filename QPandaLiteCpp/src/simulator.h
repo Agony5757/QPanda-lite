@@ -51,7 +51,7 @@ namespace qpandalite {
         void phaseflip(size_t qn, double p);
         void pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p);
         void twoqubit_depolarizing(size_t qn1, size_t qn2, double p);
-        void kraus1q(size_t qn, const std::vector<u22_t>& kraus_ops);
+        void kraus1q(size_t qn, const Kraus1Q& kraus_ops);
         void amplitude_damping(size_t qn, double gamma);
 
         /* measurement protocol */

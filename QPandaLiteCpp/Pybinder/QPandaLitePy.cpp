@@ -10,7 +10,6 @@
 #include "pybind11/operators.h"
 
 #include "simulator.h"
-#include "noisy_simulator.h"
 #include "density_operator_simulator.h"
 #include "rng.h"
 using namespace std;

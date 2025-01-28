@@ -167,7 +167,7 @@ class ErrorLoader_GateSpecificError(ErrorLoader_GateTypeError):
     This class is used to load the opcodes into the simulator with gate specific noise.
     '''
     def __init__(self, generic_error : List[ErrorModel], gatetype_error : Dict[str, List[ErrorModel]], 
-                 gate_specific_error : Dict[Tuple[str, List[int] | int], List[ErrorModel]]):
+                 gate_specific_error : Dict[Tuple[str, Tuple[int, int]], List[ErrorModel]]):
         super().__init__(generic_error, gatetype_error)
         self.gate_specific_error = gate_specific_error
         

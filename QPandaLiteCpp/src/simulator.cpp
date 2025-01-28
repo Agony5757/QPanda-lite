@@ -730,7 +730,7 @@ namespace qpandalite {
     }
 
 
-    void StatevectorSimulator::kraus1q(size_t qn, const std::vector<u22_t>& kraus_ops) {
+    void StatevectorSimulator::kraus1q(size_t qn, const Kraus1Q& kraus_ops) {
 
         CHECK_QUBIT_RANGE(qn)
 

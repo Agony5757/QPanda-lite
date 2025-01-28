@@ -1,4 +1,4 @@
-#include "density_operator_simulator.h"
+﻿#include "density_operator_simulator.h"
 
 namespace qpandalite
 {
@@ -621,10 +621,16 @@ namespace qpandalite
         uu15_unsafe_impl(state, qn1, qn2, parameters, total_qubit, controller_mask, is_dagger);
     }
 
-    void DensityOperatorSimulator::apply_kraus_1q(size_t qn, const Kraus1Q& kraus)
+    void DensityOperatorSimulator::kraus1q(size_t qn, const Kraus1Q& kraus_ops)
     {
         CHECK_QUBIT_RANGE(qn)
 
+        // 验证Kraus算符完备性（必须确保∑E_i†E_i = I）
+        if (!validate_kraus(kraus_ops)) {
+            ThrowInvalidArgument("Invalid Kraus operators: sum(E†E) != I");
+        }
+
+        
         
     }
 

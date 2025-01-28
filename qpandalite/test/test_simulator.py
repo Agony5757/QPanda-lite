@@ -7,7 +7,7 @@ from qpandalite.simulator import seed
 import time
 
 from qpandalite.test._utils import qpandalite_test
-
+from qpandalite.simulator.error_model import *
 
 def test_noisy_simulator():
     measure_qubits = [0, 1]
@@ -17,16 +17,26 @@ def test_noisy_simulator():
     # Use the current time as a seed
     seed(current_time_seed)
     
-    noise_description = {
+    generic_noise_description = {
         "depolarizing": 0.01
     }
     
-    gate_noise_description = {
-        "X": {"depolarizing": 0.03},
-        "HADAMARD": {"depolarizing": 0.02},
-        "ISWAP": {"depolarizing": 0.02}
+    gatetype_description = {
+        "X": [Depolarizing(0.03)],
+        "HADAMARD": [Depolarizing(0.02), AmplitudeDamping(0.01)],
+        "ISWAP": [Depolarizing(0.02)]
     }
-        
+
+    gate_specified_noise_description = {
+        ("CNOT", [1,2]): [Depolarizing(0.01), Depolarizing(0.02)],
+        ("CZ", [1,2]): [Depolarizing(0.03)],
+        ("X", [1]): [Depolarizing(0.03)],
+        ("Y", [1]): [Depolarizing(0.03)],
+        ("Z", [1]): [Depolarizing(0.03)],
+        ("ISWAP", [1,2]): [Depolarizing(0.03)],
+        ("HADAMARD", [1]): [Depolarizing(0.03)],
+        ("RX", [1]): [Depolarizing(0.03)],
+    }        
     # Define the measurement errors
     measurement_error = [(0.01, 0.01), (0.02, 0.02)]
     

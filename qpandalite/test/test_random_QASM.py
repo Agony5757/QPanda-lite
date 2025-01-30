@@ -197,7 +197,6 @@ def compare_density_operator(circuit):
 
     mat_qpandalite = sim_qpandalite.simulate_density_matrix(circuit)
     mat_qutip = sim_qutip.simulate_density_matrix(circuit)
-
     # Step 2: Compare the results
     if not np.allclose(mat_qpandalite, mat_qutip):
         return NotMatchError(
@@ -269,7 +268,7 @@ def test_random_qasm_density_operator_compare_with_qutip():
         instruction_set=gate_set)
 
 if __name__ == '__main__':
-    #test_random_qasm_statevector()
-    #test_random_qasm_density_operator()
-    #test_random_qasm_density_operator_qutip()
+    test_random_qasm_statevector()
+    test_random_qasm_density_operator()
+    test_random_qasm_density_operator_qutip()
     test_random_qasm_density_operator_compare_with_qutip()

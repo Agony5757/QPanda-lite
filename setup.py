@@ -196,7 +196,9 @@ setup(
                       'matplotlib',
                       'rb_generator',
                       'qiskit',
-                      'qiskit-aer'],
+                      'qiskit-aer',
+                      'qutip',
+                      'qutip-qip'],
     zip_safe = False,
     python_requires='>=3.8',    
 )

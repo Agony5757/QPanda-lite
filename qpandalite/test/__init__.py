@@ -16,3 +16,4 @@ def run_test():
     run_test_qasm()
     test_random_qasm_statevector()
     test_random_qasm_density_operator()
+    print('All tests passed~!!!')

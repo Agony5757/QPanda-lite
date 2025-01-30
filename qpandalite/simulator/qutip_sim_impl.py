@@ -238,6 +238,10 @@ class DensityOperatorSimulatorQutip:
     def stateprob(self):
         return self.density_matrix.diag().real
     
+    @property
+    def state(self):
+        return self.density_matrix.full()
+    
 if __name__ == '__main__':
     sim = DensityOperatorSimulatorQutip()
     sim.init_n_qubit(3)

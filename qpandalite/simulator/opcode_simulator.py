@@ -254,8 +254,12 @@ class OpcodeSimulator:
                 operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
                 self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
 
-            state = np.array(self.simulator.state)
-            density_matrix = np.outer(state, np.conj(state))
+            state = self.simulator.state            
+            state = np.array(state)
+            
+            # reshape to 2^n x 2^n matrix
+            density_matrix = np.reshape(state, (2 ** n_qubit, 2 ** n_qubit))
+            
             return density_matrix
         
         if self.simulator_typestr =='statevector':

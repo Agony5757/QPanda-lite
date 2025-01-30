@@ -34,7 +34,6 @@ class QASM_Simulator(BaseSimulator):
 
         return program_body
 
-
     def simulate_pmeasure(self, qasm):
         program_body = self._simulate_preprocess(qasm)
         
@@ -43,6 +42,24 @@ class QASM_Simulator(BaseSimulator):
         )
 
         return prob_list
+    
+    def simulate_density_matrix(self, qasm):
+        program_body = self._simulate_preprocess(qasm)
+
+        density_matrix = self.opcode_simulator.simulate_opcodes_density_operator(
+            self.qubit_num, program_body
+        )
+
+        return density_matrix
+
+    def simulate_statevector(self, qasm):
+        program_body = self._simulate_preprocess(qasm)
+
+        statevector = self.opcode_simulator.simulate_opcodes_statevector(
+            self.qubit_num, program_body
+        )
+
+        return statevector
     
     
     @property

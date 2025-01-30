@@ -2,7 +2,6 @@
 # including the grammar and the syntax of the language.
 
 available_qasm_1q_gates = ['id', 'h', 'x', 'y', 'z', 's', 'sdg', 'sx', 'sxdg', 't', 'tdg']
-
 available_qasm_1q1p_gates = ['rx', 'ry', 'rz', 'u1']
 available_qasm_1q2p_gates = ['u2']
 available_qasm_1q3p_gates = ['u3', 'u']
@@ -51,6 +50,6 @@ available_qasm_gates.update({
     for gatename in available_qasm_2q1p_gates
 })
 
-def generate_sub_gateset(gate_list):
+def generate_sub_gateset_qasm(gate_list):
     return {k : v for k, v in available_qasm_gates.items() if k in gate_list}
     

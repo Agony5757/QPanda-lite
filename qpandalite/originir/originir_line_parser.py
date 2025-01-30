@@ -347,88 +347,80 @@ class OriginIR_LineParser:
             c = None
             operation = None
             parameter = None
+            
+            # remove the empty line
             if not line:
-                pass 
-            elif line.startswith('QINIT'):
+                return q, c, operation, parameter
+            
+            line = line.strip()
+            # extract operation
+            operation = line.split()[0]
+
+            if operation == 'QINIT':
                 q = int(line.strip().split()[1])
                 operation = 'QINIT'
-            elif line.startswith('CREG'):
+            elif operation == 'CREG':
                 c = int(line.strip().split()[1])
                 operation = 'CREG'
-            elif line.startswith('H'):
+            # 1-qubit gates
+            elif operation == 'H' or \
+                 operation == 'X' or \
+                 operation == 'Y' or \
+                 operation == 'Z' or \
+                 operation == 'S' or \
+                 operation == 'SX' or \
+                 operation == 'T':
                 operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('SX'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('X1'):
-                raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('Y1'):
-                raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('Z1'):
-                raise NotImplementedError(f'Unsupported operation: {line}.')    
-                operation, q = OriginIR_LineParser.handle_1q(line)                
-            elif line.startswith('XX'):
-                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)       
-            elif line.startswith('YY'):
-                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)   
-            elif line.startswith('ZZ'):
-                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)
-            elif line.startswith('X'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('Y'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('Z'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('T'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('S'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('CZ'):
+            # 2-qubit gates
+            elif operation == 'CZ' or \
+                 operation == 'CNOT' or \
+                 operation == 'SWAP' or \
+                 operation == 'ISWAP':
                 operation, q = OriginIR_LineParser.handle_2q(line)
-            elif line.startswith('ISWAP'):
-                operation, q = OriginIR_LineParser.handle_2q(line)
-            elif line.startswith('I'):
-                operation, q = OriginIR_LineParser.handle_1q(line)
-            elif line.startswith('XY'):
-                operation, q = OriginIR_LineParser.handle_2q1p(line)
-            elif line.startswith('CNOT'):
-                operation, q = OriginIR_LineParser.handle_2q(line)
-            elif line.startswith('TOFFOLI'):
+            # 3-qubit gates
+            elif operation == 'TOFFOLI' or \
+                 operation == 'CSWAP':
                 operation, q = OriginIR_LineParser.handle_3q(line)
-            elif line.startswith('CSWAP'):
-                operation, q = OriginIR_LineParser.handle_3q(line)
-            elif line.startswith('RX'):
+            # 1q1p gates
+            elif operation == 'RX' or \
+                 operation == 'RY' or \
+                 operation == 'RZ' or \
+                 operation == 'U1' or \
+                 operation == 'RPhi90' or \
+                 operation == 'RPhi180':
                 operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
-            elif line.startswith('RY'):
-                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
-            elif line.startswith('RZ'):
-                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
-            elif line.startswith('RPhi90'):
-                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
-            elif line.startswith('RPhi180'):
-                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
-            elif line.startswith('RPhi'):
+            # 1q2p gates
+            elif operation == 'RPhi' or \
+                 operation == 'U2':
                 operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
-            elif line.startswith('U3'):
+            # 1q3p gates
+            elif operation == 'U3':
                 operation, q, parameter = OriginIR_LineParser.handle_1q3p(line)
-            elif line.startswith('PHASE2Q'):
+            # 2q1p gates
+            elif operation == 'XX' or \
+                 operation == 'YY' or \
+                 operation == 'ZZ' or \
+                 operation == 'XY':
+                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)
+            # 2q3p gates
+            elif operation == 'PHASE2Q':
                 operation, q, parameter = OriginIR_LineParser.handle_2q3p(line)
-            elif line.startswith('UU15'):
+            # 2q15p gates
+            elif operation == 'UU15':
                 operation, q, parameter = OriginIR_LineParser.handle_2q15p(line)
-            elif line.startswith('BARRIER'):
+            elif operation == 'BARRIER':
                 operation = 'BARRIER'
                 operation, q = OriginIR_LineParser.handle_barrier(line)
-            elif line.startswith('MEASURE'):
+            elif operation == 'MEASURE':
                 operation = 'MEASURE'
                 q, c = OriginIR_LineParser.handle_measure(line)
-            elif line.startswith('CONTROL'):
+            elif operation == 'CONTROL':
                 operation, q = OriginIR_LineParser.handle_control(line)
-            elif line.startswith('ENDCONTROL'):
+            elif operation == 'ENDCONTROL':
                 operation = 'ENDCONTROL'
-            elif line.startswith('DAGGER'):
+            elif operation == 'DAGGER':
                 operation = OriginIR_LineParser.handle_dagger(line)
-            elif line.startswith('ENDDAGGER'):
+            elif operation == 'ENDDAGGER':
                 operation = OriginIR_LineParser.handle_dagger(line)
             else:
                 # print("something wrong")

@@ -334,7 +334,7 @@ class OpenQASM2_LineParser:
             if line.startswith('//'):
                 return q, c, operation, parameter
 
-            # extract operation and qubits
+            # extract operation
             # there are two cases:
             # 1. operation with no parameter (split by space)
             # 2. operation with parameter (split by '(')

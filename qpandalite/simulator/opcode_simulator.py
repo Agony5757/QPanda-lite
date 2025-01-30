@@ -258,7 +258,7 @@ class OpcodeSimulator:
             state = np.array(state)
             
             # reshape to 2^n x 2^n matrix
-            density_matrix = np.reshape(state, (2 ** n_qubit, 2 ** n_qubit))
+            density_matrix = np.reshape(state, (2 ** n_qubit, 2 ** n_qubit), order='F')
             
             return density_matrix
         

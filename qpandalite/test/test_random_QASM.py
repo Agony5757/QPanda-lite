@@ -6,7 +6,7 @@ from qpandalite.simulator.qasm_simulator import QASM_Simulator
 from qpandalite.test._utils import qpandalite_test
 from qpandalite.qasm import NotSupportedGateError
 from qpandalite.qasm.random_qasm import random_qasm
-from qpandalite.qasm.qasm_spec import available_qasm_gates, generate_sub_gateset
+from qpandalite.qasm.qasm_spec import available_qasm_gates, generate_sub_gateset_qasm
 
 import qiskit
 import qiskit.qasm2 as qasm
@@ -138,7 +138,7 @@ def test_random_qasm_statevector():
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
                 's', 'sdg', 't', 'tdg', 
                 'ccx', 'cu1', ]
-    gate_set = generate_sub_gateset(gate_set)
+    gate_set = generate_sub_gateset_qasm(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
                            n_qubit=5, n_gates=50, 
@@ -158,7 +158,7 @@ def test_random_qasm_density_operator():
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
                 's', 'sdg', 't', 'tdg', 
                 'ccx', 'cu1', ]
-    gate_set = generate_sub_gateset(gate_set)
+    gate_set = generate_sub_gateset_qasm(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
                            n_qubit=5, n_gates=50, 
@@ -176,7 +176,7 @@ def test_random_qasm_density_operator_qutip():
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
                 's', 'sdg', 't', 'tdg', 
                 'ccx', 'cu1', ]
-    gate_set = generate_sub_gateset(gate_set)
+    gate_set = generate_sub_gateset_qasm(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
                            n_qubit=5, n_gates=50, 
@@ -225,7 +225,6 @@ def test_random_qasm_compare_density_operator(
         
         err = compare_density_operator(qasm_code)    
         
-    
         if err:
             print('Test failed!')
             err_list.append(err)
@@ -244,9 +243,6 @@ def test_random_qasm_compare_density_operator(
             f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
     with open('bad_circuits.txt', 'w') as f:
-        # for circuit, result in bad_circuit_list:
-        #     f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
-
         for e in err_list:
             f.write(str(e) + '\n')
 
@@ -261,16 +257,19 @@ def test_random_qasm_density_operator_compare_with_qutip():
                 's', 'sdg', 't', 'tdg',  
                 'ccx', 'cu1', ]
     
-    gate_set = ['h', 'cx', 'rx', ]
+    gate_set = ['h', 'cx',  'rx', 'ry', 'rz', 
+                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
+               's', 'sdg', 't', 'tdg', 
+                'ccx', 'cu1', ]
     
-    gate_set = generate_sub_gateset(gate_set)
+    gate_set = generate_sub_gateset_qasm(gate_set)
     test_random_qasm_compare_density_operator(
         random_batchsize=100, 
         n_qubit=5, n_gates=50,
         instruction_set=gate_set)
 
 if __name__ == '__main__':
-    test_random_qasm_statevector()
-    test_random_qasm_density_operator()
-    test_random_qasm_density_operator_qutip()
-    # test_random_qasm_density_operator_compare_with_qutip()
+    #test_random_qasm_statevector()
+    #test_random_qasm_density_operator()
+    #test_random_qasm_density_operator_qutip()
+    test_random_qasm_density_operator_compare_with_qutip()

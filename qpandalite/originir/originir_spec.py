@@ -3,11 +3,18 @@
 
 available_originir_1q_gates = ['H', 'X', 'Y', 'Z', 'S', 'SX', 'T']
 available_originir_1q1p_gates = ['RX', 'RY', 'RZ', 'U1', 'RPHI90', 'RPHI180', ]
+available_originir_1q2p_gates = ['RPHI', 'U2']
+available_originir_1q3p_gates = ['U3']
 available_originir_2q_gates = ['CNOT', 'CZ', 'ISWAP', ] #TODO: SQISWAP
 available_originir_2q1p_gates = ['XX', 'YY', 'ZZ', 'XY', ]
 available_originir_2q3p_gates = ['PHASE2Q']
 available_originir_2q15p_gates = ['UU15']
 available_originir_3p_gates = ['TOFFOLI', 'CSWAP']
+
+angular_gates = (available_originir_1q1p_gates + 
+                 available_originir_2q1p_gates +
+                 available_originir_1q2p_gates +
+                 available_originir_1q3p_gates)
 
 available_originir_gates = {
     gatename : {'qubit': 1, 'param': 0}

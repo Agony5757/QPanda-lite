@@ -3,7 +3,7 @@ It simulates from a basic opcode
 '''
 from QPandaLitePy import *
 from typing import List, Tuple, TYPE_CHECKING
-
+from .qutip_sim_impl import DensityOperatorSimulatorQutip
 import numpy as np
 if TYPE_CHECKING:
     from .QPandaLitePy import *
@@ -20,12 +20,15 @@ def backend_alias(backend_type):
     statevector_alias = ['statevector', 'state_vector']
     density_operator_alias = ['density_matrix', 'density_operator',
                               'DensityMatrix', 'DensityOperator']
+    density_operator_qutip_alias = ['density_matrix_qutip', 'density_operator_qutip']
 
     backend_type = backend_type.lower()
     if backend_type in statevector_alias:
         return 'statevector'
     elif backend_type in density_operator_alias:
         return 'density_operator'
+    elif backend_type in density_operator_qutip_alias:
+        return 'density_operator_qutip'
     else:
         raise ValueError(f'Unknown backend type: {backend_type}')
 
@@ -40,6 +43,9 @@ class OpcodeSimulator:
             self.simulator_typestr = 'statevector'
         elif backend_type == 'density_operator':
             self.SimulatorType = DensityOperatorSimulator
+            self.simulator_typestr = 'density_operator'
+        elif backend_type == 'density_operator_qutip':
+            self.SimulatorType = DensityOperatorSimulatorQutip
             self.simulator_typestr = 'density_operator'
         else:
             raise ValueError(f'Unknown backend type: {backend_type}')

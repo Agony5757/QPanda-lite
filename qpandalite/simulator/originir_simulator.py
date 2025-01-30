@@ -68,7 +68,6 @@ class OriginIR_Simulator(BaseSimulator):
                                  f'Used: {used_qubit}.')
 
     def _process_program_body(self, program_body, available_qubits, available_topology):
-
         processed_program_body = list()
 
         for i, opcode in enumerate(program_body):            

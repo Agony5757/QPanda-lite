@@ -164,7 +164,31 @@ def test_random_qasm_density_operator():
                            instruction_set=gate_set,
                            backend_type='density_operator')
 
+@qpandalite_test('Test Random QASM Density Operator (Qutip)')
+def test_random_qasm_density_operator_qutip():
+    
+    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
+                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
+                's', 'sdg', 't', 'tdg',  
+                'ccx', 'cu1', ]
+    
+    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
+                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
+                's', 'sdg', 't', 'tdg',  
+                'ccx', 'cu1', ]
+
+    # gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
+    #             'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
+    #             's', 'sdg', 't', 'tdg', 
+    #             'ccx', 'cu1', ]
+    gate_set = generate_sub_gateset(gate_set)
+
+    test_random_qasm_batch(random_batchsize=100, 
+                           n_qubit=5, n_gates=50, 
+                           instruction_set=gate_set,
+                           backend_type='density_operator_qutip')
 
 if __name__ == '__main__':
     test_random_qasm_statevector()
     test_random_qasm_density_operator()
+    test_random_qasm_density_operator_qutip()

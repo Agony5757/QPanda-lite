@@ -9,7 +9,7 @@ namespace qpandalite {
             ThrowInvalidArgument(errstr);
         }
 
-        std::map<size_t, size_t> qlist;
+        std::map<size_t, size_t> qbit_cbit_map;
         for (size_t i = 0; i < measure_list.size(); ++i)
         {
             size_t qn = measure_list[i];
@@ -18,14 +18,14 @@ namespace qpandalite {
                 auto errstr = fmt::format("Exceed total (total_qubit = {}, measure_qubit = {})", total_qubit, qn);
                 ThrowInvalidArgument(errstr);
             }
-            if (qlist.find(qn) != qlist.end())
+            if (qbit_cbit_map.find(qn) != qbit_cbit_map.end())
             {
                 auto errstr = fmt::format("Duplicate measure qubit ({})", qn);
                 ThrowInvalidArgument(errstr);
             }
-            qlist.insert({ qn,i });
+            qbit_cbit_map.insert({ qn,i });
         }
-        return qlist;
+        return qbit_cbit_map;
     }
     size_t get_state_with_qubit(size_t i, const std::map<size_t, size_t>& measure_map)
     {

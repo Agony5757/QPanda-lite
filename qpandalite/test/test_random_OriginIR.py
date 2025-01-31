@@ -42,14 +42,15 @@ def test_random_originir_compare_density_operator(
     n_qubits = 5,
     n_gates = 20,
     gate_set = available_originir_gates,
-    error_channel = available_originir_error_channels,
-    channel_set = available_originir_error_channels):
+    error_channel = available_originir_error_channels):
     
     err_list = []    
     good_circuit_list = []
     bad_circuit_list = []
     for i in range(random_batchsize):
-        originir_code = random_originir(n_qubits=5, n_gates=10, instruction_set=gate_set, channel_set=error_channel)
+        originir_code = random_originir(
+            n_qubits=n_qubits, 
+            n_gates=n_gates, instruction_set=gate_set, channel_set=error_channel)
         
         err = compare_density_operator(originir_code)    
         
@@ -107,6 +108,7 @@ def test_random_originir_density_operator():
                     'Depolarizing', 
                     'BitFlip', 
                     'PhaseFlip', 
+                    'AmplitudeDamping',
                     'Kraus1Q',
                     'PauliError2Q', 
                     'TwoQubitDepolarizing']
@@ -115,6 +117,7 @@ def test_random_originir_density_operator():
                     'Depolarizing', 
                     'BitFlip', 
                     'PhaseFlip', 
+                    'AmplitudeDamping',
                     #'PauliError2Q',
                     #'TwoQubitDepolarizing'
                     ]
@@ -126,8 +129,7 @@ def test_random_originir_density_operator():
         n_qubits = 5,
         n_gates = 20,
         gate_set = gate_set,
-        error_channel = error_channel,
-        channel_set = error_channel)
+        error_channel = error_channel)
 
 
 if __name__ == '__main__':

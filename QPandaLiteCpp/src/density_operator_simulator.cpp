@@ -677,7 +677,28 @@ namespace qpandalite
         if (sum > 1)
             ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
 
-        auto Eii = multiply_scalar(pauli_ii, std::sqrt(1 - sum));
+        double ii = 1 - sum;
+
+        //ii = (0.9);
+        //xi = (0.05);
+        //yi = 0; // (0.05);
+        //zi = (0.05);
+
+        //ix = 0;
+        //xx = 0;
+        //yx = 0;
+        //zx = 0;
+
+        //iy = 0;
+        //xy = 0;
+        //yy = 0;
+        //zy = 0;
+        //iz = 0;
+        //xz = 0;
+        //yz = 0;
+        //zz = 0;
+
+        auto Eii = multiply_scalar(pauli_ii, std::sqrt(ii));
         auto Exi = multiply_scalar(pauli_xi, std::sqrt(xi));
         auto Eyi = multiply_scalar(pauli_yi, std::sqrt(yi));
         auto Ezi = multiply_scalar(pauli_zi, std::sqrt(zi));

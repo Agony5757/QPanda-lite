@@ -390,6 +390,7 @@ class OriginIR_LineParser:
                  operation == 'RPhi180' or \
                  operation == 'Depolarizing' or \
                  operation == 'BitFlip' or \
+                 operation == 'AmplitudeDamping' or \
                  operation == 'PhaseFlip':
                 operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             # 1q2p gates

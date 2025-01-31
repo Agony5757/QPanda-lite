@@ -144,6 +144,9 @@ class OpcodeSimulator:
         elif operation == 'PhaseFlip':
             # parameter: phase flip probability
             self.simulator.phaseflip(qubit, parameter)
+        elif operation == 'AmplitudeDamping':
+            # parameter: phase flip probability
+            self.simulator.amplitude_damping(qubit, parameter)
         elif operation == 'PauliError2Q':
             # parameter: List[float]
             self.simulator.pauli_error_2q(qubit[0], qubit[1], parameter)

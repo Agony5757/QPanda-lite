@@ -60,7 +60,8 @@ def generate_sub_gateset_originir(gate_list):
 
 available_originir_error_channel_1q1p = ['Depolarizing', 
                                          'BitFlip', 
-                                         'PhaseFlip', ]
+                                         'PhaseFlip', 
+                                         'AmplitudeDamping']
 
 available_originir_error_channel_1q3p = ['PauliError1Q']
 

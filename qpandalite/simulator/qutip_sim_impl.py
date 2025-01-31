@@ -263,8 +263,6 @@ class DensityOperatorSimulatorQutip:
         self._apply_kraus(kraus_ops, [qubit])
 
     def amplitude_damping(self, qubit, gamma):
-        from qutip import destroy
-        a = destroy(2)
         K0 = Qobj([[1, 0], [0, np.sqrt(1 - gamma)]])
         K1 = Qobj([[0, np.sqrt(gamma)], [0, 0]])
         self._apply_kraus([K0, K1], [qubit])
@@ -319,32 +317,69 @@ class DensityOperatorSimulatorQutip:
         
         # unpack all probabilities
         parameters = list(parameters)
-        parameters = [np.sqrt(p) for p in parameters]
-        xi, yi, zi, ix, xx, yx, zx, iy, xy, yy, zy, iz, xz, yz, zz = tuple(parameters)
 
         # validate probabilities
         if sum(parameters) > 1:
             raise ValueError("Probabilities must be less than or equal to 1.")
+
+        ii = [1 - sum(parameters)]
+        parameters = ii + parameters
+        parameters = [np.sqrt(p) for p in parameters]
+        (ii, xi, yi, zi, 
+         ix, xx, yx, zx, 
+         iy, xy, yy, zy, 
+         iz, xz, yz, zz) = tuple(parameters)
+
+        # ii = np.sqrt(0.9)
+        # xi = np.sqrt(0.05)
+        # yi = 0 # np.sqrt(0.05)
+        # zi = np.sqrt(0.05)
+
+        # ix = 0
+        # xx = 0
+        # yx = 0
+        # zx = 0
+
+        # iy = 0
+        # xy = 0
+        # yy = 0
+        # zy = 0
+
+        # iz = 0
+        # xz = 0
+        # yz = 0
+        # zz = 0
         
         # create kraus operators
+        Eii = ii * tensor(qeye(2), qeye(2))
         Exi = xi * tensor(sigmax(), qeye(2))
         Eyi = yi * tensor(sigmay(), qeye(2))
         Ezi = zi * tensor(sigmaz(), qeye(2))
+
         Eix = ix * tensor(qeye(2), sigmax())
         Exx = xx * tensor(sigmax(), sigmax())
         Eyx = yx * tensor(sigmay(), sigmax())
         Ezx = zx * tensor(sigmaz(), sigmax())
+
         Eiy = iy * tensor(qeye(2), sigmay())
         Exy = xy * tensor(sigmax(), sigmay())
         Eyy = yy * tensor(sigmay(), sigmay())
         Ezy = zy * tensor(sigmaz(), sigmay())
+        
         Eiz = iz * tensor(qeye(2), sigmaz())
         Exz = xz * tensor(sigmax(), sigmaz())
         Eyz = yz * tensor(sigmay(), sigmaz())
         Ezz = zz * tensor(sigmaz(), sigmaz())
 
+        kraus = [
+            Eii, Exi, Eyi, Ezi, 
+            Eix, Exx, Eyx, Ezx, 
+            Eiy, Exy, Eyy, Ezy, 
+            Eiz, Exz, Eyz, Ezz
+        ]
+
         # apply kraus operators
-        self._apply_kraus([Exi, Eyi, Ezi, Eix, Exx, Eyx, Ezx, Eiy, Exy, Eyy, Ezy, Eiz, Exz, Eyz, Ezz], [q1, q2])
+        self._apply_kraus(kraus, [q1, q2])
 
     def twoqubit_depolarizing(self, q1, q2, p):
         self.pauli_error_2q(q1, q2, [p/15]*15)

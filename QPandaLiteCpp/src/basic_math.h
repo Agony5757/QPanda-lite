@@ -44,14 +44,28 @@ namespace qpandalite {
 
     bool _assert_u22(const u22_t& u);
 
-    constexpr auto val(const u22_t& u, int i, int j)
+    constexpr complex_t val(const u22_t& u, int i, int j)
     {
         constexpr int rowsz = 2;
         int pos = i * rowsz + j;
         return u[pos];
     }
 
-    constexpr auto val(const u44_t& u, int i, int j)
+    constexpr complex_t& val(u22_t& u, int i, int j)
+    {
+        constexpr int rowsz = 2;
+        int pos = i * rowsz + j;
+        return u[pos];
+    }
+
+    constexpr complex_t val(const u44_t& u, int i, int j)
+    {
+        constexpr int rowsz = 4;
+        int pos = i * rowsz + j;
+        return u[pos];
+    }
+
+    constexpr complex_t& val(u44_t& u, int i, int j)
     {
         constexpr int rowsz = 4;
         int pos = i * rowsz + j;
@@ -78,7 +92,7 @@ namespace qpandalite {
     }
 
     // 编译期计算 2x2 矩阵的 Kronecker 积（张量积）
-    constexpr u44_t kronecker_product(const u22_t& a, const u22_t& b) noexcept {
+    constexpr u44_t kronecker_product(const u22_t& b, const u22_t& a) noexcept {
         return { {
                 // 第一行: a[0] * b[0], a[0] * b[1], a[1] * b[0], a[1] * b[1]
                 a[0] * b[0], a[0] * b[1], a[1] * b[0], a[1] * b[1],

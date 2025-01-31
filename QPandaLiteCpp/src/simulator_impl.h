@@ -205,9 +205,9 @@ namespace qpandalite {
             complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11);
 
         void apply_irho_udag_u44(const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03, const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13, const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23, const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33, complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11, complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11, complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11, complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11);
-        
+
         void apply_urho_i_u44(const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03, const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13, const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23, const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33, complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11, complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11, complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11, complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11);
-     
+
         void _u44_unsafe_impl_ctrl(std::vector<std::complex<double>>& state, size_t qn1, size_t qn2, complex_t u00, complex_t u01, complex_t u02, complex_t u03, complex_t u10, complex_t u11, complex_t u12, complex_t u13, complex_t u20, complex_t u21, complex_t u22, complex_t u23, complex_t u30, complex_t u31, complex_t u32, complex_t u33, size_t total_qubit, size_t controller_mask);
 
         void u44_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn1, size_t qn2,
@@ -262,7 +262,7 @@ namespace qpandalite {
         void toffoli_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, size_t target, size_t total_qubit, size_t controller_mask);
 
         void cswap_unsafe_impl(std::vector<complex_t>& state, size_t controller, size_t target1, size_t target2, size_t total_qubit, size_t controller_mask);
-        
+
         void cu1_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger);
 
         /* ZZ interaction
@@ -343,6 +343,9 @@ namespace qpandalite {
         void merge_state(std::vector<complex_t>& target_state, const std::vector<complex_t>& add_state, double coef = 1.0);
 
         void kraus1q_unsafe_impl(std::vector<complex_t>& state, size_t qn, const Kraus1Q& kraus1q, size_t total_qubit);
+
+        void pauli_error_2q_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, const std::vector<double>& p, size_t total_qubit);
+        
     }
 
 } // namespace qpandalite

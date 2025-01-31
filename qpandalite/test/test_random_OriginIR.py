@@ -118,8 +118,8 @@ def test_random_originir_density_operator():
                     'BitFlip', 
                     'PhaseFlip', 
                     'AmplitudeDamping',
-                    #'PauliError2Q',
-                    #'TwoQubitDepolarizing'
+                    'PauliError2Q',
+                    'TwoQubitDepolarizing'
                     ]
 
     error_channel = generate_sub_error_channel_originir(error_channel)

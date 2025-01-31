@@ -6,6 +6,24 @@ from qutip import (
 from qutip_qip.operations import *
 from itertools import product
 
+def _validate_kraus_ops(kraus_ops, nqubit):
+    # check if kraus_ops satisfy the Kraus representation condition
+    ndim = 2**nqubit
+    for K in kraus_ops:
+        if not isinstance(K, Qobj):
+            raise TypeError("Kraus operators must be Qobj instances.")
+        if K.type != 'oper':
+            raise TypeError("Kraus operators must be operators.")
+        if K.shape!= (ndim, ndim):
+            raise ValueError("Kraus operators must be square matrices with dimensions (ndim, ndim).")
+    
+    sum_kraus = sum([kraus_op.dag() * kraus_op for kraus_op in kraus_ops])
+    eye = qeye(ndim)
+    if not np.allclose(sum_kraus.full(), eye.full()):
+        raise ValueError("Kraus operators must satisfy the Kraus representation condition.")
+
+
+
 class DensityOperatorSimulatorQutip:
     def __init__(self):
         self.n_qubits = 0
@@ -329,46 +347,26 @@ class DensityOperatorSimulatorQutip:
          ix, xx, yx, zx, 
          iy, xy, yy, zy, 
          iz, xz, yz, zz) = tuple(parameters)
-
-        # ii = np.sqrt(0.9)
-        # xi = np.sqrt(0.05)
-        # yi = 0 # np.sqrt(0.05)
-        # zi = np.sqrt(0.05)
-
-        # ix = 0
-        # xx = 0
-        # yx = 0
-        # zx = 0
-
-        # iy = 0
-        # xy = 0
-        # yy = 0
-        # zy = 0
-
-        # iz = 0
-        # xz = 0
-        # yz = 0
-        # zz = 0
         
         # create kraus operators
         Eii = ii * tensor(qeye(2), qeye(2))
-        Exi = xi * tensor(sigmax(), qeye(2))
-        Eyi = yi * tensor(sigmay(), qeye(2))
-        Ezi = zi * tensor(sigmaz(), qeye(2))
+        Eix = ix * tensor(sigmax(), qeye(2))
+        Eiy = iy * tensor(sigmay(), qeye(2))
+        Eiz = iz * tensor(sigmaz(), qeye(2))
 
-        Eix = ix * tensor(qeye(2), sigmax())
+        Exi = xi * tensor(qeye(2), sigmax())
         Exx = xx * tensor(sigmax(), sigmax())
-        Eyx = yx * tensor(sigmay(), sigmax())
-        Ezx = zx * tensor(sigmaz(), sigmax())
+        Exy = xy * tensor(sigmay(), sigmax())
+        Exz = xz * tensor(sigmaz(), sigmax())
 
-        Eiy = iy * tensor(qeye(2), sigmay())
-        Exy = xy * tensor(sigmax(), sigmay())
+        Eyi = yi * tensor(qeye(2), sigmay())
+        Eyx = yx * tensor(sigmax(), sigmay())
         Eyy = yy * tensor(sigmay(), sigmay())
-        Ezy = zy * tensor(sigmaz(), sigmay())
+        Eyz = yz * tensor(sigmaz(), sigmay())
         
-        Eiz = iz * tensor(qeye(2), sigmaz())
-        Exz = xz * tensor(sigmax(), sigmaz())
-        Eyz = yz * tensor(sigmay(), sigmaz())
+        Ezi = zi * tensor(qeye(2), sigmaz())
+        Ezx = zx * tensor(sigmax(), sigmaz())
+        Ezy = zy * tensor(sigmay(), sigmaz())
         Ezz = zz * tensor(sigmaz(), sigmaz())
 
         kraus = [
@@ -377,6 +375,8 @@ class DensityOperatorSimulatorQutip:
             Eiy, Exy, Eyy, Ezy, 
             Eiz, Exz, Eyz, Ezz
         ]
+
+        _validate_kraus_ops(kraus, 2)
 
         # apply kraus operators
         self._apply_kraus(kraus, [q1, q2])

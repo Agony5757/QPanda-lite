@@ -1661,6 +1661,70 @@ namespace qpandalite {
                 u22_unsafe_impl(copy_state, qn, kraus1q[i], total_qubit, 0);
                 merge_state(init_state, copy_state);
             }
+            state = std::move(init_state);
+        }
+
+        void pauli_error_2q_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, const std::vector<double>& p, size_t total_qubit)
+        {
+            // 解包所有概率参数
+            // XI means qn1 has X error and qn2 has no error with probability xi
+            double xi = p[0], yi = p[1], zi = p[2];
+            double ix = p[3], xx = p[4], yx = p[5], zx = p[6];
+            double iy = p[7], xy = p[8], yy = p[9], zy = p[10];
+            double iz = p[11], xz = p[12], yz = p[13], zz = p[14];
+
+            double sum = xi + yi + zi +
+                ix + xx + yx + zx +
+                iy + xy + yy + zy +
+                iz + xz + yz + zz;
+
+            double ii = 1 - sum;
+
+            std::vector<double> p_new = {
+                ii, xi, yi, zi,
+                ix, xx, yx, zx,
+                iy, xy, yy, zy,
+                iz, xz, yz, zz
+            };
+
+            std::vector<complex_t> init_state(state.size());
+            for (size_t i = 0; i < 16; ++i)
+            {
+                std::vector<complex_t> copy_state = state;
+
+                switch (i / 4)
+                {
+                case 0:
+                    break;
+                case 1:
+                    x_unsafe_impl(copy_state, qn1, total_qubit, 0);
+                    break;
+                case 2:
+                    y_unsafe_impl(copy_state, qn1, total_qubit, 0);
+                    break;
+                case 3:
+                    z_unsafe_impl(copy_state, qn1, total_qubit, 0);
+                    break;
+                }
+
+                switch (i % 4)
+                {
+                case 0:
+                    break;
+                case 1:
+                    x_unsafe_impl(copy_state, qn2, total_qubit, 0);
+                    break;
+                case 2:
+                    y_unsafe_impl(copy_state, qn2, total_qubit, 0);
+                    break;
+                case 3:
+                    z_unsafe_impl(copy_state, qn2, total_qubit, 0);
+                    break;
+                }
+                merge_state(init_state, copy_state, p_new[i]);
+            }
+
+            state = std::move(init_state);
         }
 
     } // namespace density_operator_simulator_impl

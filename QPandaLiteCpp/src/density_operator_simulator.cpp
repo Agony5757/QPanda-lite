@@ -677,53 +677,37 @@ namespace qpandalite
         if (sum > 1)
             ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
 
-        double ii = 1 - sum;
+        pauli_error_2q_unsafe_impl(state, qn1, qn2, p, total_qubit);
+        return;
+        //double ii = 1 - sum;
 
-        //ii = (0.9);
-        //xi = (0.05);
-        //yi = 0; // (0.05);
-        //zi = (0.05);
 
-        //ix = 0;
-        //xx = 0;
-        //yx = 0;
-        //zx = 0;
+        //auto Eii = multiply_scalar(pauli_ii, std::sqrt(ii));
+        //auto Exi = multiply_scalar(pauli_xi, std::sqrt(xi));
+        //auto Eyi = multiply_scalar(pauli_yi, std::sqrt(yi));
+        //auto Ezi = multiply_scalar(pauli_zi, std::sqrt(zi));
 
-        //iy = 0;
-        //xy = 0;
-        //yy = 0;
-        //zy = 0;
-        //iz = 0;
-        //xz = 0;
-        //yz = 0;
-        //zz = 0;
+        //auto Eix = multiply_scalar(pauli_ix, std::sqrt(ix));
+        //auto Exx = multiply_scalar(pauli_xx, std::sqrt(xx));
+        //auto Eyx = multiply_scalar(pauli_yx, std::sqrt(yx));
+        //auto Ezx = multiply_scalar(pauli_zx, std::sqrt(zx));
 
-        auto Eii = multiply_scalar(pauli_ii, std::sqrt(ii));
-        auto Exi = multiply_scalar(pauli_xi, std::sqrt(xi));
-        auto Eyi = multiply_scalar(pauli_yi, std::sqrt(yi));
-        auto Ezi = multiply_scalar(pauli_zi, std::sqrt(zi));
+        //auto Eiy = multiply_scalar(pauli_iy, std::sqrt(iy));
+        //auto Exy = multiply_scalar(pauli_xy, std::sqrt(xy));
+        //auto Eyy = multiply_scalar(pauli_yy, std::sqrt(yy));
+        //auto Ezy = multiply_scalar(pauli_zy, std::sqrt(zy));
 
-        auto Eix = multiply_scalar(pauli_ix, std::sqrt(ix));
-        auto Exx = multiply_scalar(pauli_xx, std::sqrt(xx));
-        auto Eyx = multiply_scalar(pauli_yx, std::sqrt(yx));
-        auto Ezx = multiply_scalar(pauli_zx, std::sqrt(zx));
+        //auto Eiz = multiply_scalar(pauli_iz, std::sqrt(iz));
+        //auto Exz = multiply_scalar(pauli_xz, std::sqrt(xz));
+        //auto Eyz = multiply_scalar(pauli_yz, std::sqrt(yz));
+        //auto Ezz = multiply_scalar(pauli_zz, std::sqrt(zz));
 
-        auto Eiy = multiply_scalar(pauli_iy, std::sqrt(iy));
-        auto Exy = multiply_scalar(pauli_xy, std::sqrt(xy));
-        auto Eyy = multiply_scalar(pauli_yy, std::sqrt(yy));
-        auto Ezy = multiply_scalar(pauli_zy, std::sqrt(zy));
-
-        auto Eiz = multiply_scalar(pauli_iz, std::sqrt(iz));
-        auto Exz = multiply_scalar(pauli_xz, std::sqrt(xz));
-        auto Eyz = multiply_scalar(pauli_yz, std::sqrt(yz));
-        auto Ezz = multiply_scalar(pauli_zz, std::sqrt(zz));
-
-        kraus2q(qn1, qn2, { 
-            Eii, Exi, Eyi, Ezi, 
-            Eix, Exx, Eyx, Ezx, 
-            Eiy, Exy, Eyy, Ezy, 
-            Eiz, Exz, Eyz, Ezz 
-            });
+        //kraus2q(qn1, qn2, { 
+        //    Eii, Exi, Eyi, Ezi, 
+        //    Eix, Exx, Eyx, Ezx, 
+        //    Eiy, Exy, Eyy, Ezy, 
+        //    Eiz, Exz, Eyz, Ezz 
+        //    });
     }
 
     void DensityOperatorSimulator::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)

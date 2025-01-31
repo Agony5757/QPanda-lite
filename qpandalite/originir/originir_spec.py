@@ -2,8 +2,8 @@
 # including the grammar and the syntax of the language.
 
 available_originir_1q_gates = ['H', 'X', 'Y', 'Z', 'S', 'SX', 'T']
-available_originir_1q1p_gates = ['RX', 'RY', 'RZ', 'U1', 'RPHI90', 'RPHI180', ]
-available_originir_1q2p_gates = ['RPHI', 'U2']
+available_originir_1q1p_gates = ['RX', 'RY', 'RZ', 'U1', 'RPhi90', 'RPhi180', ]
+available_originir_1q2p_gates = ['RPhi', 'U2']
 available_originir_1q3p_gates = ['U3']
 available_originir_2q_gates = ['CNOT', 'CZ', 'ISWAP', ] #TODO: SQISWAP
 available_originir_2q1p_gates = ['XX', 'YY', 'ZZ', 'XY', ]
@@ -14,7 +14,10 @@ available_originir_3p_gates = ['TOFFOLI', 'CSWAP']
 angular_gates = (available_originir_1q1p_gates + 
                  available_originir_2q1p_gates +
                  available_originir_1q2p_gates +
-                 available_originir_1q3p_gates)
+                 available_originir_1q3p_gates + 
+                 available_originir_2q1p_gates +
+                 available_originir_2q3p_gates +
+                 available_originir_2q15p_gates)
 
 available_originir_gates = {
     gatename : {'qubit': 1, 'param': 0}
@@ -53,3 +56,26 @@ available_originir_gates.update({
 
 def generate_sub_gateset_originir(gate_list):
     return {k : v for k, v in available_originir_gates.items() if k in gate_list}
+
+available_originir_error_channel_1q = ['PauliError1Q', 
+                                       'Depolarizing', 
+                                       'BitFlip', 
+                                       'PhaseFlip', 
+                                       'Kraus1Q']
+
+available_originir_error_channel_2q = ['PauliError2Q', ]
+
+available_originir_error_channels = {}
+
+available_originir_error_channels.update({
+    gatename : {'qubit': 1}
+    for gatename in available_originir_error_channel_1q
+})
+
+available_originir_error_channels.update({
+    gatename : {'qubit': 2}
+    for gatename in available_originir_error_channel_2q
+})
+
+def generate_sub_error_channel_originir(channel_list):
+    return {k : v for k, v in available_originir_error_channels.items() if k in channel_list}

@@ -98,20 +98,15 @@ class OpcodeSimulator:
                                 qubit[1], 
                                 qubit[2], control_qubits_set, is_dagger)
         elif operation == 'XY':
-            self.simulator.xy(qubit[0], 
-                                qubit[1], control_qubits_set, is_dagger)
+            self.simulator.xy(qubit[0], qubit[1], 
+                              parameter, control_qubits_set, is_dagger)
         elif operation == 'CNOT':
             self.simulator.cnot(qubit[0], 
-                                qubit[1], control_qubits_set, is_dagger)
-        elif operation == 'RPhi':
-            self.simulator.rphi(qubit, 
-                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
+                                qubit[1], control_qubits_set, is_dagger)            
         elif operation == 'RPhi90':
-            self.simulator.rphi90(qubit, 
-                                parameter[0], parameter[1], control_qubits_set, is_dagger)  
+            self.simulator.rphi90(qubit, parameter, control_qubits_set, is_dagger)
         elif operation == 'RPhi180':
-            self.simulator.rphi180(qubit, 
-                                parameter[0], parameter[1], control_qubits_set, is_dagger) 
+            self.simulator.rphi180(qubit, parameter, control_qubits_set, is_dagger) 
         elif operation == 'U3':
             self.simulator.u3(qubit, 
                                 parameter[0], parameter[1], parameter[2], control_qubits_set, is_dagger) 

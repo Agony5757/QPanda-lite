@@ -6,6 +6,7 @@ from .test_result_adapter import run_test_result_adapter
 from .test_QASMBench import run_test_qasm
 from .test_random_QASM import (test_random_qasm_density_operator, 
                                test_random_qasm_statevector)
+from ._utils import qpandalite_test
 
 def run_test():
     run_test_general()

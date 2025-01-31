@@ -10,12 +10,15 @@ from qpandalite.qasm.qasm_spec import available_qasm_gates, generate_sub_gateset
 
 import qiskit
 import qiskit.qasm2 as qasm
+from qiskit.circuit import library as lib
+from qiskit.qasm2.parse import CustomInstruction, LEGACY_CUSTOM_INSTRUCTIONS
 from qiskit_aer import AerSimulator
 from qiskit import transpile
 from qiskit_aer import Aer
 
 def simulate_by_qiskit(qasm_str):
-    qc = qasm.loads(qasm_str)
+
+    qc = qasm.loads(qasm_str, custom_instructions=LEGACY_CUSTOM_INSTRUCTIONS)
     for op in qc.data[:]:
         if op.operation.name == 'measure':
             qc.data.remove(op)
@@ -136,8 +139,8 @@ def test_random_qasm_statevector():
 
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 
-                'ccx', 'cu1', ]
+                's', 'sdg', 't', 'tdg', 'swap' 
+                'ccx', 'cu1', 'cswap']
     gate_set = generate_sub_gateset_qasm(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
@@ -151,13 +154,13 @@ def test_random_qasm_density_operator():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg',  
-                'ccx', 'cu1', ]
+                's', 'sdg', 't', 'tdg', 'swap'  
+                'ccx', 'cu1', 'cswap']
 
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 
-                'ccx', 'cu1', ]
+                's', 'sdg', 't', 'tdg', 'swap' 
+                'ccx', 'cu1', 'cswap']
     gate_set = generate_sub_gateset_qasm(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
@@ -170,12 +173,12 @@ def test_random_qasm_density_operator_qutip():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg',  
-                'ccx', 'cu1', ]
+                's', 'sdg', 't', 'tdg', 'swap' 
+                'ccx', 'cu1', 'cswap']
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 
-                'ccx', 'cu1', ]
+                's', 'sdg', 't', 'tdg', 'swap' 
+                'ccx', 'cu1', 'cswap']
     gate_set = generate_sub_gateset_qasm(gate_set)
 
     test_random_qasm_batch(random_batchsize=100, 
@@ -253,13 +256,13 @@ def test_random_qasm_density_operator_compare_with_qutip():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg',  
-                'ccx', 'cu1', ]
+                's', 'sdg', 't', 'tdg', 'swap' 
+                'ccx', 'cu1', 'cswap']
     
     gate_set = ['h', 'cx',  'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-               's', 'sdg', 't', 'tdg', 
-                'ccx', 'cu1', ]
+               's', 'sdg', 't', 'tdg', 'swap' 
+                'ccx', 'cu1', 'cswap']
     
     gate_set = generate_sub_gateset_qasm(gate_set)
     test_random_qasm_compare_density_operator(

@@ -29,8 +29,8 @@ class OriginIR_Simulator(BaseSimulator):
         self.qubit_mapping = dict()
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.backend_types = backend_type
-        self.opcode_simulator = OpcodeSimulator(self.backend_types)
+        self.backend_type = backend_type
+        self.opcode_simulator = OpcodeSimulator(self.backend_type)
         self.available_qubits = available_qubits
         self.available_topology = available_topology
         
@@ -40,7 +40,7 @@ class OriginIR_Simulator(BaseSimulator):
         self.qubit_mapping = dict()
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.opcode_simulator = OpcodeSimulator(self.backend_types)  
+        self.opcode_simulator = OpcodeSimulator(self.backend_type)  
 
     def _add_used_qubit(self, qubit):
         if qubit in self.qubit_mapping:
@@ -235,7 +235,10 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
         raise NotImplementedError('Noisy simulator does not support statevector.')
     
     def simulate_density_matrix(self, originir):
-        raise NotImplementedError('Noisy simulator does not support density matrix.')
+        if self.opcode_simulator.simulator_typestr == 'density_operator':
+            return super().simulate_density_matrix(originir)
+        else:
+            raise ValueError('simulate_density_matrix is only available for density_operator type OpcodeSimulator backend.')
     
     def _add_measurement_error(self, result, measure_qubit):
         # add measurement error to the result

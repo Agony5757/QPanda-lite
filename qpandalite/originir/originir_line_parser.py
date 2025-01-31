@@ -182,7 +182,7 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_3q(line):
-        matches = OriginIR_LineParser.regexp_2q.match(line)
+        matches = OriginIR_LineParser.regexp_3q.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))

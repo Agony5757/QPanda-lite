@@ -68,11 +68,12 @@ class DensityOperatorSimulatorQutip:
         U = snot()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
+    def sx(self, qubit, control_qubits_set = [], is_dagger = False):
+        U = sqrtnot()
+        self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
     def cnot(self, control_qubit, target_qubit, control_qubits_set = [], is_dagger = False):
         U = cnot(2, 0, 1)  # 标准 CNOT 矩阵，需扩展
-        U_expanded = self._expand_operator(U, [control_qubit, target_qubit])
-        control_op = self._construct_control_op(control_qubits_set, U_expanded)
-        self.density_matrix = control_op * self.density_matrix * control_op.dag()
+        self._apply_unitary(U, [control_qubit, target_qubit], control_qubits_set, is_dagger)
 
     def cz(self, qubit1, qubit2, control_qubits_set = [], is_dagger = False):
         U = Qobj([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,-1]], dims=[[2,2],[2,2]])
@@ -84,9 +85,7 @@ class DensityOperatorSimulatorQutip:
 
     def toffoli(self, c1, c2, target, control_qubits_set = [], is_dagger = False):
         U = toffoli()  # 标准 Toffoli 矩阵，需扩展
-        U_expanded = self._expand_operator(U, [c1, c2, target])
-        control_op = self._construct_control_op(control_qubits_set, U_expanded)
-        self.density_matrix = control_op * self.density_matrix * control_op.dag()
+        self._apply_unitary(U, [c1, c2, target], control_qubits_set, is_dagger)
 
     def phaseflip(self, qubit, prob):
         K0 = np.sqrt(1 - prob) * Qobj([[1,0],[0,1]])
@@ -148,12 +147,12 @@ class DensityOperatorSimulatorQutip:
         self._apply_unitary(swap_op, [q1, q2], total_control, is_dagger)
 
     def xy(self, q1, q2, theta, control_qubits_set, is_dagger):
-        H = (tensor(sigmax(), sigmax()) + tensor(sigmay(), sigmay())) * (-theta/2)
+        H = (tensor(sigmax(), sigmax()) + tensor(sigmay(), sigmay())) * (-1j*theta/4)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
     def rphi(self, qubit, phi, theta, control_qubits_set, is_dagger):
-        U = rz(phi) * rx(theta)
+        U = rz(phi) * rx(theta) * rz(-phi)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
     def rphi90(self, qubit, phi, control_qubits_set, is_dagger):
@@ -163,25 +162,81 @@ class DensityOperatorSimulatorQutip:
         return self.rphi(qubit, phi, np.pi, control_qubits_set, is_dagger)
 
     def xx(self, q1, q2, theta, control_qubits_set, is_dagger):
-        H = tensor(sigmax(), sigmax()) * (-theta/2)
+        H = tensor(sigmax(), sigmax()) * (-1j*theta/2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
     def yy(self, q1, q2, theta, control_qubits_set, is_dagger):
-        H = tensor(sigmay(), sigmay()) * (-theta/2)
+        H = tensor(sigmay(), sigmay()) * (-1j*theta/2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
     def zz(self, q1, q2, theta, control_qubits_set, is_dagger):
-        H = tensor(sigmaz(), sigmaz()) * (-theta/2)
+        H = tensor(sigmaz(), sigmaz()) * (-1j*theta/2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
     def uu15(self, q1, q2, params, control_qubits_set, is_dagger):
-        raise NotImplementedError()
-        
+        '''uu15 gate using KAK decomposition
+
+            U is implemented by
+
+            U3(q1, parameters[0:3])
+            U3(q2, parameters[3:6])
+            XX(q1, q2, parameters[6])
+            YY(q1, q2, parameters[7])
+            ZZ(q1, q2, parameters[8])
+            U3(q1, parameters[9:12])
+            U3(q2, parameters[12:15])
+
+            where parameters is a list of 15 parameters.
+
+        Args:
+            q1 (int): qubit 1 index
+            q2 (int): qubit 2 index
+            params (list): list of parameters
+            control_qubits_set (list): list of control qubits
+            is_dagger (bool): whether to apply daggered gate
+        '''
+        if not is_dagger:
+            self.u3(q1, *params[0:3], control_qubits_set, False)
+            self.u3(q2, *params[3:6], control_qubits_set, False)
+            self.xx(q1, q2, params[6], control_qubits_set, False)
+            self.yy(q1, q2, params[7], control_qubits_set, False)
+            self.zz(q1, q2, params[8], control_qubits_set, False)
+            self.u3(q1, *params[9:12], control_qubits_set, False)
+            self.u3(q2, *params[12:15], control_qubits_set, False)
+        else:
+            self.u3(q1, *params[9:12], control_qubits_set, True)
+            self.u3(q2, *params[12:15], control_qubits_set, True)
+            self.zz(q1, q2, params[8], control_qubits_set, True)
+            self.yy(q1, q2, params[7], control_qubits_set, True)
+            self.xx(q1, q2, params[6], control_qubits_set, True)
+            self.u3(q2, *params[3:6], control_qubits_set, True)
+            self.u3(q1, *params[0:3], control_qubits_set, True)        
     def phase2q(self, q1, q2, theta1, theta2, theta3, control_qubits_set, is_dagger):
-        raise NotImplementedError()
+        '''  phase2q gate =
+            u1(qn1, theta1),
+            u1(qn2, theta2),
+            zz(qn1, qn2, thetazz)
+
+        Args:
+            q1 (int): qubit 1 index
+            q2 (int): qubit 2 index
+            theta1 (float): angle of u1 gate on qn1
+            theta2 (float): angle of u1 gate on qn2
+            theta3 (float): angle of zz gate
+            control_qubits_set (list): list of control qubits
+            is_dagger (bool): whether to apply daggered gate
+        '''
+        if not is_dagger:
+            self.u1(q1, theta1, control_qubits_set, False)
+            self.u1(q2, theta2, control_qubits_set, False)
+            self.zz(q1, q2, theta3, control_qubits_set, False)
+        else:
+            self.zz(q1, q2, theta3, control_qubits_set, True)
+            self.u1(q2, theta2, control_qubits_set, True)
+            self.u1(q1, theta1, control_qubits_set, True)
         
     # 噪声模型
     def pauli_error_1q(self, qubit, px, py, pz):

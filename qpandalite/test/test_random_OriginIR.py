@@ -97,7 +97,7 @@ def test_random_originir_density_operator():
                  'U3',
                  'CNOT', 'CZ', 'ISWAP', 
                  'XX', 'YY', 'ZZ', 
-                 #'XY', 
+                 'XY', 
                  'PHASE2Q', 
                  'UU15',
                  'TOFFOLI', 

@@ -1311,7 +1311,7 @@ namespace qpandalite {
             double theta, size_t total_qubit, size_t controller_mask, bool is_dagger) {
             double t = theta / 2;
             complex_t cos_t = std::cos(t);
-            complex_t sin_t = (is_dagger ? -complex_t(0, 1) : complex_t(0, 1)) * std::sin(t);
+            complex_t sin_t = (is_dagger ? complex_t(0, 1) : -complex_t(0, 1)) * std::sin(t);
 
             // XY 门的 4x4 矩阵
             complex_t U00 = 1, U01 = 0, U02 = 0, U03 = 0;

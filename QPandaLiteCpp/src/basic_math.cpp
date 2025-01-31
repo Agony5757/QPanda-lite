@@ -70,6 +70,20 @@ namespace qpandalite
         return { c00, c01, c10, c11 };
     }
 
+    u44_t matmul(const u44_t& u1, const u44_t& u2)
+    {
+        u44_t ret;
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                val(ret, i, j) = 0;
+                for (int k = 0; k < 4; ++k) {
+                    val(ret, i, j) += val(u1, i, k) * val(u2, k, j);
+                }
+            }
+        }
+        return ret;
+    }
+
     u22_t dag(const u22_t& u)
     {
         complex_t u00 = u[0];
@@ -83,6 +97,18 @@ namespace qpandalite
         complex_t udag11 = std::conj(u[3]);
 
         u22_t udag = { udag00, udag01, udag10, udag11 };
+        return udag;
+    }
+
+
+    u44_t dag(const u44_t& u)
+    {
+        u44_t udag;
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                val(udag, i, j) = std::conj(val(u, j, i));
+            }
+        }
         return udag;
     }
 
@@ -107,11 +133,28 @@ namespace qpandalite
             (std::abs(sum[3] - 1.0) < eps);
     }
 
-    u22_t matmul_u_udag(const u22_t& u)
-    {
-        u22_t udag = dag(u);
-        return matmul(u, udag);
+
+    bool validate_kraus(const std::vector<u44_t>& kraus_ops) {
+        // 计算sum(E†E)
+        u44_t sum;
+        sum.fill(0);
+        for (const auto& E : kraus_ops) {
+            u44_t E_dag = dag(E);      // 共轭转置
+            u44_t product = matmul(E_dag, E);
+
+            for (int i = 0; i < 16; ++i) {
+                sum[i] += product[i];
+            }
+        }
+
+        // 检查是否近似单位矩阵
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                if (std::abs(sum[i * 4 + j] - (i == j? 1.0 : 0.0)) > eps) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
-
-
 }

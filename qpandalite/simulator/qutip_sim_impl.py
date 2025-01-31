@@ -97,7 +97,6 @@ class DensityOperatorSimulatorQutip:
         new_rho = sum(K * self.density_matrix * K.dag() for K in expanded_ops)
         self.density_matrix = new_rho
 
-        # 在DensityOperatorSimulator类中添加以下方法
     def u1(self, qubit, theta, control_qubits_set, is_dagger):
         U = phasegate(theta)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
@@ -269,6 +268,86 @@ class DensityOperatorSimulatorQutip:
         K0 = Qobj([[1, 0], [0, np.sqrt(1 - gamma)]])
         K1 = Qobj([[0, np.sqrt(gamma)], [0, 0]])
         self._apply_kraus([K0, K1], [qubit])
+
+    def kraus2q(self, q1, q2, parameters):
+        kraus_ops = [Qobj(np.array(k).reshape(4,4)) for k in parameters]
+        self._apply_kraus(kraus_ops, [q1, q2])
+
+    def pauli_error_2q(self, q1, q2, parameters):
+        '''
+        // 解包所有概率参数
+        double xi = p[0], yi = p[1], zi = p[2];
+        double ix = p[3], xx = p[4], yx = p[5], zx = p[6];
+        double iy = p[7], xy = p[8], yy = p[9], zy = p[10];
+        double iz = p[11], xz = p[12], yz = p[13], zz = p[14];
+
+        double sum = xi + yi + zi +
+            ix + xx + yx + zx +
+            iy + xy + yy + zy +
+            iz + xz + yz + zz;
+
+        if (sum > 1)
+            ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
+
+        auto Exi = multiply_scalar(pauli_xi, xi);
+        auto Eyi = multiply_scalar(pauli_yi, yi);
+        auto Ezi = multiply_scalar(pauli_zi, zi);
+
+        auto Eix = multiply_scalar(pauli_ix, ix);
+        auto Exx = multiply_scalar(pauli_xx, xx);
+        auto Eyx = multiply_scalar(pauli_yx, yx);
+        auto Ezx = multiply_scalar(pauli_zx, zx);
+
+        auto Eiy = multiply_scalar(pauli_iy, iy);
+        auto Exy = multiply_scalar(pauli_xy, xy);
+        auto Eyy = multiply_scalar(pauli_yy, yy);
+        auto Ezy = multiply_scalar(pauli_zy, zy);
+
+        auto Eiz = multiply_scalar(pauli_iz, iz);
+        auto Exz = multiply_scalar(pauli_xz, xz);
+        auto Eyz = multiply_scalar(pauli_yz, yz);
+        auto Ezz = multiply_scalar(pauli_zz, zz);
+
+        kraus2q(qn1, qn2, { Exi, Eyi, Ezi, Exx, Eyy, Ezz, Exy, Exz, Eyz, Eix, Eiy, Eiz, Exx, Eyx, Ezx, Exy, Eyy, Ezy, Exz, Eyz, Ezz });
+            
+
+        Args:
+            q1 (int): qubit 1 index
+            q2 (int): qubit 2 index
+            parameters (list): list of parameters
+        '''
+        
+        # unpack all probabilities
+        parameters = list(parameters)
+        parameters = [np.sqrt(p) for p in parameters]
+        xi, yi, zi, ix, xx, yx, zx, iy, xy, yy, zy, iz, xz, yz, zz = tuple(parameters)
+
+        # validate probabilities
+        if sum(parameters) > 1:
+            raise ValueError("Probabilities must be less than or equal to 1.")
+        
+        # create kraus operators
+        Exi = xi * tensor(sigmax(), qeye(2))
+        Eyi = yi * tensor(sigmay(), qeye(2))
+        Ezi = zi * tensor(sigmaz(), qeye(2))
+        Eix = ix * tensor(qeye(2), sigmax())
+        Exx = xx * tensor(sigmax(), sigmax())
+        Eyx = yx * tensor(sigmay(), sigmax())
+        Ezx = zx * tensor(sigmaz(), sigmax())
+        Eiy = iy * tensor(qeye(2), sigmay())
+        Exy = xy * tensor(sigmax(), sigmay())
+        Eyy = yy * tensor(sigmay(), sigmay())
+        Ezy = zy * tensor(sigmaz(), sigmay())
+        Eiz = iz * tensor(qeye(2), sigmaz())
+        Exz = xz * tensor(sigmax(), sigmaz())
+        Eyz = yz * tensor(sigmay(), sigmaz())
+        Ezz = zz * tensor(sigmaz(), sigmaz())
+
+        # apply kraus operators
+        self._apply_kraus([Exi, Eyi, Ezi, Eix, Exx, Eyx, Ezx, Eiy, Exy, Eyy, Ezy, Eiz, Exz, Eyz, Ezz], [q1, q2])
+
+    def twoqubit_depolarizing(self, q1, q2, p):
+        self.pauli_error_2q(q1, q2, [p/15]*15)
 
     def pmeasure(self, measure_qubits):
         # get a partial traced density matrix with respect to the measure_qubits

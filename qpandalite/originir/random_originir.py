@@ -40,7 +40,7 @@ def build_originir_gate(gate, qubits, params):
     else:
         return f"{gate} {qubit_str}"
 
-def build_originir_error_channel(channel, qubits):
+def build_originir_error_channel(channel, qubits, params):
     '''
     Build a line of OriginIR code for a given error channel, qubits, and parameters.
     
@@ -63,7 +63,10 @@ def build_originir_error_channel(channel, qubits):
     
     qubit_str = ",".join([f"q[{qubit}]" for qubit in qubits])
     
-    return f"{channel} {qubit_str}"
+    param_str = [f"{param}" for param in params]
+    param_str = ",".join(param_str)
+
+    return f"{channel} {qubit_str}, ({param_str})"
 
 def build_full_measurements(n_qubits):
     '''
@@ -120,9 +123,11 @@ def random_originir(n_qubits, n_gates,
             program.append(build_originir_gate(gate_name, qubits_to_act, params))
 
         elif gate_name in channel_set:
-            nqubit =channel_set[gate_name]['qubit']
+            nqubit = channel_set[gate_name]['qubit']
+            nparam = channel_set[gate_name]['param']
             qubits_to_act = random.sample(range(n_qubits), nqubit)
-            program.append(build_originir_error_channel(gate_name, qubits_to_act))
+            params = [random.uniform(0, 1/15) for _ in range(nparam)]
+            program.append(build_originir_error_channel(gate_name, qubits_to_act, params))
 
         else:
             raise ValueError(f"Instruction {gate_name} not available in OriginIR")

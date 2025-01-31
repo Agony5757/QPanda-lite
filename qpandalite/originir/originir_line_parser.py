@@ -387,26 +387,32 @@ class OriginIR_LineParser:
                  operation == 'RZ' or \
                  operation == 'U1' or \
                  operation == 'RPhi90' or \
-                 operation == 'RPhi180':
+                 operation == 'RPhi180' or \
+                 operation == 'Depolarizing' or \
+                 operation == 'BitFlip' or \
+                 operation == 'PhaseFlip':
                 operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
             # 1q2p gates
             elif operation == 'RPhi' or \
                  operation == 'U2':
                 operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
             # 1q3p gates
-            elif operation == 'U3':
+            elif operation == 'U3' or \
+                 operation == 'PauliError1Q':
                 operation, q, parameter = OriginIR_LineParser.handle_1q3p(line)
             # 2q1p gates
             elif operation == 'XX' or \
                  operation == 'YY' or \
                  operation == 'ZZ' or \
-                 operation == 'XY':
+                 operation == 'XY' or \
+                 operation == 'TwoQubitDepolarizing':
                 operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)
             # 2q3p gates
             elif operation == 'PHASE2Q':
                 operation, q, parameter = OriginIR_LineParser.handle_2q3p(line)
             # 2q15p gates
-            elif operation == 'UU15':
+            elif operation == 'UU15' or \
+                 operation == 'PauliError2Q':
                 operation, q, parameter = OriginIR_LineParser.handle_2q15p(line)
             elif operation == 'BARRIER':
                 operation = 'BARRIER'

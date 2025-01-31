@@ -623,42 +623,91 @@ namespace qpandalite
 
     void DensityOperatorSimulator::pauli_error_1q(size_t qn, double px, double py, double pz)
     {
-        auto Ex = multiply_scalar(pauli_x, px);
-        auto Ey = multiply_scalar(pauli_y, py);
-        auto Ez = multiply_scalar(pauli_z, pz);
-        auto Ei = multiply_scalar(pauli_id, (1 - px - py - pz));
+        // TODO: Check probability bounds
+        double sum = px + py + pz;
+
+        if (sum > 1)
+            ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
+
+        auto Ex = multiply_scalar(pauli_x, std::sqrt(px));
+        auto Ey = multiply_scalar(pauli_y, std::sqrt(py));
+        auto Ez = multiply_scalar(pauli_z, std::sqrt(pz));
+        auto Ei = multiply_scalar(pauli_id, std::sqrt(1 - px - py - pz));
 
         kraus1q(qn, { Ex, Ey, Ez, Ei });
     }
 
     void DensityOperatorSimulator::depolarizing(size_t qn, double p)
     {
-        auto Ex = multiply_scalar(pauli_x, p / 3);
-        auto Ey = multiply_scalar(pauli_y, p / 3);
-        auto Ez = multiply_scalar(pauli_z, p / 3);
-        auto Ei = multiply_scalar(pauli_id, (1 - p));
-
-        kraus1q(qn, { Ex, Ey, Ez, Ei });
+        pauli_error_1q(qn, p / 3, p / 3, p / 3);
     }
 
     void DensityOperatorSimulator::bitflip(size_t qn, double p)
     {
-        auto Ex = multiply_scalar(pauli_x, p);
-        auto Ei = multiply_scalar(pauli_id, (1 - p));
+        if (p < 0 || p > 1)
+            ThrowInvalidArgument("Probability must be between 0 and 1.");
+
+        auto Ex = multiply_scalar(pauli_x, std::sqrt(p));
+        auto Ei = multiply_scalar(pauli_id, std::sqrt(1 - p));
 
         kraus1q(qn, { Ex, Ei });
     }
 
     void DensityOperatorSimulator::phaseflip(size_t qn, double p)
     {
-        auto Ey = multiply_scalar(pauli_y, p);
-        auto Ei = multiply_scalar(pauli_id, (1 - p));
+        auto Ez = multiply_scalar(pauli_z, std::sqrt(p));
+        auto Ei = multiply_scalar(pauli_id, std::sqrt(1 - p));
 
-        kraus1q(qn, { Ey, Ei });
+        kraus1q(qn, { Ez, Ei });
     }
 
     void DensityOperatorSimulator::pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p)
     {
+        // 解包所有概率参数
+        double xi = p[0], yi = p[1], zi = p[2];
+        double ix = p[3], xx = p[4], yx = p[5], zx = p[6];
+        double iy = p[7], xy = p[8], yy = p[9], zy = p[10];
+        double iz = p[11], xz = p[12], yz = p[13], zz = p[14];
+
+        double sum = xi + yi + zi +
+            ix + xx + yx + zx +
+            iy + xy + yy + zy +
+            iz + xz + yz + zz;
+
+        if (sum > 1)
+            ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
+
+        auto Eii = multiply_scalar(pauli_ii, std::sqrt(1 - sum));
+        auto Exi = multiply_scalar(pauli_xi, std::sqrt(xi));
+        auto Eyi = multiply_scalar(pauli_yi, std::sqrt(yi));
+        auto Ezi = multiply_scalar(pauli_zi, std::sqrt(zi));
+
+        auto Eix = multiply_scalar(pauli_ix, std::sqrt(ix));
+        auto Exx = multiply_scalar(pauli_xx, std::sqrt(xx));
+        auto Eyx = multiply_scalar(pauli_yx, std::sqrt(yx));
+        auto Ezx = multiply_scalar(pauli_zx, std::sqrt(zx));
+
+        auto Eiy = multiply_scalar(pauli_iy, std::sqrt(iy));
+        auto Exy = multiply_scalar(pauli_xy, std::sqrt(xy));
+        auto Eyy = multiply_scalar(pauli_yy, std::sqrt(yy));
+        auto Ezy = multiply_scalar(pauli_zy, std::sqrt(zy));
+
+        auto Eiz = multiply_scalar(pauli_iz, std::sqrt(iz));
+        auto Exz = multiply_scalar(pauli_xz, std::sqrt(xz));
+        auto Eyz = multiply_scalar(pauli_yz, std::sqrt(yz));
+        auto Ezz = multiply_scalar(pauli_zz, std::sqrt(zz));
+
+        kraus2q(qn1, qn2, { 
+            Eii, Exi, Eyi, Ezi, 
+            Eix, Exx, Eyx, Ezx, 
+            Eiy, Exy, Eyy, Ezy, 
+            Eiz, Exz, Eyz, Ezz 
+            });
+    }
+
+    void DensityOperatorSimulator::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
+    {
+        pauli_error_2q(qn1, qn2, std::vector<dtype>(15, p / 15));
     }
 
     void DensityOperatorSimulator::kraus1q(size_t qn, const Kraus1Q& kraus_ops)
@@ -667,7 +716,9 @@ namespace qpandalite
 
         // 验证Kraus算符完备性（必须确保∑E_i†E_i = I）
         if (!validate_kraus(kraus_ops)) {
-            ThrowInvalidArgument("Invalid Kraus operators: sum(E†E) != I");
+            auto kraus_op_str_list = kraus2str(kraus_ops);
+            auto kraus_strs = fmt::format("Kraus = \n{}", kraus_op_str_list);
+            ThrowInvalidArgument(fmt::format("Invalid Kraus operators: sum(E†E) != I. {}", kraus_strs));
         }
 
         auto ret_state = state;
@@ -678,6 +729,36 @@ namespace qpandalite
             auto copy_state = state;
             auto& E = kraus_ops[i];
             u22_unsafe_impl(copy_state, qn, E, total_qubit, 0);
+
+            merge_state(ret_state, copy_state);
+        }
+
+        state = std::move(ret_state);
+    }
+
+
+    void DensityOperatorSimulator::kraus2q(size_t qn1, size_t qn2, const Kraus2Q& kraus_ops)
+    {
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+
+        CHECK_DUPLICATE_QUBIT(qn1, qn2)
+
+        // 验证Kraus算符完备性（必须确保∑E_i†E_i = I）
+        if (!validate_kraus(kraus_ops)) {
+            auto kraus_op_str_list = kraus2str(kraus_ops);
+            auto kraus_strs = fmt::format("Kraus = \n{}", kraus_op_str_list);
+            ThrowInvalidArgument(fmt::format("Invalid Kraus operators: sum(E†E) != I. {}", kraus_strs));
+        }
+
+        auto ret_state = state;
+        u44_unsafe_impl(ret_state, qn1, qn2, kraus_ops[0], total_qubit, 0);
+
+        for (size_t i = 1; i < kraus_ops.size(); ++i)
+        {
+            auto copy_state = state;
+            auto& E = kraus_ops[i];
+            u44_unsafe_impl(copy_state, qn1, qn2, E, total_qubit, 0);
 
             merge_state(ret_state, copy_state);
         }
@@ -778,4 +859,52 @@ namespace qpandalite
         }
         return ret;
     } 
+
+    std::string u22_to_str(const u22_t& E)
+    {
+        return fmt::format("[{}+{}j, {}+{}j; {}+{}j, {}+{}j]\n",
+            std::real(E[0]), std::imag(E[0]),
+            std::real(E[1]), std::imag(E[1]),
+            std::real(E[2]), std::imag(E[2]),
+            std::real(E[3]), std::imag(E[3]));
+    }
+
+    std::string u44_to_str(const u44_t& E)
+    {
+        std::string ret = "[";
+        for (size_t i = 0; i < 4; ++i)
+        {
+            for (size_t j = 0; j < 4; ++j)
+            {
+                ret += fmt::format("{}+{}j", std::real(val(E, i, j)), std::imag(val(E, i, j)));
+                if (j != 3)
+                    ret += ", ";
+            }
+            if (i != 3)
+                ret += "; ";
+        }
+        ret += "]";
+        return ret;
+    }
+
+    std::string kraus2str(const Kraus1Q& kraus_ops)
+    {
+        std::string kraus_op_str_list;
+        for (auto& E : kraus_ops)
+        {
+            kraus_op_str_list += (u22_to_str(E) + "\n");
+        }
+        return kraus_op_str_list;
+    }
+
+    std::string kraus2str(const Kraus2Q& kraus_ops)
+    {
+        std::string kraus_op_str_list;
+        for (auto& E : kraus_ops)
+        {
+            kraus_op_str_list += (u44_to_str(E) + "\n");
+        }
+        return kraus_op_str_list;
+    }
+
 }

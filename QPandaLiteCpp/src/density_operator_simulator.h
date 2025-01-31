@@ -58,6 +58,7 @@ namespace qpandalite {
         void pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p);
         void twoqubit_depolarizing(size_t qn1, size_t qn2, double p);
         void kraus1q(size_t qn, const Kraus1Q& kraus_ops);
+        void kraus2q(size_t qn, size_t qn2, const Kraus2Q& kraus_ops);
         void amplitude_damping(size_t qn, double gamma);
 
         dtype get_prob_map(const std::map<size_t, int>& measure_qubits);
@@ -67,4 +68,7 @@ namespace qpandalite {
 
         std::vector<dtype> stateprob() const;
     };
+
+    std::string kraus2str(const Kraus1Q& kraus_ops);
+    std::string kraus2str(const Kraus2Q& kraus_ops);
 }

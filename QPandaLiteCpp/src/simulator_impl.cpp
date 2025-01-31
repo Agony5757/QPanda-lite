@@ -1182,6 +1182,14 @@ namespace qpandalite {
             }
         }
 
+        void u44_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn1, size_t qn2, u44_t unitary, size_t total_qubit, size_t controller_mask)
+        {
+            u44_unsafe_impl(state, qn1, qn2, unitary[0], unitary[1], unitary[2], unitary[3],
+                unitary[4], unitary[5], unitary[6], unitary[7],
+                unitary[8], unitary[9], unitary[10], unitary[11],
+                unitary[12], unitary[13], unitary[14], unitary[15],
+                total_qubit, controller_mask);
+        }
 
         void u3_unsafe_impl(std::vector<complex_t>& state, size_t qn,
             double theta, double phi, double lambda,

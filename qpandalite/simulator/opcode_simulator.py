@@ -147,6 +147,9 @@ class OpcodeSimulator:
         elif operation == 'PauliError2Q':
             # parameter: List[float]
             self.simulator.pauli_error_2q(qubit[0], qubit[1], parameter)
+        elif operation == 'TwoQubitDepolarizing':
+            # parameter: depolarizing probability
+            self.simulator.twoqubit_depolarizing(qubit[0], qubit[1], parameter)
         elif operation == 'Kraus1Q':
             # parameter: List[List[complex]]
             if not isinstance(parameter, list):

@@ -57,24 +57,44 @@ available_originir_gates.update({
 def generate_sub_gateset_originir(gate_list):
     return {k : v for k, v in available_originir_gates.items() if k in gate_list}
 
-available_originir_error_channel_1q = ['PauliError1Q', 
-                                       'Depolarizing', 
-                                       'BitFlip', 
-                                       'PhaseFlip', 
-                                       'Kraus1Q']
 
-available_originir_error_channel_2q = ['PauliError2Q', ]
+available_originir_error_channel_1q1p = ['Depolarizing', 
+                                         'BitFlip', 
+                                         'PhaseFlip', ]
 
-available_originir_error_channels = {}
+available_originir_error_channel_1q3p = ['PauliError1Q']
+
+available_originir_error_channel_1qnp = ['Kraus1Q']
+
+available_originir_error_channel_2q1p = ['TwoQubitDepolarizing', ]
+
+available_originir_error_channel_2q15p = ['PauliError2Q', ]
+
+available_originir_error_channels = {
+    gatename : {'qubit': 1, 'param': 1}
+    for gatename in available_originir_error_channel_1q1p
+}
 
 available_originir_error_channels.update({
-    gatename : {'qubit': 1}
-    for gatename in available_originir_error_channel_1q
+    gatename : {'qubit': 1, 'param': 3}
+    for gatename in available_originir_error_channel_1q3p
 })
 
 available_originir_error_channels.update({
-    gatename : {'qubit': 2}
-    for gatename in available_originir_error_channel_2q
+    # There will raise an error if it is used in the random_originir
+    # TODO: add the random generation of Kraus1Q channel
+    gatename : {'qubit': 1, 'param': -1}
+    for gatename in available_originir_error_channel_1qnp
+})
+
+available_originir_error_channels.update({
+    gatename : {'qubit': 2, 'param': 1}
+    for gatename in available_originir_error_channel_2q1p
+})
+
+available_originir_error_channels.update({
+    gatename : {'qubit': 2, 'param': 15}
+    for gatename in available_originir_error_channel_2q15p
 })
 
 def generate_sub_error_channel_originir(channel_list):

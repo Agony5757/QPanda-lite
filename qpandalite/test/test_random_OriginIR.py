@@ -6,9 +6,9 @@ from qpandalite.originir.originir_spec import (available_originir_gates,
                                                available_originir_error_channels,
                                                generate_sub_gateset_originir,
                                                generate_sub_error_channel_originir)
-from qpandalite.test import qpandalite_test
-from qpandalite.simulator import OriginIR_NoisySimulator
 
+from qpandalite.simulator import OriginIR_NoisySimulator
+from qpandalite.test._utils import qpandalite_test
 class NotMatchError(Exception):
     pass
 def compare_density_operator(circuit):
@@ -92,17 +92,14 @@ def test_random_originir_density_operator():
                  'TOFFOLI', 'CSWAP']
     
     gate_set =  ['H', 'X', 'Y', 'Z', 'S', 'SX', 'T',
-                 'RX', 'RY', 'RZ', 'U1', 'RPhi90', 'RPhi180'
+                 'RX', 'RY', 'RZ', 'U1', 'RPhi90', 'RPhi180',
                  'RPhi', 'U2',
                  'U3',
                  'CNOT', 'CZ', 'ISWAP', 
-                 'XX', 'YY', 'ZZ', 
-                 'XY', 
+                 'XX', 'YY', 'ZZ', 'XY', 
                  'PHASE2Q', 
                  'UU15',
-                 'TOFFOLI', 
-                 'CSWAP',
-                 ]
+                 'TOFFOLI', 'CSWAP']
     
     gate_set = generate_sub_gateset_originir(gate_set)
 
@@ -111,9 +108,16 @@ def test_random_originir_density_operator():
                     'BitFlip', 
                     'PhaseFlip', 
                     'Kraus1Q',
-                    'PauliError2Q', ]
+                    'PauliError2Q', 
+                    'TwoQubitDepolarizing']
     
-    error_channel = []
+    error_channel = ['PauliError1Q', 
+                    'Depolarizing', 
+                    'BitFlip', 
+                    'PhaseFlip', 
+                    #'PauliError2Q',
+                    #'TwoQubitDepolarizing'
+                    ]
 
     error_channel = generate_sub_error_channel_originir(error_channel)
 

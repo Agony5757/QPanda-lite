@@ -217,6 +217,8 @@ namespace qpandalite {
             complex_t u30, complex_t u31, complex_t u32, complex_t u33,
             size_t total_qubit, size_t controller_mask);
 
+        void u44_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn1, size_t qn2, u44_t unitary, size_t total_qubit, size_t controller_mask);
+
         void u3_unsafe_impl(std::vector<complex_t>& state, size_t qn,
             double theta, double phi, double lambda,
             size_t total_qubit, size_t controller_mask, bool is_dagger);

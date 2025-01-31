@@ -808,9 +808,11 @@ namespace qpandalite {
             evolve_u22(U00, U01, U10, U11, i0j0, i0j1, i1j0, i1j1);
         }
 
-        void evolve_u22(const complex_t& U00, const complex_t & U01, const complex_t & U10, const complex_t & U11,
+        void evolve_u22(const complex_t& U00, const complex_t & U01, 
+            const complex_t & U10, const complex_t & U11,
             complex_t &i0j0, complex_t& i0j1, complex_t &i1j0, complex_t &i1j1)
         {
+
             const complex_t orig_i0j0 = i0j0;
             const complex_t orig_i0j1 = i0j1;
             const complex_t orig_i1j0 = i1j0;
@@ -829,7 +831,11 @@ namespace qpandalite {
             i1j1 = T10 * std::conj(U10) + T11 * std::conj(U11); // (1,1)
         }
 
-        void apply_irho_udag_u22(const complex_t& U00, const complex_t& U01, const complex_t& U10, const complex_t& U11, complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1) {
+        void apply_irho_udag_u22(const complex_t& U00, const complex_t& U01, 
+            const complex_t& U10, const complex_t& U11, 
+            complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1) 
+        {
+
             const complex_t orig_i0j0 = i0j0, orig_i0j1 = i0j1;
             const complex_t orig_i1j0 = i1j0, orig_i1j1 = i1j1;
 
@@ -840,7 +846,11 @@ namespace qpandalite {
             i1j1 = orig_i1j0 * std::conj(U01) + orig_i1j1 * std::conj(U11);
         }
 
-        void apply_urho_i_u22(const complex_t& U00, const complex_t& U01, const complex_t& U10, const complex_t& U11, complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1) {
+        void apply_urho_i_u22(const complex_t& U00, const complex_t& U01,
+            const complex_t& U10, const complex_t& U11, 
+            complex_t& i0j0, complex_t& i0j1, complex_t& i1j0, complex_t& i1j1) 
+        {
+
             const complex_t orig_i0j0 = i0j0, orig_i0j1 = i0j1;
             const complex_t orig_i1j0 = i1j0, orig_i1j1 = i1j1;
 
@@ -849,60 +859,6 @@ namespace qpandalite {
             i0j1 = U00 * orig_i0j1 + U01 * orig_i1j1;
             i1j0 = U10 * orig_i0j0 + U11 * orig_i1j0;
             i1j1 = U10 * orig_i0j1 + U11 * orig_i1j1;
-        }
-
-        void evolve_u44(const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03, const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13, const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23, const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33, complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11, complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11, complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11, complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11) {
-            // 保存原始值
-            const complex_t orig_i00j00 = i00j00, orig_i00j01 = i00j01, orig_i00j10 = i00j10, orig_i00j11 = i00j11;
-            const complex_t orig_i01j00 = i01j00, orig_i01j01 = i01j01, orig_i01j10 = i01j10, orig_i01j11 = i01j11;
-            const complex_t orig_i10j00 = i10j00, orig_i10j01 = i10j01, orig_i10j10 = i10j10, orig_i10j11 = i10j11;
-            const complex_t orig_i11j00 = i11j00, orig_i11j01 = i11j01, orig_i11j10 = i11j10, orig_i11j11 = i11j11;
-
-            // 计算中间矩阵 T = U * ρ_block
-            const complex_t T00 = U00 * orig_i00j00 + U01 * orig_i01j00 + U02 * orig_i10j00 + U03 * orig_i11j00;
-            const complex_t T01 = U00 * orig_i00j01 + U01 * orig_i01j01 + U02 * orig_i10j01 + U03 * orig_i11j01;
-            const complex_t T02 = U00 * orig_i00j10 + U01 * orig_i01j10 + U02 * orig_i10j10 + U03 * orig_i11j10;
-            const complex_t T03 = U00 * orig_i00j11 + U01 * orig_i01j11 + U02 * orig_i10j11 + U03 * orig_i11j11;
-
-            const complex_t T10 = U10 * orig_i00j00 + U11 * orig_i01j00 + U12 * orig_i10j00 + U13 * orig_i11j00;
-            const complex_t T11 = U10 * orig_i00j01 + U11 * orig_i01j01 + U12 * orig_i10j01 + U13 * orig_i11j01;
-            const complex_t T12 = U10 * orig_i00j10 + U11 * orig_i01j10 + U12 * orig_i10j10 + U13 * orig_i11j10;
-            const complex_t T13 = U10 * orig_i00j11 + U11 * orig_i01j11 + U12 * orig_i10j11 + U13 * orig_i11j11;
-
-            const complex_t T20 = U20 * orig_i00j00 + U21 * orig_i01j00 + U22 * orig_i10j00 + U23 * orig_i11j00;
-            const complex_t T21 = U20 * orig_i00j01 + U21 * orig_i01j01 + U22 * orig_i10j01 + U23 * orig_i11j01;
-            const complex_t T22 = U20 * orig_i00j10 + U21 * orig_i01j10 + U22 * orig_i10j10 + U23 * orig_i11j10;
-            const complex_t T23 = U20 * orig_i00j11 + U21 * orig_i01j11 + U22 * orig_i10j11 + U23 * orig_i11j11;
-
-            const complex_t T30 = U30 * orig_i00j00 + U31 * orig_i01j00 + U32 * orig_i10j00 + U33 * orig_i11j00;
-            const complex_t T31 = U30 * orig_i00j01 + U31 * orig_i01j01 + U32 * orig_i10j01 + U33 * orig_i11j01;
-            const complex_t T32 = U30 * orig_i00j10 + U31 * orig_i01j10 + U32 * orig_i10j10 + U33 * orig_i11j10;
-            const complex_t T33 = U30 * orig_i00j11 + U31 * orig_i01j11 + U32 * orig_i10j11 + U33 * orig_i11j11;
-
-            // 计算最终结果 ρ_block' = T * U†
-            // 第一行
-            i00j00 = T00 * std::conj(U00) + T01 * std::conj(U10) + T02 * std::conj(U20) + T03 * std::conj(U30);
-            i00j01 = T00 * std::conj(U01) + T01 * std::conj(U11) + T02 * std::conj(U21) + T03 * std::conj(U31);
-            i00j10 = T00 * std::conj(U02) + T01 * std::conj(U12) + T02 * std::conj(U22) + T03 * std::conj(U32);
-            i00j11 = T00 * std::conj(U03) + T01 * std::conj(U13) + T02 * std::conj(U23) + T03 * std::conj(U33);
-
-            // 第二行
-            i01j00 = T10 * std::conj(U00) + T11 * std::conj(U10) + T12 * std::conj(U20) + T13 * std::conj(U30);
-            i01j01 = T10 * std::conj(U01) + T11 * std::conj(U11) + T12 * std::conj(U21) + T13 * std::conj(U31);
-            i01j10 = T10 * std::conj(U02) + T11 * std::conj(U12) + T12 * std::conj(U22) + T13 * std::conj(U32);
-            i01j11 = T10 * std::conj(U03) + T11 * std::conj(U13) + T12 * std::conj(U23) + T13 * std::conj(U33);
-
-            // 第三行
-            i10j00 = T20 * std::conj(U00) + T21 * std::conj(U10) + T22 * std::conj(U20) + T23 * std::conj(U30);
-            i10j01 = T20 * std::conj(U01) + T21 * std::conj(U11) + T22 * std::conj(U21) + T23 * std::conj(U31);
-            i10j10 = T20 * std::conj(U02) + T21 * std::conj(U12) + T22 * std::conj(U22) + T23 * std::conj(U32);
-            i10j11 = T20 * std::conj(U03) + T21 * std::conj(U13) + T22 * std::conj(U23) + T23 * std::conj(U33);
-
-            // 第四行
-            i11j00 = T30 * std::conj(U00) + T31 * std::conj(U10) + T32 * std::conj(U20) + T33 * std::conj(U30);
-            i11j01 = T30 * std::conj(U01) + T31 * std::conj(U11) + T32 * std::conj(U21) + T33 * std::conj(U31);
-            i11j10 = T30 * std::conj(U02) + T31 * std::conj(U12) + T32 * std::conj(U22) + T33 * std::conj(U32);
-            i11j11 = T30 * std::conj(U03) + T31 * std::conj(U13) + T32 * std::conj(U23) + T33 * std::conj(U33);
         }
 
         void hadamard_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask)
@@ -985,42 +941,67 @@ namespace qpandalite {
                 total_qubit, controller_mask);
         }
 
-        void apply_irho_udag_u44(const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03, const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13, const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23, const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33, complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11, complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11, complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11, complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11) {
+
+        void evolve_u44(const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03,
+            const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13,
+            const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23,
+            const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33,
+            complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11,
+            complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11,
+            complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11,
+            complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11) {
+
             // 保存原始值
             const complex_t orig_i00j00 = i00j00, orig_i00j01 = i00j01, orig_i00j10 = i00j10, orig_i00j11 = i00j11;
             const complex_t orig_i01j00 = i01j00, orig_i01j01 = i01j01, orig_i01j10 = i01j10, orig_i01j11 = i01j11;
             const complex_t orig_i10j00 = i10j00, orig_i10j01 = i10j01, orig_i10j10 = i10j10, orig_i10j11 = i10j11;
             const complex_t orig_i11j00 = i11j00, orig_i11j01 = i11j01, orig_i11j10 = i11j10, orig_i11j11 = i11j11;
 
-            // 计算 U† 的转置共轭（预计算）
-            const complex_t Udag00 = std::conj(U00), Udag10 = std::conj(U01), Udag20 = std::conj(U02), Udag30 = std::conj(U03);
-            const complex_t Udag01 = std::conj(U10), Udag11 = std::conj(U11), Udag21 = std::conj(U12), Udag31 = std::conj(U13);
-            const complex_t Udag02 = std::conj(U20), Udag12 = std::conj(U21), Udag22 = std::conj(U22), Udag32 = std::conj(U23);
-            const complex_t Udag03 = std::conj(U30), Udag13 = std::conj(U31), Udag23 = std::conj(U32), Udag33 = std::conj(U33);
+            // 计算中间矩阵 T = U * ρ_block
+            const complex_t T00 = U00 * orig_i00j00 + U01 * orig_i01j00 + U02 * orig_i10j00 + U03 * orig_i11j00;
+            const complex_t T01 = U00 * orig_i00j01 + U01 * orig_i01j01 + U02 * orig_i10j01 + U03 * orig_i11j01;
+            const complex_t T02 = U00 * orig_i00j10 + U01 * orig_i01j10 + U02 * orig_i10j10 + U03 * orig_i11j10;
+            const complex_t T03 = U00 * orig_i00j11 + U01 * orig_i01j11 + U02 * orig_i10j11 + U03 * orig_i11j11;
 
-            // 第一行（原 ρ 的行 × U† 的列）
-            i00j00 = orig_i00j00 * Udag00 + orig_i00j01 * Udag01 + orig_i00j10 * Udag02 + orig_i00j11 * Udag03;
-            i00j01 = orig_i00j00 * Udag10 + orig_i00j01 * Udag11 + orig_i00j10 * Udag12 + orig_i00j11 * Udag13;
-            i00j10 = orig_i00j00 * Udag20 + orig_i00j01 * Udag21 + orig_i00j10 * Udag22 + orig_i00j11 * Udag23;
-            i00j11 = orig_i00j00 * Udag30 + orig_i00j01 * Udag31 + orig_i00j10 * Udag32 + orig_i00j11 * Udag33;
+            const complex_t T10 = U10 * orig_i00j00 + U11 * orig_i01j00 + U12 * orig_i10j00 + U13 * orig_i11j00;
+            const complex_t T11 = U10 * orig_i00j01 + U11 * orig_i01j01 + U12 * orig_i10j01 + U13 * orig_i11j01;
+            const complex_t T12 = U10 * orig_i00j10 + U11 * orig_i01j10 + U12 * orig_i10j10 + U13 * orig_i11j10;
+            const complex_t T13 = U10 * orig_i00j11 + U11 * orig_i01j11 + U12 * orig_i10j11 + U13 * orig_i11j11;
+
+            const complex_t T20 = U20 * orig_i00j00 + U21 * orig_i01j00 + U22 * orig_i10j00 + U23 * orig_i11j00;
+            const complex_t T21 = U20 * orig_i00j01 + U21 * orig_i01j01 + U22 * orig_i10j01 + U23 * orig_i11j01;
+            const complex_t T22 = U20 * orig_i00j10 + U21 * orig_i01j10 + U22 * orig_i10j10 + U23 * orig_i11j10;
+            const complex_t T23 = U20 * orig_i00j11 + U21 * orig_i01j11 + U22 * orig_i10j11 + U23 * orig_i11j11;
+
+            const complex_t T30 = U30 * orig_i00j00 + U31 * orig_i01j00 + U32 * orig_i10j00 + U33 * orig_i11j00;
+            const complex_t T31 = U30 * orig_i00j01 + U31 * orig_i01j01 + U32 * orig_i10j01 + U33 * orig_i11j01;
+            const complex_t T32 = U30 * orig_i00j10 + U31 * orig_i01j10 + U32 * orig_i10j10 + U33 * orig_i11j10;
+            const complex_t T33 = U30 * orig_i00j11 + U31 * orig_i01j11 + U32 * orig_i10j11 + U33 * orig_i11j11;
+
+            // 计算最终结果 ρ_block' = T * U†
+            // 第一行
+            i00j00 = T00 * std::conj(U00) + T01 * std::conj(U10) + T02 * std::conj(U20) + T03 * std::conj(U30);
+            i00j01 = T00 * std::conj(U01) + T01 * std::conj(U11) + T02 * std::conj(U21) + T03 * std::conj(U31);
+            i00j10 = T00 * std::conj(U02) + T01 * std::conj(U12) + T02 * std::conj(U22) + T03 * std::conj(U32);
+            i00j11 = T00 * std::conj(U03) + T01 * std::conj(U13) + T02 * std::conj(U23) + T03 * std::conj(U33);
 
             // 第二行
-            i01j00 = orig_i01j00 * Udag00 + orig_i01j01 * Udag01 + orig_i01j10 * Udag02 + orig_i01j11 * Udag03;
-            i01j01 = orig_i01j00 * Udag10 + orig_i01j01 * Udag11 + orig_i01j10 * Udag12 + orig_i01j11 * Udag13;
-            i01j10 = orig_i01j00 * Udag20 + orig_i01j01 * Udag21 + orig_i01j10 * Udag22 + orig_i01j11 * Udag23;
-            i01j11 = orig_i01j00 * Udag30 + orig_i01j01 * Udag31 + orig_i01j10 * Udag32 + orig_i01j11 * Udag33;
+            i01j00 = T10 * std::conj(U00) + T11 * std::conj(U10) + T12 * std::conj(U20) + T13 * std::conj(U30);
+            i01j01 = T10 * std::conj(U01) + T11 * std::conj(U11) + T12 * std::conj(U21) + T13 * std::conj(U31);
+            i01j10 = T10 * std::conj(U02) + T11 * std::conj(U12) + T12 * std::conj(U22) + T13 * std::conj(U32);
+            i01j11 = T10 * std::conj(U03) + T11 * std::conj(U13) + T12 * std::conj(U23) + T13 * std::conj(U33);
 
             // 第三行
-            i10j00 = orig_i10j00 * Udag00 + orig_i10j01 * Udag01 + orig_i10j10 * Udag02 + orig_i10j11 * Udag03;
-            i10j01 = orig_i10j00 * Udag10 + orig_i10j01 * Udag11 + orig_i10j10 * Udag12 + orig_i10j11 * Udag13;
-            i10j10 = orig_i10j00 * Udag20 + orig_i10j01 * Udag21 + orig_i10j10 * Udag22 + orig_i10j11 * Udag23;
-            i10j11 = orig_i10j00 * Udag30 + orig_i10j01 * Udag31 + orig_i10j10 * Udag32 + orig_i10j11 * Udag33;
+            i10j00 = T20 * std::conj(U00) + T21 * std::conj(U10) + T22 * std::conj(U20) + T23 * std::conj(U30);
+            i10j01 = T20 * std::conj(U01) + T21 * std::conj(U11) + T22 * std::conj(U21) + T23 * std::conj(U31);
+            i10j10 = T20 * std::conj(U02) + T21 * std::conj(U12) + T22 * std::conj(U22) + T23 * std::conj(U32);
+            i10j11 = T20 * std::conj(U03) + T21 * std::conj(U13) + T22 * std::conj(U23) + T23 * std::conj(U33);
 
             // 第四行
-            i11j00 = orig_i11j00 * Udag00 + orig_i11j01 * Udag01 + orig_i11j10 * Udag02 + orig_i11j11 * Udag03;
-            i11j01 = orig_i11j00 * Udag10 + orig_i11j01 * Udag11 + orig_i11j10 * Udag12 + orig_i11j11 * Udag13;
-            i11j10 = orig_i11j00 * Udag20 + orig_i11j01 * Udag21 + orig_i11j10 * Udag22 + orig_i11j11 * Udag23;
-            i11j11 = orig_i11j00 * Udag30 + orig_i11j01 * Udag31 + orig_i11j10 * Udag32 + orig_i11j11 * Udag33;
+            i11j00 = T30 * std::conj(U00) + T31 * std::conj(U10) + T32 * std::conj(U20) + T33 * std::conj(U30);
+            i11j01 = T30 * std::conj(U01) + T31 * std::conj(U11) + T32 * std::conj(U21) + T33 * std::conj(U31);
+            i11j10 = T30 * std::conj(U02) + T31 * std::conj(U12) + T32 * std::conj(U22) + T33 * std::conj(U32);
+            i11j11 = T30 * std::conj(U03) + T31 * std::conj(U13) + T32 * std::conj(U23) + T33 * std::conj(U33);
         }
 
         void _u44_unsafe_impl_ctrl(std::vector<std::complex<double>>& state, size_t qn1, size_t qn2, complex_t u00, complex_t u01, complex_t u02, complex_t u03, complex_t u10, complex_t u11, complex_t u12, complex_t u13, complex_t u20, complex_t u21, complex_t u22, complex_t u23, complex_t u30, complex_t u31, complex_t u32, complex_t u33, size_t total_qubit, size_t controller_mask) {
@@ -1076,6 +1057,52 @@ namespace qpandalite {
             }
         }
 
+        void apply_irho_udag_u44(const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03, 
+            const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13, 
+            const complex_t& U20, const complex_t& U21, const complex_t& U22, const complex_t& U23, 
+            const complex_t& U30, const complex_t& U31, const complex_t& U32, const complex_t& U33, 
+            complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11, 
+            complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11, 
+            complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11, 
+            complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11) {
+
+            // 保存原始值
+            const complex_t orig_i00j00 = i00j00, orig_i00j01 = i00j01, orig_i00j10 = i00j10, orig_i00j11 = i00j11;
+            const complex_t orig_i01j00 = i01j00, orig_i01j01 = i01j01, orig_i01j10 = i01j10, orig_i01j11 = i01j11;
+            const complex_t orig_i10j00 = i10j00, orig_i10j01 = i10j01, orig_i10j10 = i10j10, orig_i10j11 = i10j11;
+            const complex_t orig_i11j00 = i11j00, orig_i11j01 = i11j01, orig_i11j10 = i11j10, orig_i11j11 = i11j11;
+
+            // 计算 U† 的转置共轭（预计算）
+            const complex_t Udag00 = std::conj(U00), Udag10 = std::conj(U01), Udag20 = std::conj(U02), Udag30 = std::conj(U03);
+            const complex_t Udag01 = std::conj(U10), Udag11 = std::conj(U11), Udag21 = std::conj(U12), Udag31 = std::conj(U13);
+            const complex_t Udag02 = std::conj(U20), Udag12 = std::conj(U21), Udag22 = std::conj(U22), Udag32 = std::conj(U23);
+            const complex_t Udag03 = std::conj(U30), Udag13 = std::conj(U31), Udag23 = std::conj(U32), Udag33 = std::conj(U33);
+
+            // 第一行（原 ρ 的行 × U† 的列）
+            i00j00 = orig_i00j00 * Udag00 + orig_i00j01 * Udag01 + orig_i00j10 * Udag02 + orig_i00j11 * Udag03;
+            i00j01 = orig_i00j00 * Udag10 + orig_i00j01 * Udag11 + orig_i00j10 * Udag12 + orig_i00j11 * Udag13;
+            i00j10 = orig_i00j00 * Udag20 + orig_i00j01 * Udag21 + orig_i00j10 * Udag22 + orig_i00j11 * Udag23;
+            i00j11 = orig_i00j00 * Udag30 + orig_i00j01 * Udag31 + orig_i00j10 * Udag32 + orig_i00j11 * Udag33;
+
+            // 第二行
+            i01j00 = orig_i01j00 * Udag00 + orig_i01j01 * Udag01 + orig_i01j10 * Udag02 + orig_i01j11 * Udag03;
+            i01j01 = orig_i01j00 * Udag10 + orig_i01j01 * Udag11 + orig_i01j10 * Udag12 + orig_i01j11 * Udag13;
+            i01j10 = orig_i01j00 * Udag20 + orig_i01j01 * Udag21 + orig_i01j10 * Udag22 + orig_i01j11 * Udag23;
+            i01j11 = orig_i01j00 * Udag30 + orig_i01j01 * Udag31 + orig_i01j10 * Udag32 + orig_i01j11 * Udag33;
+
+            // 第三行
+            i10j00 = orig_i10j00 * Udag00 + orig_i10j01 * Udag01 + orig_i10j10 * Udag02 + orig_i10j11 * Udag03;
+            i10j01 = orig_i10j00 * Udag10 + orig_i10j01 * Udag11 + orig_i10j10 * Udag12 + orig_i10j11 * Udag13;
+            i10j10 = orig_i10j00 * Udag20 + orig_i10j01 * Udag21 + orig_i10j10 * Udag22 + orig_i10j11 * Udag23;
+            i10j11 = orig_i10j00 * Udag30 + orig_i10j01 * Udag31 + orig_i10j10 * Udag32 + orig_i10j11 * Udag33;
+
+            // 第四行
+            i11j00 = orig_i11j00 * Udag00 + orig_i11j01 * Udag01 + orig_i11j10 * Udag02 + orig_i11j11 * Udag03;
+            i11j01 = orig_i11j00 * Udag10 + orig_i11j01 * Udag11 + orig_i11j10 * Udag12 + orig_i11j11 * Udag13;
+            i11j10 = orig_i11j00 * Udag20 + orig_i11j01 * Udag21 + orig_i11j10 * Udag22 + orig_i11j11 * Udag23;
+            i11j11 = orig_i11j00 * Udag30 + orig_i11j01 * Udag31 + orig_i11j10 * Udag32 + orig_i11j11 * Udag33;
+        }
+
         void apply_urho_i_u44(
             const complex_t& U00, const complex_t& U01, const complex_t& U02, const complex_t& U03,
             const complex_t& U10, const complex_t& U11, const complex_t& U12, const complex_t& U13,
@@ -1084,8 +1111,8 @@ namespace qpandalite {
             complex_t& i00j00, complex_t& i00j01, complex_t& i00j10, complex_t& i00j11,
             complex_t& i01j00, complex_t& i01j01, complex_t& i01j10, complex_t& i01j11,
             complex_t& i10j00, complex_t& i10j01, complex_t& i10j10, complex_t& i10j11,
-            complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11
-        ) {
+            complex_t& i11j00, complex_t& i11j01, complex_t& i11j10, complex_t& i11j11) {
+
             // 保存原始值
             const complex_t orig_i00j00 = i00j00, orig_i00j01 = i00j01, orig_i00j10 = i00j10, orig_i00j11 = i00j11;
             const complex_t orig_i01j00 = i01j00, orig_i01j01 = i01j01, orig_i01j10 = i01j10, orig_i01j11 = i01j11;

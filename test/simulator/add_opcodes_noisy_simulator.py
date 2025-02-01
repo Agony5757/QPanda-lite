@@ -36,7 +36,7 @@ gate_noise_description = {
 }
 
 # Define the measurement errors
-measurement_error = [(0.01, 0.01), (0.02, 0.02)]
+readout_error = [(0.01, 0.01), (0.02, 0.02)]
 
 # Create an instance of the NoisySimulator
 simulator = NoisySimulator(2,noise_description, gate_noise_description)

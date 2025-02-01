@@ -4,6 +4,8 @@ from typing import List, Union
 import warnings
 from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 import qpandalite.simulator as sim
+from qpandalite.simulator.error_model import ErrorLoader, ErrorLoader_GateSpecificError
+from qpandalite.simulator.originir_simulator import OriginIR_NoisySimulator
 try:
     from qpandalite.simulator.originir_simulator import OriginIR_Simulator
 except ImportError as e:
@@ -190,29 +192,35 @@ def _submit_task_group_dummy_impl(
     taskid = _random_taskid()
     results = []
 
-    noise_description = kwargs.get('noise_description', None)
-    gate_noise_description = kwargs.get('gate_noise_description', None)
-    measurement_error = kwargs.get('measurement_error', [])
+    generic_error = kwargs.get('generic_error', None)
+    gatetype_error = kwargs.get('gatetype_error', None)
+    gate_specific_error = kwargs.get('gate_specific_error', None)
+    readout_error = kwargs.get('readout_error', [])
 
     for circuit in circuits:
         # If there is noise_description
-        if noise_description:
-            
+        if generic_error or gatetype_error or gate_specific_error or readout_error:                  
+            error_loader = ErrorLoader_GateSpecificError(
+                generic_error = generic_error,
+                gatetype_error = gatetype_error,
+                gate_specific_error= gate_specific_error
+            )          
+
             if auto_mapping:
+                my_sim = OriginIR_NoisySimulator(
+                    backend_type='density_matrix',
+                    error_loader=error_loader,
+                    readout_error=readout_error)
                 
-                # my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
-                #                                 measurement_error, reverse_key=False)
-                my_sim = OriginIR_Simulator(reverse_key=False)
-                prob_result = my_sim.simulate_pmeasure(circuit, shots)
             else:
-                # my_sim = OriginIR_NoisySimulator(noise_description, gate_noise_description, 
-                #                          measurement_error, reverse_key=False, 
-                #                          available_qubits=available_qubits, 
-                #                          available_topology=available_topology)
-                my_sim = OriginIR_Simulator(reverse_key=False, 
-                                            available_qubits=available_qubits, 
-                                            available_topology=available_topology)
-                prob_result = my_sim.simulate_pmeasure(circuit, shots=shots)
+                my_sim = OriginIR_NoisySimulator(
+                    backend_type='density_matrix',
+                    error_loader=error_loader,
+                    readout_error=readout_error,
+                    available_qubits=available_qubits, 
+                    available_topology=available_topology)
+                
+            prob_result = my_sim.simulate_pmeasure(circuit)
             # n_qubits = my_sim.qubit_num
             n_qubits = len(my_sim.measure_qubit)
             key = []
@@ -228,7 +236,6 @@ def _submit_task_group_dummy_impl(
             results.append({'key':key, 'value': value})
 
         else:
-
             if auto_mapping:
                 simulator = sim.OriginIR_Simulator()
                 prob_result = simulator.simulate_pmeasure(circuit)
@@ -236,6 +243,7 @@ def _submit_task_group_dummy_impl(
                 simulator = sim.OriginIR_Simulator(available_qubits=available_qubits,
                                                    available_topology=available_topology)
                 prob_result = simulator.simulate_pmeasure(circuit)
+                
             n_qubits = simulator.qubit_num
             key = []
             value = []

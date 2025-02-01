@@ -21,13 +21,13 @@ noise_description = {
 
 
 # Measurement error matrices (placeholder values)
-measurement_error = [
+readout_error = [
 	[0.9, 0.1],
 	[0.1, 0.9]
 ]
 
 # Create an instance of the NoisySimulator
-simulator = NoisySimulator(n_qubit, noise_description, measurement_error)
+simulator = NoisySimulator(n_qubit, noise_description, readout_error)
 
 # Apply a Hadamard gate to the first qubit
 simulator.x(0)
@@ -58,7 +58,7 @@ simulator.insert_error([2, 3])
 
 
 # Create an instance of the NoisySimulator
-simulator = NoisySimulator(n_qubit, noise_description, measurement_error)
+simulator = NoisySimulator(n_qubit, noise_description, readout_error)
 
 # Apply a Hadamard gate to the first qubit
 simulator.hadamard(0)

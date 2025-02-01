@@ -45,7 +45,7 @@ gate_noise_description = {
 }
 
 # Define the measurement errors
-measurement_error = [(0.01, 0.01), (0.02, 0.02)]
+readout_error = [(0.01, 0.01), (0.02, 0.02)]
 culmu = 0
 shots = 2**16
 for C in single_qubit_cliffords:

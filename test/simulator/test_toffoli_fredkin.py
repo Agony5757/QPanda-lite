@@ -55,7 +55,7 @@ for noise_strength in [1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]:
 	}
 
 	# Define the measurement errors
-	measurement_error = [(0.01, 0.01), (0.02, 0.02)]
+	readout_error = [(0.01, 0.01), (0.02, 0.02)]
 
 	culmu = 0
 	condition_prob = []

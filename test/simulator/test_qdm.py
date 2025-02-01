@@ -22,9 +22,9 @@ def circuit(mx, theta):
     }
 
     # Define the measurement errors
-    measurement_error = [(0.01, 0.01), (0.02, 0.02)]
+    readout_error = [(0.01, 0.01), (0.02, 0.02)]
 
-    c = NoisySimulator(2, noise_description, gate_noise_description, measurement_error)
+    c = NoisySimulator(2, noise_description, gate_noise_description, readout_error)
     c.ry(0, np.arccos(mx[0]))
     c.ry(1, np.arccos(mx[1]))
     c.cz(0, 1)

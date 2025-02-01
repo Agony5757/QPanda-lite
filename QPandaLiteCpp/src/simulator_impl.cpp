@@ -30,10 +30,10 @@ namespace qpandalite {
     size_t get_state_with_qubit(size_t i, const std::map<size_t, size_t>& measure_map)
     {
         size_t ret = 0;
-        for (auto&& [qn, j] : measure_map)
+        for (auto&& [qidx, cidx] : measure_map)
         {
-            // put "digit qn" of i to "digit j"
-            ret += (((i >> qn) & 1) << j);
+            // put "digit qidx" of i to "digit cidx"
+            ret += (((i >> qidx) & 1) << cidx);
         }
         return ret;
     }

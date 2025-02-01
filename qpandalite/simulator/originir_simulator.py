@@ -223,24 +223,83 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None,
                  error_loader : ErrorLoader = None,
-                 measurement_error : Dict[int, List[float]]={}):
+                 readout_error : Dict[int, List[float]]={}):
         super().__init__(backend_type, available_qubits, available_topology)        
-        self.measurement_error = measurement_error
+        self.readout_error = readout_error
         self.error_loader = error_loader 
 
+    def _simulate_preprocess(self, originir, available_qubits = None, available_topology = None):
+        processed_program_body, measure_qubit = super()._simulate_preprocess(originir, available_qubits, available_topology)
+        if self.error_loader:
+            # replace the original program_body with the error-injected program_body
+            self.error_loader.process_opcodes(processed_program_body)
+            processed_program_body = self.error_loader.opcodes
+
+        return processed_program_body, measure_qubit
+
     def simulate_pmeasure(self, originir):
-        raise NotImplementedError('Noisy simulator does not support pmeasure.')
+        if self.opcode_simulator.simulator_typestr == 'density_operator':
+            processed_program_body, measure_qubit = self._simulate_preprocess(
+                originir, self.available_qubits, self.available_topology
+            )
+                
+            prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
+                self.qubit_num, processed_program_body, measure_qubit)
+        
+            if self.readout_error:
+                return self._add_readout_error_pmeasure(prob_list, measure_qubit)
+            else:
+                return prob_list
+            
+        else:
+            raise ValueError('simulate_pmeasure is only available for density_operator type OpcodeSimulator backend.')
 
     def simulate_statevector(self, originir):
         raise NotImplementedError('Noisy simulator does not support statevector.')
     
     def simulate_density_matrix(self, originir):
         if self.opcode_simulator.simulator_typestr == 'density_operator':
-            return super().simulate_density_matrix(originir)
+            density_matrix = super().simulate_density_matrix(originir)
+            if self.readout_error:
+                raise NotImplementedError('density_matrix simulation does not support measurement error yet.')
+                return self._add_readout_error_density_matrix(density_matrix)
+            else:
+                return density_matrix
         else:
             raise ValueError('simulate_density_matrix is only available for density_operator type OpcodeSimulator backend.')
-    
-    def _add_measurement_error(self, result, measure_qubit):
+
+    def _add_readout_error_pmeasure(self, prob_list, measure_qubit):
+        # add measurement error to the result from simulate_pmeasure
+
+        processed_measure_error_list = []
+        for i, qubit in enumerate(measure_qubit):
+            if qubit in self.readout_error:
+                error_rate01 = self.readout_error[qubit][0]
+                error_rate10 = self.readout_error[qubit][1]
+                error_rate = np.array([[1-error_rate01, error_rate10], [error_rate01, 1-error_rate10]])
+                processed_measure_error_list.append((i, error_rate))
+        
+        def _apply_matrix_to_prob_list(prob_list, qn, error_rate, measure_qubit_length):
+            # apply the error_rate to the i-th qubit
+            step = 2 ** qn
+            for i in range(0, 2 ** measure_qubit_length, 2 * step):
+                for j in range(i, i + step):
+                    # 提取子空间
+                    subspace = np.array([prob_list[j], prob_list[j + step]])
+                    # 应用矩阵
+                    new_subspace = np.dot(error_rate, subspace)
+                    # 更新状态向量
+                    prob_list[j], prob_list[j + step] = new_subspace[0], new_subspace[1]
+
+            return prob_list
+        
+        # perform measurement error like a quantum gate simulation
+        for i, error_rate in processed_measure_error_list:
+            prob_list =_apply_matrix_to_prob_list(prob_list, i, error_rate, len(measure_qubit))
+
+        return prob_list
+
+    def _add_readout_error_single_shot(self, result, measure_qubit):
         # add measurement error to the result
         
         # to binary and reverse
@@ -253,7 +312,7 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
         for i in range(measure_length):
             measure_qubit_index = measure_qubit[i]
             measure_to = result_binary_list[i]
-            error_rate01 = self.measurement_error.get(measure_qubit_index, [0, 0])
+            error_rate01 = self.readout_error.get(measure_qubit_index, [0, 0])
             if measure_to == '0':
                 rate = error_rate01[0]
             elif measure_to == '1':
@@ -288,14 +347,11 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
             originir, self.available_qubits, self.available_topology
         )
 
-        self.error_loader.process_opcodes(processed_program_body)
-        opcodes = self.error_loader.opcodes
-
         result = self.opcode_simulator.simulate_opcodes_shot(
-            self.qubit_num, opcodes, measure_qubit)
+            self.qubit_num, processed_program_body, measure_qubit)
         
-        if self.measurement_error:
-            result = self._add_measurement_error(result, measure_qubit)
+        if self.readout_error:
+            result = self._add_readout_error_single_shot(result, measure_qubit)
         return result
 
     def simulate_shots(self, originir, shots):
@@ -313,16 +369,13 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
             originir, self.available_qubits, self.available_topology
         )
 
-        self.error_loader.process_opcodes(processed_program_body)
-        opcodes = self.error_loader.opcodes
-
         results = {}
         for _ in range(shots):
             result = self.opcode_simulator.simulate_opcodes_shot(
-                self.qubit_num, opcodes, measure_qubit)
+                self.qubit_num, processed_program_body, measure_qubit)
             
-            if self.measurement_error:
-                result = self._add_measurement_error(result, measure_qubit)
+            if self.readout_error:
+                result = self._add_readout_error_single_shot(result, measure_qubit)
             
             results[result] = results.get(result, 0) + 1
 
@@ -331,12 +384,12 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
 
 # class OriginIR_NoisySimulator(OriginIR_Simulator):
 #     def __init__(self, noise_description, gate_noise_description={}, 
-#                  measurement_error=[], reverse_key=False):
+#                  readout_error=[], reverse_key=False):
         
 #         # Initialize noise-related attributes
 #         self.noise_description = noise_description
 #         self.gate_noise_description = gate_noise_description
-#         self.measurement_error = measurement_error
+#         self.readout_error = readout_error
 #         # Initialize the superclass with the reverse_key parameter
 #         super().__init__(reverse_key=reverse_key)
 
@@ -346,7 +399,7 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
 #         self.simulator = NoisySimulator(self.qubit_num, 
 #                                         self.noise_description, 
 #                                         self.gate_noise_description,
-#                                         self.measurement_error)
+#                                         self.readout_error)
 
 #     def simulate_gate(self, operation, qubit, cbit, parameter, control_qubits_set, is_dagger):
 #         # print(operation, qubit, cbit, parameter, is_dagger)

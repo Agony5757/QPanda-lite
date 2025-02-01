@@ -52,7 +52,7 @@ def test_noisy_simulator():
         ("RX", 1): [Depolarizing(0.03)],
     }        
     # Define the measurement errors
-    measurement_error = {0:(0.01, 0.01), 
+    readout_error = {0:(0.01, 0.01), 
                          1:(0.02, 0.02),
                          2:(0.03, 0.03),
                          3:(0.02, 0.02),
@@ -71,14 +71,13 @@ def test_noisy_simulator():
     simulator = OriginIR_NoisySimulator(
         backend_type='statevector',
         error_loader=error_loader,
-        measurement_error=measurement_error
+        readout_error=readout_error
     )
 
     measurement_results = simulator.simulate_shots(circuit.originir, shots=shots)
 
     print(measurement_results)
     
-
 
 @qpandalite_test('Test Simulator')
 def run_test_simulator():

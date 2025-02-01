@@ -1,4 +1,4 @@
-
+# Translation between QASM2 and OriginIR.
 
 qasm2_oir_mapping = {
     ('id', 'I'),
@@ -6,6 +6,22 @@ qasm2_oir_mapping = {
     ('x', 'X'),
     ('y', 'Y'),
     ('z', 'Z'),
+    ('s', 'S'),
+    ('sx', 'SX'),
+    ('t', 'T'),
+    ('cx', 'CNOT'),
+    ('cz', 'CZ'),
+    ('swap', 'SWAP'),
+    ('ccx', 'TOFFOLI'),
+    ('cswap', 'CSWAP'),
+    ('rx', 'RX'),
+    ('ry', 'RY'),
+    ('rz', 'RZ'),
+    ('u1', 'U1'),
+    ('u2', 'U2'),
+    ('u3', 'U3'),
+    ('rxx', 'XX'),
+    ('rzz', 'ZZ'),
 }
 
 QASM2_OriginIR_dict = {
@@ -68,7 +84,7 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
     elif operation == 'swap':
         return ('SWAP', qubits, cbits, parameters, False, None)
     elif operation == 'ch':
-        return ('CH', qubits, cbits, parameters, False, None)
+        return ('H', qubits, cbits, parameters, False, [qubits[0]])
     # 3-qubit gates
     elif operation == 'ccx':
         return ('TOFFOLI', qubits, cbits, parameters, False, None)

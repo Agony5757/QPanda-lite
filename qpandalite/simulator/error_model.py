@@ -129,12 +129,12 @@ class ErrorLoader_GenericError(ErrorLoader):
     '''
     def __init__(self, generic_error : List[ErrorModel]):
         super().__init__()
-        self.generic_error = generic_error
+        self.generic_error = generic_error if generic_error else []
         
     def insert_error(self, opcode):
         # extract opcode
         _, qubits, _, _, _, _ = opcode
-
+        
         for noise_model in self.generic_error:
             noise_opcodes = noise_model.generate_error_opcode(qubits)
             self.opcodes.extend(noise_opcodes)
@@ -146,8 +146,9 @@ class ErrorLoader_GateTypeError(ErrorLoader_GenericError):
     '''
     def __init__(self, generic_error : List[ErrorModel], gatetype_error : Dict[str, List[ErrorModel]]):
         super().__init__(generic_error)
-        self.generic_error = generic_error
-        self.gatetype_error = gatetype_error
+        
+        self.gatetype_error = gatetype_error if gatetype_error else {}
+
         
     def insert_error(self, opcode):
         # extract opcode
@@ -169,7 +170,7 @@ class ErrorLoader_GateSpecificError(ErrorLoader_GateTypeError):
     def __init__(self, generic_error : List[ErrorModel], gatetype_error : Dict[str, List[ErrorModel]], 
                  gate_specific_error : Dict[Tuple[str, Tuple[int, int]], List[ErrorModel]]):
         super().__init__(generic_error, gatetype_error)
-        self.gate_specific_error = gate_specific_error
+        self.gate_specific_error = gate_specific_error if gate_specific_error else {}
         
     def insert_error(self, opcode):
         # extract opcode

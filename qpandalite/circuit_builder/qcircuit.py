@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from copy import deepcopy
 from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 import re
@@ -332,6 +332,18 @@ class Circuit:
         self.circuit_str += 'Z q[{}]\n'.format(qn)
         self.record_qubit(qn)
 
+    def sx(self, qn) -> None:
+        self.circuit_str += 'SX q[{}]\n'.format(qn)    
+        self.record_qubit(qn)
+
+    def s(self, qn) -> None:
+        self.circuit_str += 'S q[{}]\n'.format(qn)    
+        self.record_qubit(qn)
+
+    def t(self, qn) -> None:
+        self.circuit_str += 'T q[{}]\n'.format(qn)    
+        self.record_qubit(qn)
+
     def rx(self, qn, theta) -> None:
         self.circuit_str += 'RX q[{}], ({})\n'.format(qn, theta)
         self.record_qubit(qn)
@@ -361,6 +373,52 @@ class Circuit:
 
     def iswap(self, q1, q2) -> None:
         self.circuit_str += 'ISWAP q[{}], q[{}]\n'.format(q1, q2)
+        self.record_qubit(q1, q2)
+
+    def u1(self, qn, lam) -> None:
+        self.circuit_str += 'U1 q[{}], ({})\n'.format(qn, lam)
+        self.record_qubit(qn)
+
+    def u2(self, qn, phi, lam) -> None:
+        self.circuit_str += 'U2 q[{}], ({}, {})\n'.format(qn, phi, lam)
+        self.record_qubit(qn)
+
+    def u3(self, qn, theta, phi, lam) -> None:
+        self.circuit_str += 'U3 q[{}], ({}, {}, {})\n'.format(qn, theta, phi, lam)
+        self.record_qubit(qn)
+    
+    def swap(self, q1, q2) -> None:
+        self.circuit_str += 'SWAP q[{}], q[{}]\n'.format(q1, q2)
+        self.record_qubit(q1, q2)
+
+    def cswap(self, q1, q2, q3) -> None:
+        self.circuit_str += 'CSWAP q[{}], q[{}], q[{}]\n'.format(q1, q2, q3)
+        self.record_qubit(q1, q2, q3)
+
+    def toffoli(self, q1, q2, q3) -> None:
+        self.circuit_str += 'TOFFOLI q[{}], q[{}], q[{}]\n'.format(q1, q2, q3)
+        self.record_qubit(q1, q2, q3)
+
+    def xx(self, q1, q2, theta) -> None:
+        self.circuit_str += 'XX q[{}], q[{}], ({})\n'.format(q1, q2, theta)
+        self.record_qubit(q1, q2)
+
+    def yy(self, q1, q2, theta) -> None:
+        self.circuit_str += 'YY q[{}], q[{}], ({})\n'.format(q1, q2, theta)
+        self.record_qubit(q1, q2)
+
+    def zz(self, q1, q2, theta) -> None:
+        self.circuit_str += 'ZZ q[{}], q[{}], ({})\n'.format(q1, q2, theta)
+        self.record_qubit(q1, q2)
+
+    def phase2q(self, q1, q2, theta1, theta2, thetazz) -> None:
+        self.circuit_str += 'PHASE2Q q[{}], q[{}], ({}, {}, {})\n'.format(q1, q2, theta1, theta2, thetazz)
+        self.record_qubit(q1, q2)
+
+    def uu15(self, q1, q2, params: List[float]) -> None:
+        # create param list
+        params_str = ', '.join([str(param) for param in params])
+        self.circuit_str += 'U15 q[{}], q[{}], ({})\n'.format(q1, q2, params_str)
         self.record_qubit(q1, q2)
 
     def barrier(self, *qubits) -> None:
@@ -481,187 +539,61 @@ class Circuit:
         parser.parse(self.originir)
         return parser.to_extended_originir()
         
-    def analyze_circuit(self):
-        """
-        Analyzes the stored string representation of a quantum circuit and updates the circuit information.
+    # def analyze_circuit(self):
+    #     """
+    #     Analyzes the stored string representation of a quantum circuit and updates the circuit information.
 
-        The updated 'circuit_info' dictionary contains:
-        - 'qubits': The number of qubits used in the circuit.
-        - 'gates': A dictionary with types of gates used and their counts.
-        - 'measurements': Information about the measurement setup of the circuit.
+    #     The updated 'circuit_info' dictionary contains:
+    #     - 'qubits': The number of qubits used in the circuit.
+    #     - 'gates': A dictionary with types of gates used and their counts.
+    #     - 'measurements': Information about the measurement setup of the circuit.
 
-        Parameters
-        ----------
-        circuit_str : str
-            A string representation of the quantum circuit to be analyzed.
+    #     Parameters
+    #     ----------
+    #     circuit_str : str
+    #         A string representation of the quantum circuit to be analyzed.
 
-        Returns
-        -------
-        dict
-            A dictionary containing information about the quantum circuit, including:
-            - 'qubits': an integer representing the number of qubits.
-            - 'gates': a dictionary where keys are gate types and values are counts.
-            - 'measurements': a string or dictionary detailing the measurement setup.
+    #     Returns
+    #     -------
+    #     dict
+    #         A dictionary containing information about the quantum circuit, including:
+    #         - 'qubits': an integer representing the number of qubits.
+    #         - 'gates': a dictionary where keys are gate types and values are counts.
+    #         - 'measurements': a string or dictionary detailing the measurement setup.
 
-        Raises
-        ------
-        None
-        """
-        parser = OriginIR_BaseParser()
-        parser.parse(self.originir)
-        # Now in the parser.program_body, there are lines in the form of 
-        # (operation, qubits, cbit, parameter, dagger_flag, deepcopy(control_qubits_set)).
+    #     Raises
+    #     ------
+    #     None
+    #     """
+    #     parser = OriginIR_BaseParser()
+    #     parser.parse(self.originir)
+    #     # Now in the parser.program_body, there are lines in the form of 
+    #     # (operation, qubits, cbit, parameter, dagger_flag, deepcopy(control_qubits_set)).
 
-        self.circuit_info['qubits'] = parser.n_qubit
-        # Just in case we have more ancillary_operations
-        ancillary_operation = ['MEASURE']
+    #     self.circuit_info['qubits'] = parser.n_qubit
+    #     # Just in case we have more ancillary_operations
+    #     ancillary_operation = ['MEASURE']
         
-        for single_command in parser.program_body:
-            print(single_command)
-            (operation, qubits, cbit, parameter, dagger_flag, control_qubits_set) = single_command
+    #     for single_command in parser.program_body:
+    #         print(single_command)
+    #         (operation, qubits, cbit, parameter, dagger_flag, control_qubits_set) = single_command
 
-            # Match gates
-            if operation not in ancillary_operation:
-                if dagger_flag:
-                    operation += "_dg"
-                if control_qubits_set:
-                    # Multiple-Control cases
-                    operation = 'C' * len(control_qubits_set) + operation
-                # This is to replace the Controlled-X to CNOT created by controls
-                operation = operation.replace('CX', 'CNOT')
-                self.circuit_info['gates'][operation] = self.circuit_info['gates'].get(operation, 0) + 1    
-            # Match MEASURE
-            elif operation == "MEASURE":
-                qubit = int(qubits)
-                output = int(cbit)
-                self.circuit_info['measurements'].append({'qubit': qubit, 'output': f'c[{output}]'})
+    #         # Match gates
+    #         if operation not in ancillary_operation:
+    #             if dagger_flag:
+    #                 operation += "_dg"
+    #             if control_qubits_set:
+    #                 # Multiple-Control cases
+    #                 operation = 'C' * len(control_qubits_set) + operation
+    #             # This is to replace the Controlled-X to CNOT created by controls
+    #             operation = operation.replace('CX', 'CNOT')
+    #             self.circuit_info['gates'][operation] = self.circuit_info['gates'].get(operation, 0) + 1    
+    #         # Match MEASURE
+    #         elif operation == "MEASURE":
+    #             qubit = int(qubits)
+    #             output = int(cbit)
+    #             self.circuit_info['measurements'].append({'qubit': qubit, 'output': f'c[{output}]'})
         
-        print(self.circuit_info)
+    #     print(self.circuit_info)
         # return parser.to_extended_originir()
 
-if __name__ == '__main__':
-    import qpandalite
-    import qpandalite.simulator as sim
-    from qiskit import QuantumCircuit, transpile
-    from qiskit.circuit.library import TdgGate, RXGate
-    import numpy as np
-    import math
-    from qiskit import BasicAer
-    from qpandalite.qasm import OpenQASM2_LineParser
-    # The quantum circuit in qiskit
-    circ = QuantumCircuit(3)
-    
-    # circ.h(0)
-    # circ.rx(-0.4, 0)
-    # circ.x(0)
-    # circ.ry(0.4, 0)
-    # circ.y(0)
-    # circ.rz(math.pi/3, 1).inverse()
-    # circ.z(0)
-    # circ.cz(0, 1)
-    # circ.cx(0, 2) 
-    # circ.tdg(0)
-    t = TdgGate().inverse()
-    rxdg = RXGate(-0.4).inverse()
-    circ.append(t, [0])
-    circ.append(rxdg, [0])
-    circ.tdg(0).inverse()
-    # circ.sx(0).inverse()
-    # circ.iswap(0, 1).inverse()
-    # circ.cz(0, 2)
-    # circ.ccx(0, 1, 2)
-    backend = BasicAer.get_backend('unitary_simulator')
-    job = backend.run(transpile(circ, backend))
-    # print(job.result().get_unitary(circ, decimals=3))
-    # Create a Quantum Circuit
-    # meas = QuantumCircuit(3, 3)
-    # meas.measure(range(3), range(3))
-    # circ = meas.compose(circ, range(3), front=True)
-    qasm_string = circ.qasm()
-    # print("---Circuit created using Qiskit(QASM)---")
-    # print(qasm_string)
-    # # Create a Circuit instance from the QASM string
-    # circuit_origin = OpenQASM2_Parser.build_from_qasm_str(qasm_string)
-    # print("---OriginIR Circuit coverted from QASM---")
-    # print(circuit_origin.circuit)
-
-    # origin_qc = QuantumCircuit.from_qasm_str(circuit_origin.qasm)
-    # print("---Back?---")
-    # print(origin_qc.qasm())
-    # qsim = sim.OriginIR_Simulator()
-
-    # result = qsim.simulate(circuit_origin.circuit)
-
-    # print(result)
-    # print(circuit.circuit_str)
-    # print(circuit.used_qubit_list)
-    # print(circuit.max_qubit)
-
-    c = Circuit()
-    c.h(0)
-    c.cnot(1, 0)
-    c.cnot(0, 2)  
-    # Single control(Correct)
-    with c.control(0, 1, 2):
-        c.x(4)
-    
-    # Single dagger(Correct)
-    with c.dagger():
-        c.z(5)
-        c.x(10)
-
-    # Nested-dagger
-    with c.dagger():
-        c.z(2)
-        with c.dagger():
-            c.z(5)
-            c.x(10)
-
-    # Nested-control(Correct)
-    with c.control(0,1):
-        c.x(2) # controlled by 0,1
-        with c.control(4,5):
-            c.x(3) # controlled by 0,1,4,5
-
-    # Control-dagger-nested
-    with c.control(2):
-        c.x(4) # controlled by 2
-        with c.dagger():
-            c.z(5) # dagger, controlled by 2
-            c.x(10) # dagger, controlled by 2
-            with c.control(0,1):
-                c.x(3) # dagger, controlled by 0,1,2
-
-    # Dagger-control-nested
-    with c.dagger():
-        c.z(5)
-        c.x(10)
-        with c.control(0,1):
-            c.x(3)
-    
-    c.h(8)
-    c.h(9)
-    c.measure(0,1,2)
-    # c = c.remapping({0:45, 1:46, 2:52, 3:53})
-    # c = c.remapping({0:45, 1:46, 2:52, 3:53})
-    print('---- Original Circuit ----')
-    print(c.circuit)
-    print()
-    print('---- Converted Circuit ----')
-    print(c.unwrap())
-    # c.analyze_circuit()
-    
-    # qsim = sim.OriginIR_Simulator()
-
-    # result = qsim.simulate(c.circuit)
-
-    # print(result)
-
-
-
-    # c = Circuit()
-    # c.h(0)
-    # c.cnot(1, 0)
-    # c.cnot(0, 2)
-    # c.measure(0,1,2)
-    # c = c.remapping({0:45, 1:46})

@@ -11,6 +11,9 @@ QPanda-lite *should be* a simple, easy, and transparent python-native version fo
 ## Status
 Developing. Unstable.
 
+### *Known issues*
+- `controlled_by` simulation for density matrix is not correct, including `backend='density_operator` and `backend='density_operator_qutip`.
+
 ## Design principles
 
 - A clear, and tranparent way to assemble/execute a quantum program

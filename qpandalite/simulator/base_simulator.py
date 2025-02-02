@@ -1,6 +1,11 @@
 # generic simulator class for qpanda-lite
 
+import random
 from typing import Dict, List, Optional, Tuple, Union
+
+import numpy as np
+
+from .error_model import ErrorLoader
 from .opcode_simulator import OpcodeSimulator
 
 QubitType = Union[List[int], int]
@@ -141,18 +146,213 @@ class BaseSimulator:
             measure_qubit.append(qubit[0])
 
         return processed_program_body, measure_qubit
-
-    def simulate_pmeasure(self, *args, **kwargs):
-        raise NotImplementedError('This method should be implemented by subclass.')
-
-    def simulate_statevector(self, *args, **kwargs):
-        raise NotImplementedError('This method should be implemented by subclass.')
-
-    def simulate_density_matrix(self, *args, **kwargs):
-        raise NotImplementedError('This method should be implemented by subclass.')
-
-    def simulate_single_shot(self, *args, **kwargs):
-        raise NotImplementedError('This method should be implemented by subclass.')
     
-    def simulate_shots(self, *args, **kwargs):
-        raise NotImplementedError('This method should be implemented by subclass.')
+    def simulate_pmeasure(self, quantum_code):
+        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+        
+        prob_list = self.opcode_simulator.simulate_opcodes_stateprob(
+            self.qubit_num, program_body
+        )
+
+        return prob_list
+
+    def simulate_statevector(self, quantum_code):
+        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+
+        statevector = self.opcode_simulator.simulate_opcodes_statevector(
+            self.qubit_num, program_body
+        )
+
+        return statevector
+
+    def simulate_density_matrix(self, quantum_code):
+        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+
+        density_matrix = self.opcode_simulator.simulate_opcodes_density_operator(
+            self.qubit_num, program_body
+        )
+
+        return density_matrix
+    
+    def simulate_single_shot(self, quantum_code):
+        processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+        
+        result = self.opcode_simulator.simulate_opcodes_shot(
+            self.qubit_num, processed_program_body, measure_qubit)
+        
+        return result
+    
+    def simulate_shots(self, quantum_code, shots):
+        processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+
+        results = {}
+        for _ in range(shots):
+            result = self.opcode_simulator.simulate_opcodes_shot(
+                self.qubit_num, processed_program_body, measure_qubit)
+            
+            results[result] = results.get(result, 0) + 1
+
+        return results
+        
+    @property
+    def simulator(self):
+        return self.opcode_simulator.simulator
+
+    @property
+    def state(self):
+        return self.opcode_simulator.simulator.state
+    
+class BaseNoisySimulator(BaseSimulator):
+
+    def __init__(self, 
+                 backend_type = 'statevector',                 
+                 available_qubits : List[int] = None, 
+                 available_topology : List[List[int]] = None,
+                 error_loader : ErrorLoader = None,
+                 readout_error : Dict[int, List[float]]={}):
+        super().__init__(backend_type, available_qubits, available_topology)        
+        self.readout_error = readout_error
+        self.error_loader = error_loader 
+
+    def _add_readout_error_pmeasure(self, prob_list, measure_qubit):
+        # add measurement error to the result from simulate_pmeasure
+
+        processed_measure_error_list = []
+        for i, qubit in enumerate(measure_qubit):
+            if qubit in self.readout_error:
+                error_rate01 = self.readout_error[qubit][0]
+                error_rate10 = self.readout_error[qubit][1]
+                error_rate = np.array([[1-error_rate01, error_rate10], [error_rate01, 1-error_rate10]])
+                processed_measure_error_list.append((i, error_rate))
+        
+        def _apply_matrix_to_prob_list(prob_list, qn, error_rate, measure_qubit_length):
+            # apply the error_rate to the i-th qubit
+            step = 2 ** qn
+            for i in range(0, 2 ** measure_qubit_length, 2 * step):
+                for j in range(i, i + step):
+                    # 提取子空间
+                    subspace = np.array([prob_list[j], prob_list[j + step]])
+                    # 应用矩阵
+                    new_subspace = np.dot(error_rate, subspace)
+                    # 更新状态向量
+                    prob_list[j], prob_list[j + step] = new_subspace[0], new_subspace[1]
+
+            return prob_list
+        
+        # perform measurement error like a quantum gate simulation
+        for i, error_rate in processed_measure_error_list:
+            prob_list =_apply_matrix_to_prob_list(prob_list, i, error_rate, len(measure_qubit))
+
+        return prob_list
+
+
+    def _add_readout_error_single_shot(self, result, measure_qubit):
+        # add measurement error to the result
+        
+        # to binary and reverse
+        measure_length = len(measure_qubit)
+        result_binary = bin(result)[2:].zfill(measure_length)[::-1]
+
+        result_binary_list = [bit for bit in result_binary]
+        # decide each measurement qubit has error or not
+        r = random.random()
+        for i in range(measure_length):
+            measure_qubit_index = measure_qubit[i]
+            measure_to = result_binary_list[i]
+            error_rate01 = self.readout_error.get(measure_qubit_index, [0, 0])
+            if measure_to == '0':
+                rate = error_rate01[0]
+            elif measure_to == '1':
+                rate = error_rate01[1]
+            else:
+                raise ValueError(f'Unexpected measurement result {measure_to} (neither 0 nor 1).')
+            if r < rate:
+                result_binary_list[i] = '1' if measure_to == '0' else '0'
+
+        # to decimal (first flip the list, then join the bits)
+        result = int(''.join(result_binary_list[::-1]), 2)
+
+        return result
+    
+
+    def simulate_preprocess(self, originir):
+        processed_program_body, measure_qubit = super().simulate_preprocess(originir)
+        if self.error_loader:
+            # replace the original program_body with the error-injected program_body
+            self.error_loader.process_opcodes(processed_program_body)
+            processed_program_body = self.error_loader.opcodes
+
+        return processed_program_body, measure_qubit
+        
+
+    def simulate_statevector(self, originir):
+        raise NotImplementedError('Noisy simulator does not support statevector.')
+    
+
+    def simulate_density_matrix(self, originir):
+        if self.opcode_simulator.simulator_typestr == 'density_operator':
+            density_matrix = super().simulate_density_matrix(originir)
+            if self.readout_error:
+                raise NotImplementedError('density_matrix simulation does not support measurement error yet.')
+                return self._add_readout_error_density_matrix(density_matrix)
+            else:
+                return density_matrix
+        else:
+            raise ValueError('simulate_density_matrix is only available for density_operator type OpcodeSimulator backend.')
+    
+    
+    def simulate_pmeasure(self, originir):
+        if self.opcode_simulator.simulator_typestr == 'density_operator':
+            processed_program_body, measure_qubit = self.simulate_preprocess(originir)
+                
+            prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
+                self.qubit_num, processed_program_body, measure_qubit)
+        
+            if self.readout_error:
+                return self._add_readout_error_pmeasure(prob_list, measure_qubit)
+            else:
+                return prob_list
+            
+        else:
+            raise ValueError('simulate_pmeasure is only available for density_operator type OpcodeSimulator backend.')
+
+
+    def simulate_single_shot(self, originir):
+        '''Simulate originir with error model.
+        Free mode: let available_qubits = None, then simulate any topology.
+        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+
+        Args:
+            originir (str): OriginIR.
+        Returns:
+            int: The sampled output from the ideal simulator
+
+        Note: Measurement protocol.
+
+        For measurement qubits, the result is returned in decimal form. Suppose the measure_qubit is [q0, q1, q2], and result is b0, b1, b2, then the decimal form is:
+
+        result = b2b1b0
+        '''
+        processed_program_body, measure_qubit = self.simulate_preprocess(originir)
+
+        result = self.opcode_simulator.simulate_opcodes_shot(
+            self.qubit_num, processed_program_body, measure_qubit)
+        
+        if self.readout_error:
+            result = self._add_readout_error_single_shot(result, measure_qubit)
+        return result
+    
+    def simulate_shots(self, quantum_code, shots):
+        processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+
+        results = {}
+        for _ in range(shots):
+            result = self.opcode_simulator.simulate_opcodes_shot(
+                self.qubit_num, processed_program_body, measure_qubit)
+            
+            if self.readout_error:
+                result = self._add_readout_error_single_shot(result, measure_qubit)
+            
+            results[result] = results.get(result, 0) + 1
+
+        return results

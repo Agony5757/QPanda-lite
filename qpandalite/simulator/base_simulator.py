@@ -47,7 +47,8 @@ class BaseSimulator:
         n = len(self.qubit_mapping)
         self.qubit_mapping[qubit] = n
 
-    def _extract_actual_used_qubits(self, program_body):
+    def _extract_actual_used_qubits(self):        
+        program_body = self.parser.program_body
         for (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) in program_body:                        
             if isinstance(qubit, list):
                 for q in qubit:
@@ -124,7 +125,6 @@ class BaseSimulator:
         # like q45 -> 0, q46 -> 1, etc..
         self._clear()
         self.parser.parse(originir)
-
         # update self.qubit_mapping
         self._extract_actual_used_qubits()
 

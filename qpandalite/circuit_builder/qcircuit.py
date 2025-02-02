@@ -45,6 +45,45 @@ class CircuitDagContext:
         ret = 'ENDDAGGER\n'
         self.c.circuit_str += ret
 
+def opcode_to_originir_line(opcode):                    
+    (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) = opcode
+    
+    # operation qubits (,parameter?) (,cbits?) (control?) (dagger?)
+    if not operation:
+        raise RuntimeError('Unexpected error. Operation is empty.')
+    ret = ''
+    
+    ret += operation
+    
+    if isinstance(qubit, list):
+        ret += ' '
+        ret += ', '.join([f'q[{q}]' for q in qubit])
+    else:
+        ret += f' q[{qubit}]'
+
+    if parameter:
+        ret += ', ('
+        if isinstance(parameter, list):
+            ret += ', '.join(str(parameter))
+        else:
+            ret += str(parameter)
+        ret += ')'
+        
+    if cbit: 
+        ret += ', '
+        ret += (f'c[{cbit}]' if cbit else '')
+        
+    if dagger_flag:
+        ret += ' dagger'
+    
+    if control_qubits_set:        
+        ret += ' controlled_by ('
+        ret += ', '.join([f'q[{q}]' for q in control_qubits_set])
+        ret += ')'
+
+    return ret
+
+
 class Circuit:
     """
     Definition of quantum circuit (Circuit).
@@ -497,6 +536,19 @@ class Circuit:
         c.max_qubit = max(c.used_qubit_list)
 
         return c
+
+    def to_extended_originir(self):
+        ret = f'QINIT {self.n_qubit}\n'
+        ret += f'CREG {self.n_cbit}\n'
+        ret += '\n'.join([opcode_to_originir_line(opcode) for opcode in self.program_body])
+        return ret
+    
+    @property
+    def originir(self):
+        return self.to_extended_originir()
+
+    def __str__(self):
+        return self.to_extended_originir()
 
     def unwrap(self):
         """

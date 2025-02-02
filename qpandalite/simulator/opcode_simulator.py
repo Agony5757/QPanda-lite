@@ -2,11 +2,17 @@
 It simulates from a basic opcode
 '''
 from QPandaLitePy import *
-from typing import List, Tuple, TYPE_CHECKING
+from typing import List, Optional, Tuple, TYPE_CHECKING, Union
 from .qutip_sim_impl import DensityOperatorSimulatorQutip
 import numpy as np
 if TYPE_CHECKING:
     from .QPandaLitePy import *
+
+QubitType = Union[List[int], int]
+CbitType = Union[List[int], int]
+ParameterType = Optional[Union[List[float], float]]
+OpcodeType = Tuple[str, QubitType, CbitType, ParameterType, bool, set]
+
 
 def backend_alias(backend_type):
     ''' Backend alias for different backends.

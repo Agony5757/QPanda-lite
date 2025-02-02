@@ -106,4 +106,5 @@ def random_qasm(n_qubits, n_gates, instruction_set = available_qasm_gates, measu
     return "\n".join(qasm)
 
 
+def build_qasm_from_opcodes(opcode_list, measure_qbit_cbit = None,qreg_name = 'q', creg_name = 'c'):
 

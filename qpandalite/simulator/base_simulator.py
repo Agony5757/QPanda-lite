@@ -1,17 +1,12 @@
 # generic simulator class for qpanda-lite
 
 import random
-from typing import Dict, List, Optional, Tuple, Union
-
+from typing import Dict, List
 import numpy as np
 
 from .error_model import ErrorLoader
-from .opcode_simulator import OpcodeSimulator
+from .opcode_simulator import OpcodeSimulator, OpcodeType
 
-QubitType = Union[List[int], int]
-CbitType = Union[List[int], int]
-ParameterType = Optional[Union[List[float], float]]
-OpcodeType = Tuple[str, QubitType, CbitType, ParameterType, bool, set]
 
 class TopologyError(Exception):
     pass
@@ -230,7 +225,7 @@ class BaseSimulator:
         for _ in range(shots):
             shot_result = random.choices(range(len(pmeasured_result)), cum_weights=cum_weights, k=1)[0]
             result[shot_result] = result.get(shot_result, 0) + 1
-            
+
         return result
         
     @property

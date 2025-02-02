@@ -146,17 +146,17 @@ def test_qasm(path = './qpandalite/test'):
     print(len(err_list), 'circuits failed')
     print(len(passed_list) - len(err_list), 'circuits passed')
 
-    # log good and bad circuits
-    with open('good_circuits.txt', 'w') as f:
-        for circuit, result in good_circuit_list:
-            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
+    # # log good and bad circuits
+    # with open('good_circuits.txt', 'w') as f:
+    #     for circuit, result in good_circuit_list:
+    #         f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
-    with open('bad_circuits.txt', 'w') as f:
-        for circuit, result in bad_circuit_list:
-            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
+    # with open('bad_circuits.txt', 'w') as f:
+    #     for circuit, result in bad_circuit_list:
+    #         f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
-        for e in err_list:
-            f.write(str(e) + '\n')
+    #     for e in err_list:
+    #         f.write(str(e) + '\n')
 
     raise ValueError('Some circuits failed!')
 

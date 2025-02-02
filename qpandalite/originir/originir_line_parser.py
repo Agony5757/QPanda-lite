@@ -10,12 +10,25 @@ class OriginIR_LineParser:
     lbracket = r'\('
     rbracket = r'\)'
     parameter = r'([-+]?\d+(\.\d*)?([eE][-+]?\d+)?)'
-    regexp_1q_str = '^' + opname + blank + qid + '$'
+
+    # extended originir syntax
+    dagger_flag = blank +'(dagger *)?'
+    control_qubits = blank + (r'(controlled_by' + blank + lbracket +
+                      f'({blank}{qid}{blank}{comma})*{blank}{qid}{blank}'
+                      + rbracket + blank + ')?'
+                      )
+
+    regexp_1q_str = ('^' + 
+                     opname + blank + 
+                     qid + dagger_flag + 
+                     control_qubits +
+                     '$')
     regexp_2q_str = ('^' + 
                      opname + blank + 
                      qid + blank + 
                      comma + blank + 
-                     qid + 
+                     qid + dagger_flag + 
+                     control_qubits +
                      '$')
     regexp_3q_str = ('^' + 
                      opname + blank + 
@@ -23,7 +36,8 @@ class OriginIR_LineParser:
                      comma + blank +  
                      qid + blank + 
                      comma + blank + 
-                     qid + 
+                     qid + dagger_flag + 
+                     control_qubits +
                      '$')
     regexp_1q1p_str = ('^' + 
                         opname + blank + 
@@ -31,7 +45,8 @@ class OriginIR_LineParser:
                         comma + blank + 
                         lbracket + blank + 
                         parameter + blank + 
-                        rbracket + 
+                        rbracket + dagger_flag + 
+                     control_qubits +
                         '$')    
     regexp_1q2p_str = ('^' + 
                         opname + blank + 
@@ -41,7 +56,8 @@ class OriginIR_LineParser:
                         parameter + blank + 
                         comma + blank + 
                         parameter + blank + 
-                        rbracket +
+                        rbracket + dagger_flag + 
+                     control_qubits +
                         '$')    
     regexp_1q3p_str = ('^' + 
                         opname + blank + 
@@ -53,7 +69,8 @@ class OriginIR_LineParser:
                         parameter + blank + 
                         comma + blank + 
                         parameter + blank + 
-                        rbracket +
+                        rbracket + dagger_flag + 
+                     control_qubits +
                         '$')    
     regexp_1q4p_str = ('^' + 
                         opname + blank + 
@@ -67,7 +84,8 @@ class OriginIR_LineParser:
                         parameter + blank + 
                         comma + blank + 
                         parameter + blank + 
-                        rbracket +
+                        rbracket + dagger_flag + 
+                     control_qubits +
                         '$')    
     regexp_2q1p_str = ('^' + 
                         opname + blank + 
@@ -77,7 +95,8 @@ class OriginIR_LineParser:
                         comma + blank + 
                         lbracket + blank + 
                         parameter + blank + 
-                        rbracket +
+                        rbracket + dagger_flag + 
+                     control_qubits +
                         '$')    
     
     regexp_2q3p_str = ('^' + 
@@ -92,7 +111,8 @@ class OriginIR_LineParser:
                         parameter + blank +  # 2 
                         comma + blank + 
                         parameter + blank +  # 3
-                        rbracket +
+                        rbracket + dagger_flag + 
+                     control_qubits +
                         '$')    
 
     regexp_2q15p_str = ('^' + 
@@ -131,7 +151,8 @@ class OriginIR_LineParser:
                         parameter + blank +  # 14
                         comma + blank + 
                         parameter + blank +  # 15
-                        rbracket +
+                        rbracket + dagger_flag + 
+                        control_qubits +
                         '$') 
     
     regexp_measure_str = ('^' + 
@@ -170,7 +191,12 @@ class OriginIR_LineParser:
         matches = OriginIR_LineParser.regexp_1q.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
-        return operation, q
+        dagger_flag = True if matches.group(3) is not None else False
+        control_qubits = []
+        if matches.group(4) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(4))]
+            
+        return operation, q, dagger_flag, control_qubits
 
     @staticmethod
     def handle_2q(line):
@@ -178,7 +204,12 @@ class OriginIR_LineParser:
         operation = matches.group(1)
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
-        return operation, [q1, q2]
+        dagger_flag = True if matches.group(4) is not None else False
+        control_qubits = []
+        if matches.group(5) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(5))]
+
+        return operation, [q1, q2], dagger_flag, control_qubits
     
     @staticmethod
     def handle_3q(line):
@@ -187,7 +218,12 @@ class OriginIR_LineParser:
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
         q3 = int(matches.group(4))
-        return operation, [q1, q2, q3]
+        dagger_flag = True if matches.group(5) is not None else False
+        control_qubits = []
+        if matches.group(6) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(6))]
+
+        return operation, [q1, q2, q3], dagger_flag, control_qubits
 
     @staticmethod
     def handle_1q1p(line):
@@ -195,7 +231,12 @@ class OriginIR_LineParser:
         operation = matches.group(1)
         q = int(matches.group(2))
         parameter = float(matches.group(3))
-        return operation, q, parameter
+        dagger_flag = True if matches.group(6) is not None else False
+        control_qubits = []
+        if matches.group(7) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(5))]
+
+        return operation, q, parameter, dagger_flag, control_qubits
 
     @staticmethod
     def handle_1q2p(line):
@@ -204,7 +245,12 @@ class OriginIR_LineParser:
         q = int(matches.group(2))
         parameter1 = float(matches.group(3))
         parameter2 = float(matches.group(6))
-        return operation, q, [parameter1, parameter2]
+        dagger_flag = True if matches.group(9) is not None else False
+        control_qubits = []
+        if matches.group(10) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(10))]
+
+        return operation, q, [parameter1, parameter2], dagger_flag, control_qubits
     
     @staticmethod
     def handle_1q3p(line):
@@ -214,7 +260,12 @@ class OriginIR_LineParser:
         parameter1 = float(matches.group(3))
         parameter2 = float(matches.group(6))
         parameter3 = float(matches.group(9))
-        return operation, q, [parameter1, parameter2, parameter3]
+        dagger_flag = True if matches.group(12) is not None else False
+        control_qubits = []
+        if matches.group(13) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(13))]
+
+        return operation, q, [parameter1, parameter2, parameter3], dagger_flag, control_qubits
     
     @staticmethod
     def handle_1q4p(line):
@@ -225,7 +276,12 @@ class OriginIR_LineParser:
         parameter2 = float(matches.group(6))
         parameter3 = float(matches.group(9))
         parameter4 = float(matches.group(12))
-        return operation, q, [parameter1, parameter2, parameter3, parameter4]
+        dagger_flag = True if matches.group(15) is not None else False
+        control_qubits = []
+        if matches.group(16) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(16))]
+
+        return operation, q, [parameter1, parameter2, parameter3, parameter4], dagger_flag, control_qubits
     
     @staticmethod
     def handle_2q1p(line):
@@ -234,7 +290,12 @@ class OriginIR_LineParser:
         q1 = int(matches.group(2))
         q2 = int(matches.group(3))
         parameter1 = float(matches.group(4))
-        return operation, [q1, q2], parameter1
+        dagger_flag = True if matches.group(7) is not None else False
+        control_qubits = []
+        if matches.group(8) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(8))]
+
+        return operation, [q1, q2], parameter1, dagger_flag, control_qubits
         
     @staticmethod
     def handle_2q3p(line):
@@ -245,7 +306,12 @@ class OriginIR_LineParser:
         parameter1 = float(matches.group(4))
         parameter2 = float(matches.group(7))
         parameter3 = float(matches.group(10))
-        return operation, [q1, q2], [parameter1, parameter2, parameter3]
+        dagger_flag = True if matches.group(13) is not None else False
+        control_qubits = []
+        if matches.group(14) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(14))]
+
+        return operation, [q1, q2], [parameter1, parameter2, parameter3], dagger_flag, control_qubits
         
     @staticmethod
     def handle_2q15p(line):
@@ -256,7 +322,13 @@ class OriginIR_LineParser:
         parameters = []
         for i in range(15):
             parameters.append(float(matches.group(4 + i * 3)))
-        return operation, [q1, q2], parameters
+
+        dagger_flag = True if matches.group(49) is not None else False
+        control_qubits = []
+        if matches.group(50) is not None:
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(60))]
+
+        return operation, [q1, q2], parameters, dagger_flag, control_qubits
     
     @staticmethod
     def handle_measure(line):
@@ -347,10 +419,12 @@ class OriginIR_LineParser:
             c = None
             operation = None
             parameter = None
+            dagger_flag = None
+            control_qubits = None
             
             # remove the empty line
             if not line:
-                return q, c, operation, parameter
+                return q, c, operation, parameter, dagger_flag, control_qubits
             
             line = line.strip()
             # extract operation
@@ -370,17 +444,17 @@ class OriginIR_LineParser:
                  operation == 'S' or \
                  operation == 'SX' or \
                  operation == 'T':
-                operation, q = OriginIR_LineParser.handle_1q(line)
+                operation, q, dagger_flag, control_qubits = OriginIR_LineParser.handle_1q(line)
             # 2-qubit gates
             elif operation == 'CZ' or \
                  operation == 'CNOT' or \
                  operation == 'SWAP' or \
                  operation == 'ISWAP':
-                operation, q = OriginIR_LineParser.handle_2q(line)
+                operation, q, dagger_flag, control_qubits = OriginIR_LineParser.handle_2q(line)
             # 3-qubit gates
             elif operation == 'TOFFOLI' or \
                  operation == 'CSWAP':
-                operation, q = OriginIR_LineParser.handle_3q(line)
+                operation, q, dagger_flag, control_qubits = OriginIR_LineParser.handle_3q(line)
             # 1q1p gates
             elif operation == 'RX' or \
                  operation == 'RY' or \
@@ -392,29 +466,29 @@ class OriginIR_LineParser:
                  operation == 'BitFlip' or \
                  operation == 'AmplitudeDamping' or \
                  operation == 'PhaseFlip':
-                operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
+                operation, q, parameter, dagger_flag, control_qubits = OriginIR_LineParser.handle_1q1p(line)
             # 1q2p gates
             elif operation == 'RPhi' or \
                  operation == 'U2':
-                operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
+                operation, q, parameter, dagger_flag, control_qubits = OriginIR_LineParser.handle_1q2p(line)
             # 1q3p gates
             elif operation == 'U3' or \
                  operation == 'PauliError1Q':
-                operation, q, parameter = OriginIR_LineParser.handle_1q3p(line)
+                operation, q, parameter, dagger_flag, control_qubits = OriginIR_LineParser.handle_1q3p(line)
             # 2q1p gates
             elif operation == 'XX' or \
                  operation == 'YY' or \
                  operation == 'ZZ' or \
                  operation == 'XY' or \
                  operation == 'TwoQubitDepolarizing':
-                operation, q, parameter = OriginIR_LineParser.handle_2q1p(line)
+                operation, q, parameter, dagger_flag, control_qubits = OriginIR_LineParser.handle_2q1p(line)
             # 2q3p gates
             elif operation == 'PHASE2Q':
-                operation, q, parameter = OriginIR_LineParser.handle_2q3p(line)
+                operation, q, parameter, dagger_flag, control_qubits = OriginIR_LineParser.handle_2q3p(line)
             # 2q15p gates
             elif operation == 'UU15' or \
                  operation == 'PauliError2Q':
-                operation, q, parameter = OriginIR_LineParser.handle_2q15p(line)
+                operation, q, parameter, dagger_flag, control_qubits = OriginIR_LineParser.handle_2q15p(line)
             elif operation == 'BARRIER':
                 operation = 'BARRIER'
                 operation, q = OriginIR_LineParser.handle_barrier(line)
@@ -433,7 +507,7 @@ class OriginIR_LineParser:
                 # print("something wrong")
                 raise NotImplementedError(f'A invalid line: {line}.')      
             
-            return operation, q, c, parameter
+            return operation, q, c, parameter, dagger_flag, control_qubits
         except AttributeError as e:
             raise RuntimeError(f'Error when parsing the line: {line}')
     
@@ -444,18 +518,29 @@ if __name__ == '__main__':
     print(matches.group(0))
     print(matches.group(1)) # H
     print(matches.group(2)) # 45
+
     
+    print(OriginIR_LineParser.regexp_1q_str)
+    matches = OriginIR_LineParser.regexp_1q.match('H  q [ 45 ] dagger   controlled_by (q[0], q[1], q[2])')
+    print(matches.group(0))
+    print(matches.group(1)) # H
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # dagger
+    print(matches.group(4)) # controlled_by (q[0], q[1], q[2])
     print(OriginIR_LineParser.regexp_1q1p_str)
-    matches = OriginIR_LineParser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3)')
+
+    matches = OriginIR_LineParser.regexp_1q1p.match('RX  q [ 45 ] , ( 1.1e+3) dagger')
     print(matches.group(0))
     print(matches.group(1)) # RX
     print(matches.group(2)) # 45
     print(matches.group(3)) # 1.1e+3
     print(matches.group(4)) # 
     print(matches.group(5)) # 
+    print(matches.group(6)) # dagger
+    print(matches.group(7)) # None
 
     print(OriginIR_LineParser.regexp_1q2p_str)
-    matches = OriginIR_LineParser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5)')
+    matches = OriginIR_LineParser.regexp_1q2p.match('Rphi q[ 45 ], ( -1.1 , 1.2e-5) dagger')
     print(matches.group(0))
     print(matches.group(1)) # Rphi
     print(matches.group(2)) # 45
@@ -465,9 +550,10 @@ if __name__ == '__main__':
     print(matches.group(6)) # 1.2e-5
     print(matches.group(7)) #
     print(matches.group(8)) #
+    print(matches.group(9)) # dagger
 
     print(OriginIR_LineParser.regexp_1q3p_str)
-    matches = OriginIR_LineParser.regexp_1q3p.match('U3 q[ 45 ], ( -1.1 , 1.2e-5 , 0.11)')
+    matches = OriginIR_LineParser.regexp_1q3p.match('U3 q[ 45 ], ( -1.1 , 1.2e-5 , 0.11) dagger')
     print(matches.group(0))
     print(matches.group(1)) # U3
     print(matches.group(2)) # 45
@@ -480,9 +566,10 @@ if __name__ == '__main__':
     print(matches.group(9)) # 0.11
     print(matches.group(10)) #
     print(matches.group(11)) #
+    print(matches.group(12)) # dagger
 
     print(OriginIR_LineParser.regexp_1q4p_str)
-    matches = OriginIR_LineParser.regexp_1q4p.match('U4 q[ 45 ], ( -1.1 , 1.2e-5, 0 , 0.11)')
+    matches = OriginIR_LineParser.regexp_1q4p.match('U4 q[ 45 ], ( -1.1 , 1.2e-5, 0 , 0.11)   dagger')
     print(matches.group(0))
     print(matches.group(1)) # U4
     print(matches.group(2)) # 45
@@ -498,6 +585,7 @@ if __name__ == '__main__':
     print(matches.group(12)) # 0.11
     print(matches.group(13)) #
     print(matches.group(14)) #
+    print(matches.group(15)) # dagger
         
     print(OriginIR_LineParser.regexp_2q_str)
     matches = OriginIR_LineParser.regexp_2q.match('CNOT q[ 45], q[46 ]')
@@ -515,15 +603,18 @@ if __name__ == '__main__':
     print(matches.group(4)) # 42
     
     print(OriginIR_LineParser.regexp_2q1p_str)
-    matches = OriginIR_LineParser.regexp_2q1p.match('XY q[ 45], q[46 ], ( -1.1 )')
+    matches = OriginIR_LineParser.regexp_2q1p.match('XY q[ 45], q[46 ], ( -1.1 )  dagger')
     print(matches.group(0)) 
     print(matches.group(1)) # XY
     print(matches.group(2)) # 45
     print(matches.group(3)) # 46
     print(matches.group(4)) # -1.1
+    print(matches.group(5)) # 
+    print(matches.group(6)) # 
+    print(matches.group(7)) # dagger
     
     print(OriginIR_LineParser.regexp_2q3p_str)
-    matches = OriginIR_LineParser.regexp_2q3p.match('PHASE2Q q[ 45], q[46 ], ( -1.1, 1.5, 8 )')
+    matches = OriginIR_LineParser.regexp_2q3p.match('PHASE2Q q[ 45], q[46 ], ( -1.1, 1.5, 8 ) dagger')
     print(matches.group(0)) 
     print(matches.group(1)) # XY
     print(matches.group(2)) # 45
@@ -535,6 +626,33 @@ if __name__ == '__main__':
     print(matches.group(8)) 
     print(matches.group(9)) 
     print(matches.group(10)) # 8
+    print(matches.group(11)) #
+    print(matches.group(12)) #
+    print(matches.group(13)) # dagger
+
+    print(OriginIR_LineParser.regexp_2q15p_str)
+    matches = OriginIR_LineParser.regexp_2q15p.match('UU15 q[ 45], q[46 ], ( 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 ) dagger')
+    print(matches.group(0)) 
+    print(matches.group(1)) # UU15
+    print(matches.group(2)) # 45
+    print(matches.group(3)) # 46
+    print(matches.group(4)) # 1
+    print(matches.group(7)) # 2
+    print(matches.group(10)) # 3 
+    print(matches.group(13)) # 4
+    print(matches.group(16)) # 5
+    print(matches.group(19)) # 6
+    print(matches.group(22)) # 7
+    print(matches.group(25)) # 8
+    print(matches.group(28)) # 9
+    print(matches.group(31)) # 10
+    print(matches.group(34)) # 11
+    print(matches.group(37)) # 12
+    print(matches.group(40)) # 13
+    print(matches.group(43)) # 14
+    print(matches.group(46)) # 15
+    print(matches.group(49)) # dagger
+    print(matches.group(50)) # None
 
     print(OriginIR_LineParser.regexp_measure_str)
     matches = OriginIR_LineParser.regexp_meas.match('MEASURE  q [ 45 ] ,  c[ 11 ]')

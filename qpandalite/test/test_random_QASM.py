@@ -128,17 +128,17 @@ def test_random_qasm_batch(
     print(len(err_list), 'circuits failed')
     print(random_batchsize - len(err_list), 'circuits passed')
 
-    # log good and bad circuits
-    with open('good_circuits.txt', 'w') as f:
-        for circuit, result in good_circuit_list:
-            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
+    # # log good and bad circuits
+    # with open('good_circuits.txt', 'w') as f:
+    #     for circuit, result in good_circuit_list:
+    #         f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
-    with open('bad_circuits.txt', 'w') as f:
-        # for circuit, result in bad_circuit_list:
-        #     f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
+    # with open('bad_circuits.txt', 'w') as f:
+    #     # for circuit, result in bad_circuit_list:
+    #     #     f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
-        for e in err_list:
-            f.write(str(e) + '\n')
+    #     for e in err_list:
+    #         f.write(str(e) + '\n')
 
     if len(err_list) > 0:
         raise ValueError('Some circuits failed!')
@@ -249,14 +249,14 @@ def test_random_qasm_compare_density_operator(
     print(len(err_list), 'circuits failed')
     print(random_batchsize - len(err_list), 'circuits passed')
 
-    # log good and bad circuits
-    with open('good_circuits.txt', 'w') as f:
-        for circuit, result in good_circuit_list:
-            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
+    # # log good and bad circuits
+    # with open('good_circuits.txt', 'w') as f:
+    #     for circuit, result in good_circuit_list:
+    #         f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
 
-    with open('bad_circuits.txt', 'w') as f:
-        for e in err_list:
-            f.write(str(e) + '\n')
+    # with open('bad_circuits.txt', 'w') as f:
+    #     for e in err_list:
+    #         f.write(str(e) + '\n')
 
     if len(err_list) > 0:
         raise ValueError('Some circuits failed!')

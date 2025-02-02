@@ -176,10 +176,9 @@ print("测量结果的概率分布：", prob_list)
 ```
 
 
-# BaseSimulator 类文档
-## 概述
+## BaseSimulator 类文档
 `BaseSimulator` 类是一个抽象类，旨在为模拟 OriginIR 或 QASM 格式的量子程序提供一个通用接口。它不直接面向最终用户使用，而是作为 `OriginIR_Simulator` 和 `QASM_Simulator` 等更具体模拟器类的基类。`BaseSimulator` 类依赖于 `OpcodeSimulator` 作为其后端，用于实际模拟量子操作。
-## 类定义
+### 类定义
 ```python
 class BaseSimulator:
 ```
@@ -233,7 +232,7 @@ def __init__(self, backend_type='statevector', available_qubits: List[int] = Non
 - `def simulate_single_shot(self, originir)`: 模拟带有噪声的单次执行。
 - `def simulate_shots(self, quantum_code, shots)`: 模拟带有噪声的多次执行并返回结果。
 - 
-## 使用
+### 使用
 要使用 `BaseSimulator` 或 `BaseNoisySimulator`，需要继承它们并实现必要的方法。直接使用应通过 `OriginIR_Simulator` 或 `QASM_Simulator` 进行，这些类为模拟量子程序提供了更友好的接口。
 
 ## OriginIR_Simulator 类
@@ -268,7 +267,7 @@ def __init__(self, backend_type='statevector', available_qubits=None, available_
 ### 方法
 - `_process_program_body()`: 处理量子程序的主体，将量子操作转换为模拟器可以理解的格式，并考虑噪声模型。
 - `_clear()`: 清除模拟器的状态，重置为初始状态。
-## 使用说明
+### 使用说明
 这两个类都不是直接用于模拟量子程序的。用户应该通过它们的子类 `OriginIRSimulator` 或 `QASMSimulator` 来进行量子程序的模拟。这些子类提供了更友好的接口，使得用户可以更容易地模拟量子程序。
 在使用这些类之前，需要确保量子程序是以 OriginIR 格式编写的，并且已经通过 `OriginIR_BaseParser` 类进行了解析。模拟器将处理解析后的量子程序，并执行模拟操作。如果使用 `OriginIR_NoisySimulator`，还需要确保提供了噪声模型。
 
@@ -304,7 +303,7 @@ def __init__(self, backend_type='statevector', available_qubits=None, available_
 - `readout_error` (Dict[int, List[float]], 可选): 包含每个量子比特读出错误率的字典。默认为空字典。
 ### 方法
 - `_clear()`: 清除模拟器的状态，重置为初始状态。包括量子比特数量、测量量子比特列表、解析器和操作码模拟器。
-## 使用说明
+### 使用说明
 这两个类用于模拟 QASM 格式的量子程序。用户应该通过这些类来执行量子程序的模拟，而不是直接使用它们。以下是如何使用这些类的示例：
 ```python
 # 初始化 QASM_Simulator

@@ -195,6 +195,7 @@ setup(
                       'seaborn',
                       'matplotlib',
                       'rb_generator',
+                      'pybind11-stubgen',
                       'qiskit',
                       'qiskit-aer',
                       'qutip',

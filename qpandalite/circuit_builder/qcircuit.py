@@ -125,7 +125,7 @@ class Circuit:
             'gates': {},
             'measurements': []
         }
-
+        
     def make_header(self):
         ret = 'QINIT {}\n'.format(self.max_qubit + 1)
         ret += 'CREG {}\n'.format(len(self.measure_list))
@@ -543,18 +543,8 @@ class Circuit:
 
         return c
 
-    def to_extended_originir(self):
-        ret = f'QINIT {self.n_qubit}\n'
-        ret += f'CREG {self.n_cbit}\n'
-        ret += '\n'.join([opcode_to_originir_line(opcode) for opcode in self.program_body])
-        return ret
     
-    @property
-    def originir(self):
-        return self.to_extended_originir()
 
-    def __str__(self):
-        return self.to_extended_originir()
 
     # def unwrap(self):
     #     """

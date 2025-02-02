@@ -20,7 +20,7 @@ QPanda-lite是一个轻量级的QPanda支持。
    :alt: Build and Test
 
 
-`GitHub repository <https://github.com/Agony5757/QPanda-lite>`_
+`GitHub repository at https://github.com/Agony5757/QPanda-lite <https://github.com/Agony5757/QPanda-lite>`_
 
 
 .. note::

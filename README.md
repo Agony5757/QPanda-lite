@@ -211,6 +211,12 @@ print(sim.state)
 ### OpenQASM 2.0支持
 [See: OpenQASM 2.0支持](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html)
 
+### Generate Sphinx documentation
+
+```bash
+sphinx-apidoc -o docs/source qpandalite
+```
+
 ### Build the docs
 
 The doc is based on 

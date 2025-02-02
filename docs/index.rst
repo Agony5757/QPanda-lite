@@ -7,6 +7,21 @@
 =======================================
 QPanda-lite是一个轻量级的QPanda支持。
 
+.. image:: https://readthedocs.org/projects/qpanda-lite/badge/?version=latest
+   :target: https://qpanda-lite.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
+.. image:: https://badge.fury.io/py/qpandalite.svg
+   :target: https://badge.fury.io/py/qpandalite
+   :alt: PyPI version
+
+.. image:: https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml/badge.svg?branch=main
+   :target: https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml
+   :alt: Build and Test
+
+
+`GitHub repository <https://github.com/Agony5757/QPanda-lite>`_
+
 
 .. note::
    
@@ -34,25 +49,23 @@ QPanda-lite是一个轻量级的QPanda支持。
    source/features/submit_task_general
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: qpandalite API文档
 
    .. source/modules
 
    source/qpandalite.circuit_builder
    source/qpandalite.originir
+   source/qpandalite.qasm
    source/qpandalite.simulator
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: qpandalite task模块 API文档
    
    .. source/qpandalite.task
 
-   source/qpandalite.task.originq
-   source/qpandalite.task.originq_dummy
-   source/qpandalite.task.quafu
-   source/qpandalite.task.ibm
+   source/qpandalite.task
 
 Indices and tables
 ==================

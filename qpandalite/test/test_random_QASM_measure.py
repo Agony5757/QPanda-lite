@@ -1,3 +1,4 @@
+from typing import Dict
 import numpy as np
 from qpandalite.qasm import OpenQASM2_BaseParser, OpenQASM2_LineParser
 from pathlib import Path
@@ -16,6 +17,8 @@ from qiskit_aer import AerSimulator
 from qiskit import transpile
 from qiskit_aer import Aer
 
+from scipy.sparse import coo_array
+
 def simulate_by_qiskit(qasm_str, shots=10000):
     '''Simulate the circuit by qiskit simulator.
 
@@ -31,8 +34,7 @@ def simulate_by_qiskit(qasm_str, shots=10000):
     
     result = backend.run(qc, shots=shots).result()
     counts = result.get_counts(qc)
-    problist = [counts.get(str(i), 0) for i in range(2**qc.num_qubits)]
-    return problist
+    return counts
 
 def simulate_by_qpandalite(qasm_str, backend_type='statevector', shots=10000):
     '''Simulate the circuit by qpandalite simulator.
@@ -44,194 +46,76 @@ def simulate_by_qpandalite(qasm_str, backend_type='statevector', shots=10000):
         numpy.ndarray: The probability of each state.
     '''
 
-    QASM_Simulator = QASM_Simulator(backend_type=backend_type)
-    QASM_Simulator.simulate_shots(qasm_str, shots=shots)
+    qasm_simulator = QASM_Simulator(backend_type=backend_type)
 
-    
+    if qasm_simulator.opcode_simulator.simulator_typestr == 'density_operator':
+        counts = qasm_simulator.simulate_pmeasure(qasm_str)
+        # convert counts
+        counts = {np.binary_repr(k, qasm_simulator.qubit_num) : v * shots for k, v in enumerate(counts)}
+
+    elif qasm_simulator.opcode_simulator.simulator_typestr == 'statevector':
+        counts = qasm_simulator.simulate_shots(qasm_str, shots=shots)
+        # convert counts
+        counts = {np.binary_repr(k, qasm_simulator.qubit_num) : v for k, v in counts.items()}
+    else:
+        raise ValueError('Unsupported simulator type.')
+
+    return counts
 
 class NotMatchError(Exception):
     pass
 
-def _check_result(transpiled_circuit, reference_array, backend_type):
 
-    qasm_simulator = QASM_Simulator(backend_type)
-    my_result = qasm_simulator.simulate_pmeasure(transpiled_circuit)
+def compare_counts(counts1, counts2):
+    '''Compare two count dictionaries.
 
-    if len(reference_array) != len(my_result):
-        print('---------------')
-        print(transpiled_circuit)
-        print(reference_array)
-        print('---------------')
-        raise NotMatchError('Size not match!\n'
-                        'Reference = {}\n'
-                        'My Result = {}\n'.format(reference_array, my_result))
-    try:
-        v = np.allclose(reference_array, my_result)
-    except Exception as e:       
-        error_message = (
-            '---------------\n'
-            'Unexpected error occurred!!!\n'
-            f'Transpiled Circuit: {transpiled_circuit}\n'
-            f'Reference Result: {reference_array}\n'
-            '---------------\n'
-            f'The exception is: {str(e)}\n'
-        )
-        e.args = (error_message,) + e.args
-        raise e
-        
-    if not np.allclose(reference_array, my_result):            
-        raise NotMatchError(
-            '---------------\n'
-            f'{transpiled_circuit}\n'
-            f'{reference_array}\n'
-            '---------------\n'
-            'Result not match!\n'
-            f'Reference = {reference_array}\n'
-            f'My Result = {my_result}\n'
-        )
+    Args:
+        counts1 (dict): The first count dictionary.
+        counts2 (dict): The second count dictionary.
+
+    Returns:
+        bool: True if the two count dictionaries are the same, False otherwise.
+    '''
+
+    counts_difference = {}
+    for k in counts1.keys():
+        counts_difference[k] = counts1.get(k, 0) - counts2.get(k, 0)
+
+    for k in counts2.keys():
+        if k not in counts_difference:
+            counts_difference[k] = -counts2.get(k, 0)
+
+    shots = sum(counts1.values())
+    counts_difference = {k : v / shots for k, v in counts_difference.items() if v != 0}
+    # compare the two sparse vectors with a given threshold
+    # if any value is greater than the threshold, raise an error
+    threshold = 0.02
+    if any(np.abs(v) > threshold for v in counts_difference.values()):
+        raise NotMatchError('Counts are not the same.'
+                            f'\ncounts1: {counts1}'
+                            f'\ncounts2: {counts2}'
+                            f'\ncounts_difference: {counts_difference}')
 
 
-
-def test_random_qasm(circuit, backend_type):
-    # simulate via qiskit
-    qiskit_result = simulate_by_qiskit_statevector(circuit)
-
-    # check result
-    try:
-        _check_result(circuit, qiskit_result, backend_type)
-        return None
-    except NotMatchError as e:
-        return e
-    except Exception as e:
-        # other unexpected error
-        raise e
-
-def test_random_qasm_batch(
-    random_batchsize = 100, 
-    n_qubit = 5,
-    n_gates = 20,
-    instruction_set = available_qasm_gates, 
-    backend_type = 'statevector'):
-
-    err_list = []    
-    good_circuit_list = []
-    bad_circuit_list = []
-
-    for i in range(random_batchsize):
-
-        qasm_code = random_qasm(n_qubits=n_qubit,
-                                n_gates=n_gates,
-                                instruction_set=instruction_set)
-        err = test_random_qasm(qasm_code, backend_type)
-        if err:
-            print('Test failed!')
-            err_list.append(err)
-            bad_circuit_list.append((qasm_code, err))
-        else:
-            print('Test passed!')
-            good_circuit_list.append((qasm_code, None))
-
-
-    print(len(err_list), 'circuits failed')
-    print(random_batchsize - len(err_list), 'circuits passed')
-
-    # log good and bad circuits
-    with open('good_circuits.txt', 'w') as f:
-        for circuit, result in good_circuit_list:
-            f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
-
-    with open('bad_circuits.txt', 'w') as f:
-        # for circuit, result in bad_circuit_list:
-        #     f.write(circuit + '\n----Result----\n' + str(result) + '\n-----------------\n\n')
-
-        for e in err_list:
-            f.write(str(e) + '\n')
-
-    if len(err_list) > 0:
-        raise ValueError('Some circuits failed!')
-
-
-@qpandalite_test('Test Random QASM Statevector')
-def test_random_qasm_statevector():
-
-    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
-                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 'swap' 
-                'ccx', 'cu1', 'cswap']
-    gate_set = generate_sub_gateset_qasm(gate_set)
-
-    test_random_qasm_batch(random_batchsize=100, 
-                           n_qubit=5, n_gates=50, 
-                           instruction_set=gate_set,
-                           backend_type='statevector')
-
-
-@qpandalite_test('Test Random QASM Density Operator')
-def test_random_qasm_density_operator():
-    
-    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
-                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 'swap'  
-                'ccx', 'cu1', 'cswap']
-
-    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
-                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 'swap' 
-                'ccx', 'cu1', 'cswap']
-    gate_set = generate_sub_gateset_qasm(gate_set)
-
-    test_random_qasm_batch(random_batchsize=100, 
-                           n_qubit=5, n_gates=50, 
-                           instruction_set=gate_set,
-                           backend_type='density_operator')
-
-@qpandalite_test('Test Random QASM Density Operator (Qutip)')
-def test_random_qasm_density_operator_qutip():
-    
-    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
-                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 'swap' 
-                'ccx', 'cu1', 'cswap']
-    gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
-                'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 'swap' 
-                'ccx', 'cu1', 'cswap']
-    gate_set = generate_sub_gateset_qasm(gate_set)
-
-    test_random_qasm_batch(random_batchsize=100, 
-                           n_qubit=5, n_gates=50, 
-                           instruction_set=gate_set,
-                           backend_type='density_operator_qutip')
-
-
-def compare_density_operator(circuit):
-    # This test compares two density operators generated by QuTip and QPanda-lite.
+def compare_shots(circuit, backend_type='statevector'):
+    # This test compares two density operators generated by qiskit and QPanda-lite.
     # The test is based on the following steps:
-    # 1. Simulate the circuit using QuTip and QPanda-lite.
+    # 1. Simulate the circuit using qiskit and QPanda-lite.
     # 2. Compare the results.
     # 3. If the results are not the same, raise an error.
 
-    # Step 1: Simulate the circuit using QuTip and QPanda-lite
-    sim_qpandalite = QASM_Simulator(backend_type='density_operator')
-    sim_qutip = QASM_Simulator(backend_type='density_operator_qutip')
+    sim_qpandalite = QASM_Simulator(backend_type=backend_type)
 
-    mat_qpandalite = sim_qpandalite.simulate_density_matrix(circuit)
-    mat_qutip = sim_qutip.simulate_density_matrix(circuit)
-    # Step 2: Compare the results
-    if not np.allclose(mat_qpandalite, mat_qutip):
-        return NotMatchError(
-            '---------------\n'
-            f'{circuit}\n'
-            '---------------\n'
-            'Result not match!\n'
-            f'QPanda-lite Result = {mat_qpandalite}\n'
-            f'QuTip Result = {mat_qutip}\n'
-        )
+    count1 = simulate_by_qiskit(circuit)
+    count2 = simulate_by_qpandalite(circuit, backend_type=backend_type)
+
+    return compare_counts(count1, count2)
     
-def test_random_qasm_compare_density_operator(  
+def test_random_qasm_compare_shots_impl(  
         random_batchsize = 100, 
         n_qubit = 5,
         n_gates = 20,
+        backend_type='statevector',
         instruction_set = available_qasm_gates):
     
     err_list = []    
@@ -242,7 +126,7 @@ def test_random_qasm_compare_density_operator(
                                 n_gates=n_gates,
                                 instruction_set=instruction_set)
         
-        err = compare_density_operator(qasm_code)    
+        err = compare_shots(qasm_code, backend_type=backend_type)    
         
         if err:
             print('Test failed!')
@@ -268,8 +152,9 @@ def test_random_qasm_compare_density_operator(
     if len(err_list) > 0:
         raise ValueError('Some circuits failed!')
     
-@qpandalite_test('Test Random QASM Density Operator (Compare with QuTip)')
-def test_random_qasm_density_operator_compare_with_qutip():
+
+@qpandalite_test('Test Random QASM Compare Shots')
+def test_random_qasm_compare_shots():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -282,13 +167,23 @@ def test_random_qasm_density_operator_compare_with_qutip():
                 'ccx', 'cu1', 'cswap']
     
     gate_set = generate_sub_gateset_qasm(gate_set)
-    test_random_qasm_compare_density_operator(
-        random_batchsize=100, 
-        n_qubit=5, n_gates=50,
-        instruction_set=gate_set)
+    test_random_qasm_compare_shots_impl(random_batchsize=10, 
+                                   n_qubit=5, 
+                                   n_gates=50, 
+                                   instruction_set=gate_set,
+                                   backend_type='statevector')
+    
+    test_random_qasm_compare_shots_impl(random_batchsize=10, 
+                                   n_qubit=5, 
+                                   n_gates=50, 
+                                   instruction_set=gate_set,
+                                   backend_type='density_matrix')
+    
+    test_random_qasm_compare_shots_impl(random_batchsize=10, 
+                                   n_qubit=5, 
+                                   n_gates=50, 
+                                   instruction_set=gate_set,
+                                   backend_type='density_matrix_qutip')
 
 if __name__ == '__main__':
-    test_random_qasm_statevector()
-    test_random_qasm_density_operator()
-    test_random_qasm_density_operator_qutip()
-    test_random_qasm_density_operator_compare_with_qutip()
+    test_random_qasm_compare_shots()

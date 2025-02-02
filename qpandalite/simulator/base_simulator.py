@@ -210,14 +210,28 @@ class BaseSimulator:
     def simulate_shots(self, quantum_code, shots):
         processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
 
-        results = {}
-        for _ in range(shots):
-            result = self.opcode_simulator.simulate_opcodes_shot(
-                self.qubit_num, processed_program_body, measure_qubit)
+        # results = {}
+        # for _ in range(shots):
+        #     result = self.opcode_simulator.simulate_opcodes_shot(
+        #         self.qubit_num, processed_program_body, measure_qubit)
             
-            results[result] = results.get(result, 0) + 1
+        #     results[result] = results.get(result, 0) + 1
 
-        return results
+        # get pmeasured result
+        pmeasured_result = self.simulate_pmeasure(quantum_code)
+        cum_weights = []
+        cumulative = 0
+        for prob in pmeasured_result:
+            cumulative += prob
+            cum_weights.append(cumulative)
+        
+        result = {}
+        # sample shots times from pmeasured result
+        for _ in range(shots):
+            shot_result = random.choices(range(len(pmeasured_result)), cum_weights=cum_weights, k=1)[0]
+            result[shot_result] = result.get(shot_result, 0) + 1
+            
+        return result
         
     @property
     def simulator(self):

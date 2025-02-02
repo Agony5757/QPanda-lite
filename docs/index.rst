@@ -21,6 +21,7 @@ QPanda-lite是一个轻量级的QPanda支持。
    source/guide/installation
    source/guide/originir_simple
    source/guide/build_circuit_simple
+   source/guide/opcode
    source/guide/simulation_simple
    source/guide/submit_task_simple
    source/guide/qasm

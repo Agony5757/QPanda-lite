@@ -36,8 +36,12 @@ class BaseSimulator:
         self.parser = None  # Note: parser must be set by subclass.
         self._handle_kwargs(extra_kwargs)
 
-    def _handle_kwargs(self, kwargs):
-        pass
+    def _handle_kwargs(self, kwargs : dict):
+        # Least qubit remapping is to map the qubits to the least available qubits.
+        # This can be useful when we only use a part of the qubits in the chip.
+        # By default, we use this feature.
+        # If you want to disable it, set least_qubit_remapping=False.
+        self.least_qubit_remapping = kwargs.pop('least_qubit_remapping', True)
 
     def _clear(self):        
         self.qubit_num = 0
@@ -53,6 +57,7 @@ class BaseSimulator:
         self.qubit_mapping[qubit] = n
 
     def _extract_actual_used_qubits(self):        
+        # extract from program
         program_body = self.parser.program_body
         for (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) in program_body:                        
             if isinstance(qubit, list):
@@ -60,6 +65,17 @@ class BaseSimulator:
                     self._add_used_qubit(int(q))
             else:
                 self._add_used_qubit(int(qubit))
+
+        # extract from measure
+        measure_qubits = self.parser.measure_qubits
+        for qubit, cbit in measure_qubits:
+            self._add_used_qubit(qubit)
+
+        if not self.least_qubit_remapping:
+            self.qubit_num = max(self.qubit_mapping.keys()) + 1
+            self.qubit_mapping = {q : q for q in range(self.qubit_num)}
+        else:
+            self.qubit_num = max(self.qubit_mapping.values()) + 1
     
     def _check_available_qubits(self):        
         used_qubits = list(self.qubit_mapping.keys())
@@ -139,7 +155,7 @@ class BaseSimulator:
         processed_program_body = self._process_program_body()
         measure_qubit = self._process_measure()
         
-        self.qubit_num = len(self.qubit_mapping)
+        # self.qubit_num = len(self.qubit_mapping)
         measure_qubit_cbit = sorted(measure_qubit, key = lambda k : k[1], reverse=False)
         measure_qubit = []
         for qubit in measure_qubit_cbit:
@@ -150,8 +166,8 @@ class BaseSimulator:
     def simulate_pmeasure(self, quantum_code):
         program_body, measure_qubit = self.simulate_preprocess(quantum_code)
         
-        prob_list = self.opcode_simulator.simulate_opcodes_stateprob(
-            self.qubit_num, program_body
+        prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
+            self.qubit_num, program_body, measure_qubit
         )
 
         return prob_list
@@ -164,6 +180,15 @@ class BaseSimulator:
         )
 
         return statevector
+    
+    def simulate_stateprob(self, quantum_code):
+        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+
+        stateprob = self.opcode_simulator.simulate_opcodes_stateprob(
+            self.qubit_num, program_body
+        )
+
+        return stateprob
 
     def simulate_density_matrix(self, quantum_code):
         program_body, measure_qubit = self.simulate_preprocess(quantum_code)

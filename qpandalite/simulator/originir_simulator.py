@@ -14,7 +14,8 @@ class OriginIR_Simulator(BaseSimulator):
     def __init__(self, 
                  backend_type = 'statevector',                 
                  available_qubits : List[int] = None, 
-                 available_topology : List[List[int]] = None):
+                 available_topology : List[List[int]] = None,
+                 **extra_kwargs):
         '''OriginIR_Simulator is a quantum circuit simulation based on C++ which runs locally on your PC.
         
 
@@ -24,7 +25,7 @@ class OriginIR_Simulator(BaseSimulator):
             available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
             available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
         '''
-        super().__init__(backend_type, available_qubits, available_topology)
+        super().__init__(backend_type, available_qubits, available_topology, **extra_kwargs)
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
     

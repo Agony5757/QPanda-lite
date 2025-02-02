@@ -84,8 +84,10 @@ def demo_3():
         c = c.remapping(mapping)
         return c.circuit
 
+    #mapping = {0 : 10, 1: 11, 2: 12, 3: 13}
     mapping = {0 : 10, 1: 11, 2: 12, 3: 13}
     circuit = build_circuit(mapping)
+    print(circuit)
     taskid = originq.submit_task(circuit, shots = 1000, task_name='some test')
     results = originq.query_by_taskid_sync(taskid, 
                                           interval=2.0, # query interval (seconds)

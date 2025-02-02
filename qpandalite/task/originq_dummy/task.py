@@ -207,53 +207,36 @@ def _submit_task_group_dummy_impl(
             )          
 
             if auto_mapping:
-                my_sim = OriginIR_NoisySimulator(
+                simulator = OriginIR_NoisySimulator(
                     backend_type='density_matrix',
                     error_loader=error_loader,
-                    readout_error=readout_error)
-                
+                    readout_error=readout_error)                
             else:
-                my_sim = OriginIR_NoisySimulator(
+                simulator = OriginIR_NoisySimulator(
                     backend_type='density_matrix',
                     error_loader=error_loader,
                     readout_error=readout_error,
                     available_qubits=available_qubits, 
-                    available_topology=available_topology)
-                
-            prob_result = my_sim.simulate_pmeasure(circuit)
-            # n_qubits = my_sim.qubit_num
-            n_qubits = len(my_sim.measure_qubit)
-            key = []
-            value = []
-
-            # get probs from probability list
-            # Note: originq server will directly produce prob list instead of shots list.
-
-            for i, meas_result in prob_result.items():
-                # print(i, meas_result)
-                key.append(hex(i))
-                value.append(meas_result/shots)
-            results.append({'key':key, 'value': value})
-
+                    available_topology=available_topology)                
         else:
             if auto_mapping:
                 simulator = sim.OriginIR_Simulator()
-                prob_result = simulator.simulate_pmeasure(circuit)
             else:
                 simulator = sim.OriginIR_Simulator(available_qubits=available_qubits,
                                                    available_topology=available_topology)
-                prob_result = simulator.simulate_pmeasure(circuit)
+        
+        prob_result = simulator.simulate_pmeasure(circuit)
                 
-            n_qubits = simulator.qubit_num
-            key = []
-            value = []
+        n_qubits = simulator.qubit_num
+        key = []
+        value = []
 
-            # get probs from probability list
-            # Note: originq server will directly produce prob list instead of shots list.
-            for i, meas_result in enumerate(prob_result):
-                key.append(hex(i))
-                value.append(meas_result)
-            results.append({'key':key, 'value': value})
+        # get probs from probability list
+        # Note: originq server will directly produce prob list instead of shots list.
+        for i, meas_result in enumerate(prob_result):
+            key.append(hex(i))
+            value.append(meas_result)
+        results.append({'key':key, 'value': value})
     
     # write cache, ready for loading results
     _write_dummy_cache(taskid, task_name, results)

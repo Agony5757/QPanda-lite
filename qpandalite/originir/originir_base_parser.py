@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List, Tuple
 
 from .originir_line_parser import OriginIR_LineParser
 
@@ -41,12 +42,14 @@ def opcode_to_line(opcode):
 
     return ret    
 
+
 class OriginIR_BaseParser:    
     def __init__(self):
         self.n_qubit = None
         self.n_cbit = None        
         self.program_body = list()
         self.raw_originir = None
+        self.measure_qubits : List[Tuple[int, int]]= list()
 
     def _extract_qinit_statement(self, lines):
         for i, line in enumerate(lines):
@@ -155,9 +158,9 @@ class OriginIR_BaseParser:
                                       'Encounter ENDDAGGER operation before any DAGGER.')
                 dagger_count -= 1
 
+            # Handle the common statements
             else:
-
-                # Check if the measurement was "controlled" or "daggered"
+                # Handle the measure statement
                 if operation == 'MEASURE':
                     if control_qubits_set:
                         raise ValueError(f'Parse error at line {lineno}: {line}\n'
@@ -166,28 +169,31 @@ class OriginIR_BaseParser:
                     if dagger_stack:
                         raise ValueError(f'Parse error at line {lineno}: {line}\n'
                                          'MEASURE operation is inside a DAGGER block.')
-
-                # For common statements
-                if dagger_count % 2:
-                    dagger_flag = True
+                    
+                    # Add the measurement to the list of measurements
+                    self.measure_qubits.append((qubits, cbit))                
                 else:
-                    dagger_flag = False
+                    # For common statements (gates)
+                    if dagger_count % 2:
+                        dagger_flag = True
+                    else:
+                        dagger_flag = False
 
-                if dagger_stack:
-                    # insert to the top of the dagger stack
-                    dagger_stack[-1].append((operation, 
-                                              qubits, 
-                                              cbit, 
-                                              parameter, 
-                                              dagger_flag, 
-                                              deepcopy(control_qubits_set)))
-                else:
-                    self.program_body.append((operation, 
-                                              qubits, 
-                                              cbit, 
-                                              parameter, 
-                                              dagger_flag, 
-                                              deepcopy(control_qubits_set)))
+                    if dagger_stack:
+                        # insert to the top of the dagger stack
+                        dagger_stack[-1].append((operation, 
+                                                qubits, 
+                                                cbit, 
+                                                parameter, 
+                                                dagger_flag, 
+                                                deepcopy(control_qubits_set)))
+                    else:
+                        self.program_body.append((operation, 
+                                                qubits, 
+                                                cbit, 
+                                                parameter, 
+                                                dagger_flag, 
+                                                deepcopy(control_qubits_set)))
                     
         # Finally, check if all dagger and control operations are closed
         if control_qubits_set:

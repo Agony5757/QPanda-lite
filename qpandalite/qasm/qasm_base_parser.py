@@ -1,3 +1,4 @@
+from typing import List, Tuple
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 from .translate_qasm2_oir import get_opcode_from_QASM2
 from .qasm_line_parser import OpenQASM2_LineParser
@@ -21,7 +22,7 @@ class OpenQASM2_BaseParser:
         self.program_body_str = list() # contain strs of the program body
 
         # for measurement mapping
-        self.measure_qubit = list()
+        self.measure_qubits : List[Tuple[int, int]] = list()
 
     def _format_and_check(self):
         '''Format the original qasm code and check if it is valid.
@@ -162,7 +163,7 @@ class OpenQASM2_BaseParser:
             qreg_name, qreg_id, creg_name, creg_id = OpenQASM2_LineParser.handle_measure(measurement)
             qid = self._get_qubit_id(qreg_name, qreg_id)
             cid = self._get_cbit_id(creg_name, creg_id)
-            self.measure_qubit.append((qid, cid))
+            self.measure_qubits.append((qid, cid))
 
     def parse(self, raw_qasm):
         self.raw_qasm = raw_qasm

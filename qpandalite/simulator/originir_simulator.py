@@ -24,51 +24,18 @@ class OriginIR_Simulator(BaseSimulator):
             available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
             available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
         '''
-        self.qubit_num = 0
-        self.measure_qubit = []
-        self.qubit_mapping = dict()
+        super().__init__(backend_type, available_qubits, available_topology)
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
-        self.backend_type = backend_type
-        self.opcode_simulator = OpcodeSimulator(self.backend_type)
-        self.available_qubits = available_qubits
-        self.available_topology = available_topology
+    
+    def _process_program_body(self):
         
-    def _clear(self):
-        self.qubit_num = 0
-        self.measure_qubit = []
-        self.qubit_mapping = dict()
-        self.parser = OriginIR_BaseParser()
-        self.splitted_lines = None
-        self.opcode_simulator = OpcodeSimulator(self.backend_type)  
+        lines = self.parser.originir
+        self.splitted_lines = lines.splitlines()
 
-    def _add_used_qubit(self, qubit):
-        if qubit in self.qubit_mapping:
-            return
-        
-        n = len(self.qubit_mapping)
-        self.qubit_mapping[qubit] = n
-
-    def extract_actual_used_qubits(self, program_body):
-        for (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) in program_body:                        
-            if isinstance(qubit, list):
-                for q in qubit:
-                    self._add_used_qubit(int(q))
-            else:
-                self._add_used_qubit(int(qubit))
-
-    def check_topology(self, available_qubits : List[int] = None):        
-        used_qubits = list(self.qubit_mapping.keys())
-        
-        # check qubits
-        for used_qubit in used_qubits:
-            if used_qubit not in available_qubits:                
-                raise ValueError('A invalid qubit is used. '
-                                 f'Available qubits: {available_qubits}\n'
-                                 f'Used: {used_qubit}.')
-
-    def _process_program_body(self, program_body, available_qubits, available_topology):
         processed_program_body = list()
+        available_topology = self.available_topology
+        program_body = self.parser.program_body
 
         for i, opcode in enumerate(program_body):            
             (operation, qubit, cbit, parameter, 
@@ -103,35 +70,10 @@ class OriginIR_Simulator(BaseSimulator):
         
         return processed_program_body
 
-    def _simulate_preprocess(self,
-                             originir, 
-                             available_qubits : List[int] = None, 
-                             available_topology : List[List[int]] = None):
-        # extract the actual used qubit, and build qubit mapping
-        # like q45 -> 0, q46 -> 1, etc..
-        self._clear()
-        self.parser.parse(originir)
-
-        # update self.qubit_mapping
-        self.extract_actual_used_qubits(self.parser.program_body)
-
-        if available_qubits:
-            self.check_topology(available_qubits)
-        
-        lines = self.parser.originir
-        self.splitted_lines = lines.splitlines()
-
-        processed_program_body = self._process_program_body(self.parser.program_body, 
-                                                  available_qubits, available_topology)
-        
-        self.qubit_num = len(self.qubit_mapping)
-        measure_qubit_cbit = sorted(self.measure_qubit, key = lambda k : k[1], reverse=False)
-        measure_qubit = []
-        for qubit in measure_qubit_cbit:
-            measure_qubit.append(qubit[0])
-
-        return processed_program_body, measure_qubit
-
+    def _clear(self):
+        super()._clear()
+        self.parser = OriginIR_BaseParser()
+        self.splitted_lines = None
 
     def simulate_pmeasure(self, originir):
         '''Simulate originir.
@@ -143,9 +85,7 @@ class OriginIR_Simulator(BaseSimulator):
         Returns:
             List[float]: The probability list of output from the ideal simulator
         '''
-        processed_program_body, measure_qubit = self._simulate_preprocess(
-            originir, self.available_qubits, self.available_topology
-        )
+        processed_program_body, measure_qubit = self.simulate_preprocess(originir)
             
         prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
             self.qubit_num, processed_program_body, measure_qubit)
@@ -161,10 +101,8 @@ class OriginIR_Simulator(BaseSimulator):
             originir (str): OriginIR.
         Returns:
             List[float]: The probability list of output from the ideal simulator
-        '''
-        processed_program_body, measure_qubit = self._simulate_preprocess(
-            originir, self.available_qubits, self.available_topology
-        )
+        '''        
+        processed_program_body, measure_qubit = self.simulate_preprocess(originir)
             
         statevector = self.opcode_simulator.simulate_opcodes_statevector(
             self.qubit_num, processed_program_body)
@@ -180,10 +118,8 @@ class OriginIR_Simulator(BaseSimulator):
             originir (str): OriginIR.
         Returns:
             List[float]: The probability list of output from the ideal simulator
-        '''
-        processed_program_body, measure_qubit = self._simulate_preprocess(
-            originir, self.available_qubits, self.available_topology
-        )
+        '''        
+        processed_program_body, measure_qubit = self.simulate_preprocess(originir)
             
         density_matrix = self.opcode_simulator.simulate_opcodes_density_operator(
             self.qubit_num, processed_program_body)
@@ -199,10 +135,8 @@ class OriginIR_Simulator(BaseSimulator):
             originir (str): OriginIR.
         Returns:
             int: The sampled output from the ideal simulator
-        '''
-        processed_program_body, measure_qubit = self._simulate_preprocess(
-            originir, self.available_qubits, self.available_topology
-        )
+        '''        
+        processed_program_body, measure_qubit = self.simulate_preprocess(originir)
         
         result = self.opcode_simulator.simulate_opcodes_shot(
             self.qubit_num, processed_program_body, measure_qubit)
@@ -228,8 +162,8 @@ class OriginIR_NoisySimulator(OriginIR_Simulator):
         self.readout_error = readout_error
         self.error_loader = error_loader 
 
-    def _simulate_preprocess(self, originir, available_qubits = None, available_topology = None):
-        processed_program_body, measure_qubit = super()._simulate_preprocess(originir, available_qubits, available_topology)
+    def simulate_preprocess(self, originir, available_qubits = None, available_topology = None):
+        processed_program_body, measure_qubit = super().simulate_preprocess(originir, available_qubits, available_topology)
         if self.error_loader:
             # replace the original program_body with the error-injected program_body
             self.error_loader.process_opcodes(processed_program_body)

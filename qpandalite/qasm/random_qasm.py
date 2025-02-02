@@ -52,7 +52,25 @@ def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
     return measure_instructions
 
 
-def random_qasm(n_qubits, n_gates, instruction_set = available_qasm_gates):
+def build_measurements(measure_qbit_cbit_pairs, qreg_name = 'q', creg_name = 'c'):
+    '''
+    Build a QASM string that measures all qubits in the given qreg to the given creg.
+
+    Args:
+        n_qubits (int): number of qubits to measure
+        qreg_name (str): name of the qreg to measure from
+        creg_name (str): name of the creg to measure to
+
+    Returns:
+        List[str]: a list of QASM strings that measure all qubits in the given qreg to the given creg.
+    '''
+    measure_instructions = []
+    for qbit, cbit in range(measure_qbit_cbit_pairs):
+        measure_instructions.append(f"measure {qreg_name}[{qbit}] -> {creg_name}[{cbit}];")
+
+    return measure_instructions
+
+def random_qasm(n_qubits, n_gates, instruction_set = available_qasm_gates, measurements = None):
     """
     Generate a random QASM code with n_qubits and n_gates from the given instruction set.
 
@@ -82,7 +100,8 @@ def random_qasm(n_qubits, n_gates, instruction_set = available_qasm_gates):
         qasm_gate = build_qasm_gate(gate, qubits, params, 'q')
         qasm.append(qasm_gate)
 
-    qasm.extend(build_full_measurements(n_qubits, 'q', 'c'))
+    if measurements is None:
+        qasm.extend(build_full_measurements(n_qubits, 'q', 'c'))
 
     return "\n".join(qasm)
 

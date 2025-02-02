@@ -16,31 +16,38 @@ from qiskit_aer import AerSimulator
 from qiskit import transpile
 from qiskit_aer import Aer
 
-def simulate_by_qiskit_statevector(qasm_str):
-    '''Simulate the circuit by qiskit statevector simulator.
+def simulate_by_qiskit(qasm_str, shots=10000):
+    '''Simulate the circuit by qiskit simulator.
 
     Args:
         qasm_str (str): The QASM code to be simulated.
 
     Returns:
         numpy.ndarray: The probability of each state.
-
-    Note:
-        Measure operations are removed from the circuit before simulation.
     '''
+
     qc = qasm.loads(qasm_str, custom_instructions=LEGACY_CUSTOM_INSTRUCTIONS)
-    for op in qc.data[:]:
-        if op.operation.name == 'measure':
-            qc.data.remove(op)
-
-    backend = Aer.get_backend("statevector_simulator")
-
-    # get probabilites of all states from AerSimulator
-    result = backend.run(qc).result()
-    statevector = result.get_statevector(qc).data
-
-    problist = np.abs(statevector)**2
+    backend = Aer.get_backend("qasm_simulator")
+    
+    result = backend.run(qc, shots=shots).result()
+    counts = result.get_counts(qc)
+    problist = [counts.get(str(i), 0) for i in range(2**qc.num_qubits)]
     return problist
+
+def simulate_by_qpandalite(qasm_str, backend_type='statevector', shots=10000):
+    '''Simulate the circuit by qpandalite simulator.
+
+    Args:
+        qasm_str (str): The QASM code to be simulated.
+
+    Returns:
+        numpy.ndarray: The probability of each state.
+    '''
+
+    QASM_Simulator = QASM_Simulator(backend_type=backend_type)
+    QASM_Simulator.simulate_shots(qasm_str, shots=shots)
+
+    
 
 class NotMatchError(Exception):
     pass

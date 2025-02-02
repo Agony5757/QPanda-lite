@@ -1,8 +1,12 @@
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple, Union
 from copy import deepcopy
-from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
+# from qpandalite.originir import OriginIR_LineParser, OriginIR_BaseParser
 import re
 
+QubitType = Union[List[int], int]
+CbitType = Union[List[int], int]
+ParameterType = Optional[Union[List[float], float]]
+OpcodeType = Tuple[str, QubitType, CbitType, ParameterType, set, bool]
 class CircuitControlContext:
     """
     (test)Definition of quantum circuit (Circuit).
@@ -48,7 +52,7 @@ class CircuitDagContext:
 def opcode_to_originir_line(opcode):                    
     (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) = opcode
     
-    # operation qubits (,parameter?) (,cbits?) (control?) (dagger?)
+    # operation qubits (,parameter?) (,cbits?) (dagger?) (control?)
     if not operation:
         raise RuntimeError('Unexpected error. Operation is empty.')
     ret = ''
@@ -64,7 +68,7 @@ def opcode_to_originir_line(opcode):
     if parameter:
         ret += ', ('
         if isinstance(parameter, list):
-            ret += ', '.join(str(parameter))
+            ret += ', '.join([str(p) for p in parameter])
         else:
             ret += str(parameter)
         ret += ')'
@@ -80,6 +84,8 @@ def opcode_to_originir_line(opcode):
         ret += ' controlled_by ('
         ret += ', '.join([f'q[{q}]' for q in control_qubits_set])
         ret += ')'
+
+    # print(ret)
 
     return ret
 
@@ -131,18 +137,18 @@ class Circuit:
         ret += 'creg c[{}];\n'.format(len(self.measure_list))
         return ret
 
-    def covert_1q1p_qasm(self, line):
-        # Match 1-qubit operations with one parameter/ RX, RY, RZ
-        operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
+    # def covert_1q1p_qasm(self, line):
+    #     # Match 1-qubit operations with one parameter/ RX, RY, RZ
+    #     operation, q, parameter = OriginIR_LineParser.handle_1q1p(line)
 
-        return f"{operation.lower()}({parameter}) q[{q}]"
+    #     return f"{operation.lower()}({parameter}) q[{q}]"
 
-    def covert_1q2p_qasm(self, line):
-        from numpy import pi
-        # Match 1-qubit operations with two parameters/ Rphi
-        operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
+    # def covert_1q2p_qasm(self, line):
+    #     from numpy import pi
+    #     # Match 1-qubit operations with two parameters/ Rphi
+    #     operation, q, parameter = OriginIR_LineParser.handle_1q2p(line)
 
-        return f"u3({parameter[1]},{parameter[0]}-pi/2, -{parameter[0]}+pi/2) q[{q}]"
+    #     return f"u3({parameter[1]},{parameter[0]}-pi/2, -{parameter[0]}+pi/2) q[{q}]"
 
     def make_measure(self):
         ret = ''
@@ -156,92 +162,92 @@ class Circuit:
             ret += 'measure q[{}] -> c[{}];\n'.format(meas_qubit, i)
         return ret   
     
-    def make_operation_qasm(self):
-        """
-        Convert an OriginIR circuit description into an OpenQASM string.
+    # def make_operation_qasm(self):
+    #     """
+    #     Convert an OriginIR circuit description into an OpenQASM string.
 
-        This function translates the supported OriginIR gates into their equivalent
-        OpenQASM representations. Unsupported gates are either omitted or transformed
-        into a supported sequence of OpenQASM operations.
+    #     This function translates the supported OriginIR gates into their equivalent
+    #     OpenQASM representations. Unsupported gates are either omitted or transformed
+    #     into a supported sequence of OpenQASM operations.
 
-        Supported OriginIR gates and their OpenQASM equivalents:
+    #     Supported OriginIR gates and their OpenQASM equivalents:
 
-        - 'H': Hadamard gate
-        - 'X': Pauli-X gate
-        - 'SX': Sqrt-X gate (no direct support in OpenQASM)
-        - 'Y': Pauli-Y gate
-        - 'Z': Pauli-Z gate
-        - 'CZ': Controlled-Z gate
-        - 'ISWAP': iSWAP gate (no direct support in OpenQASM)
-        - 'XY': XY gate (no direct support in OpenQASM)
-        - 'CNOT': Controlled NOT gate
-        - 'RX': Rotation around X-axis
-        - 'RY': Rotation around Y-axis
-        - 'RZ': Rotation around Z-axis
-        - 'Rphi': Two-parameter single-qubit rotation (represented with u3 in OpenQASM)
+    #     - 'H': Hadamard gate
+    #     - 'X': Pauli-X gate
+    #     - 'SX': Sqrt-X gate (no direct support in OpenQASM)
+    #     - 'Y': Pauli-Y gate
+    #     - 'Z': Pauli-Z gate
+    #     - 'CZ': Controlled-Z gate
+    #     - 'ISWAP': iSWAP gate (no direct support in OpenQASM)
+    #     - 'XY': XY gate (no direct support in OpenQASM)
+    #     - 'CNOT': Controlled NOT gate
+    #     - 'RX': Rotation around X-axis
+    #     - 'RY': Rotation around Y-axis
+    #     - 'RZ': Rotation around Z-axis
+    #     - 'Rphi': Two-parameter single-qubit rotation (represented with u3 in OpenQASM)
 
-        The conversion process ensures that:
+    #     The conversion process ensures that:
 
-        1. Any unsupported OriginIR operation is either mapped to a supported OpenQASM
-           equivalent or is constructed from OpenQASM primitives.
-           Example: The 'ISWAP' gate can be defined in OpenQASM using a sequence of
-           simpler gates.
+    #     1. Any unsupported OriginIR operation is either mapped to a supported OpenQASM
+    #        equivalent or is constructed from OpenQASM primitives.
+    #        Example: The 'ISWAP' gate can be defined in OpenQASM using a sequence of
+    #        simpler gates.
 
-        2. Gates with the same name in both OriginIR and OpenQASM have identical effects.
-           Any discrepancies, such as a phase factor difference in 'RZ', are corrected
-           using OpenQASM's u3, u2, or u1 gates.
+    #     2. Gates with the same name in both OriginIR and OpenQASM have identical effects.
+    #        Any discrepancies, such as a phase factor difference in 'RZ', are corrected
+    #        using OpenQASM's u3, u2, or u1 gates.
 
-        Returns
-        -------
-        str
-            The OpenQASM representation of the quantum circuit.
+    #     Returns
+    #     -------
+    #     str
+    #         The OpenQASM representation of the quantum circuit.
 
-        Notes
-        -----
-        The SX, ISWAP, and XY gates are not natively supported in OpenQASM and require
-        a decomposed implementation using native OpenQASM gates.
+    #     Notes
+    #     -----
+    #     The SX, ISWAP, and XY gates are not natively supported in OpenQASM and require
+    #     a decomposed implementation using native OpenQASM gates.
 
-        Examples
-        --------
-        >>> originir_circuit = OriginIRCircuit()
-        >>> print(originir_circuit.qasm)
-        '...OpenQASM representation...'
+    #     Examples
+    #     --------
+    #     >>> originir_circuit = OriginIRCircuit()
+    #     >>> print(originir_circuit.qasm)
+    #     '...OpenQASM representation...'
 
-        Raises
-        ------
-        NotImplementedError
-            If the conversion functionality is not implemented, an error is raised.
-        """
-        modified_circ_str = self.circuit_str.replace('CNOT', 'cx')
+    #     Raises
+    #     ------
+    #     NotImplementedError
+    #         If the conversion functionality is not implemented, an error is raised.
+    #     """
+    #     modified_circ_str = self.circuit_str.replace('CNOT', 'cx')
 
-        # Split the input string into individual lines
-        lines = modified_circ_str.split('\n')
+    #     # Split the input string into individual lines
+    #     lines = modified_circ_str.split('\n')
 
-        # Create an empty list to store the transformed lines
-        transformed_lines = []
+    #     # Create an empty list to store the transformed lines
+    #     transformed_lines = []
 
-        # Iterate over each line in the input
-        for line in lines:
-            # Check if the line isn't just whitespace or empty
-            if line.strip():
-                match_1q1p = OriginIR_LineParser.regexp_1q1p.match(line)
-                match_1q2p = OriginIR_LineParser.regexp_1q2p.match(line)
-                if match_1q1p:
-                    line = self.covert_1q1p_qasm(line)
-                if match_1q2p:
-                    line = self.covert_1q2p_qasm(line)
+    #     # Iterate over each line in the input
+    #     for line in lines:
+    #         # Check if the line isn't just whitespace or empty
+    #         if line.strip():
+    #             match_1q1p = OriginIR_LineParser.regexp_1q1p.match(line)
+    #             match_1q2p = OriginIR_LineParser.regexp_1q2p.match(line)
+    #             if match_1q1p:
+    #                 line = self.covert_1q1p_qasm(line)
+    #             if match_1q2p:
+    #                 line = self.covert_1q2p_qasm(line)
 
-                # Convert the line to lowercase and append a semicolon
-                new_line = line.lower() + ';'
+    #             # Convert the line to lowercase and append a semicolon
+    #             new_line = line.lower() + ';'
 
-                # Add the transformed line to our list
-                transformed_lines.append(new_line)
+    #             # Add the transformed line to our list
+    #             transformed_lines.append(new_line)
                 
-        # Join the transformed lines back into a single string
-        ret = '\n'.join(transformed_lines)
-        ret += "\n"
+    #     # Join the transformed lines back into a single string
+    #     ret = '\n'.join(transformed_lines)
+    #     ret += "\n"
 
-        return ret
+    #     return ret
 
     @property
     def circuit(self):
@@ -255,95 +261,95 @@ class Circuit:
         measure = self.make_measure()
         return header + self.circuit_str + measure
     
-    @property
-    def qasm(self):
-        """
-        Convert the OriginIR representation of the circuit into OpenQASM format.
+    # @property
+    # def qasm(self):
+    #     """
+    #     Convert the OriginIR representation of the circuit into OpenQASM format.
 
-        This property assembles the QASM representation by concatenating the headers,
-        operations, and measurement sections. OpenQASM format has specific syntactical rules:
-        statements are terminated with semicolons, whitespace is non-significant, the language
-        is case-sensitive, and comments start with double forward slashes and end at the end of the line.
-        For user-defined gates, the 'opaque' keyword should be used in QASM.
+    #     This property assembles the QASM representation by concatenating the headers,
+    #     operations, and measurement sections. OpenQASM format has specific syntactical rules:
+    #     statements are terminated with semicolons, whitespace is non-significant, the language
+    #     is case-sensitive, and comments start with double forward slashes and end at the end of the line.
+    #     For user-defined gates, the 'opaque' keyword should be used in QASM.
 
-        Returns
-        -------
-        str
-            The OpenQASM2 representation of the circuit.
+    #     Returns
+    #     -------
+    #     str
+    #         The OpenQASM2 representation of the circuit.
         
-        Notes
-        -----
-        Currently, this property only supports conversion to OpenQASM2. Future versions
-        may include support for other versions or variants of QASM.
+    #     Notes
+    #     -----
+    #     Currently, this property only supports conversion to OpenQASM2. Future versions
+    #     may include support for other versions or variants of QASM.
 
-        Examples
-        --------
-        >>> circuit = QuantumCircuit()
-        >>> print(circuit.qasm)
-        '...OpenQASM2 representation...'
+    #     Examples
+    #     --------
+    #     >>> circuit = QuantumCircuit()
+    #     >>> print(circuit.qasm)
+    #     '...OpenQASM2 representation...'
 
-        Raises
-        ------
-        NotImplementedError
-            If QASM support is not yet implemented, an error is raised.
-        """
-        return self.make_header_qasm() + self.make_operation_qasm() + self.make_measure_qasm()
+    #     Raises
+    #     ------
+    #     NotImplementedError
+    #         If QASM support is not yet implemented, an error is raised.
+    #     """
+    #     return self.make_header_qasm() + self.make_operation_qasm() + self.make_measure_qasm()
 
-        # raise NotImplementedError('QASM support will be released in future.')
+    #     # raise NotImplementedError('QASM support will be released in future.')
 
-    @property
-    def depth(self):
-        """
-        Calculate the depth of the quantum circuit.
+    # @property
+    # def depth(self):
+    #     """
+    #     Calculate the depth of the quantum circuit.
 
-        The depth of a quantum circuit is defined as the maximum number of gates 
-        on any single qubit path in the circuit. This is a measure of the circuit's 
-        complexity and can be used to analyze the circuit's execution time on a quantum computer.
+    #     The depth of a quantum circuit is defined as the maximum number of gates 
+    #     on any single qubit path in the circuit. This is a measure of the circuit's 
+    #     complexity and can be used to analyze the circuit's execution time on a quantum computer.
 
-        Returns
-        -------
-        int
-            The depth of the quantum circuit, which is the longest path of sequential 
-            gate operations on a single qubit.
+    #     Returns
+    #     -------
+    #     int
+    #         The depth of the quantum circuit, which is the longest path of sequential 
+    #         gate operations on a single qubit.
 
-        Notes
-        -----
-        The measurement is not counted when calculating the depth of the circuit.
-        """
+    #     Notes
+    #     -----
+    #     The measurement is not counted when calculating the depth of the circuit.
+    #     """
 
         
-        return self._depth()
+    #     return self._depth()
         
-    def _depth(self):
+    # def _depth(self):
 
-        parser = OriginIR_BaseParser()
-        parser.parse(self.originir)
+    #     parser = OriginIR_BaseParser()
+    #     parser.parse(self.originir)
 
-        # Initialize the depth of each qubit to zero
-        qubit_depths = {}
+    #     # Initialize the depth of each qubit to zero
+    #     qubit_depths = {}
 
-        # Process each operation using the OriginIR_base_parser
-        for operation in parser.program_body:
-            # Other options in the op_code will not affect the depth but the control
-            op_name, qubits, _, _, _, control_qubits = operation
+    #     # Process each operation using the OriginIR_base_parser
+    #     for operation in parser.program_body:
+    #         # Other options in the op_code will not affect the depth but the control
+    #         op_name, qubits, _, _, _, control_qubits = operation
             
-            # If the operation is on a single qubit, make it a list so that it could be processed
-            # with control qubits
-            if not isinstance(qubits, list):
-                qubits = [qubits]
+    #         # If the operation is on a single qubit, make it a list so that it could be processed
+    #         # with control qubits
+    #         if not isinstance(qubits, list):
+    #             qubits = [qubits]
             
-            # Determine the current maximum depth among the qubits involved
-            current_max_depth = 0
-            for q in qubits + list(control_qubits):
-                # If q is found return the value associated with it, if not, return 0
-                current_max_depth = max(current_max_depth, qubit_depths.get(q, 0))
+    #         # Determine the current maximum depth among the qubits involved
+    #         current_max_depth = 0
+    #         for q in qubits + list(control_qubits):
+    #             # If q is found return the value associated with it, if not, return 0
+    #             current_max_depth = max(current_max_depth, qubit_depths.get(q, 0))
             
-            # Increment the depth of all involved qubits by 1
-            for q in qubits + list(control_qubits):
-                qubit_depths[q] = current_max_depth + 1
+    #         # Increment the depth of all involved qubits by 1
+    #         for q in qubits + list(control_qubits):
+    #             qubit_depths[q] = current_max_depth + 1
 
-        # The depth of the circuit is the maximum depth across all qubits
-        return max(qubit_depths.values())
+    #     # The depth of the circuit is the maximum depth across all qubits
+    #     return max(qubit_depths.values())
     
     def record_qubit(self, *qubits):
         for qubit in qubits:
@@ -550,44 +556,44 @@ class Circuit:
     def __str__(self):
         return self.to_extended_originir()
 
-    def unwrap(self):
-        """
-        Process the given list of OriginIR operations and performs the 'unwrap' 
-        operation to simplify control structures.
+    # def unwrap(self):
+    #     """
+    #     Process the given list of OriginIR operations and performs the 'unwrap' 
+    #     operation to simplify control structures.
 
-        Parameters
-        ----------
-        originir : list of str
-            A list of strings representing OriginIR operations.
+    #     Parameters
+    #     ----------
+    #     originir : list of str
+    #         A list of strings representing OriginIR operations.
 
-        Returns
-        -------
-        list of str
-            A simplified list of OriginIR operations where control structures 
-            have been unwrapped. For example, given the input:
+    #     Returns
+    #     -------
+    #     list of str
+    #         A simplified list of OriginIR operations where control structures 
+    #         have been unwrapped. For example, given the input:
             
-            .. code-block:: none
+    #         .. code-block:: none
 
-                QINIT 2
-                CREG 2
-                H q[0]
-                CONTROL q[0]
-                X q[1]
-                ENDCONTROL q[0]
+    #             QINIT 2
+    #             CREG 2
+    #             H q[0]
+    #             CONTROL q[0]
+    #             X q[1]
+    #             ENDCONTROL q[0]
             
-            The return will be: ["H q[0]", "X q[1] controlled q[0]"].
+    #         The return will be: ["H q[0]", "X q[1] controlled q[0]"].
 
-        Notes
-        -----
-        The format for control structure strings is subject to change. The string 
-        "X q[1] controlled q[0]" is currently a placeholder.
+    #     Notes
+    #     -----
+    #     The format for control structure strings is subject to change. The string 
+    #     "X q[1] controlled q[0]" is currently a placeholder.
 
-        Raises
-        ------
-        None
-        """
+    #     Raises
+    #     ------
+    #     None
+    #     """
 
-        parser = OriginIR_BaseParser()
-        parser.parse(self.originir)
-        return parser.to_extended_originir()
+    #     parser = OriginIR_BaseParser()
+    #     parser.parse(self.originir)
+    #     return parser.to_extended_originir()
         

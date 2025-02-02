@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import List, Tuple
 
+from qpandalite.circuit_builder.qcircuit import opcode_to_originir_line
+
 from .originir_line_parser import OriginIR_LineParser
 
 class OriginIR_BaseParser:    
@@ -13,7 +15,7 @@ class OriginIR_BaseParser:
 
     def _extract_qinit_statement(self, lines):
         for i, line in enumerate(lines):
-            operation, q, c, parameter = OriginIR_LineParser.parse_line(line.strip())
+            operation, q, c, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(line.strip())
             if operation is None:
                 continue
             if operation != 'QINIT':
@@ -26,7 +28,7 @@ class OriginIR_BaseParser:
     
     def _extract_creg_statement(self, lines, start_lineno):
         for i in range(start_lineno, len(lines)):
-            operation, q, c, parameter = OriginIR_LineParser.parse_line(lines[i].strip())
+            operation, q, c, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(lines[i].strip())
             
             if operation is None:
                 continue
@@ -182,5 +184,16 @@ class OriginIR_BaseParser:
             raise ValueError('Parse error at end.\n'
                              'The DAGGER operation is not closed at the end of the OriginIR.')
         
+    def to_extended_originir(self):
+        ret = f'QINIT {self.n_qubit}\n'
+        ret += f'CREG {self.n_cbit}\n'
+        ret += '\n'.join([opcode_to_originir_line(opcode) for opcode in self.program_body])
+        return ret
+    
+    @property
+    def originir(self):
+        return self.to_extended_originir()
 
+    def __str__(self):
+        return self.to_extended_originir()
 

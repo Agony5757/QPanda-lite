@@ -89,6 +89,7 @@ class DensityOperatorSimulatorQutip:
     def sx(self, qubit, control_qubits_set = [], is_dagger = False):
         U = sqrtnot()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
+
     def cnot(self, control_qubit, target_qubit, control_qubits_set = [], is_dagger = False):
         U = cnot(2, 0, 1)  # 标准 CNOT 矩阵，需扩展
         self._apply_unitary(U, [control_qubit, target_qubit], control_qubits_set, is_dagger)
@@ -115,11 +116,11 @@ class DensityOperatorSimulatorQutip:
         new_rho = sum(K * self.density_matrix * K.dag() for K in expanded_ops)
         self.density_matrix = new_rho
 
-    def u1(self, qubit, theta, control_qubits_set, is_dagger):
+    def u1(self, qubit, theta, control_qubits_set = [], is_dagger = False):
         U = phasegate(theta)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
-    def u2(self, qubit, phi, lam, control_qubits_set, is_dagger):
+    def u2(self, qubit, phi, lam, control_qubits_set = [], is_dagger = False):
         # Qiskit U2门标准定义：
         # U2(φ, λ) = 1/sqrt(2) * [[1, -e^{iλ}],
         #                         [e^{iφ}, e^{i(φ+λ)}]]
@@ -129,28 +130,27 @@ class DensityOperatorSimulatorQutip:
             [np.exp(1j*phi)/sqrt2, np.exp(1j*(phi+lam))/sqrt2]
         ])
         
-        # 处理dagger的情况
-        U = Qobj(matrix if not is_dagger else matrix.conj().T)
+        U = Qobj(matrix)
         
         # 应用酉操作
-        self._apply_unitary(U, [qubit], control_qubits_set, is_dagger=False)
+        self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
-    def u3(self, qubit, theta, phi, lam, control_qubits_set, is_dagger):
+    def u3(self, qubit, theta, phi, lam, control_qubits_set = [], is_dagger = False):
         matrix = np.array([[np.cos(theta/2), -np.exp(1j*lam)*np.sin(theta/2)],
                           [np.exp(1j*phi)*np.sin(theta/2), np.exp(1j*(phi+lam))*np.cos(theta/2)]])
         # 处理dagger的情况
-        U = Qobj(matrix if not is_dagger else matrix.conj().T)
-        self._apply_unitary(U, [qubit], control_qubits_set, is_dagger=False)
+        U = Qobj(matrix)
+        self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
-    def s(self, qubit, control_qubits_set, is_dagger):
+    def s(self, qubit, control_qubits_set = [], is_dagger = False):
         U = phasegate(np.pi/2)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
-    def t(self, qubit, control_qubits_set, is_dagger):
+    def t(self, qubit, control_qubits_set = [], is_dagger = False):
         U = phasegate(np.pi/4)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
-    def iswap(self, q1, q2, control_qubits_set, is_dagger):
+    def iswap(self, q1, q2, control_qubits_set = [], is_dagger = False):
         matrix = Qobj([[1, 0, 0, 0],
                     [0, 0, 1j, 0],
                     [0, 1j, 0, 0],
@@ -158,42 +158,42 @@ class DensityOperatorSimulatorQutip:
                     dims=[[2,2], [2,2]])
         self._apply_unitary(matrix, [q1, q2], control_qubits_set, is_dagger)
 
-    def cswap(self, control_qubit, q1, q2, control_qubits_set, is_dagger):
+    def cswap(self, control_qubit, q1, q2, control_qubits_set = [], is_dagger = False):
         total_control = list(control_qubits_set) + [control_qubit]
         swap_op = swap()
         self._apply_unitary(swap_op, [q1, q2], total_control, is_dagger)
 
-    def xy(self, q1, q2, theta, control_qubits_set, is_dagger):
+    def xy(self, q1, q2, theta, control_qubits_set = [], is_dagger = False):
         H = (tensor(sigmax(), sigmax()) + tensor(sigmay(), sigmay())) * (-1j*theta/4)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
-    def rphi(self, qubit, phi, theta, control_qubits_set, is_dagger):
+    def rphi(self, qubit, phi, theta, control_qubits_set = [], is_dagger = False):
         U = rz(phi) * rx(theta) * rz(-phi)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
-    def rphi90(self, qubit, phi, control_qubits_set, is_dagger):
+    def rphi90(self, qubit, phi, control_qubits_set = [], is_dagger = False):
         return self.rphi(qubit, phi, np.pi/2, control_qubits_set, is_dagger)
 
-    def rphi180(self, qubit, phi, control_qubits_set, is_dagger):
+    def rphi180(self, qubit, phi, control_qubits_set = [], is_dagger = False):
         return self.rphi(qubit, phi, np.pi, control_qubits_set, is_dagger)
 
-    def xx(self, q1, q2, theta, control_qubits_set, is_dagger):
+    def xx(self, q1, q2, theta, control_qubits_set = [], is_dagger = False):
         H = tensor(sigmax(), sigmax()) * (-1j*theta/2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
-    def yy(self, q1, q2, theta, control_qubits_set, is_dagger):
+    def yy(self, q1, q2, theta, control_qubits_set = [], is_dagger = False):
         H = tensor(sigmay(), sigmay()) * (-1j*theta/2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
-    def zz(self, q1, q2, theta, control_qubits_set, is_dagger):
+    def zz(self, q1, q2, theta, control_qubits_set = [], is_dagger = False):
         H = tensor(sigmaz(), sigmaz()) * (-1j*theta/2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
-    def uu15(self, q1, q2, params, control_qubits_set, is_dagger):
+    def uu15(self, q1, q2, params, control_qubits_set = [], is_dagger = False):
         '''uu15 gate using KAK decomposition
 
             U is implemented by
@@ -230,8 +230,9 @@ class DensityOperatorSimulatorQutip:
             self.yy(q1, q2, params[7], control_qubits_set, True)
             self.xx(q1, q2, params[6], control_qubits_set, True)
             self.u3(q2, *params[3:6], control_qubits_set, True)
-            self.u3(q1, *params[0:3], control_qubits_set, True)        
-    def phase2q(self, q1, q2, theta1, theta2, theta3, control_qubits_set, is_dagger):
+            self.u3(q1, *params[0:3], control_qubits_set, True)      
+              
+    def phase2q(self, q1, q2, theta1, theta2, theta3, control_qubits_set = [], is_dagger = False):
         '''  phase2q gate =
             u1(qn1, theta1),
             u1(qn2, theta2),

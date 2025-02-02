@@ -1,17 +1,13 @@
 '''Opcode simulator, a fundamental simulator for QPanda-lite.
 It simulates from a basic opcode
 '''
-from QPandaLitePy import *
 from typing import List, Optional, Tuple, TYPE_CHECKING, Union
 from .qutip_sim_impl import DensityOperatorSimulatorQutip
 import numpy as np
+from QPandaLitePy import *
+from qpandalite.circuit_builder.qcircuit import OpcodeType
 if TYPE_CHECKING:
     from .QPandaLitePy import *
-
-QubitType = Union[List[int], int]
-CbitType = Union[List[int], int]
-ParameterType = Optional[Union[List[float], float]]
-OpcodeType = Tuple[str, QubitType, CbitType, ParameterType, bool, set]
 
 
 def backend_alias(backend_type):
@@ -61,7 +57,7 @@ class OpcodeSimulator:
     def _clear(self):
         self.simulator = self.SimulatorType()
 
-    def _simulate_common_gate(self, operation, qubit, cbit, parameter, control_qubits_set, is_dagger):
+    def _simulate_common_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):
         if operation == 'RX':
             self.simulator.rx(qubit, parameter, control_qubits_set, is_dagger)
         elif operation == 'RY':
@@ -131,7 +127,7 @@ class OpcodeSimulator:
         elif operation == 'UU15':
             self.simulator.uu15(qubit[0],
                                 qubit[1],
-                                parameter, control_qubits_set, is_dagger)
+                                parameter, control_qubits_set, True)
         elif operation == 'PHASE2Q':
             self.simulator.phase2q(qubit[0], qubit[1],
                 parameter[0], parameter[1], parameter[2], 
@@ -215,13 +211,13 @@ class OpcodeSimulator:
         else:
             control_qubits_set = list()
 
-        self._simulate_common_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)    
+        self._simulate_common_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)    
 
     def simulate_opcodes_pmeasure(self, n_qubit, program_body, measure_qubits):
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
-            operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
-            self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+            operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
+            self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
         
         prob_list = self.simulator.pmeasure(measure_qubits)
         return prob_list
@@ -232,8 +228,8 @@ class OpcodeSimulator:
 
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
-            operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
-            self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+            operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
+            self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
         
         statevector = self.simulator.state
         return statevector
@@ -247,8 +243,8 @@ class OpcodeSimulator:
         if self.simulator_typestr == 'density_operator':
             self.simulator.init_n_qubit(n_qubit)
             for opcode in program_body:
-                operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
-                self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+                operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
+                self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
 
             return self.simulator.stateprob()
         
@@ -258,8 +254,8 @@ class OpcodeSimulator:
         if self.simulator_typestr == 'density_operator':
             self.simulator.init_n_qubit(n_qubit)
             for opcode in program_body:
-                operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
-                self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+                operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
+                self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
 
             state = self.simulator.state            
             state = np.array(state)
@@ -277,13 +273,13 @@ class OpcodeSimulator:
         
         raise ValueError('Unknown simulator type.')
     
-    def simulate_opcodes_shot(self, n_qubit, program_body, measure_qubits):
+    def simulate_opcodes_shot(self, n_qubit, program_body : List[OpcodeType], measure_qubits):
         if self.simulator_typestr == 'density_operator':
             raise NotImplementedError('Density matrix is not supported for shot simulation.')
         
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
-            operation, qubit, cbit, parameter, control_qubits_set, is_dagger = opcode
-            self.simulate_gate(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)
+            operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
+            self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
         
         return self.simulator.measure_single_shot(measure_qubits)

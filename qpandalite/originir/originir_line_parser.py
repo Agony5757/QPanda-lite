@@ -234,7 +234,7 @@ class OriginIR_LineParser:
         dagger_flag = True if matches.group(6) is not None else False
         control_qubits = []
         if matches.group(7) is not None:
-            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(5))]
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(7))]
 
         return operation, q, parameter, dagger_flag, control_qubits
 
@@ -326,7 +326,7 @@ class OriginIR_LineParser:
         dagger_flag = True if matches.group(49) is not None else False
         control_qubits = []
         if matches.group(50) is not None:
-            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(60))]
+            control_qubits = [int(q) for q in OriginIR_LineParser.regexp_qid.findall(matches.group(50))]
 
         return operation, [q1, q2], parameters, dagger_flag, control_qubits
     
@@ -614,7 +614,7 @@ if __name__ == '__main__':
     print(matches.group(7)) # dagger
     
     print(OriginIR_LineParser.regexp_2q3p_str)
-    matches = OriginIR_LineParser.regexp_2q3p.match('PHASE2Q q[ 45], q[46 ], ( -1.1, 1.5, 8 ) dagger')
+    matches = OriginIR_LineParser.regexp_2q3p.match('PHASE2Q q[ 45], q[46 ], ( -1.1, 1.5, 8 ) controlled_by (q[0], q[1], q[2])')
     print(matches.group(0)) 
     print(matches.group(1)) # XY
     print(matches.group(2)) # 45
@@ -628,7 +628,8 @@ if __name__ == '__main__':
     print(matches.group(10)) # 8
     print(matches.group(11)) #
     print(matches.group(12)) #
-    print(matches.group(13)) # dagger
+    print(matches.group(13)) # dagger (None)
+    print(matches.group(14)) # controlled_by (q[0], q[1], q[2])
 
     print(OriginIR_LineParser.regexp_2q15p_str)
     matches = OriginIR_LineParser.regexp_2q15p.match('UU15 q[ 45], q[46 ], ( 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15 ) dagger')

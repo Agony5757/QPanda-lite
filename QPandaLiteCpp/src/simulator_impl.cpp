@@ -260,6 +260,7 @@ namespace qpandalite {
                 if ((i & controller_mask) != controller_mask)
                     continue;
 
+                // |01>
                 if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
                 {
                     std::swap(state[i], state[i + pow2(qn1) - pow2(qn2)]);
@@ -288,26 +289,23 @@ namespace qpandalite {
         void xy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2, double theta, size_t total_qubit, size_t controller_mask, bool is_dagger)
         {
             using namespace std::literals::complex_literals;
+            complex_t cos_t = std::cos(theta / 2);
+            complex_t sin_t = (is_dagger ? complex_t(0, 1) : -complex_t(0, 1)) * std::sin(theta / 2);
+
             for (size_t i = 0; i < pow2(total_qubit); ++i)
             {
                 if ((i & controller_mask) != controller_mask)
                     continue;
+
                 // |01>
-                if (((i >> qn1) & 0) && ((i >> qn2) & 1))
+                if (((i >> qn1) & 1) == 0 && ((i >> qn2) & 1) == 1)
                 {
                     size_t i2 = i + pow2(qn1) - pow2(qn2);
                     complex_t s1 = state[i];
                     complex_t s2 = state[i2];
-                    if (is_dagger)
-                    {
-                        state[i] = s1 * cos(theta / 2) + s2 * 1i * sin(theta / 2);
-                        state[i2] = s1 * 1i * sin(theta / 2) + cos(theta / 2) * s2;
-                    }
-                    else
-                    {
-                        state[i] = s1 * cos(theta / 2) - s2 * 1i * sin(theta / 2);
-                        state[i2] = -s1 * 1i * sin(theta / 2) + cos(theta / 2) * s2;
-                    }
+
+                    state[i] = s1 * cos_t + s2 * sin_t;
+                    state[i2] = s1 * sin_t + s2 * cos_t;
                 }
             }
         }
@@ -1221,21 +1219,28 @@ namespace qpandalite {
         void u3_unsafe_impl(std::vector<complex_t>& state, size_t qn,
             double theta, double phi, double lambda,
             size_t total_qubit, size_t controller_mask, bool is_dagger) {
-            // U3 门的矩阵元素
-            complex_t U00 = std::cos(theta / 2);
-            complex_t U01 = -std::exp(complex_t(0, lambda)) * std::sin(theta / 2);
-            complex_t U10 = std::exp(complex_t(0, phi)) * std::sin(theta / 2);
-            complex_t U11 = std::exp(complex_t(0, phi + lambda)) * std::cos(theta / 2);
 
-            // 如果是共轭转置，取共轭
-            if (is_dagger) {
-                U01 = std::conj(U01);
-                U10 = std::conj(U10);
-                std::swap(U00, U11);
+            /* build the matrix */
+            complex_t ctheta = cos(theta / 2);
+            complex_t stheta = sin(theta / 2);
+            complex_t eilambda = complex_t(cos(lambda), sin(lambda));
+            complex_t eiphi = complex_t(cos(phi), sin(phi));
+            complex_t eiphi_plus_lambda = complex_t(cos(phi + lambda), sin(phi + lambda));
+            complex_t u00 = ctheta;
+            complex_t u01 = -eilambda * stheta;
+            complex_t u10 = eiphi * stheta;
+            complex_t u11 = eiphi_plus_lambda * ctheta;
+
+            if (is_dagger)
+            {
+                u00 = std::conj(u00);
+                u01 = std::conj(u01);
+                u11 = std::conj(u11);
+                u10 = std::conj(u10);
+                std::swap(u01, u10);
             }
 
-            // 调用 u22_unsafe_impl
-            u22_unsafe_impl(state, qn, U00, U01, U10, U11, total_qubit, controller_mask);
+            u22_unsafe_impl(state, qn, u00, u01, u10, u11, total_qubit, controller_mask);
         }
 
         void x_unsafe_impl(std::vector<complex_t>& state, size_t qn, size_t total_qubit, size_t controller_mask) {
@@ -1344,9 +1349,8 @@ namespace qpandalite {
 
         void xy_unsafe_impl(std::vector<complex_t>& state, size_t qn1, size_t qn2,
             double theta, size_t total_qubit, size_t controller_mask, bool is_dagger) {
-            double t = theta / 2;
-            complex_t cos_t = std::cos(t);
-            complex_t sin_t = (is_dagger ? complex_t(0, 1) : -complex_t(0, 1)) * std::sin(t);
+            complex_t cos_t = std::cos(theta / 2);
+            complex_t sin_t = (is_dagger ? complex_t(0, 1) : -complex_t(0, 1)) * std::sin(theta / 2);
 
             // XY 门的 4x4 矩阵
             complex_t U00 = 1, U01 = 0, U02 = 0, U03 = 0;
@@ -1562,84 +1566,72 @@ namespace qpandalite {
         {
             using namespace std::literals::complex_literals;
 
+            double theta1 = parameters[0];
+            double phi1 = parameters[1];
+            double lambda1 = parameters[2];
+
+            double theta2 = parameters[3];
+            double phi2 = parameters[4];
+            double lambda2 = parameters[5];
+
+            double theta_xx = parameters[6];
+            double theta_yy = parameters[7];
+            double theta_zz = parameters[8];
+
+            double theta3 = parameters[9];
+            double phi3 = parameters[10];
+            double lambda3 = parameters[11];
+
+            double theta4 = parameters[12];
+            double phi4 = parameters[13];
+            double lambda4 = parameters[14];
+
             if (!is_dagger)
             {
                 /* U3(q1, parameters[0:3]) */
-                double theta1 = parameters[0];
-                double phi1 = parameters[1];
-                double lambda1 = parameters[2];
                 u3_unsafe_impl(state, qn1, theta1, phi1, lambda1, total_qubit, controller_mask, false);
 
                 /* U3(q2, parameters[3:6]) */
-                double theta2 = parameters[3];
-                double phi2 = parameters[4];
-                double lambda2 = parameters[5];
                 u3_unsafe_impl(state, qn2, theta2, phi2, lambda2, total_qubit, controller_mask, false);
 
                 /* XX(q1, q2, parameters[6]) */
-                double theta_xx = parameters[6];
                 xx_unsafe_impl(state, qn1, qn2, theta_xx, total_qubit, controller_mask);
 
                 /* YY(q1, q2, parameters[7]) */
-                double theta_yy = parameters[7];
                 yy_unsafe_impl(state, qn1, qn2, theta_yy, total_qubit, controller_mask);
 
                 /* ZZ(q1, q2, parameters[8]) */
-                double theta_zz = parameters[8];
                 zz_unsafe_impl(state, qn1, qn2, theta_zz, total_qubit, controller_mask);
 
                 /* U3(q1, parameters[9:12]) */
-                double theta3 = parameters[9];
-                double phi3 = parameters[10];
-                double lambda3 = parameters[11];
                 u3_unsafe_impl(state, qn1, theta3, phi3, lambda3, total_qubit, controller_mask, false);
 
                 /* U3(q2, parameters[12:15]) */
-                double theta4 = parameters[12];
-                double phi4 = parameters[13];
-                double lambda4 = parameters[14];
                 u3_unsafe_impl(state, qn2, theta4, phi4, lambda4, total_qubit, controller_mask, false);
             }
             else /* dagger case*/
             {
                 /* U3(q1, parameters[9:12]) */
-                double theta3 = parameters[9];
-                double phi3 = parameters[10];
-                double lambda3 = parameters[11];
                 u3_unsafe_impl(state, qn1, theta3, phi3, lambda3, total_qubit, controller_mask, true);
 
                 /* U3(q2, parameters[12:15]) */
-                double theta4 = parameters[12];
-                double phi4 = parameters[13];
-                double lambda4 = parameters[14];
                 u3_unsafe_impl(state, qn2, theta4, phi4, lambda4, total_qubit, controller_mask, true);
 
                 /* ZZ(q1, q2, parameters[8]) */
-                double theta_zz = parameters[8];
-                theta_zz = -theta_zz;
-                zz_unsafe_impl(state, qn1, qn2, theta_zz, total_qubit, controller_mask);
+                zz_unsafe_impl(state, qn1, qn2, -theta_zz, total_qubit, controller_mask);
 
                 /* YY(q1, q2, parameters[7]) */
-                double theta_yy = parameters[7];
-                theta_yy = -theta_yy;
-                yy_unsafe_impl(state, qn1, qn2, theta_yy, total_qubit, controller_mask);
+                yy_unsafe_impl(state, qn1, qn2, -theta_yy, total_qubit, controller_mask);
 
                 /* XX(q1, q2, parameters[6]) */
-                double theta_xx = parameters[6];
-                theta_xx = -theta_xx;
-                xx_unsafe_impl(state, qn1, qn2, theta_xx, total_qubit, controller_mask);
-
-                /* U3(q2, parameters[3:6]) */
-                double theta2 = parameters[3];
-                double phi2 = parameters[4];
-                double lambda2 = parameters[5];
-                u3_unsafe_impl(state, qn2, theta2, phi2, lambda2, total_qubit, controller_mask, true);
+                xx_unsafe_impl(state, qn1, qn2, -theta_xx, total_qubit, controller_mask);
 
                 /* U3(q1, parameters[0:3]) */
-                double theta1 = parameters[0];
-                double phi1 = parameters[1];
-                double lambda1 = parameters[2];
                 u3_unsafe_impl(state, qn1, theta1, phi1, lambda1, total_qubit, controller_mask, true);
+
+                /* U3(q2, parameters[3:6]) */
+                u3_unsafe_impl(state, qn2, theta2, phi2, lambda2, total_qubit, controller_mask, true);
+
             }
         }
 

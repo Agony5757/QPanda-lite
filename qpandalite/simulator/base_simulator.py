@@ -5,7 +5,8 @@ from typing import Dict, List
 import numpy as np
 
 from .error_model import ErrorLoader
-from .opcode_simulator import OpcodeSimulator, OpcodeType
+from .opcode_simulator import OpcodeSimulator
+from qpandalite.circuit_builder.qcircuit import OpcodeType
 
 
 class TopologyError(Exception):

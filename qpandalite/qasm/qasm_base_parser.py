@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 from .translate_qasm2_oir import get_opcode_from_QASM2
 from .qasm_line_parser import OpenQASM2_LineParser
 from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError, RegisterOutOfRangeError

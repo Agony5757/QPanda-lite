@@ -1,9 +1,12 @@
 # random_originir.py is a python file that generates random OriginIR code.
 
 import random
+
+from qpandalite.circuit_builder.qcircuit import opcode_to_originir_line
 from .originir_spec import available_originir_gates, angular_gates, available_originir_error_channels
 
-def build_originir_gate(gate, qubits, params):
+def build_originir_gate(gate, qubits, params, dagger_flag = False, 
+                        control_qubit_set = None):
     '''
     Build a line of OriginIR code for a given gate, qubits, and parameters.
     
@@ -28,17 +31,24 @@ def build_originir_gate(gate, qubits, params):
     if len(params)!= available_originir_gates[gate]['param']:
         raise ValueError(f"Gate {gate} requires {available_originir_gates[gate]['param']} parameters")
     
-    qubit_str = ",".join([f"q[{qubit}]" for qubit in qubits])
+    # qubit_str = ",".join([f"q[{qubit}]" for qubit in qubits])
     
-    if params:
+    # dagger_str = " dagger" if dagger_flag else ""
     
-        param_str = [f"{param}" for param in params]
-        param_str = ",".join(param_str)
+    # if params:
+    
+    #     param_str = [f"{param}" for param in params]
+    #     param_str = ",".join(param_str)
 
-        return f"{gate} {qubit_str}, ({param_str})"
+    #     return f"{gate} {qubit_str}, ({param_str})"
     
-    else:
-        return f"{gate} {qubit_str}"
+    # else:
+    #     return f"{gate} {qubit_str}"
+
+    opcode = (gate, qubits, None, params, dagger_flag, control_qubit_set)
+    # print(opcode)
+    return opcode_to_originir_line(opcode)
+
 
 def build_originir_error_channel(channel, qubits, params):
     '''
@@ -87,7 +97,9 @@ def build_full_measurements(n_qubits):
 
 def random_originir(n_qubits, n_gates, 
                     instruction_set = available_originir_gates,
-                    channel_set = None):
+                    channel_set = None,
+                    allow_control = False,
+                    allow_dagger = False):
     '''
     Generate a random OriginIR program with a given number of qubits and gates.
     
@@ -120,7 +132,19 @@ def random_originir(n_qubits, n_gates,
             elif nparam > 0:
                 raise NotImplementedError(f"Gate {gate_name} not implemented")
             
-            program.append(build_originir_gate(gate_name, qubits_to_act, params))
+            if allow_control:
+                remaining_qubits = set(range(n_qubits)) - set(qubits_to_act)
+                #control_qubits = random.sample(remaining_qubits, random.randint(0, len(remaining_qubits)))
+                control_qubits = random.sample(remaining_qubits, random.randint(0, 1))
+            else:
+                control_qubits = None
+
+            if allow_dagger:
+                dagger_flag = random.choice([True, False])
+            else:
+                dagger_flag = False
+
+            program.append(build_originir_gate(gate_name, qubits_to_act, params, dagger_flag, control_qubits))
 
         elif gate_name in channel_set:
             nqubit = channel_set[gate_name]['qubit']
@@ -134,5 +158,8 @@ def random_originir(n_qubits, n_gates,
             
     program.extend(build_full_measurements(n_qubits))
 
-    return "\n".join(program)
+    originir = "\n".join(program)
+
+    # print(originir)
+    return originir
 

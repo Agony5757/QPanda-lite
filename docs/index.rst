@@ -7,21 +7,20 @@
 =======================================
 QPanda-lite是一个轻量级的QPanda支持。
 
+.. image:: https://badge.fury.io/gh/Agony5757%2FQPanda-lite.svg?icon=si%3Agithub
+    :target: https://badge.fury.io/gh/Agony5757%2FQPanda-lite
+
 .. image:: https://readthedocs.org/projects/qpanda-lite/badge/?version=latest
    :target: https://qpanda-lite.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
-.. image:: https://badge.fury.io/py/qpandalite.svg
+.. image:: https://badge.fury.io/py/qpandalite.svg?icon=si%3Apython
    :target: https://badge.fury.io/py/qpandalite
    :alt: PyPI version
 
 .. image:: https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml/badge.svg?branch=main
    :target: https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml
    :alt: Build and Test
-
-
-`GitHub repository at https://github.com/Agony5757/QPanda-lite <https://github.com/Agony5757/QPanda-lite>`_
-
 
 .. note::
    

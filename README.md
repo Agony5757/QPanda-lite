@@ -13,7 +13,7 @@ QPanda-lite *should be* a simple, easy, and transparent python-native version fo
 Developing. Unstable.
 
 ### *Known issues*
-- `controlled_by` simulation for density matrix is not correct, including `backend='density_operator` and `backend='density_operator_qutip`.
+- `controlled_by` simulation for density matrix is not correct, including `backend='density_operator'` and `backend='density_operator_qutip'`.
 
 ## Design principles
 
@@ -23,6 +23,19 @@ Developing. Unstable.
 - Full, and better documentations
 - Visualization of the quantum program
 - Be able to migrate to different quantum backends
+- *Extensible* to support more quantum operations, and allow simulations on different backends
+
+### Core concepts
+
+- `Opcode` (`Tuple`): A tuple representing a quantum operation, including the name of the operation, the qubits it acts on, parameters, and other information.
+- `Circuit` (`Circuit object`): A collection of opcodes, representing a quantum program.  Opcode can be transformed into OriginIR/QASM.
+- `Circuit` (`str`): A string representing a quantum program in OriginIR/QASM, which can be sent to a backend for execution.
+- `Backend` (`Backend object`): A quantum simulator or quantum hardware, which can execute a circuit (str).
+- `Result` (`dict`, `list`, `numpy.ndarray`): The result of a quantum program execution, including the measurement results, represented in Python native data structures.
+
+### Test coverage
+
+To 
 
 ## Install
 
@@ -83,7 +96,7 @@ Will be released in the future.
 
 ### pip
 
-For python 3.8 to 3.10
+For python 3.8 to 3.13
 ```
 pip install qpandalite
 ```
@@ -112,25 +125,25 @@ print(c.circuit)
 
 | Function  | Code sample | Explanation | 
 |----------------|--------------|--------------|
-| Circuit initialization | c = qpandalite.Circuit() |    
+| Circuit initialization | `c = qpandalite.Circuit()` |    
 | Qubit/cbit initialization | | No need to specify the number |   
-| Gate (like CNOT)    |  c.cnot(1,2)  | Directly use the qubit number |   
-| Measure | c.measure(0,1,2)    | Directly use the qubit number (no support mid-circuit measurement) |   
-| Remap | c = c.remapping({0:10, 1:11, 2:12}) | Input a python dict to indicate the mapping. It creates a new Circuit object. |
-| Output as str | c.circuit / c.originir | Return a python str |
+| Gate (like CNOT)    |  `c.cnot(1,2)`  | Directly use the qubit number |   
+| Measure | `c.measure(0,1,2)`    | Directly use the qubit number (no support mid-circuit measurement) |   
+| Remap | `c = c.remapping({0:10, 1:11, 2:12})` | Input a python dict to indicate the mapping. It creates a new Circuit object. |
+| Output as str | `c.circuit / c.originir` | Return a python str |
 
 ### 2. Circuit run on Quantum Devices / Dummies
 
 
 | Function  | Code sample | Explanation | 
 |----------------|--------------|--------------|
-| "Import" the platform | import qpandalite.task.originq as originq  | This importing is independent from "import qpandalite". Available platforms are under qpandalite.task
+| "Import" the platform | `import qpandalite.task.originq as originq`  | This importing is independent from `"import qpandalite"`. Available platforms are under `qpandalite.task`
 | Prepare the account |  | See [qcloud_config_template](qcloud_config_template)
-| Task submission | taskid = originq.submit_task(circuits)| Circuits is str or List[str]. Returned taskid can be either list or one str, depending on the number of inputting circuits. All returns are native python data structures. See [Circuit build](#circuit-build).|
-| Query (synchronously)  |  results = originq.query_by_taskid_sync(taskid) | Inputting the taskid by the return of submit_task. The results are always a list (even if you only submit one circuit). All returns are native python data structures. |
-| Query (asynchronously)  | status_and_result = originq.query_by_taskid(taskid)  | Inputting the taskid by the return of submit_task. This will immediately return without waiting. Use status_and_result['status'] to see if the computing is finished; use status_and_result['result'] to view results (the same with Query (synchronously), always being a list). All returns are native python data structures. |
-| Handle measurement result | results = originq.convert_originq_result(results, style = 'keyvalue', prob_or_shots = 'prob', key_style = 'bin') | Convert the raw data to a more human-friendly format. Style includes "keyvalue" and "list", prob_or_shots includes "prob" and "shots". When inputting a list, the output is also a list corresponding to all inputs. All returns are native python data structures. |
-| Calculate expectation | exps = [calculate_expectation(result, ['ZII', 'IZI', 'IIZ']) for result in results] | Calculate the Z/I expectations accroding to the measurement results. Note that it only accepts the diagonal Hamiltonians. The hamiltonians can be a list, where the output is also a list. However, the input "result" cannot be a list.|
+| Task submission | `taskid = originq.submit_task(circuits)` | Circuits is `str` or `List[str]`. Returned `taskid` can be either `list` or one `str`, depending on the number of inputting circuits. All returns are native python data structures. See [Circuit build](#circuit-build).|
+| Query (synchronously)  |  `results = originq.query_by_taskid_sync(taskid)` | Inputting the taskid by the return of `submit_task`. The results are always a `list` (even if you only submit one circuit). All returns are native python data structures. |
+| Query (asynchronously)  | `status_and_result = originq.query_by_taskid(taskid)`  | Inputting the taskid by the return of submit_task. This will immediately return without waiting. Use status_and_result['status'] to see if the computing is finished; use `status_and_result['result']` to view results (the same with Query (synchronously), always being a `list`). All returns are native python data structures. |
+| Handle measurement result | `results = originq.convert_originq_result(results, style = 'keyvalue', prob_or_shots = 'prob', key_style = 'bin')` | Convert the raw data to a more human-friendly format. Style includes `"keyvalue"` and `"list"`, `prob_or_shots includes` "prob" and `"shots"`. When inputting a `list`, the output is also a `list` corresponding to all inputs. All returns are native python data structures. |
+| Calculate expectation | `exps = [calculate_expectation(result, ['ZII', 'IZI', 'IIZ']) for result in results]` | Calculate the Z/I expectations accroding to the measurement results. Note that it only accepts the diagonal Hamiltonians. The hamiltonians can be a `list`, where the output is also a `list`. However, the input "result" cannot be a list.|
 
 ### 2.1 OriginQ
 #### Step 1. Create online config
@@ -141,13 +154,13 @@ Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/ori
 - You will have the <font face ='consolas' style="background:#F5F5F5">originq_online_config.json</font> in your current working directory (cwd).
 - Now you can submit task to the online chip!
 
-#### Step 1.1 (Optional). Use originq_dummy
+#### Step 1.1 (Optional). Use `originq_dummy`
 
-Dummy server is used to emulate the behavior of an online-avaiable quantum computing server, without really accessing the system but with your local computer to simulate the quantum circuit.
+Dummy server is used to emulate the behavior of an online-available quantum computing server, without really accessing the system but with your local computer to simulate the quantum circuit.
 
-- Input the necessary information (available_qubits and available_topology) to call <font face ='consolas' style="background:#F5F5F5">create_originq_dummy_config</font>.
+- Input the necessary information (`available_qubits` and `available_topology`) to call `create_originq_dummy_config`.
 
-- If you want both mode, use <font face ='consolas' style="background:#F5F5F5">create_originq_config</font> and inputting all needed information.
+- If you want both mode, use `create_originq_config` and inputting all needed information.
 
 #### Step 2. Create the circuits and run
 
@@ -159,8 +172,8 @@ Refer to [test/demo](test/demo)
 
 Refer to [qcloud_config_template/quafu_template.py](qcloud_config_template/quafu_template.py)
 
-- Input the necessary information (token, urls, group_size) to call <font face ='consolas' style="background:#F5F5F5">create_quafu_online_config</font>
-- You will have the <font face ='consolas' style="background:#F5F5F5">quafu_online_config.json</font> in your cwd.
+- Input the necessary information (token, urls, group_size) to call `create_quafu_online_config`
+- You will have the `quafu_online_config.json` in your cwd.
 - Now you can submit task to the online chip!
 
 #### Step 2. Create the circuit and run

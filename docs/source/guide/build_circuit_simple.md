@@ -46,9 +46,9 @@ def __init__(self) -> None:
 
 `Circuit` 类提供了以下量子门操作：
 
- - 单量子比特门：h, x, y, z, sx, s, t, rx, ry, rz, rphi, u1, u2, u3
- - 双量子比特门：cnot, cx, cz, iswap, swap, cswap, toffoli, xx, yy, zz, phase2q, uu15
- - 测量操作：measure
+ - 单量子比特门：`h`, `x`, `y`, `z`, `sx`, `s`, `t`, `rx`, `ry`, `rz`, `rphi`, `u1`, `u2`, `u3`
+ - 双量子比特门：`cnot`, `cx`, `cz`, `iswap`, `swap`, `cswap`, `toffoli`, `xx`, `yy`, `zz`, `xy`, `phase2q`, `uu15`
+ - 测量操作：`measure`
 
 示例
 

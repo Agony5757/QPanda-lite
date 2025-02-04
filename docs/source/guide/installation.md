@@ -5,7 +5,7 @@
 仅需一行代码就可以安装qpandalite的本体
 
 ```bash
-   pip install qpandalite
+pip install qpandalite
 ```
 
 ## 从源码构建

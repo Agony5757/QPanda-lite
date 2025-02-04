@@ -27,10 +27,10 @@ Developing. Unstable.
 
 ### Core concepts
 
-- `Opcode` (`Tuple`): A tuple representing a quantum operation, including the name of the operation, the qubits it acts on, parameters, and other information.
-- `Circuit` (`Circuit object`): A collection of opcodes, representing a quantum program.  Opcode can be transformed into OriginIR/QASM.
-- `Circuit` (`str`): A string representing a quantum program in OriginIR/QASM, which can be sent to a backend for execution.
-- `Backend` (`Backend object`): A quantum simulator or quantum hardware, which can execute a circuit (str).
+- `Opcode` (`Tuple`): [**Opcode**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/opcode.html) is a tuple representing a quantum operation, including the name of the operation, the qubits it acts on, parameters, and other information.
+- `Circuit` (`Circuit object`): [**Circuit**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/build_circuit_simple.html) is A collection of opcodes, representing a quantum program.  Opcode can be transformed into OriginIR/QASM.
+- `circuit string` (`str`): A string representing a quantum program in [**OriginIR**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/originir_simple.html)/[**QASM**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html), which can be sent to a backend for execution.
+- `Backend` (`Backend object`): A [**quantum simulator**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/simulation_simple.html) or quantum hardware, which can execute a circuit (str).
 - `Result` (`dict`, `list`, `numpy.ndarray`): The result of a quantum program execution, including the measurement results, represented in Python native data structures.
 
 ### Test coverage
@@ -172,7 +172,7 @@ Refer to [test/demo](test/demo)
 
 Refer to [qcloud_config_template/quafu_template.py](qcloud_config_template/quafu_template.py)
 
-- Input the necessary information (token, urls, group_size) to call `create_quafu_online_config`
+- Input the necessary information (`token`, `urls`, `group_size`) to call `create_quafu_online_config`
 - You will have the `quafu_online_config.json` in your cwd.
 - Now you can submit task to the online chip!
 

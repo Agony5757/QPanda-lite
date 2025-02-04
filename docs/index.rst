@@ -49,53 +49,26 @@ QPanda-lite是一个轻量级的QPanda支持。
 
 .. toctree::
    :maxdepth: 2
-   :caption: qpandalite analyzer模块 API文档
+   :caption: qpandalite API文档
+
    source/qpandalite.analyzer
-
-.. toctree::
-   :maxdepth: 2
-   :caption: qpandalite circuit_builder模块 API文档
-
    source/qpandalite.circuit_builder
-
-.. toctree::
-   :maxdepth: 2
-   :caption: qpandalite originir模块 API文档
-   
    source/qpandalite.originir
-
-.. toctree::
-   :maxdepth: 2
-   :caption: qpandalite qasm模块 API文档
-
    source/qpandalite.qasm
-
-.. toctree::
-   :maxdepth: 2
-   :caption: qpandalite simulator模块 API文档
-
    source/qpandalite.simulator
-   source/qpandalite.simulator.opcode_simulator
-   source/qpandalite.simulator.originir_simulator
-   source/qpandalite.simulator.qasm_simulator
-   source/qpandalite.simulator.error_model
+   source/qpandalite.qcloud_config
+   source/qpandalite.test
+   source/qpandalite.transpiler
 
 .. toctree::
    :maxdepth: 2
    :caption: qpandalite task模块 API文档
    
-   .. source/qpandalite.task
-
+   source/qpandalite.task
    source/qpandalite.task.origin_qcloud
    source/qpandalite.task.quafu
    source/qpandalite.task.platform_template
 
-.. toctree::
-   :maxdepth: 2
-   :caption: qpandalite test模块 API文档
-
-   source/qpandalite.test
-   
 
 Indices and tables
 ==================

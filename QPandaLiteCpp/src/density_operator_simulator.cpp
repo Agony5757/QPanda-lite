@@ -623,11 +623,12 @@ namespace qpandalite
 
     void DensityOperatorSimulator::pauli_error_1q(size_t qn, double px, double py, double pz)
     {
-        // TODO: Check probability bounds
         double sum = px + py + pz;
 
-        if (sum > 1)
-            ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
+        CHECK_PROBABILITY_BOUND(px)
+        CHECK_PROBABILITY_BOUND(py)
+        CHECK_PROBABILITY_BOUND(pz)
+        CHECK_PROBABILITY_BOUND(sum)
 
         auto Ex = multiply_scalar(pauli_x, std::sqrt(px));
         auto Ey = multiply_scalar(pauli_y, std::sqrt(py));
@@ -639,13 +640,14 @@ namespace qpandalite
 
     void DensityOperatorSimulator::depolarizing(size_t qn, double p)
     {
+        CHECK_PROBABILITY_BOUND(p)
+
         pauli_error_1q(qn, p / 3, p / 3, p / 3);
     }
 
     void DensityOperatorSimulator::bitflip(size_t qn, double p)
     {
-        if (p < 0 || p > 1)
-            ThrowInvalidArgument("Probability must be between 0 and 1.");
+        CHECK_PROBABILITY_BOUND(p)        
 
         auto Ex = multiply_scalar(pauli_x, std::sqrt(p));
         auto Ei = multiply_scalar(pauli_id, std::sqrt(1 - p));
@@ -655,6 +657,8 @@ namespace qpandalite
 
     void DensityOperatorSimulator::phaseflip(size_t qn, double p)
     {
+        CHECK_PROBABILITY_BOUND(p)
+        
         auto Ez = multiply_scalar(pauli_z, std::sqrt(p));
         auto Ei = multiply_scalar(pauli_id, std::sqrt(1 - p));
 
@@ -663,7 +667,18 @@ namespace qpandalite
 
     void DensityOperatorSimulator::pauli_error_2q(size_t qn1, size_t qn2, const std::vector<double>& p)
     {
-        // 解包所有概率参数
+        // the input must be a 15-sized vector
+        // Depolarizing matrix
+        // II  XI  YI  ZI
+        // IX  XX  YX  ZX
+        // IY  XY  YY  ZY
+        // IZ  XZ  YZ  ZZ     
+        if (p.size() != 15)
+            ThrowInvalidArgument("The generalized 2q model must be a 15-sized vector, "
+                "representing p{xi, yi, zi, ix, xx, yx, zx, iy, xy, yy, zy, "
+                "iz, xz, yz, zz}, respectively");
+
+        // 解包所有概率参数   
         double xi = p[0], yi = p[1], zi = p[2];
         double ix = p[3], xx = p[4], yx = p[5], zx = p[6];
         double iy = p[7], xy = p[8], yy = p[9], zy = p[10];
@@ -673,10 +688,24 @@ namespace qpandalite
             ix + xx + yx + zx +
             iy + xy + yy + zy +
             iz + xz + yz + zz;
-
-        if (sum > 1)
-            ThrowInvalidArgument("Probabilities must be less than or equal to 1.");
-
+            
+        CHECK_PROBABILITY_BOUND(xi)
+        CHECK_PROBABILITY_BOUND(yi)
+        CHECK_PROBABILITY_BOUND(zi)
+        CHECK_PROBABILITY_BOUND(ix)
+        CHECK_PROBABILITY_BOUND(xx)
+        CHECK_PROBABILITY_BOUND(yx)
+        CHECK_PROBABILITY_BOUND(zx)
+        CHECK_PROBABILITY_BOUND(iy)
+        CHECK_PROBABILITY_BOUND(xy)
+        CHECK_PROBABILITY_BOUND(yy)
+        CHECK_PROBABILITY_BOUND(zy)
+        CHECK_PROBABILITY_BOUND(iz)
+        CHECK_PROBABILITY_BOUND(xz)
+        CHECK_PROBABILITY_BOUND(yz)
+        CHECK_PROBABILITY_BOUND(zz)
+        CHECK_PROBABILITY_BOUND(sum)
+        
         pauli_error_2q_unsafe_impl(state, qn1, qn2, p, total_qubit);
         return;
         //double ii = 1 - sum;
@@ -712,6 +741,10 @@ namespace qpandalite
 
     void DensityOperatorSimulator::twoqubit_depolarizing(size_t qn1, size_t qn2, double p)
     {
+        CHECK_QUBIT_RANGE2(qn1, qn1)
+        CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_PROBABILITY_BOUND(p)
+        
         pauli_error_2q(qn1, qn2, std::vector<dtype>(15, p / 15));
     }
 
@@ -773,6 +806,9 @@ namespace qpandalite
 
     void DensityOperatorSimulator::amplitude_damping(size_t qn, double gamma)
     {
+        CHECK_PROBABILITY_BOUND(gamma)
+        CHECK_QUBIT_RANGE(qn)
+        
         auto E0 = u22_t{ 1, 0, 0, sqrt(1 - gamma) };
         auto E1 = u22_t{ 0, sqrt(gamma), 0, 0 };
 

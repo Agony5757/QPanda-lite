@@ -116,7 +116,6 @@ class OriginIR_BaseParser:
                     raise ValueError(f'Parse error at line {lineno}: {line}\n'
                                       'Encounter ENDDAGGER operation before any DAGGER.')
                 dagger_count -= 1
-
             # Handle the common statements
             else:
                 # Handle the measure statement
@@ -132,7 +131,7 @@ class OriginIR_BaseParser:
                     # Add the measurement to the list of measurements
                     self.measure_qubits.append((qubits, cbit))                
                 else:
-                    # For common statements (gates)
+                    # For common statements (gates)                    
                     if dagger_count % 2:
                         dagger_flag = dagger_flag ^ True
                     else:
@@ -158,7 +157,6 @@ class OriginIR_BaseParser:
                                 raise ValueError(f'Parse error at line {lineno}: {line}\n'
                                                  f'Qubit {qubit} is duplicated in the CONTROL statement.')
                             qubits_used.add(qubit)
-
 
                     if dagger_stack:
                         # insert to the top of the dagger stack

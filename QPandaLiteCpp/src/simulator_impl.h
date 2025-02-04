@@ -33,6 +33,13 @@
         ThrowInvalidArgument(errstr);\
     }
 
+#define CHECK_PROBABILITY_BOUND(prob) \
+    if (prob < 0 || prob > 1)\
+    {\
+        auto errstr = fmt::format("Probability out of range (prob = {})", prob);\
+        ThrowInvalidArgument(errstr);\
+    }
+
 namespace qpandalite {
     std::map<size_t, size_t> preprocess_measure_list(const std::vector<size_t>& measure_list, size_t total_qubit);
 

@@ -614,8 +614,11 @@ namespace qpandalite {
     void StatevectorSimulator::pauli_error_1q(size_t qn, double px, double py, double pz)
     {
         double sum = px + py + pz;
-        if (sum > 1.0)
-            ThrowInvalidArgument("The 1Q Pauli error model has total error exceeding 1.0.");
+
+        CHECK_PROBABILITY_BOUND(px)
+        CHECK_PROBABILITY_BOUND(py)
+        CHECK_PROBABILITY_BOUND(pz)
+        CHECK_PROBABILITY_BOUND(sum)
 
         double r = qpandalite::rand();
         if (r < px)
@@ -644,23 +647,23 @@ namespace qpandalite {
 
     void StatevectorSimulator::depolarizing(size_t qn, double p)
     {
-        if (p > 1.0)
-            ThrowInvalidArgument("The depolarizing model has p>1.0.");
+        CHECK_PROBABILITY_BOUND(p)        
+
         return pauli_error_1q(qn, p / 3, p / 3, p / 3);
     }
 
     void StatevectorSimulator::bitflip(size_t qn, double p)
     {
-        if (p > 1.0)
-            ThrowInvalidArgument("The bitflip model has p>1.0.");
+        CHECK_PROBABILITY_BOUND(p)       
+
 
         return pauli_error_1q(qn, p, 0, 0);
     }
 
     void StatevectorSimulator::phaseflip(size_t qn, double p)
     {
-        if (p > 1.0)
-            ThrowInvalidArgument("The phaseflip model has p>1.0.");
+        CHECK_PROBABILITY_BOUND(p)        
+
         return pauli_error_1q(qn, 0, 0, p);
     }
 
@@ -688,8 +691,22 @@ namespace qpandalite {
             iy + xy + yy + zy +
             iz + xz + yz + zz;
 
-        if (sum > 1.0)
-            ThrowInvalidArgument("The 2Q Pauli error model has total error exceeding 1.0.");
+        CHECK_PROBABILITY_BOUND(xi)
+        CHECK_PROBABILITY_BOUND(yi)
+        CHECK_PROBABILITY_BOUND(zi)
+        CHECK_PROBABILITY_BOUND(ix)
+        CHECK_PROBABILITY_BOUND(xx)
+        CHECK_PROBABILITY_BOUND(yx)
+        CHECK_PROBABILITY_BOUND(zx)
+        CHECK_PROBABILITY_BOUND(iy)
+        CHECK_PROBABILITY_BOUND(xy)
+        CHECK_PROBABILITY_BOUND(yy)
+        CHECK_PROBABILITY_BOUND(zy)
+        CHECK_PROBABILITY_BOUND(iz)
+        CHECK_PROBABILITY_BOUND(xz)
+        CHECK_PROBABILITY_BOUND(yz)
+        CHECK_PROBABILITY_BOUND(zz)
+        CHECK_PROBABILITY_BOUND(sum)
 
         double r = qpandalite::rand();
 
@@ -724,6 +741,7 @@ namespace qpandalite {
     {
         CHECK_QUBIT_RANGE2(qn1, qn1)
         CHECK_QUBIT_RANGE2(qn2, qn2)
+        CHECK_PROBABILITY_BOUND(p)
 
         const static std::vector<double> p_(15, p / 15);
         pauli_error_2q(qn1, qn2, p_);
@@ -744,9 +762,7 @@ namespace qpandalite {
 
     void StatevectorSimulator::amplitude_damping(size_t qn, double gamma)
     {
-        if (gamma > 1.0)
-            ThrowInvalidArgument("The phaseflip model has gamma>1.0.");
-
+        CHECK_PROBABILITY_BOUND(gamma)
         CHECK_QUBIT_RANGE(qn)
 
         amplitude_damping_unsafe_impl(state, qn, gamma, total_qubit);

@@ -159,6 +159,7 @@ def test_random_qasm_compare_shots():
                 's', 'sdg', 't', 'tdg', 'swap' 
                 'ccx', 'cu1', 'cswap']
     
+    # You can define a subset of the gate set to test.
     gate_set = ['h', 'cx',  'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
                's', 'sdg', 't', 'tdg', 'swap' 

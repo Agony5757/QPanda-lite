@@ -21,7 +21,7 @@ def backend_alias(backend_type):
     '''
     statevector_alias = ['statevector', 'state_vector']
     density_operator_alias = ['density_matrix', 'density_operator',
-                              'DensityMatrix', 'DensityOperator']
+                              'densitymatrix', 'densityoperator']
     density_operator_qutip_alias = ['density_matrix_qutip', 'density_operator_qutip']
 
     backend_type = backend_type.lower()
@@ -38,6 +38,19 @@ def backend_alias(backend_type):
 class OpcodeSimulator:   
     def __init__(self, backend_type = 'statevector'):
         '''OpcodeSimulator is a quantum circuit simulation based on C++ which runs locally on your PC.
+        
+        Args:
+            backend_type (str): The backend type for simulation. Supported backends: statevector, density_matrix. Default: 'statevector'.
+
+        Note: Uppercase and lowercase are both supported.
+
+        Supported aliases for backend_type:
+         statevector: ['statevector', 'state_vector']
+         density_matrix: ['density_matrix', 'density_operator', 'densitymatrix', 'densityoperator']
+         density_matrix_qutip: ['density_matrix_qutip', 'density_operator_qutip']
+
+         density_matrix_qutip is a backend based on Qutip library, which is used to compare with
+         the density matrix simulator in QPanda-lite.
         '''
         backend_type = backend_alias(backend_type)        
         if backend_type =='statevector':
@@ -104,14 +117,16 @@ class OpcodeSimulator:
                               parameter, control_qubits_set, is_dagger)
         elif operation == 'CNOT':
             self.simulator.cnot(qubit[0], 
-                                qubit[1], control_qubits_set, is_dagger)            
+                                qubit[1], control_qubits_set, is_dagger)  
+        elif operation == 'RPhi':
+            self.simulator.rphi(qubit, parameter[0], parameter[1], control_qubits_set, is_dagger)
         elif operation == 'RPhi90':
             self.simulator.rphi90(qubit, parameter, control_qubits_set, is_dagger)
         elif operation == 'RPhi180':
             self.simulator.rphi180(qubit, parameter, control_qubits_set, is_dagger) 
         elif operation == 'U3':
-            self.simulator.u3(qubit, 
-                                parameter[0], parameter[1], parameter[2], control_qubits_set, is_dagger) 
+            self.simulator.u3(qubit, parameter[0], parameter[1], parameter[2], 
+                              control_qubits_set, is_dagger) 
         elif operation == 'XX':
             self.simulator.xx(qubit[0],
                               qubit[1],

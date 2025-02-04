@@ -492,6 +492,8 @@ class OriginIR_LineParser:
             elif operation == 'BARRIER':
                 operation = 'BARRIER'
                 operation, q = OriginIR_LineParser.handle_barrier(line)
+                dagger_flag = False
+                control_qubits = []
             elif operation == 'MEASURE':
                 operation = 'MEASURE'
                 q, c = OriginIR_LineParser.handle_measure(line)

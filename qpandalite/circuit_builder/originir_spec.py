@@ -32,6 +32,11 @@ available_originir_gates.update({
 })
 
 available_originir_gates.update({
+    gatename : {'qubit': 1, 'param': 2}
+    for gatename in available_originir_1q2p_gates
+})
+
+available_originir_gates.update({
     gatename : {'qubit': 2, 'param': 0}
     for gatename in available_originir_2q_gates
 })

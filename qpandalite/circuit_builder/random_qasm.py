@@ -72,6 +72,7 @@ def build_measurements(measure_qbit_cbit_pairs, qreg_name = 'q', creg_name = 'c'
 
     return measure_instructions
 
+
 def random_qasm(n_qubits, n_gates, instruction_set = available_qasm_gates, measurements = None):
     """
     Generate a random QASM code with n_qubits and n_gates from the given instruction set.

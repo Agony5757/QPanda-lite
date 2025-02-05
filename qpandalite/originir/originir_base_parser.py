@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import List, Tuple
 
-from qpandalite.circuit_builder.qcircuit import opcode_to_originir_line
+from qpandalite.circuit_builder import opcode_to_line_originir
 
 from .originir_line_parser import OriginIR_LineParser
 
@@ -185,7 +185,7 @@ class OriginIR_BaseParser:
     def to_extended_originir(self):
         ret = f'QINIT {self.n_qubit}\n'
         ret += f'CREG {self.n_cbit}\n'
-        ret += '\n'.join([opcode_to_originir_line(opcode) for opcode in self.program_body])
+        ret += '\n'.join([opcode_to_line_originir(opcode) for opcode in self.program_body])
         return ret
     
     @property

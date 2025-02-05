@@ -35,7 +35,7 @@ def demo_2():
 
     # submit task will generate a 'taskid'    
     taskid = originq.submit_task(circuit, shots = 1000, task_name='some test')
-
+    
     # a synchronous mode for query task
     result = originq.query_by_taskid_sync(taskid, 
                                           interval=2.0, # query interval (seconds)

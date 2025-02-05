@@ -5,4 +5,4 @@ from .exceptions import (NotSupportedGateError,
                          RegisterNotFoundError,
                          RegisterOutOfRangeError)
 
-from .random_qasm import random_qasm
+from ..circuit_builder.random_qasm import random_qasm

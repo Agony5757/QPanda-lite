@@ -1,8 +1,8 @@
 # Test the simulator with randomly generated OriginIR code.
 
 import numpy as np
-from qpandalite.originir.random_originir import random_originir
-from qpandalite.originir.originir_spec import (available_originir_gates, 
+from qpandalite.circuit_builder.random_originir import random_originir
+from qpandalite.circuit_builder.originir_spec import (available_originir_gates, 
                                                available_originir_error_channels,
                                                generate_sub_gateset_originir,
                                                generate_sub_error_channel_originir)

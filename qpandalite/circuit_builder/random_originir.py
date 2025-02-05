@@ -1,8 +1,7 @@
 # random_originir.py is a python file that generates random OriginIR code.
 
 import random
-
-from qpandalite.circuit_builder.qcircuit import opcode_to_originir_line
+from .opcode import opcode_to_line_originir
 from .originir_spec import available_originir_gates, angular_gates, available_originir_error_channels
 
 def build_originir_gate(gate, qubits, params, dagger_flag = False, 
@@ -47,7 +46,7 @@ def build_originir_gate(gate, qubits, params, dagger_flag = False,
 
     opcode = (gate, qubits, None, params, dagger_flag, control_qubit_set)
     # print(opcode)
-    return opcode_to_originir_line(opcode)
+    return opcode_to_line_originir(opcode)
 
 
 def build_originir_error_channel(channel, qubits, params):

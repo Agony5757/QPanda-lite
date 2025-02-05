@@ -1,21 +1,16 @@
-from typing import Dict
 import numpy as np
-from qpandalite.qasm import OpenQASM2_BaseParser, OpenQASM2_LineParser
-from pathlib import Path
-import pickle
 from qpandalite.simulator.qasm_simulator import QASM_Simulator
 from qpandalite.test._utils import qpandalite_test
 from qpandalite.qasm import NotSupportedGateError
-from qpandalite.qasm.random_qasm import random_qasm
-from qpandalite.qasm.qasm_spec import available_qasm_gates, generate_sub_gateset_qasm
+from qpandalite.circuit_builder.random_qasm import random_qasm
+from qpandalite.circuit_builder.qasm_spec import available_qasm_gates, generate_sub_gateset_qasm
 
 import qiskit
 import qiskit.qasm2 as qasm
 from qiskit.circuit import library as lib
 from qiskit.qasm2.parse import CustomInstruction, LEGACY_CUSTOM_INSTRUCTIONS
-from qiskit_aer import AerSimulator
+from qiskit_aer import Aer, AerSimulator
 from qiskit import transpile
-from qiskit_aer import Aer
 
 from scipy.sparse import coo_array
 

@@ -168,15 +168,15 @@ class DensityOperatorSimulatorQutip:
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
-    def rphi(self, qubit, phi, theta, control_qubits_set = [], is_dagger = False):
+    def rphi(self, qubit, theta, phi, control_qubits_set = [], is_dagger = False):
         U = rz(phi) * rx(theta) * rz(-phi)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
     def rphi90(self, qubit, phi, control_qubits_set = [], is_dagger = False):
-        return self.rphi(qubit, phi, np.pi/2, control_qubits_set, is_dagger)
+        return self.rphi(qubit, np.pi/2, phi, control_qubits_set, is_dagger)
 
     def rphi180(self, qubit, phi, control_qubits_set = [], is_dagger = False):
-        return self.rphi(qubit, phi, np.pi, control_qubits_set, is_dagger)
+        return self.rphi(qubit, np.pi, phi, control_qubits_set, is_dagger)
 
     def xx(self, q1, q2, theta, control_qubits_set = [], is_dagger = False):
         H = tensor(sigmax(), sigmax()) * (-1j*theta/2)

@@ -443,7 +443,8 @@ class OriginIR_LineParser:
                  operation == 'Z' or \
                  operation == 'S' or \
                  operation == 'SX' or \
-                 operation == 'T':
+                 operation == 'T' or \
+                 operation == 'I':
                 operation, q, dagger_flag, control_qubits = OriginIR_LineParser.handle_1q(line)
             # 2-qubit gates
             elif operation == 'CZ' or \

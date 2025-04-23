@@ -132,8 +132,8 @@ class Circuit:
 
     def add_gate(self, operation: str,
                        qubits: Union[int, List[int]], 
-                       params: Optional[Union[float, List[float]]] = None, 
                        cbits: Optional[Union[int, List[int]]] = None, 
+                       params: Optional[Union[float, List[float]]] = None, 
                        dagger: bool = False, 
                        control_qubits: Optional[Union[int, List[int]]] = None) -> None:
         """
@@ -394,8 +394,6 @@ class Circuit:
         c.cbit_num = len(c.measure_list)
 
         return c
-
-    
 
 
     # def unwrap(self):

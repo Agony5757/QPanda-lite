@@ -2,6 +2,7 @@ from copy import deepcopy
 from typing import List, Tuple
 
 from qpandalite.circuit_builder import opcode_to_line_originir
+from qpandalite.circuit_builder.qcircuit import Circuit
 
 from .originir_line_parser import OriginIR_LineParser
 
@@ -194,4 +195,21 @@ class OriginIR_BaseParser:
 
     def __str__(self):
         return self.to_extended_originir()
+    
+    def to_circuit(self) -> Circuit:
+        """
+        The function coverts OriginIR string into qpandalite.Circuit object.
+
+        Returns:
+            qpandalite.Circuit object.
+        """
+        circuit = Circuit()
+
+        for opcode in self.program_body:
+            operation, qubits, cbit, parameter, dagger_flag, control_qubits = opcode
+            circuit.add_gate(operation, qubits, cbit, parameter, dagger_flag, control_qubits)
+
+        return circuit
+
+        
 

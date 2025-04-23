@@ -24,7 +24,7 @@ def build_originir_gate(gate, qubits, params, dagger_flag = False,
     if gate not in available_originir_gates:
         raise ValueError(f"Gate {gate} not available in OriginIR")
     
-    if len(qubits)!= available_originir_gates[gate]['qubit']:
+    if gate != 'BARRIER' and len(qubits)!= available_originir_gates[gate]['qubit']:
         raise ValueError(f"Gate {gate} requires {available_originir_gates[gate]['qubit']} qubits")
     
     if len(params)!= available_originir_gates[gate]['param']:
@@ -122,9 +122,12 @@ def random_originir(n_qubits, n_gates,
         gate_name = random.choice(list(instructions))
 
         if gate_name in instruction_set:
-            nqubit =instruction_set[gate_name]['qubit']
-            nparam =instruction_set[gate_name]['param']
-            qubits_to_act = random.sample(range(n_qubits), nqubit)
+            nqubit = instruction_set[gate_name]['qubit']
+            nparam = instruction_set[gate_name]['param']
+            if gate_name == 'BARRIER':
+                qubits_to_act = random.sample(range(n_qubits), random.randint(1, n_qubits))
+            else:
+                qubits_to_act = random.sample(range(n_qubits), nqubit)
             params = []
             if gate_name in angular_gates:
                 params = [random.uniform(0, 2*3.14159) for _ in range(nparam)]

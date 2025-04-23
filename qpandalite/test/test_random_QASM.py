@@ -1,6 +1,6 @@
 import numpy as np
 from qpandalite.simulator.qasm_simulator import QASM_Simulator
-from qpandalite.test._utils import qpandalite_test
+from qpandalite.test._utils import qpandalite_test, NotMatchError
 from qpandalite.qasm import NotSupportedGateError
 from qpandalite.circuit_builder.random_qasm import random_qasm
 from qpandalite.circuit_builder.qasm_spec import available_qasm_gates, generate_sub_gateset_qasm
@@ -39,8 +39,6 @@ def simulate_by_qiskit_statevector(qasm_str):
     problist = np.abs(statevector)**2
     return problist
 
-class NotMatchError(Exception):
-    pass
 
 def _check_result(transpiled_circuit, reference_array, backend_type):
 

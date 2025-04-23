@@ -1,6 +1,5 @@
 import re
 import math
-from qpandalite.circuit_builder.qcircuit import Circuit
 from math import pi
 
 class OpenQASM2_LineParser:
@@ -385,33 +384,6 @@ class OpenQASM2_LineParser:
         except AttributeError as e:
             raise RuntimeError(f'Error when parsing the line: {line}')
 
-    @staticmethod
-    def build_from_qasm_str(qasm_str):
-        """
-        The function coverts OpenQASM string into OriginIR circuit. It will create the
-        quantum circuit object given the qasm_str.
-
-        In the initilization phase, we need to notice that OriginIR-based quantum circuit
-        doe not need to specify how many qregs and cregs used. 
-        
-        Parameters:
-        - qasm_str: The quantum circuit of intersts in the OpenQASM format.
-
-        Returns:
-        - origin_qcirc: The quantum circuit of intersts in the OriginIR format. 
-        """
-        # Create an empty Circuit object
-        origincircuit = Circuit()
-        # parser = OpenQASM2_Parser()
-
-        lines_to_remove = ["OPENQASM 2.0;", "include \"qelib1.inc\";"]
-
-        # Split the QASM string into lines and parse each line
-        for line in qasm_str.split("\n"):
-            if line not in lines_to_remove:
-                OpenQASM2_LineParser.parse_line(line, origincircuit)
-
-        return origincircuit
     
 if __name__ == '__main__':
 

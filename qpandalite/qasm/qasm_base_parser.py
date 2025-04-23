@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from qpandalite.circuit_builder.qcircuit import Circuit
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser
 from qpandalite.circuit_builder.translate_qasm2_oir import get_opcode_from_QASM2
 from .qasm_line_parser import OpenQASM2_LineParser
@@ -240,3 +241,32 @@ class OpenQASM2_BaseParser:
         oir_parser.program_body = self.program_body
 
         return oir_parser.to_extended_originir()
+    
+    def to_circuit(qasm_str) -> Circuit:
+        """
+        The function coverts OpenQASM string into qpandalite.Circuit object.
+
+        In the initilization phase, we need to notice that OriginIR-based quantum circuit
+        doe not need to specify how many qregs and cregs used. 
+        
+        Parameters:
+        - qasm_str: The quantum circuit of intersts in the OpenQASM format.
+
+        Returns:
+        - origin_qcirc: The quantum circuit of intersts in the OriginIR format. 
+        """
+        # Create an empty Circuit object
+        origincircuit = Circuit()
+        # parser = OpenQASM2_Parser()
+
+        lines_to_remove = ["OPENQASM 2.0;", "include \"qelib1.inc\";"]
+
+        # Split the QASM string into lines and parse each line
+        for line in qasm_str.split("\n"):
+            if line not in lines_to_remove:
+                operation, q, c, parameter = OpenQASM2_LineParser.parse_line(line)
+                opcode = get_opcode_from_QASM2(operation, q, c, parameter)
+                # unpack as 6 paramters (operation, qubits, params, cbits, dagger, control_qubits)
+                origincircuit.add_gate(*opcode)
+
+        return origincircuit

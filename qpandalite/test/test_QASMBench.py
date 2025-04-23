@@ -3,7 +3,7 @@ from qpandalite.qasm import OpenQASM2_BaseParser, OpenQASM2_LineParser
 from pathlib import Path
 import pickle
 from qpandalite.simulator.qasm_simulator import QASM_Simulator
-from qpandalite.test._utils import qpandalite_test
+from qpandalite.test._utils import qpandalite_test, NotMatchError
 from qpandalite.qasm import NotSupportedGateError
 
 import qiskit
@@ -43,8 +43,6 @@ def _reference_result_to_array(result):
 
     return result_list
 
-class NotMatchError(Exception):
-    pass
 
 def _check_result(transpiled_circuit, reference_result, backend_type):
 

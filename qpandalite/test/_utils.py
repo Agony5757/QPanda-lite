@@ -7,3 +7,6 @@ def qpandalite_test(testname):
             return result
         return wrapper
     return decorator
+
+class NotMatchError(Exception):
+    pass

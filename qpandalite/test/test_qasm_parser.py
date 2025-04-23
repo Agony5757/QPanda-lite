@@ -1,3 +1,4 @@
+from qpandalite.circuit_builder.qasm_spec import generate_sub_gateset_qasm
 from qpandalite.qasm import OpenQASM2_BaseParser
 import qpandalite.simulator as qsim
 import numpy as np
@@ -15,7 +16,20 @@ def run_test_qasm_parser():
     n_gates = 50
     n_test = 50
     for i in range(n_test):
-        qasm_1 = random_qasm(n_qubits, n_gates, measurements=True)
+        
+        gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
+                    'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
+                    's', 'sdg', 't', 'tdg', 'swap'  
+                    'ccx', 'cu1', 'cswap']        
+
+        gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
+                    'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
+                    's', 'sdg', 't', 'tdg', 'swap' 
+                    'ccx', 'cu1', 'cswap']
+        
+        gate_set = generate_sub_gateset_qasm(gate_set)
+
+        qasm_1 = random_qasm(n_qubits, n_gates, instruction_set=gate_set, measurements=True)
         parser = OpenQASM2_BaseParser()
         parser.parse(qasm_1)
         circuit_obj : Circuit = parser.to_circuit()
@@ -23,16 +37,13 @@ def run_test_qasm_parser():
 
         # simulate oir_1 and oir_2
         sim_oir = OriginIR_Simulator(backend_type='statevector')
-        sim_qasm = QASM_Simulator(backend_type='statevector')
+        sim_qasm = QASM_Simulator(backend_type='statevector', least_qubit_remapping=True)
         
         state_1 = sim_oir.simulate_pmeasure(oir_1)
         state_2 = sim_qasm.simulate_pmeasure(qasm_1)
 
         # compare the results
         if not np.allclose(state_1, state_2):
-            for i in range(len(state_1)):
-                print(f'{i} (binary = {bin(i)}): {state_1[i]} vs {state_2[i]}')
-
             raise NotMatchError(
             '---------------\n'
             f'OriginIR =\n {oir_1}\n'

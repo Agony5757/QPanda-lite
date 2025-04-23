@@ -169,10 +169,8 @@ class BaseSimulator:
         return prob_list
 
     def simulate_statevector(self, quantum_code):
-        print(quantum_code)
         program_body, measure_qubit = self.simulate_preprocess(quantum_code)
-
-        print(program_body)
+        
         statevector = self.opcode_simulator.simulate_opcodes_statevector(
             self.qubit_num, program_body
         )

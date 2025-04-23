@@ -199,7 +199,8 @@ setup(
                       'qiskit',
                       'qiskit-aer',
                       'qutip',
-                      'qutip-qip'],
+                      'qutip-qip',
+                      'pyqpanda3'],
     zip_safe = False,
     python_requires='>=3.8',    
 )

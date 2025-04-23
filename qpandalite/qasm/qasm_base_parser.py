@@ -242,7 +242,7 @@ class OpenQASM2_BaseParser:
 
         return oir_parser.to_extended_originir()
     
-    def to_circuit(qasm_str) -> Circuit:
+    def to_circuit(self) -> Circuit:
         """
         The function coverts OpenQASM string into qpandalite.Circuit object.
 
@@ -257,16 +257,10 @@ class OpenQASM2_BaseParser:
         """
         # Create an empty Circuit object
         origincircuit = Circuit()
-        # parser = OpenQASM2_Parser()
-
-        lines_to_remove = ["OPENQASM 2.0;", "include \"qelib1.inc\";"]
 
         # Split the QASM string into lines and parse each line
-        for line in qasm_str.split("\n"):
-            if line not in lines_to_remove:
-                operation, q, c, parameter = OpenQASM2_LineParser.parse_line(line)
-                opcode = get_opcode_from_QASM2(operation, q, c, parameter)
-                # unpack as 6 paramters (operation, qubits, params, cbits, dagger, control_qubits)
-                origincircuit.add_gate(*opcode)
+        for opcode in self.program_body:
+            # unpack as 6 paramters (operation, qubits, params, cbits, dagger, control_qubits)
+            origincircuit.add_gate(*opcode)
 
         return origincircuit

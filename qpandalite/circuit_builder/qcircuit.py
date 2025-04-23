@@ -313,7 +313,10 @@ class Circuit:
 
     def measure(self, *qubits):
         self.record_qubit(qubits)
-        self.measure_list = list(qubits)
+        if self.measure_list is None:
+            self.measure_list = list()
+            
+        self.measure_list.extend(list(qubits))
         self.cbit_num = len(self.measure_list)
 
     def control(self, *args):

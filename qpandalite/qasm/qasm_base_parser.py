@@ -263,4 +263,10 @@ class OpenQASM2_BaseParser:
             # unpack as 6 paramters (operation, qubits, params, cbits, dagger, control_qubits)
             origincircuit.add_gate(*opcode)
 
+        # add measurements to the circuit, sort by cbit id
+        measure_list = sorted(self.measure_qubits, key=lambda x: x[1])        
+
+        for qubit, cbit in measure_list:
+            origincircuit.measure(qubit)
+
         return origincircuit

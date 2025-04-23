@@ -42,6 +42,7 @@ class OriginIR_BaseParser:
             return i + 1
 
     def parse(self, originir_str):
+        
         self.raw_originir = originir_str
 
         # Split into lines, and use strip() to skip the blank lines   

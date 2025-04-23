@@ -25,11 +25,16 @@ def _load_QASMBench(path):
 def _transpile_circuit(qc):
     # Use the Aer simulator
     backend = AerSimulator()
-    quantum_circuit = qasm.loads(qc)
-    # Transpile the circuit for the backend
-    transpiled_qc = transpile(quantum_circuit, backend=backend, optimization_level=0)
-    
-    return qasm.dumps(transpiled_qc)
+    try:
+        quantum_circuit = qasm.loads(qc)
+        # Transpile the circuit for the backend
+        transpiled_qc = transpile(quantum_circuit, backend=backend, optimization_level=0)
+        
+        qasm_circuit = qasm.dumps(transpiled_qc)
+        return qasm_circuit
+    except Exception as e:
+        print("Error transpiling circuit: ", qc)        
+        raise e
 
 def _reference_result_to_array(result):
     for key in result:
@@ -98,7 +103,12 @@ def test_qasm(path = './qpandalite/test'):
     count_not_supported = 0
     not_supported_list = []
     for circuit in dataset:
-        transpiled_circuit = _transpile_circuit(circuit)
+        try:
+            transpiled_circuit = _transpile_circuit(circuit)
+        except qiskit.qasm2.exceptions.QASM2ExportError as e:
+            print('Error transpiling circuit:', circuit)
+            # skip this circuit
+            continue
 
         parser = OpenQASM2_BaseParser()
         try:

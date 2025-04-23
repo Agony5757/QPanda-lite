@@ -8,8 +8,8 @@ from qpandalite.simulator.qasm_simulator import QASM_Simulator
 from qpandalite.circuit_builder import Circuit
 from qpandalite.test._utils import qpandalite_test, NotMatchError
 
-@qpandalite_test('Test OriginIR Parser')
-def run_test_originir_parser():
+@qpandalite_test('Test QASM Parser')
+def run_test_qasm_parser():
     # Generate random OriginIR circuit, and parse it
     n_qubits = 5
     n_gates = 50

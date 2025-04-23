@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.30)
 project(QPandaLiteTest)
 file(GLOB_RECURSE QPandaLiteTestSrc ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(${PROJECT_NAME} ${QPandaLiteTestSrc})

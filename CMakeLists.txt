@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.30)
 project(QPandaLite)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/src
                     ${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/Thirdparty
@@ -19,8 +19,8 @@ if (UNIX)
     add_definitions("-fPIC")
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
-find_package(PythonLibs 3 REQUIRED)
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
+message("Python include dirs: ${PYTHON_INCLUDE_DIRS}")
 
 add_subdirectory(QPandaLiteCpp)

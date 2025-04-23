@@ -1,7 +1,7 @@
 [submodule "QPandaLiteCpp/Thirdparty/pybind11"]
 	path = QPandaLiteCpp/Thirdparty/pybind11
 	url = https://github.com/pybind/pybind11.git
-	branch = stable
+	branch = tags/v2.13.6
 [submodule "QPandaLiteCpp/Thirdparty/fmt"]
 	path = QPandaLiteCpp/Thirdparty/fmt
 	url = https://github.com/fmtlib/fmt.git

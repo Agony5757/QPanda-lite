@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.26)
 project(QPandaLiteCppCore)
 file(GLOB_RECURSE QPandaLiteCppCoreSrc_H ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 file(GLOB_RECURSE QPandaLiteCppCoreSrc ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)

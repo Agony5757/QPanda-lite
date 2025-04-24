@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.26)
 project(QPandaLite)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/src
                     ${CMAKE_CURRENT_SOURCE_DIR}/QPandaLiteCpp/Thirdparty

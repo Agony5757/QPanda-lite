@@ -74,8 +74,7 @@ def create_time_line_table(layer_dict, qubit_list, time_line):
     return time_line_table
 
 
-def plot_time_line(compiled_prog, taskid, 
-                   figure_save_path = Path.cwd() / 'timeline_plot'):
+def plot_time_line(compiled_prog, figure_save_path = Path.cwd() / 'timeline_plot'):
     format_prog, qubit_list, time_line = format_result(compiled_prog)
     time_line_table = create_time_line_table(format_prog, qubit_list, time_line)
     depth = len(time_line)
@@ -84,7 +83,7 @@ def plot_time_line(compiled_prog, taskid,
     for i in range(1, split_table + 1):
         plt.figure(figsize=(width, len(qubit_list)/2))
         plt.axis('off')
-        cmap = {'RPhi90': 'blue', 'RPhi180': 'orange', 'CZ': 'red', 'idle': 'white', 'Measure': 'gray'}
+        cmap = {'RPhi90': 'lightblue', 'RPhi180': 'orange', 'CZ': 'mistyrose', 'idle': 'white', 'Measure': 'gray'}
 
         if i*20 < depth:
             values = time_line_table.values[:, (i-1)*20:i*20]
@@ -94,11 +93,12 @@ def plot_time_line(compiled_prog, taskid,
             columns = time_line_table.columns[(i-1)*20:]
         cellColours = [[cmap[x.split(' ')[0]] for x in row] for row in values]
         table = plt.table(cellText=values, colLabels=columns,
+                          colWidths=[0.05]*len(columns),
                           rowLabels=time_line_table.index,
                           loc='center',
                           cellColours=cellColours)
         
         if not os.path.exists(figure_save_path):
             os.mkdir(figure_save_path)
-        plt.savefig(figure_save_path / f'{taskid} timeline {i}.png')
+        plt.savefig(figure_save_path / f'timeline {i}.pdf')
 

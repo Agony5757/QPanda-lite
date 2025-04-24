@@ -12,6 +12,17 @@ def _from_qasm(qasm_str):
     return qprog
 
 def draw(ir_str, language='OriginIR'):
+    ''' 
+    Draw the circuit in text format.
+
+    Args:
+        ir_str (str): The input circuit in OriginIR or QASM format.
+        language (str): The language of the input circuit. Default is 'OriginIR'.
+
+    Returns:
+        qprog (QProg): The QProg object of the input circuit.
+    
+    '''
 
     if language == 'OriginIR':
         qprog = _from_originir(ir_str)

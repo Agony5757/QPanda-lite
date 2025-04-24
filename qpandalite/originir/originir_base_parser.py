@@ -211,6 +211,15 @@ class OriginIR_BaseParser:
             circuit.add_gate(operation, qubits, cbit, parameter, dagger_flag, control_qubits)
 
         return circuit
+    
+    def to_qasm(self):
+        """
+        The function coverts OriginIR string into OpenQASM string.
 
+        Returns:
+            OpenQASM string.
+        """
+        circuit = self.to_circuit()
+        return circuit.qasm
         
 

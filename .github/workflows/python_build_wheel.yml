@@ -4,6 +4,8 @@ name: Build Python Wheels
 
 # 控制 workflow 何时触发
 on:
+  push:
+    branches: [ "main" ]
   # 允许手动触发
   workflow_dispatch:
 

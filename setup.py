@@ -163,7 +163,7 @@ else:
 
 __version__ = ''
 # Obtain version from versioneer
-exec(open('qpandalite/__version__.py').read())
+exec(open('qpandalite/version.py').read())
 if not __version__:
     raise ValueError('Version is not set')
 

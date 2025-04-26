@@ -1,0 +1,59 @@
+# .github/workflows/build_wheels.yml
+
+name: Build Python Wheels
+
+# 控制 workflow 何时触发
+on:
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheel on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }} # 根据矩阵指定运行环境
+    strategy:
+      # 不要因为一个组合失败就取消其他组合
+      fail-fast: false
+      matrix:
+        # 定义操作系统和 Python 版本的矩阵
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+
+    steps:
+    # 第一步：检出代码库
+    - name: Checkout repository
+      uses: actions/checkout@v4 # 使用官方的 checkout action
+      with:
+        submodules: 'true'
+
+    # 第二步：设置指定版本的 Python 环境
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5 # 使用官方的 setup-python action
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # 第三步：安装构建依赖
+    # 确保安装了 setuptools 和 wheel，这是 bdist_wheel 所必需的
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install setuptools wheel
+        # 如果你的 setup.py 有额外的构建时依赖，也在这里安装
+        # python -m pip install -r requirements-build.txt
+
+    # 第四步：执行构建命令创建 wheel 文件
+    # 这会在项目根目录下创建一个 dist/ 目录，并将 .whl 文件放在里面
+    - name: Build wheel
+      run: python setup.py bdist_wheel
+
+    # 第五步：上传构建产物 (wheel 文件)
+    # 将 dist/ 目录下的所有 .whl 文件作为 artifact 上传
+    - name: Upload wheel artifact
+      uses: actions/upload-artifact@v4 # 使用官方的 upload-artifact action
+      with:
+        # 为 artifact 命名，包含 OS 和 Python 版本信息以便区分
+        name: wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+        # 指定要上传的文件路径，通常是 dist 目录下的 wheel 文件
+        path: dist/*.whl
+        # 如果构建失败或没有生成文件，上传操作会优雅处理，但你可以设置如果找不到文件则失败
+        # if-no-files-found: error # 可选: 'warn' (默认), 'error', 'ignore'

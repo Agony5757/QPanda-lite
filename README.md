@@ -96,7 +96,7 @@ Will be released in the future.
 
 ### pip
 
-For python 3.8 to 3.13
+For python 3.9 to 3.12
 ```
 pip install qpandalite
 ```

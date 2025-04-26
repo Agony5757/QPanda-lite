@@ -44,7 +44,10 @@ jobs:
     # 第四步：执行构建命令创建 wheel 文件
     # 这会在项目根目录下创建一个 dist/ 目录，并将 .whl 文件放在里面
     - name: Build wheel
-      run: python setup.py bdist_wheel
+      run: |
+        pip install .
+        python stubgen.py
+        python setup.py bdist_wheel
 
     # 第五步：上传构建产物 (wheel 文件)
     # 将 dist/ 目录下的所有 .whl 文件作为 artifact 上传

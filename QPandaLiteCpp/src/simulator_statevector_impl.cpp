@@ -14,14 +14,7 @@ namespace statevector_simulator_impl {
                 size_t i0 = i;
                 size_t i1 = i + pow2(qn);
 
-                complex_t a0 = state[i0];
-                complex_t a1 = state[i1];
-
-                complex_t new_a0 = (a0 + a1) * INVSQRT2;
-                complex_t new_a1 = (a0 - a1) * INVSQRT2;
-
-                state[i0] = new_a0;
-                state[i1] = new_a1;
+                sv_apply_u22(INVSQRT2, INVSQRT2, INVSQRT2, -INVSQRT2, state[i0], state[i1]);
             }
         }
         void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, complex_t u00, complex_t u01, complex_t u10, complex_t u11, size_t total_qubit, size_t controller_mask)
@@ -36,14 +29,7 @@ namespace statevector_simulator_impl {
                 size_t i0 = i;
                 size_t i1 = i + pow2(qn);
 
-                complex_t a0 = state[i0];
-                complex_t a1 = state[i1];
-
-                complex_t new_a0 = u00 * a0 + u01 * a1;
-                complex_t new_a1 = u10 * a0 + u11 * a1;
-
-                state[i0] = new_a0;
-                state[i1] = new_a1;
+                sv_apply_u22(u00, u01, u10, u11, state[i0], state[i1]);
             }
         }
         void u22_unsafe_impl(std::vector<std::complex<double>>& state, size_t qn, u22_t unitary, size_t total_qubit, size_t controller_mask)

@@ -46,6 +46,20 @@ namespace qpandalite {
     size_t make_controller_mask(const std::vector<size_t>& global_controller);
 
     // ============================================================
+    // Inline 2x2 statevector (matrix × vector) operation
+    // |ψ'⟩ = U |ψ⟩, where ψ = (a0, a1), U = [[u00,u01],[u10,u11]]
+    // ============================================================
+    inline void sv_apply_u22(
+        const complex_t& u00, const complex_t& u01,
+        const complex_t& u10, const complex_t& u11,
+        complex_t& a0, complex_t& a1)
+    {
+        const complex_t o0 = a0, o1 = a1;
+        a0 = u00 * o0 + u01 * o1;
+        a1 = u10 * o0 + u11 * o1;
+    }
+
+    // ============================================================
     // Inline 2x2 density-matrix operations
     // ρ is stored as 4 references: r00, r01, r10, r11 (row-major)
     // ============================================================

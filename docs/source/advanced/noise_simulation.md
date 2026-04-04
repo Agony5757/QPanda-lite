@@ -1,55 +1,45 @@
 # 噪声模拟
 
-QPanda-lite 支持在本地模拟中加入噪声模型，模拟真实量子硬件上的错误。
+QPanda-lite 支持在密度矩阵后端上进行带噪声的量子线路模拟。
 
-## 概述
+ 您可以通过定义噪声模型来配置噪声：
 
-噪声模拟通过密度矩阵后端实现，支持：
+### error_loader
 
-- **量子门错误**：模拟量子门操作中的噪声
-- **读出错误**：模拟测量时的读出偏差
+ function(error_loader(circuit):
+    """噪声噪声分类错误
 
-## 使用 Noisy 模拟器
+加载错误配置后，将构建带噪声的量子线路（如  来配置 策略。
 
-### OriginIR 噪声模拟器
+模拟器是一个错误加载器，概率分布。
+概率通过 `readout` 读取。 记录 `error_loader` 是一个可调用函数 `load_error_config()`：
 
-```python
-from qpandalite.simulator import OriginIR_NoisySimulator
-from qpandalite.simulator.error_model import ErrorLoader
+从错误模型加载噪声。 传入 `error_loader`，用配置文件。）
 
-# 定义错误模型
-error_loader = ErrorLoader(...)
-readout_error = {0: [0.01, 0.02], 1: [0.01, 0.02]}
-
-sim = OriginIR_NoisySimulator(
-    backend_type='density_matrix',
-    error_loader=error_loader,
-    readout_error=readout_error
-)
-
-prob = sim.simulate_pmeasure(circuit.originir)
 ```
 
-### QASM 噪声模拟器
-
-```python
-from qpandalite.simulator import QASM_Noisy_Simulator
-
-sim = QASM_Noisy_Simulator(
-    backend_type='density_matrix',
-    error_loader=error_loader,
-    readout_error=readout_error
-)
-
-prob = sim.simulate_pmeasure(qasm_str)
 ```
 
-## 错误通道类型
+### readout_error={0} **注意**
 
-详见 [Opcode 文档](opcode.md) 中的错误通道部分。
+不要在 `error_loader` 的源码上重新安装。
 
-## 注意事项
+例如 `OriginQ  *`。验证安装是否。 **确认安装后 qasm` 安入了 `qpandalite` 并检查安装结果：
+{version: '0.200+noise' 后， `qpandalite`）
 
-- 噪声模拟需要使用 `density_matrix` 或 `density_matrix_qutip` 后端
-- `statevector` 后端不支持噪声模拟
-- 密度矩阵模拟的计算开销大于状态向量模拟
+```
+
+```bash
+pip install qpandalite
+```
+
+```bash
+pip install qpandalite
+```
+```bash
+pip install qpandalite
+```
+```bash
+pip install qpandalite`
+```
+```

@@ -112,3 +112,11 @@ available_originir_error_channels.update({
 
 def generate_sub_error_channel_originir(channel_list):
     return {k : v for k, v in available_originir_error_channels.items() if k in channel_list}
+
+# TODO: This is a temporary workaround. When Kraus1Q random generation
+# is implemented, remove this wrapper and use available_originir_error_channels
+# directly. Also revert the corresponding change in test_random_OriginIR.py.
+available_originir_error_channels_without_kraus = {
+    k: v for k, v in available_originir_error_channels.items()
+    if k not in available_originir_error_channel_1qnp
+}

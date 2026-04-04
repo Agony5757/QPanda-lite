@@ -24,13 +24,13 @@ jobs:
     steps:
     # 第一步：检出代码库
     - name: Checkout repository
-      uses: actions/checkout@v4 # 使用官方的 checkout action
+      uses: actions/checkout@v5 # 使用官方的 checkout action
       with:
         submodules: 'true'
 
     # 第二步：设置指定版本的 Python 环境
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5 # 使用官方的 setup-python action
+      uses: actions/setup-python@v6 # 使用官方的 setup-python action
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -54,7 +54,7 @@ jobs:
     # 第五步：上传构建产物 (wheel 文件)
     # 将 dist/ 目录下的所有 .whl 文件作为 artifact 上传
     - name: Upload wheel artifact
-      uses: actions/upload-artifact@v4 # 使用官方的 upload-artifact action
+      uses: actions/upload-artifact@v5 # 使用官方的 upload-artifact action
       with:
         # 为 artifact 命名，包含 OS 和 Python 版本信息以便区分
         name: wheel-${{ matrix.os }}-py${{ matrix.python-version }}

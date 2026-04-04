@@ -126,14 +126,7 @@ def test_random_originir_density_operator():
                     'PauliError2Q', 
                     'TwoQubitDepolarizing']
     
-    error_channel = ['PauliError1Q', 
-                    'Depolarizing', 
-                    'BitFlip', 
-                    'PhaseFlip', 
-                    'AmplitudeDamping',
-                    'PauliError2Q', 
-                    'TwoQubitDepolarizing']
-
+    # Note: Kraus1Q excluded — random generation not yet implemented (see originir_spec.py TODO)
     error_channel = generate_sub_error_channel_originir(error_channel)
    
     test_random_originir_compare_density_operator(

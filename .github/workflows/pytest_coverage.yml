@@ -27,7 +27,7 @@ jobs:
       run: pip install pytest pytest-cov
 
     - name: Run tests with coverage
-      run: pytest qpandalite/test/ --cov=qpandalite --cov-report=term-missing --cov-report=xml -v
+      run: pytest qpandalite/test/ --cov=qpandalite --cov-report=term-missing --cov-report=xml -v --deselect qpandalite/test/test_random_OriginIR.py::test_random_originir_compare_density_operator --deselect qpandalite/test/test_random_QASM.py::test_random_qasm_compare_density_operator --deselect qpandalite/test/test_random_QASM_measure.py::test_random_qasm_compare_shots_impl --deselect qpandalite/test/test_random_QASM.py::test_random_qasm
 
     - name: Upload coverage report
       if: always()

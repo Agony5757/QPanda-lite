@@ -1,11 +1,9 @@
-.. QPanda-lite documentation master file, created by
-   sphinx-quickstart on Tue Aug 29 11:07:09 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. QPanda-lite documentation master file
 
-欢迎来到QPanda-lite!
+欢迎来到 QPanda-lite!
 =======================================
-QPanda-lite是一个轻量级的QPanda支持。
+
+QPanda-lite 是一个轻量级的量子计算框架，提供量子线路构建、本地模拟、多平台真机任务提交等功能。
 
 .. image:: https://badge.fury.io/gh/Agony5757%2FQPanda-lite.svg?icon=si%3Agithub
     :target: https://badge.fury.io/gh/Agony5757%2FQPanda-lite
@@ -23,7 +21,7 @@ QPanda-lite是一个轻量级的QPanda支持。
    :alt: Build and Test
 
 .. note::
-   
+
    **开发中**
       - 不稳定
       - 未发布
@@ -33,42 +31,45 @@ QPanda-lite是一个轻量级的QPanda支持。
    :caption: 教程
 
    source/guide/installation
-   source/guide/originir_simple
-   source/guide/build_circuit_simple
-   source/guide/opcode
-   source/guide/simulation_simple
-   source/guide/submit_task_simple
+   source/guide/quickstart
+   source/guide/circuit
+   source/guide/simulation
+   source/guide/submit_task
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 语言规范
+
+   source/guide/originir
    source/guide/qasm
 
 .. toctree::
    :maxdepth: 2
-   :caption: 功能文档
+   :caption: 进阶
 
-   source/features/build_circuit
-   source/features/submit_task_general
+   source/advanced/opcode
+   source/advanced/noise_simulation
+   source/advanced/circuit_analysis
 
 .. toctree::
    :maxdepth: 2
-   :caption: qpandalite API文档
+   :caption: API 参考
 
-   source/qpandalite.analyzer
+   source/qpandalite.rst
    source/qpandalite.circuit_builder
+   source/qpandalite.simulator
    source/qpandalite.originir
    source/qpandalite.qasm
-   source/qpandalite.simulator
-   source/qpandalite.qcloud_config
-   source/qpandalite.test
    source/qpandalite.transpiler
-
-.. toctree::
-   :maxdepth: 2
-   :caption: qpandalite task模块 API文档
-   
+   source/qpandalite.analyzer
+   source/qpandalite.qcloud_config
    source/qpandalite.task
-   source/qpandalite.task.origin_qcloud
+   source/qpandalite.task.ibm
    source/qpandalite.task.quafu
+   source/qpandalite.task.originq
+   source/qpandalite.task.originq_dummy
+   source/qpandalite.task.origin_qcloud
    source/qpandalite.task.platform_template
-
 
 Indices and tables
 ==================

@@ -82,11 +82,22 @@ prob = sim.simulate_pmeasure(circuit.originir)
 
 ## 后端对比
 
-| 后端 | 适用场景 | 噪声支持 |
-|------|---------|---------|
-| `statevector` | 无噪声快速模拟 | ❌ |
-| `density_matrix` | 含噪声模拟 | ✅ |
-| `density_matrix_qutip` | 复杂噪声模型 | ✅ |
+| 后端 | 适用场景 | 噪声支持 | 性能 |
+|------|---------|---------|------|
+| `statevector` | 无噪声快速模拟，小规模线路（< 30 量子比特） | ❌ | 最快 |
+| `density_matrix` | 含噪声模拟，双比特门为主 | ✅ | 较慢（内存 O(4^n)） |
+| `density_matrix_qutip` | 复杂噪声模型，高精度需求 | ✅ | 较慢，依赖 Qutip |
+
+**选择建议**：
+- 一般无噪声模拟 → `OriginIR_Simulator`（基于 statevector）
+- 需要噪声模拟 → `OriginIR_NoisySimulator`（基于 density_matrix）
+- 复杂多比特噪声模型 → `density_matrix_qutip`
+
+## 已知限制
+
+- `crx`/`crz`/`cy` 受控旋转门在 density matrix 后端存在 bug（多门组合时出错），详见 [已知问题](./installation.md#known-issues)。
+- `statevector` 后端无法模拟噪声。
+- 多比特门（> 2）在 density matrix 后端支持有限。
 
 ## API 参考
 

@@ -10,12 +10,28 @@
 
 QPanda-lite is a simple, easy-to-use, and transparent Python-native version of QPanda.
 
+## Quick Example
+
+```python
+from qpandalite.circuit_builder import Circuit
+from qpandalite.simulator import OriginIR_Simulator
+
+circuit = Circuit()
+circuit.h(0)
+circuit.cnot(0, 1)
+circuit.measure(0, 1)
+
+sim = OriginIR_Simulator()
+print(sim.simulate_shots(circuit.originir, shots=1000))
+```
+
 ## Status
 
 🚧 Actively developing. API may change.
 
 ### Known Issues
 
+- **`crx`/`crz`/`cy` bug**：Density matrix 后端的受控旋转门在多门组合时计算结果错误。单门测试正常。如需带噪声模拟，请规避这三个门。
 - `controlled_by` simulation for density matrix is incorrect, including `backend='density_operator'` and `backend='density_operator_qutip'`.
 
 ---
@@ -91,9 +107,34 @@ pip install -e .
 **With C++ simulator (requires CMake in PATH):**
 
 ```bash
-git clone https://github.com/Agony5757/QPanda-lite.git
+git clone --recurse-submodules https://github.com/Agony5757/QPanda-lite.git
 cd QPanda-lite
 pip install .
+```
+
+---
+
+### 项目结构
+
+```
+QPanda-lite/
+├── qpandalite/                  # Python 前端
+│   ├── circuit_builder/         # 量子线路构建（Circuit 类）
+│   ├── simulator/                # 本地模拟器
+│   │   ├── originir_simulator.py    # OriginIR 模拟器
+│   │   ├── qasm_simulator.py        # QASM 模拟器
+│   │   ├── opcode_simulator.py      # Opcode 底层模拟器
+│   │   └── error_model.py           # 噪声模型
+│   ├── qasm/                   # OpenQASM 2.0 解析器
+│   ├── originir/               # OriginIR 解析器
+│   ├── task/                   # 任务提交（OriginQ / Quafu / IBM）
+│   ├── transpiler/             # 电路转译（Qiskit / OriginIR 互转）
+│   ├── analyzer/               # 结果分析（期望值计算等）
+│   └── qcloud_config/          # 各平台云配置
+├── docs/                       # Sphinx 文档
+├── QPandaLiteCpp/              # C++ 后端（pybind11）
+├── test/                       # 单元测试
+└── setup.py
 ```
 
 ---
@@ -103,7 +144,7 @@ pip install .
 ### 1. Build a Circuit
 
 ```python
-from qpandalite import Circuit
+from qpandalite.circuit_builder import Circuit
 
 c = Circuit()
 c.rx(1, 0.1)

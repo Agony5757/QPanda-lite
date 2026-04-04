@@ -193,5 +193,5 @@ print(prob)
 
 ## 已知限制
 
-- 使用 `crx`/`crz`/`cy` 受控旋转门时存在已知 bug，详见 [已知问题](../guide/installation.md#known-issues)。
+- 使用 `crx`/`crz`/`cy` 受控旋转门时存在已知 bug（density matrix 后端多门组合时出错，单门测试正常），测试线路时应注意规避。
 - 噪声模拟目前仅支持单比特和双比特门。

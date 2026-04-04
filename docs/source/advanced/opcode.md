@@ -1,66 +1,128 @@
-# Opcode 文档
+# Opcode 模拟器详解
 
-Opcode（操作码）是量子计算中用于表示量子门操作的基本指令，是 QPanda-lite 底层模拟器的核心数据结构。
+OpcodeSimulator 是 QPanda-lite 的底层模拟器，直接操作 opcode 列表进行量子线路模拟。它通过 C++ 扩展（pybind11）实现高性能计算。
 
-## 数据结构
-
-每个 Opcode 是一个元组：
-
-```python
-(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-```
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `operation` | str | 量子门类型，如 `'H'`, `'CNOT'`, `'RX'` |
-| `qubit` | int / list[int] | 作用量子比特 |
-| `cbit` | int / list[int] / None | 经典比特（保留） |
-| `parameter` | float / list[float] / None | 门参数 |
-| `is_dagger` | bool | 是否共轭转置 |
-| `control_qubits_set` | set | 控制量子比特集合 |
-
-## 示例
-
-```python
-# H 门作用在 qubit 0
-('H', 0, None, None, False, set())
-
-# CNOT 门，控制 qubit 0，目标 qubit 1
-('CNOT', [0, 1], None, None, False, set())
-
-# RX 门，参数 0.5
-('RX', 0, None, 0.5, False, set())
-
-# 带控制位的 X 门
-('X', 2, None, None, False, {0, 1})
-```
-
-## 支持的操作
-
-### 量子门
-
-- **单量子比特门**：`H`, `X`, `Y`, `Z`, `S`, `SX`, `T`, `RX`, `RY`, `RZ`, `U1`, `U2`, `U3`, `RPhi90`, `RPhi180`, `RPhi`
-- **双量子比特门**：`CNOT`, `CZ`, `SWAP`, `ISWAP`, `TOFFOLI`, `CSWAP`, `XX`, `YY`, `ZZ`, `XY`, `PHASE2Q`, `UU15`
-- **三量子比特门**：`TOFFOLI`, `CSWAP`
-
-### 错误通道
-
-- **单量子比特**：`PauliError1Q`, `Depolarizing`, `BitFlip`, `PhaseFlip`, `AmplitudeDamping`, `Kraus1Q`
-- **双量子比特**：`PauliError2Q`, `TwoQubitDepolarizing`
-
-## 与模拟器配合
-
-Opcode 通常由 `Circuit` 类自动生成，或通过解析器从 OriginIR/QASM 解析得到。
+## 创建模拟器
 
 ```python
 from qpandalite.simulator import OpcodeSimulator
 
+# 状态向量后端（默认）
 sim = OpcodeSimulator(backend_type='statevector')
 
-program_body = [
-    ('H', 0, None, None, False, set()),
-    ('CNOT', [0, 1], None, None, False, set()),
+# 密度矩阵后端（支持噪声模拟）
+sim = OpcodeSimulator(backend_type='density_matrix')
+
+# 基于 QuTip 的密度矩阵后端（用于交叉验证）
+sim = OpcodeSimulator(backend_type='density_matrix_qutip')
+```
+
+## 支持的后端类型
+
+| 后端 | 类型别名 | 说明 | 噪声支持 |
+|------|---------|------|---------|
+| `statevector` | `state_vector` | 纯态状态向量模拟 | ❌ |
+| `density_matrix` | `density_operator`, `densitymatrix` | C++ 密度矩阵模拟 | ✅ |
+| `density_matrix_qutip` | `density_operator_qutip` | QuTip 密度矩阵（验证用） | ✅ |
+
+## 支持的量子门
+
+### 单量子比特门
+
+| 门名 | 操作 | 参数 |
+|------|------|------|
+| `H` | Hadamard | 无 |
+| `X` | Pauli-X (NOT) | 无 |
+| `Y` | Pauli-Y | 无 |
+| `Z` | Pauli-Z | 无 |
+| `S` | S 门 (√Z) | 无 |
+| `SDG` | S† | 无 |
+| `T` | T 门 (∜Z) | 无 |
+| `TDG` | T† | 无 |
+| `SX` | √X | 无 |
+| `RX` | 绕 X 轴旋转 | `theta` |
+| `RY` | 绕 Y 轴旋转 | `theta` |
+| `RZ` | 绕 Z 轴旋转 | `theta` |
+| `U1` | 相位门 | `lambda` |
+| `U2` | U2 门 | `phi`, `lambda` |
+| `U3` | 通用单比特门 | `theta`, `phi`, `lambda` |
+
+### 双量子比特门
+
+| 门名 | 操作 | 参数 |
+|------|------|------|
+| `CNOT` / `CX` | 受控 NOT | 无 |
+| `CZ` | 受控 Z | 无 |
+| `SWAP` | SWAP | 无 |
+| `ISWAP` | iSWAP | 无 |
+| `XY` | XY 交互 | `theta` |
+| `XX` | XX 交互 | `theta` |
+| `YY` | YY 交互 | `theta` |
+| `ZZ` | ZZ 交互 | `theta` |
+
+### 三量子比特门
+
+| 门名 | 操作 | 参数 |
+|------|------|------|
+| `TOFFOLI` / `CCX` | Toffoli | 无 |
+| `CSWAP` / `Fredkin` | 受控 SWAP | 无 |
+
+### 特殊门
+
+| 门名 | 操作 | 参数 |
+|------|------|------|
+| `RPhi` | 绕 Bloch 球面 φ 角旋转 | `theta`, `phi` |
+| `RPhi90` | 90° RPhi | `phi` |
+| `RPhi180` | 180° RPhi | `phi` |
+| `UU15` | 双比特通用门（15 参数） | 15 个角度参数 |
+| `PHASE2Q` | 双比特相位 | `theta` |
+
+## 受控门支持
+
+所有门都支持通过 `control_qubits_set` 参数添加控制量子比特：
+
+```python
+# 对 qubit 0 施加 X 门，以 qubit 1 为控制位
+sim.x(qubit=0, control_qubits_set=[1], is_dagger=False)
+```
+
+## 模拟结果获取
+
+```python
+# 初始化量子比特数
+sim.init_n_qubit(n_qubit)
+
+# ... 施加门操作 ...
+
+# 获取概率分布（指定测量比特）
+prob = sim.pmeasure(measure_qubits)
+
+# 获取状态向量（仅 statevector 后端）
+sv = sim.state
+
+# 获取密度矩阵（仅 density_matrix 后端）
+dm = sim.state
+```
+
+## 直接使用 Opcode 列表
+
+Opcode 列表是 `(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)` 元组的列表：
+
+```python
+opcodes = [
+    ('H', [0], None, None, False, []),
+    ('CNOT', [0, 1], None, None, False, []),
+    ('RX', [0], None, [1.57], False, []),
 ]
 
-prob = sim.simulate_opcodes_pmeasure(n_qubit=2, program_body=program_body, measure_qubits=[0, 1])
+sim = OpcodeSimulator()
+sim.init_n_qubit(2)
+for opcode in opcodes:
+    operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
+    sim.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
 ```
+
+## 已知限制
+
+- **密度矩阵后端**：受控门 `crx`、`crz`、`cy` 在多门线路中结果可能不正确（已知 bug，正在修复中）
+- **statevector 后端**：所有门均已通过测试

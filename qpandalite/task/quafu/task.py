@@ -166,8 +166,8 @@ def _submit_task_group(circuits = None,
     """
     if not circuits: raise ValueError('circuit ??')
     if isinstance(circuits, list):
-        user = quafu.User()
-        user.save_apitoken(default_token)
+        user = quafu.User(api_token = default_token)
+        user.save_apitoken()
         task = quafu.Task()
         taskid_list = []
         for index, c in enumerate(circuits):
@@ -234,8 +234,8 @@ def submit_task(circuit = None,
     if isinstance(circuit, str):
         qc = Translation_OriginIR_to_QuafuCircuit.translate(circuit)
 
-        user = quafu.User()
-        user.save_apitoken(default_token)
+        user = quafu.User(api_token = default_token)
+        user.save_apitoken()
         task = quafu.Task()
 
         # validate chip_id
@@ -443,8 +443,8 @@ def query_task_by_group(group_name, history=None, verbose=True, savepath=None):
                     history[group] = [task['taskid']]
                 else:
                     history[group].append(task['taskid'])
-    user = quafu.User()
-    user.save_apitoken(default_token)
+    user = quafu.User(api_token = default_token)
+    user.save_apitoken()
     task = quafu.Task()
     group_result = task.retrieve_group(group_name, history, verbose)
     for result in group_result:

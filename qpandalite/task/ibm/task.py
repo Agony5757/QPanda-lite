@@ -1,3 +1,23 @@
+"""IBM Quantum backend for task submission and querying via Qiskit.
+
+Submits quantum circuits (in OpenQASM 2.0 or Qiskit ``QuantumCircuit``
+format) to IBM Quantum devices using the ``qiskit_ibm_provider``
+package.  Results are retrieved as measurement counts.
+
+Configuration is loaded from ``ibm_online_config.json`` in the current
+working directory.  The config file must contain a ``default_token`` key
+with the IBM Quantum API token.  On first import the token is saved via
+``IBMProvider.save_account``.
+
+Requires ``qiskit`` and ``qiskit_ibm_provider``.
+
+Public API:
+    - submit_task — Submit circuit(s) for execution on IBM Quantum.
+    - query_by_taskid — Query task status by job ID.
+    - query_by_taskid_sync — Blocking query with polling.
+    - query_all_tasks — Query all locally recorded tasks.
+"""
+
 import traceback
 import qiskit
 from qpandalite.task.task_utils import *
@@ -97,6 +117,20 @@ def query_by_taskid_single(taskid: str, ):
 
 
 def query_by_taskid(taskid: Union[List[str], str]):
+    """Query task status by job ID (non-blocking).
+
+    Supports a single job ID or a list.  When querying a list, results
+    are aggregated; the overall status reflects the worst case.
+
+    Args:
+        taskid (Union[List[str], str]): IBM Quantum job ID(s).
+
+    Returns:
+        dict: Aggregated status and results.
+
+    Raises:
+        ValueError: If *taskid* is empty or has an invalid type.
+    """
     if not taskid: raise ValueError('Task id ??')
     if isinstance(taskid, list):
         taskinfo = dict()
@@ -128,6 +162,21 @@ def query_by_taskid_sync(taskid,
                          interval=2.0,
                          timeout=60.0,
                          retry=5, ):
+    """Query task status by job ID (blocking) until completion or timeout.
+
+    Args:
+        taskid (Union[List[str], str]): IBM Quantum job ID(s).
+        interval (float, optional): Polling interval in seconds.
+        timeout (float, optional): Maximum total wait time in seconds.
+        retry (int, optional): Number of retry attempts on transient errors.
+
+    Returns:
+        list[dict]: Execution results once the task succeeds.
+
+    Raises:
+        TimeoutError: If *timeout* is exceeded.
+        RuntimeError: If the task fails or retries are exhausted.
+    """
     starttime = time.time()
     while True:
         try:
@@ -166,6 +215,35 @@ def _submit_task_group(circuits=None,
                        compile_only=False,
                        specified_block=None,
                        savepath=Path.cwd() / 'online_info'):
+    """Submit a group of Qiskit circuits to an IBM Quantum backend.
+
+    If the group exceeds the backend's ``max_circuits`` limit, it is
+    automatically split into sub-groups.
+
+    Args:
+        circuits (list): Qiskit ``QuantumCircuit`` objects.
+        task_name (str, optional): Task name.
+        tasktype: Reserved (unused).
+        chip_id (str, optional): IBM backend name.
+        shots (int, optional): Number of measurement shots.
+        circuit_optimize (bool, optional): Enable Qiskit transpiler
+            optimization (level 3).
+        measurement_amend: Reserved (unused).
+        auto_mapping (Union[bool, list], optional): ``True`` for SABRE
+            layout, a list for explicit initial layout, ``False`` for
+            default mapping.
+        compile_only: Reserved (unused).
+        specified_block: Reserved (unused).
+        savepath (os.PathLike, optional): Directory for local task records.
+
+    Returns:
+        qiskit.providers.Job: The submitted Qiskit job object.
+
+    Raises:
+        ValueError: If *chip_id* is invalid or *shots* exceeds the backend
+            limit.
+        RuntimeError: If circuit execution fails.
+    """
     backends_name = [i.name for i in backends]
     if chip_id not in backends_name:
         raise ValueError(f'no such chip, should be one of {backends_name}')
@@ -290,6 +368,29 @@ def submit_task(circuit,
                 auto_mapping=False,
                 specified_block=None,
                 savepath=Path.cwd() / 'online_info'):
+    """Submit one or more quantum circuits for execution on IBM Quantum.
+
+    Accepts Qiskit ``QuantumCircuit`` objects, QASM strings, or lists
+    thereof.
+
+    Args:
+        circuit (Union[QuantumCircuit, str, list]): Circuit(s) to submit.
+        task_name (str, optional): Human-readable task name.
+        tasktype: Reserved (unused).
+        chip_id (str, optional): IBM backend name.
+        shots (int, optional): Number of measurement shots.
+        circuit_optimize (bool, optional): Enable transpiler optimization.
+        measurement_amend: Reserved (unused).
+        auto_mapping (Union[bool, list], optional): Qubit mapping strategy.
+        specified_block: Reserved (unused).
+        savepath (os.PathLike, optional): Directory for local task records.
+
+    Returns:
+        str: The IBM Quantum job ID.
+
+    Raises:
+        TypeError: If circuits are not ``QuantumCircuit`` or valid QASM.
+    """
     if isinstance(circuit, qiskit.circuit.QuantumCircuit):
         circuit = [circuit]
     try:
@@ -326,6 +427,15 @@ def submit_task(circuit,
 
 
 def query_all_tasks(savepath=None):
+    """Query all locally recorded IBM Quantum tasks and cache results.
+
+    Args:
+        savepath (os.PathLike, optional): Directory containing local task
+            records.
+
+    Returns:
+        tuple[int, int]: A ``(finished_count, total_count)`` pair.
+    """
     if not savepath:
         savepath = Path.cwd() / 'online_info'
 
@@ -344,8 +454,7 @@ def query_all_tasks(savepath=None):
     return finished, task_count
 
 def query_all_task(savepath = None):
-    '''Deprecated!! Use query_all_tasks instead
-    '''
+    """Deprecated — use :func:`query_all_tasks` instead."""
     warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
     return query_all_tasks(savepath)
 

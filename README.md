@@ -13,7 +13,7 @@ QPanda-lite is a simple, easy-to-use, and transparent Python-native version of Q
 ## Quick Example
 
 ```python
-from qpandalite import Circuit
+from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import OriginIR_Simulator
 
 circuit = Circuit()
@@ -144,7 +144,7 @@ QPanda-lite/
 ### 1. Build a Circuit
 
 ```python
-from qpandalite import Circuit
+from qpandalite.circuit_builder import Circuit
 
 c = Circuit()
 c.rx(1, 0.1)

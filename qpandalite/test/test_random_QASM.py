@@ -112,7 +112,7 @@ def test_random_qasm_batch(
                                 instruction_set=instruction_set)
         err = _test_random_qasm(qasm_code, backend_type)
         if err:
-            print('Test failed!')
+            print(f'Test failed! Error: {err}')
             err_list.append(err)
             bad_circuit_list.append((qasm_code, err))
         else:
@@ -233,7 +233,7 @@ def test_random_qasm_compare_density_operator(
         err = compare_density_operator(qasm_code)    
         
         if err:
-            print('Test failed!')
+            print(f'Test failed! Error: {err}')
             err_list.append(err)
             bad_circuit_list.append((qasm_code, err))
         else:

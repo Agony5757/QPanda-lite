@@ -1,3 +1,24 @@
+"""BAQIS Quafu (ScQ) quantum cloud platform backend.
+
+Provides task submission and querying via the Quafu (https://quafu.baqis.ac.cn)
+platform.  Circuits written in OriginIR are automatically translated to Quafu's
+circuit format before submission.
+
+Configuration is loaded from ``quafu_online_config.json`` in the current
+working directory.  The config file must contain a ``default_token`` key
+with the Quafu API token.
+
+Requires the ``quafu`` Python package.
+
+Public API:
+    - submit_task — Submit circuit(s) for execution on Quafu.
+    - query_by_taskid — Query task status by task ID.
+    - query_by_taskid_sync — Blocking query with polling.
+    - query_task_by_group — Query all tasks in a named group.
+    - query_task_by_group_sync — Blocking group query with polling.
+    - query_all_tasks — Query all locally recorded tasks.
+"""
+
 import traceback
 import warnings
 import requests
@@ -55,8 +76,22 @@ if os.getenv('SPHINX_DOC_GEN') != '1':
                           f'{str(e)}')
 
 class Translation_OriginIR_to_QuafuCircuit(OriginIR_LineParser):
+    """Translate OriginIR circuits to Quafu ``QuantumCircuit`` objects."""
+
     @staticmethod
     def reconstruct_qasm(qc: quafu.QuantumCircuit, operation, qubit, cbit, parameter):
+        """Append a single gate operation to a Quafu ``QuantumCircuit``.
+
+        Args:
+            qc (quafu.QuantumCircuit): Target circuit to modify in-place.
+            operation (str): Gate name (e.g. ``'H'``, ``'CNOT'``).
+            qubit: Target qubit index or list of indices.
+            cbit: Classical bit index (for measurements).
+            parameter (float or None): Rotation parameter for parametric gates.
+
+        Returns:
+            quafu.QuantumCircuit: The updated circuit.
+        """
         if operation == 'RX':
             qc.rx(int(qubit), parameter)
         elif operation == 'RY':
@@ -85,6 +120,14 @@ class Translation_OriginIR_to_QuafuCircuit(OriginIR_LineParser):
 
     @staticmethod
     def translate(originir):
+        """Translate a full OriginIR string into a Quafu ``QuantumCircuit``.
+
+        Args:
+            originir (str): An OriginIR circuit string.
+
+        Returns:
+            quafu.QuantumCircuit: The translated circuit.
+        """
         lines = originir.splitlines()
         qc : quafu.QuantumCircuit = None
         for line in lines:
@@ -104,6 +147,23 @@ def _submit_task_group(circuits = None,
                 auto_mapping = True,
                 savepath = Path.cwd() / 'quafu_online_info',
                 group_name = None):
+    """Submit a group of circuits to the Quafu platform.
+
+    Each circuit is translated from OriginIR to Quafu format and submitted
+    individually.  A list of task IDs is returned.
+
+    Args:
+        circuits (list[str]): OriginIR circuit strings.
+        task_name (str, optional): Task name prefix.
+        chip_id (str, optional): Target chip (e.g. ``'ScQ-P10'``).
+        shots (int, optional): Number of measurement shots.
+        auto_mapping (bool, optional): Enable auto-mapping / compilation.
+        savepath (os.PathLike, optional): Directory for local task records.
+        group_name (str, optional): Quafu group name for the task batch.
+
+    Returns:
+        tuple[str, list[str]]: ``(group_name, taskid_list)``
+    """
     if not circuits: raise ValueError('circuit ??')
     if isinstance(circuits, list):
         user = quafu.User()
@@ -140,6 +200,29 @@ def submit_task(circuit = None,
                 savepath = Path.cwd() / 'quafu_online_info',
                 group_name = None
     ):
+    """Submit one or more quantum circuits for execution on the Quafu platform.
+
+    Accepts a single OriginIR string or a list.  The circuit(s) are
+    translated to Quafu format and submitted.
+
+    Args:
+        circuit (Union[str, List[str]]): OriginIR circuit string(s).
+        task_name (str, optional): Human-readable task name.
+        chip_id (str, optional): Target chip ID.  Must be one of
+            ``'ScQ-P10'``, ``'ScQ-P18'``, ``'ScQ-P136'``, ``'ScQ-P10C'``.
+        shots (int, optional): Number of measurement shots.
+        auto_mapping (bool, optional): Enable auto-mapping.
+        savepath (os.PathLike, optional): Directory for local task records.
+        group_name (str, optional): Quafu group name (used for batch
+            submissions).
+
+    Returns:
+        str or list[str]: Task ID(s) for the submitted circuit(s).
+
+    Raises:
+        RuntimeError: If *chip_id* is invalid.
+        ValueError: If *circuit* is not a ``str`` or ``list``.
+    """
 
 
     if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']:
@@ -210,6 +293,16 @@ def submit_task(circuit = None,
     return taskid
 
 def query_by_taskid_single(taskid, savepath):
+    """Query a single task's status from the Quafu platform.
+
+    Args:
+        taskid (str): The task ID to query.
+        savepath (os.PathLike): Directory for caching results.
+
+    Returns:
+        str or dict: ``'Running'`` or ``'Failed'`` if the task has not
+        completed; otherwise the full result dict from Quafu.
+    """
     data = {"task_id": taskid}
     url = "https://quafu.baqis.ac.cn/qbackend/scq_task_recall/"
 
@@ -232,6 +325,21 @@ def query_by_taskid_single(taskid, savepath):
     return results
 
 def query_by_taskid(taskid, savepath=None):
+    """Query task status by task ID (non-blocking).
+
+    Supports a single task ID or a list.  When querying a list, results
+    are aggregated; the overall status reflects the worst case.
+
+    Args:
+        taskid (Union[str, List[str]]): Task ID(s) to query.
+        savepath (os.PathLike, optional): Directory for caching results.
+
+    Returns:
+        dict: Aggregated status and results.
+
+    Raises:
+        ValueError: If *taskid* is empty or has an invalid type.
+    """
     if not savepath:
         savepath = Path.cwd() / 'quafu_online_info'
     if not taskid: raise ValueError('Task id ??')
@@ -262,6 +370,21 @@ def query_by_taskid_sync(taskid,
                          interval=2.0,
                          timeout=60.0,
                          retry=5):
+    """Query task status by task ID (blocking) until completion or timeout.
+
+    Args:
+        taskid (Union[str, List[str]]): Task ID(s) to query.
+        interval (float, optional): Polling interval in seconds.
+        timeout (float, optional): Maximum total wait time in seconds.
+        retry (int, optional): Number of retry attempts on transient errors.
+
+    Returns:
+        list[dict]: Execution results once the task succeeds.
+
+    Raises:
+        TimeoutError: If *timeout* is exceeded.
+        RuntimeError: If the task fails or retries are exhausted.
+    """
 
     starttime = time.time()
     while True:
@@ -288,6 +411,21 @@ def query_by_taskid_sync(taskid,
                 raise e
 
 def query_task_by_group(group_name, history=None, verbose=True, savepath=None):
+    """Retrieve all tasks belonging to a named Quafu group.
+
+    Args:
+        group_name (str): The Quafu group name.
+        history (dict, optional): Mapping of group names to task ID lists.
+            If ``None``, it is built from the local ``online_info.txt``.
+        verbose (bool, optional): Whether to print progress information.
+        savepath (os.PathLike, optional): Directory for local task records.
+
+    Returns:
+        list: A list of Quafu result objects.
+
+    Raises:
+        ValueError: If *group_name* is empty or not a string.
+    """
     if not group_name: raise ValueError('Task id ??')
     if not isinstance(group_name, str):
         raise ValueError('Invalid group name')
@@ -320,6 +458,26 @@ def query_task_by_group_sync(group_name, verbose=True, savepath=Path.cwd() / 'qu
                              timeout=60.0,
                              retry=5
                              ):
+    """Blocking query for all tasks in a named Quafu group.
+
+    Polls until all tasks in the group have completed or the timeout
+    is reached.
+
+    Args:
+        group_name (str): The Quafu group name.
+        verbose (bool, optional): Whether to print progress information.
+        savepath (os.PathLike, optional): Directory for local task records.
+        interval (float, optional): Polling interval in seconds.
+        timeout (float, optional): Maximum total wait time in seconds.
+        retry (int, optional): Number of retry attempts on transient errors.
+
+    Returns:
+        list: A list of Quafu result objects.
+
+    Raises:
+        TimeoutError: If *timeout* is exceeded.
+        RuntimeError: If retries are exhausted.
+    """
     starttime = time.time()
     online_info = load_all_online_info(savepath)
     history = dict()
@@ -352,6 +510,12 @@ def query_task_by_group_sync(group_name, verbose=True, savepath=Path.cwd() / 'qu
 
 
 def query_all_tasks(savepath = None):
+    """Query all locally recorded Quafu tasks and cache results.
+
+    Args:
+        savepath (os.PathLike, optional): Directory containing local task
+            records.
+    """
     if not savepath:
         savepath = Path.cwd() / 'quafu_online_info'
     
@@ -370,7 +534,6 @@ def query_all_tasks(savepath = None):
                 write_taskinfo(taskid, taskinfo=ret, savepath=savepath)
 
 def query_all_task(savepath = None):
-    '''Deprecated!! Use query_all_tasks instead
-    '''
+    """Deprecated — use :func:`query_all_tasks` instead."""
     warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
     return query_all_task(savepath)

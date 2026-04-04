@@ -1,3 +1,23 @@
+"""OriginQ dummy backend — local simulator that emulates the Origin Quantum Cloud API.
+
+This module provides the same public interface as ``origin_qcloud`` but
+executes circuits on a local simulator instead of a real quantum device.
+It is primarily intended for development, testing, and debugging without
+consuming real quantum computing resources.
+
+Noise simulation is supported through ``ErrorLoader`` configurations passed
+via ``**kwargs`` (``generic_error``, ``gatetype_error``,
+``gate_specific_error``, ``readout_error``).
+
+Requires the ``QPandaLiteCpp`` C++ extension for the underlying simulator.
+
+Public API:
+    - submit_task — Submit circuit(s) for simulated execution.
+    - query_by_taskid — Retrieve simulated results by task ID.
+    - query_by_taskid_sync — Blocking version of ``query_by_taskid``.
+    - query_all_tasks — Query all locally recorded dummy tasks.
+"""
+
 import datetime
 import time
 from typing import List, Union
@@ -44,14 +64,27 @@ except Exception as e:
                       f'{str(e)}')
     
 class DummyCacheContainer:
+    """In-memory and on-disk cache for dummy simulation results.
+
+    Stores results keyed by task ID, optionally persisting them to a JSONL
+    file for later retrieval across sessions.
+    """
+
     def __init__(self) -> None:
+        """Initialize an empty cache container."""
         self.cached_results = dict()
         self.dummy_path = None
 
     def clear_dummy_cache(self):
+        """Remove all cached results from memory."""
         self.cached_results = dict()
 
     def save_dummy_cache(self, extra_savepath):
+        """Dump all cached results to a timestamped JSONL file.
+
+        Args:
+            extra_savepath (os.PathLike): Output directory.
+        """
         if not os.path.exists(extra_savepath):
             os.makedirs(extra_savepath)
 
@@ -62,6 +95,15 @@ class DummyCacheContainer:
         
     
     def write_dummy_cache(self, taskid, result_body):
+        """Store a result body under the given task ID.
+
+        Args:
+            taskid (str): Unique task identifier.
+            result_body (dict): Result payload to cache.
+
+        Raises:
+            ValueError: If *taskid* already exists in the cache.
+        """
         if taskid in self.cached_results:
             raise ValueError('Impossible to have same taskid in the same cache container.\n'
                              f'taskid (duplicated taskid) = {taskid}\n'
@@ -75,6 +117,17 @@ class DummyCacheContainer:
                 fp.write(json.dumps(result_body) + '\n')
     
     def load_dummy_cache(self, taskid):
+        """Retrieve a cached result by task ID.
+
+        Checks in-memory cache first, then falls back to the on-disk
+        JSONL file (if ``dummy_path`` is set).
+
+        Args:
+            taskid (str): Task identifier to look up.
+
+        Returns:
+            dict or None: The cached result, or ``None`` if not found.
+        """
         if taskid in self.cached_results:
             return self.cached_results[taskid]        
                 
@@ -89,13 +142,24 @@ class DummyCacheContainer:
 dummy_cache_container = DummyCacheContainer()
 
 def set_dummy_path(dummy_path : os.PathLike):
+    """Set the on-disk storage path for dummy simulation results.
+
+    Args:
+        dummy_path (os.PathLike): Directory for persisting dummy results.
+    """
     _create_dummy_cache(dummy_path)
     dummy_cache_container.dummy_path = Path(dummy_path)   
 
 def save_dummy_cache(extra_savepath):
+    """Export the current in-memory dummy cache to a file.
+
+    Args:
+        extra_savepath (os.PathLike): Output directory.
+    """
     dummy_cache_container.save_dummy_cache(extra_savepath)    
 
 def clear_dummy():
+    """Clear all cached dummy simulation results from memory."""
     dummy_cache_container.clear_dummy_cache()    
 
 def _create_dummy_cache(dummy_path = None):
@@ -168,7 +232,28 @@ def _submit_task_group_dummy_impl(
     auto_mapping,
     **kwargs
 ):
-    # print("hi")
+    """Simulate a group of circuits locally and cache the results.
+
+    If the number of circuits exceeds ``default_task_group_size``, the
+    group is split and processed recursively.
+
+    Noise parameters are forwarded via ``**kwargs``:
+
+    - ``generic_error`` — Depolarizing noise applied to all gates.
+    - ``gatetype_error`` — Noise specific to gate types.
+    - ``gate_specific_error`` — Noise specific to individual gates.
+    - ``readout_error`` — Readout (measurement) error rates.
+
+    Args:
+        circuits (list[str]): OriginIR circuit strings to simulate.
+        task_name (str): Name for the task group.
+        shots (int): Number of shots (unused — probability output).
+        auto_mapping (bool): Whether to use automatic qubit mapping.
+        **kwargs: Noise configuration forwarded to ``ErrorLoader``.
+
+    Returns:
+        str or list[str]: Task ID(s) for the submitted group(s).
+    """
     if len(circuits) > default_task_group_size:
         # list of circuits
         groups = []
@@ -258,7 +343,33 @@ def submit_task(
     **kwargs
 ):   
     '''
-    submit circuits or a single circuit (DUMMY)
+    Submit circuit(s) for dummy (simulated) execution.
+
+    Accepts a single OriginIR circuit string or a list thereof.  The
+    circuits are simulated locally using the built-in simulator and the
+    results are cached for later retrieval via ``query_by_taskid``.
+
+    Args:
+        circuit (Union[str, List[str]]): One or more OriginIR circuit strings.
+        task_name (str, optional): Human-readable task name.
+        tasktype: Ignored (dummy parameter kept for API compatibility).
+        chip_id: Ignored (dummy parameter).
+        shots (int, optional): Number of shots.  Ignored — the simulator
+            returns probabilities directly.
+        circuit_optimize (bool, optional): Ignored (dummy parameter).
+        measurement_amend (bool, optional): Ignored (dummy parameter).
+        auto_mapping (bool, optional): Whether to use automatic qubit
+            mapping in the simulator.
+        specified_block: Ignored (dummy parameter).
+        savepath (os.PathLike, optional): Directory for local task records.
+        url: Ignored (dummy parameter).
+        **kwargs: Noise parameters forwarded to the simulator.
+
+    Returns:
+        str: The task ID assigned to this submission.
+
+    Raises:
+        ValueError: If *circuit* is not a ``str`` or ``list`` of ``str``.
     '''
     
     if isinstance(circuit, list):

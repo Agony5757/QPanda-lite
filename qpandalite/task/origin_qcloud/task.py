@@ -1,3 +1,25 @@
+"""Origin Quantum Cloud (本源量子云) backend for task submission and querying.
+
+This is the **primary production backend** used by QPanda-lite.  It
+communicates with the Origin Quantum Cloud service over HTTP, supporting
+circuit submission, status polling, and result retrieval.
+
+Configuration is loaded from ``originq_cloud_config.json`` in the current
+working directory.  The config file must contain the following keys:
+
+- ``apitoken`` — API authentication token.
+- ``submit_url`` — Task submission endpoint.
+- ``query_url`` — Task query endpoint.
+- ``task_group_size`` — Maximum number of circuits per submission group.
+- ``available_qubits`` (optional) — List of physically available qubits.
+
+Public API:
+    - submit_task — Submit circuit(s) for execution on a real quantum chip.
+    - query_by_taskid — Asynchronously query task status.
+    - query_by_taskid_sync — Synchronously query task status (blocking).
+    - query_all_tasks — Query all locally recorded tasks.
+"""
+
 import time
 import traceback
 from typing import List, Union
@@ -66,18 +88,29 @@ default_task_group_size = default_online_config['task_group_size']
 
 
 def parse_response_body(response_body):
-    '''Parse response body (in query_by_taskid)
+    """Parse the raw response dict returned by the OriginQ Cloud query API.
+
+    Extracts task ID, name, status, and result from the server response.
+    Supports bz2-compressed responses.
 
     Args:
-        response_body (Dict): The response body returned by the server.
+        response_body (dict): The JSON-decoded response from the server.
 
     Returns:
-        Dict: The parsed dict containing these fields:
-            - taskid
-            - taskname
-            - status
-            - result (not always)
-    '''
+        dict: Parsed result containing:
+
+            - ``taskid`` (str) — Task identifier.
+            - ``taskname`` (str) — Task name.
+            - ``status`` (str) — ``'success'``, ``'failed'``, or ``'running'``.
+            - ``result`` (list, optional) — Execution results (when
+              ``status='success'``).
+            - ``result`` (dict, optional) — Error info with ``errcode`` and
+              ``errinfo`` (when ``status='failed'``).
+
+    Raises:
+        Exception: If the server response indicates a failure at the API
+            level.
+    """
 
     ret = dict()
     recv_dict = response_body
@@ -122,24 +155,24 @@ def query_by_taskid_single(taskid: str,
                            url=default_query_url, 
                            savepath=Path.cwd() / 'online_info', 
                            **kwargs):
-    """
-    Query circuit status by taskid (Async). This function will return without waiting.
+    """Query a single task's status by its task ID (non-blocking).
+
+    Checks the local cache first.  If no cached result exists, sends a
+    request to the backend query endpoint.
 
     Args:
-        taskid (str): The taskid.
-        url (str, optional): The querying URL. Defaults to default_query_url.
-
-    Raises:
-        ValueError: Taskid invalid.
-        ValueError: URL invalid.
-        RuntimeError: Error when querying.
+        taskid (str): The task ID to query.
+        url (str, optional): Backend query endpoint URL.
+        savepath (os.PathLike, optional): Directory for caching results.
+        **kwargs: Additional platform-specific arguments (unused).
 
     Returns:
-        Dict[str, dict]: The status and the result
-            status : success | failed | running
-            result (when success): List[Dict[str,list]]
-            result (when failed): {'errcode': str, 'errinfo': str}
-            result (when running): N/A
+        dict: A dict with ``'status'`` (``'success'`` | ``'failed'`` |
+        ``'running'``) and ``'result'`` (when the task has finished).
+
+    Raises:
+        ValueError: If *taskid* is empty or *url* is invalid.
+        RuntimeError: If the server returns a non-200 status code.
     """
 
     if not taskid: raise ValueError('Task id ??')
@@ -194,25 +227,24 @@ def query_by_taskid(taskid: Union[List[str], str],
                     url=default_query_url,
                     savepath=Path.cwd() / 'online_info',
                     **kwargs):
-    '''Query circuit status by taskid (Async). This function will return without waiting.
+    """Query task status by task ID (non-blocking).
+
+    Supports querying a single task or a batch of tasks.  When a list is
+    provided, results are merged; the overall status reflects the worst
+    case (``failed`` > ``running`` > ``success``).
 
     Args:
-        taskid (str): The taskid.
-        url (str, optional): The querying URL. Defaults to default_query_url.
-        savepath (PathLikeObject, optional): The savepath. Defaults to Path.cwd() / 'online_info'
-
-    Raises:
-        ValueError: Taskid invalid.
-        ValueError: URL invalid.
-        RuntimeError: Error when querying.
+        taskid (Union[List[str], str]): A single task ID or a list of task IDs.
+        url (str, optional): Backend query endpoint URL.
+        savepath (os.PathLike, optional): Directory for caching results.
+        **kwargs: Additional platform-specific arguments (unused).
 
     Returns:
-        Dict[str, dict]: The status and the result
-            status : success | failed | running
-            result (when success): List[Dict[str,list]]
-            result (when failed): {'errcode': str, 'errinfo': str}
-            result (when running): N/A
-    '''
+        dict: A dict with ``'status'`` and ``'result'``.
+
+    Raises:
+        ValueError: If *taskid* is empty or has an invalid type.
+    """
     if not taskid: raise ValueError('Task id ??')
 
     if isinstance(taskid, list):
@@ -248,25 +280,27 @@ def query_by_taskid_sync(taskid,
                          url=default_query_url,
                          savepath=None,
                          **kwargs):
-    '''Query circuit status by taskid (synchronous version), it will wait until the task finished.
+    """Query task status by task ID (blocking) until completion or timeout.
+
+    Polls the backend at *interval* seconds until the task finishes,
+    times out, or retries are exhausted.
 
     Args:
-        taskid (str): The taskid.
-        interval (float): Interval time between two queries. (in seconds)
-        timeout (float): The timeout for this synchronized query
-        retry (int): The number of retries.
-        savepath (PathLikeObject): The path for saving cached results.
-        url (str, optional): The querying URL. Defaults to default_query_url.
-
-    Raises:
-        RuntimeError: Taskid invalid.
-        RuntimeError: URL invalid.
-        TimeoutError: Timeout reached
+        taskid (Union[List[str], str]): A single task ID or a list of task IDs.
+        interval (float, optional): Polling interval in seconds.
+        timeout (float, optional): Maximum total wait time in seconds.
+        retry (int, optional): Number of retry attempts on transient errors.
+        url (str, optional): Backend query endpoint URL.
+        savepath (os.PathLike, optional): Directory for caching results.
+        **kwargs: Additional platform-specific arguments (unused).
 
     Returns:
-        result (until success): List[Dict[str,list]]
+        list[dict]: Execution results once the task succeeds.
 
-    '''
+    Raises:
+        TimeoutError: If *timeout* is exceeded.
+        RuntimeError: If the task fails or retries are exhausted.
+    """
     starttime = time.time()
     while True:
         try:
@@ -309,31 +343,34 @@ def _submit_task_group(circuits=None,
                        retry=5,
                        savepath=Path.cwd() / 'online_info'
                        ):
-    '''submit taskgroup
+    """Submit a group of circuits to the Origin Quantum Cloud.
+
+    If the group size exceeds ``default_task_group_size``, the circuits
+    are automatically split into sub-groups and submitted recursively.
 
     Args:
-        circuits (List[str]): A list of quantum circuits to be submitted.
-        task_name (str, optional): The name of the task. Defaults to None.
-        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
-        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
-        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
-        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
-        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
-        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
-        compile_only (bool, optional): Only compile time sequence data, without really executing it. Defaults to False.
-        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
-        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
-        timeout (float, optional): The timeout for submitting each task (passed to request.post)
-        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
-
-    Raises:
-        ValueError: Circuit not input
-        RuntimeError: Circuit number exceeds the default_task_group_size
-        RuntimeError: Error when submitting the task
+        circuits (list[str]): OriginIR circuit strings.
+        task_name (str, optional): Task name.
+        tasktype (int, optional): Task type identifier (reserved).
+        chip_id (int, optional): Target quantum chip ID.
+        shots (int, optional): Number of measurement shots.
+        circuit_optimize (bool, optional): Enable circuit optimization.
+        measurement_amend (bool, optional): Enable measurement error mitigation.
+        auto_mapping (bool, optional): Enable automatic qubit mapping.
+        compile_only (bool, optional): Compile only without execution.
+        specified_block (int, optional): Reserved — target block on chip.
+        url (str, optional): Submission endpoint URL.
+        timeout (float, optional): HTTP request timeout in seconds.
+        retry (int, optional): Number of retry attempts on failure.
+        savepath (os.PathLike, optional): Directory for local task records.
 
     Returns:
-        int: The taskid of this taskgroup
-    '''
+        str or list[str]: Task ID(s) for the submitted group(s).
+
+    Raises:
+        ValueError: If *circuits* is empty.
+        RuntimeError: If the server returns an error.
+    """
     if not circuits: raise ValueError('circuit ??')
     if len(circuits) > default_task_group_size:
         groups = []
@@ -428,38 +465,38 @@ def submit_task(
         savepath=Path.cwd() / 'online_info',
         **kwargs
 ):
-    '''submit circuits or a single circuit
+    """Submit one or more quantum circuits for execution on the Origin Quantum Cloud.
+
+    This is the primary entry point for submitting quantum computing tasks.
+    Accepts a single OriginIR string or a list of strings.  The actual
+    submission is delegated to :func:`_submit_task_group`.
 
     Note:
-        Actual implementation is _submit_task_group
-
-    Note:
-        If wanting compile_only=True, use submit_task_compile_only()
+        To submit a compile-only task, use ``_submit_task_group`` directly
+        with ``compile_only=True``.
 
     Args:
-        circuits (str or List[str]): Quantum circuit(s) to be submitted.
-        task_name (str, optional): The name of the task. Defaults to None.
-        tasktype (int): The tasktype. Defaults to None. (Note: reserved field.)
-        chip_id (int, optional): The chip id used to identify the quantum chip. Defaults to 72.
-        shots (int, optional): Number of shots for every circuit. Defaults to 1000.
-        circuit_optimize (bool, optional): Automatically optimize and transpile the circuit. Defaults to True.
-        measurement_amend (bool, optional): Amend the measurement result using an internal algorithm. Defaults to True.
-        auto_mapping (bool, optional): Automatically select the mapping. Defaults to False.
-        specified_block (int, optional): The specified block on chip. Defaults to None. (Note: reserved field.)
-        url (str, optional): The URL for submitting the task. Defaults to default_submit_url.
-        savepath (str, optional): str. Defaults to Path.cwd()/'online_info'. If None, it will not save the task info.
-
-    Optional kwargs:
-        timeout (float, optional): Timeout option for submitting task. Defaults to 30.
-        retry (int, optional): Retry count for submitting task. Defaults to 5.
-
-    Raises:
-        RuntimeError: Circuit not input
-        RuntimeError: Error when submitting the task
+        circuit (Union[str, List[str]]): OriginIR circuit string(s).
+        task_name (str, optional): Human-readable task name.
+        tasktype (int, optional): Task type identifier (reserved).
+        chip_id (int, optional): Target chip ID (default ``72``).
+        shots (int, optional): Number of measurement shots.
+        circuit_optimize (bool, optional): Enable circuit optimization.
+        measurement_amend (bool, optional): Enable measurement error mitigation.
+        auto_mapping (bool, optional): Enable automatic qubit mapping.
+        specified_block (int, optional): Reserved — target block on chip.
+        url (str, optional): Submission endpoint URL.
+        savepath (os.PathLike, optional): Directory for local task records.
+        **kwargs: Additional keyword arguments forwarded to
+            :func:`_submit_task_group`, including ``timeout`` and ``retry``.
 
     Returns:
-        int: The taskid of this taskgroup
-    '''
+        str: The task ID assigned by the backend.
+
+    Raises:
+        ValueError: If *circuit* is not a ``str`` or ``list`` of ``str``.
+        RuntimeError: If the server returns an error.
+    """
 
     if isinstance(circuit, list):
         for c in circuit:
@@ -510,15 +547,20 @@ def submit_task(
 
 
 def query_all_tasks(url=default_query_url, savepath=None, **kwargs):
-    '''Query all task info in the savepath. If you only want to query from taskid, then you can use query_by_taskid instead.
+    """Query the status of all locally recorded tasks.
+
+    Iterates over tasks saved in *savepath*/``online_info.txt`` and queries
+    each from the backend.  Finished results are cached locally.
 
     Args:
-        url (str, optional): The url for querying. Defaults to default_query_url.
-        savepath (PathLikeObject(str, pathlib.Path, etc...), optional): The savepath for loading the online info. Defaults to None.
+        url (str, optional): Backend query endpoint URL.
+        savepath (os.PathLike, optional): Directory containing local task
+            records.
+        **kwargs: Additional platform-specific arguments (unused).
 
     Returns:
-        tuple[int,int]: Two integers (finished task count, all task count)
-    '''
+        tuple[int, int]: A ``(finished_count, total_count)`` pair.
+    """
     if not savepath:
         savepath = Path.cwd() / 'online_info'
 
@@ -553,8 +595,7 @@ def query_all_tasks(url=default_query_url, savepath=None, **kwargs):
     return finished, task_count
 
 def query_all_task(url=default_query_url, savepath=None, **kwargs):
-    '''Deprecated!! Use query_all_tasks instead
-    '''
+    """Deprecated — use :func:`query_all_tasks` instead."""
     warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
     return query_all_tasks(url, savepath, **kwargs)
 

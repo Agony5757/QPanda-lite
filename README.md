@@ -6,113 +6,101 @@
 [![codecov](https://codecov.io/github/Agony5757/QPanda-lite/graph/badge.svg?token=PFQ6F7HQY7)](https://codecov.io/github/Agony5757/QPanda-lite)
 [![Build and Test](https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml/badge.svg?branch=main)](https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml)
 
-QPanda: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplication
+**QPanda**: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplication
 
-QPanda-lite *should be* a simple, easy, and transparent python-native version for QPanda.
+QPanda-lite is a simple, easy-to-use, and transparent Python-native version of QPanda.
 
 ## Status
-Developing. Unstable.
 
-### *Known issues*
-- `controlled_by` simulation for density matrix is not correct, including `backend='density_operator'` and `backend='density_operator_qutip'`.
+🚧 Actively developing. API may change.
 
-## Design principles
+### Known Issues
 
-- A clear, and tranparent way to assemble/execute a quantum program
-- Support sync/async modes for execution on a quantum hardware
-- Clear error hints
-- Full, and better documentations
-- Visualization of the quantum program
-- Be able to migrate to different quantum backends
-- *Extensible* to support more quantum operations, and allow simulations on different backends
+- `controlled_by` simulation for density matrix is incorrect, including `backend='density_operator'` and `backend='density_operator_qutip'`.
 
-### Core concepts
+---
 
-- `Opcode` (`Tuple`): [**Opcode**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/opcode.html) is a tuple representing a quantum operation, including the name of the operation, the qubits it acts on, parameters, and other information.
-- `Circuit` (`Circuit object`): [**Circuit**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/build_circuit_simple.html) is A collection of opcodes, representing a quantum program.  Opcode can be transformed into OriginIR/QASM.
-- `circuit string` (`str`): A string representing a quantum program in [**OriginIR**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/originir_simple.html)/[**QASM**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html), which can be sent to a backend for execution.
-- `Backend` (`Backend object`): A [**quantum simulator**](https://qpanda-lite.readthedocs.io/en/latest/source/guide/simulation_simple.html) or quantum hardware, which can execute a circuit (str).
-- `Result` (`dict`, `list`, `numpy.ndarray`): The result of a quantum program execution, including the measurement results, represented in Python native data structures.
+## Design Principles
 
-### Test coverage
+- **Transparent** — a clear way to assemble and execute quantum programs
+- **Sync & Async** — support both modes for execution on quantum hardware
+- **Clear errors** — helpful error messages when things go wrong
+- **Well documented** — full, high-quality documentation
+- **Visualizable** — visualization of quantum programs
+- **Portable** — migrate to different quantum backends
+- **Extensible** — support more quantum operations and simulation backends
 
-To 
+### Core Concepts
 
-## Install
+| Concept | Type | Description |
+|---------|------|-------------|
+| **Opcode** | `Tuple` | A tuple representing a quantum operation: name, qubits, parameters, etc. [📖 Docs](https://qpanda-lite.readthedocs.io/en/latest/source/guide/opcode.html) |
+| **Circuit** | `Circuit` | A collection of opcodes representing a quantum program. Can be converted to OriginIR/QASM. [📖 Docs](https://qpanda-lite.readthedocs.io/en/latest/source/guide/build_circuit_simple.html) |
+| **Circuit String** | `str` | A string in [OriginIR](https://qpanda-lite.readthedocs.io/en/latest/source/guide/originir_simple.html) or [QASM](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html) format, ready for backend execution. |
+| **Backend** | `Backend` | A [quantum simulator](https://qpanda-lite.readthedocs.io/en/latest/source/guide/simulation_simple.html) or hardware that executes a circuit. |
+| **Result** | `dict` / `list` / `ndarray` | Execution results (measurements, states) in native Python data structures. |
 
-### OS
-- Windows 
-- Linux (not fully tested)
-- MacOS (not fully tested)
+---
+
+## Installation
+
+### Supported Platforms
+
+- Windows
+- Linux (partially tested)
+- macOS (partially tested)
 
 ### Requirements
- 
- - Python >= 3.8
 
-#### Optional for quafu execution
-manually install via pip : 
- - pyquafu (**pip install pyquafu**)
-#### Optional for qiskit execution
-manually install via pip : 
- - qiskit (**pip install qiskit**) and
- - qiskit-ibm-provider (**pip install qiskit-ibm-provider**) and
- - qiskit-ibmq-provider (**pip install qiskit-ibmq-provider**)
+- Python ≥ 3.8
 
-#### Optional for C++ simulator
- - CMake >= 3.1
- - C++ compiler (with C++ 14 support), including MSVC, gcc, clang, etc...
+#### Optional Dependencies
 
+| Feature | Install |
+|---------|---------|
+| **Quafu execution** | `pip install pyquafu` |
+| **Qiskit execution** | `pip install qiskit qiskit-ibm-provider qiskit-ibmq-provider` |
+| **C++ simulator** | CMake ≥ 3.1, C++ compiler with C++14 support (MSVC / gcc / clang) |
 
-### Build from source
+### pip (Recommended)
 
-#### A minimum version
 ```bash
-# Clone the code
-git clone https://github.com/Agony5757/QPanda-lite.git
-cd QPanda-lite
-
-# install
-python setup.py install --no-cpp
-```
-
-#### For development
-```
-git clone https://github.com/Agony5757/QPanda-lite.git
-cd QPanda-lite
-
-# install
-python setup.py develop
-```
-#### With C++ enabled (quantum circuit simulator written in C++, ensure that CMAKE is included in your environment variables.)
-```
-git clone https://github.com/Agony5757/QPanda-lite.git
-cd QPanda-lite
-
-# install
-python setup.py install
-```
-
-### Build the docs
-Will be released in the future.
-
-### pip
-
-For python 3.9 to 3.12
-```
 pip install qpandalite
 ```
 
-## Tutorials
+Python 3.9 – 3.12 supported.
 
-There are several ways to use QPanda-lite now.
+### Build from Source
 
-- Circuit building
-- Run circuit on several backends / dummies (classical-simulation backends)
-- Circuit simulation
+**Minimum (pure Python):**
 
-### 1. Circuit build
+```bash
+git clone https://github.com/Agony5757/QPanda-lite.git
+cd QPanda-lite
+pip install . --no-cpp
+```
 
-Refer to [test/demo](test/demo)
+**Development mode:**
+
+```bash
+git clone https://github.com/Agony5757/QPanda-lite.git
+cd QPanda-lite
+pip install -e .
+```
+
+**With C++ simulator (requires CMake in PATH):**
+
+```bash
+git clone https://github.com/Agony5757/QPanda-lite.git
+cd QPanda-lite
+pip install .
+```
+
+---
+
+## Quick Start
+
+### 1. Build a Circuit
 
 ```python
 from qpandalite import Circuit
@@ -120,74 +108,49 @@ from qpandalite import Circuit
 c = Circuit()
 c.rx(1, 0.1)
 c.cnot(1, 0)
-measure(0, 1, 2, 3)
+c.measure(0, 1, 2, 3)
 print(c.circuit)
 ```
 
-| Function  | Code sample | Explanation | 
-|----------------|--------------|--------------|
-| Circuit initialization | `c = qpandalite.Circuit()` |    
-| Qubit/cbit initialization | | No need to specify the number |   
-| Gate (like CNOT)    |  `c.cnot(1,2)`  | Directly use the qubit number |   
-| Measure | `c.measure(0,1,2)`    | Directly use the qubit number (no support mid-circuit measurement) |   
-| Remap | `c = c.remapping({0:10, 1:11, 2:12})` | Input a python dict to indicate the mapping. It creates a new Circuit object. |
-| Output as str | `c.circuit / c.originir` | Return a python str |
+| Function | Code | Note |
+|----------|------|------|
+| Initialize circuit | `c = Circuit()` | No need to specify qubit count |
+| Add gate | `c.cnot(1, 2)` | Use qubit indices directly |
+| Measure | `c.measure(0, 1, 2)` | No mid-circuit measurement support |
+| Remap qubits | `c = c.remapping({0:10, 1:11})` | Returns a new `Circuit` |
+| Export to string | `c.circuit` / `c.originir` | Returns `str` |
 
-### 2. Circuit run on Quantum Devices / Dummies
+### 2. Run on Quantum Devices / Simulators
 
+| Function | Code | Note |
+|----------|------|------|
+| Import platform | `import qpandalite.task.originq as originq` | Platforms are under `qpandalite.task` |
+| Submit task | `taskid = originq.submit_task(circuits)` | `circuits`: `str` or `List[str]` |
+| Query (sync) | `results = originq.query_by_taskid_sync(taskid)` | Blocks until done; returns `list` |
+| Query (async) | `res = originq.query_by_taskid(taskid)` | Returns immediately; check `res['status']` |
+| Convert result | `originq.convert_originq_result(results, style='keyvalue', prob_or_shots='prob', key_style='bin')` | Styles: `keyvalue` / `list` |
+| Expectation | `calculate_expectation(result, ['ZII', 'IZI', 'IIZ'])` | Diagonal Hamiltonians only |
 
-| Function  | Code sample | Explanation | 
-|----------------|--------------|--------------|
-| "Import" the platform | `import qpandalite.task.originq as originq`  | This importing is independent from `"import qpandalite"`. Available platforms are under `qpandalite.task`
-| Prepare the account |  | See [qcloud_config_template](qcloud_config_template)
-| Task submission | `taskid = originq.submit_task(circuits)` | Circuits is `str` or `List[str]`. Returned `taskid` can be either `list` or one `str`, depending on the number of inputting circuits. All returns are native python data structures. See [Circuit build](#circuit-build).|
-| Query (synchronously)  |  `results = originq.query_by_taskid_sync(taskid)` | Inputting the taskid by the return of `submit_task`. The results are always a `list` (even if you only submit one circuit). All returns are native python data structures. |
-| Query (asynchronously)  | `status_and_result = originq.query_by_taskid(taskid)`  | Inputting the taskid by the return of submit_task. This will immediately return without waiting. Use status_and_result['status'] to see if the computing is finished; use `status_and_result['result']` to view results (the same with Query (synchronously), always being a `list`). All returns are native python data structures. |
-| Handle measurement result | `results = originq.convert_originq_result(results, style = 'keyvalue', prob_or_shots = 'prob', key_style = 'bin')` | Convert the raw data to a more human-friendly format. Style includes `"keyvalue"` and `"list"`, `prob_or_shots includes` "prob" and `"shots"`. When inputting a `list`, the output is also a `list` corresponding to all inputs. All returns are native python data structures. |
-| Calculate expectation | `exps = [calculate_expectation(result, ['ZII', 'IZI', 'IIZ']) for result in results]` | Calculate the Z/I expectations accroding to the measurement results. Note that it only accepts the diagonal Hamiltonians. The hamiltonians can be a `list`, where the output is also a `list`. However, the input "result" cannot be a list.|
+#### 2.1 OriginQ
 
-### 2.1 OriginQ
-#### Step 1. Create online config
+1. Create config — see [`qcloud_config_template/originq_template.py`](qcloud_config_template/originq_template.py)
+2. Call `create_originq_online_config` with token, URLs, group_size
+3. `originq_online_config.json` will be generated in your working directory
+4. Submit tasks to the online chip
 
-Refer to [qcloud_config_template/originq_template.py](qcloud_config_template/originq_template.py)
+**Dummy mode** — use `create_originq_dummy_config` to simulate locally without accessing real hardware.
 
-- Input the necessary information (token, urls, group_size) to call <font face ='consolas' style="background:#F5F5F5">create_originq_online_config</font>
-- You will have the <font face ='consolas' style="background:#F5F5F5">originq_online_config.json</font> in your current working directory (cwd).
-- Now you can submit task to the online chip!
+#### 2.2 Quafu
 
-#### Step 1.1 (Optional). Use `originq_dummy`
+1. Create config — see [`qcloud_config_template/quafu_template.py`](qcloud_config_template/quafu_template.py)
+2. Call `create_quafu_online_config` with token, URLs, group_size
+3. Submit tasks
 
-Dummy server is used to emulate the behavior of an online-available quantum computing server, without really accessing the system but with your local computer to simulate the quantum circuit.
+#### 2.3 IBM
 
-- Input the necessary information (`available_qubits` and `available_topology`) to call `create_originq_dummy_config`.
+*Coming soon.*
 
-- If you want both mode, use `create_originq_config` and inputting all needed information.
-
-#### Step 2. Create the circuits and run
-
-Refer to [test/demo](test/demo)
-
-### 2.2 Circuit run on Quafu Device 
-
-#### Step 1. Create online config
-
-Refer to [qcloud_config_template/quafu_template.py](qcloud_config_template/quafu_template.py)
-
-- Input the necessary information (`token`, `urls`, `group_size`) to call `create_quafu_online_config`
-- You will have the `quafu_online_config.json` in your cwd.
-- Now you can submit task to the online chip!
-
-#### Step 2. Create the circuit and run
-
-Todo.
-
-### 2.3 Circuit run on IBM Device 
-
-Todo.
-
-### 3. Circuit simulation
-
-Refer to [test/draft_test/originir_simulator_test.py](test/draft_test/originir_simulator_test.py)
+### 3. Circuit Simulation
 
 ```python
 import qpandalite.simulator as qsim
@@ -211,32 +174,23 @@ MEASURE q[52],c[1]
 res = sim.simulate(originir)
 print(res)
 print(sim.state)
-
-# Expect output: 
-# [0.23218757036469517, 0.04592184582945769, 0.0, 0.0, 0.6122094271102275, 0.10968115669561962, 0.0, 0.0]
-# [(0.4818584546987789+0j), (-0.21429383059121812+0j), (0.7824381298928546+0j), (0.33118145584500897+0j), 0j, 0j, 0j, 0j]
 ```
 
+---
 
-## Documentation (not finished)
+## Documentation
 
-### Readthedocs
-[Readthedocs: https://qpanda-lite.readthedocs.io/](https://qpanda-lite.readthedocs.io/)
+📖 **[Read the Docs](https://qpanda-lite.readthedocs.io/)**
 
-### OpenQASM 2.0支持
-[See: OpenQASM 2.0支持](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html)
+### OpenQASM 2.0 Support
 
-### Generate Sphinx documentation
+[OpenQASM 2.0 Guide](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html)
 
-```bash
-sphinx-apidoc -o docs/source qpandalite
-```
+### Build Docs Locally
 
-### Build the docs
-
-The doc is based on 
 ```bash
 cd docs
 pip install -r requirements.txt
+sphinx-apidoc -o docs/source qpandalite
 make html
 ```

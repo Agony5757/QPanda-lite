@@ -209,7 +209,8 @@ def submit_task(circuit = None,
         circuit (Union[str, List[str]]): OriginIR circuit string(s).
         task_name (str, optional): Human-readable task name.
         chip_id (str, optional): Target chip ID.  Must be one of
-            ``'ScQ-P10'``, ``'ScQ-P18'``, ``'ScQ-P136'``, ``'ScQ-P10C'``.
+            ``'ScQ-P10'``, ``'ScQ-P18'``, ``'ScQ-P136'``, ``'ScQ-P10C'``,
+            ``'Dongling'``.
         shots (int, optional): Number of measurement shots.
         auto_mapping (bool, optional): Enable auto-mapping.
         savepath (os.PathLike, optional): Directory for local task records.
@@ -225,10 +226,10 @@ def submit_task(circuit = None,
     """
 
 
-    if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']:
+    if chip_id not in ['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C', 'Dongling']:
         raise RuntimeError(r"Invalid chip_id. "
                            r"Current quafu chip_id list: "
-                           r"['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C']")
+                           r"['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C', 'Dongling']")
 
     if isinstance(circuit, str):
         qc = Translation_OriginIR_to_QuafuCircuit.translate(circuit)
@@ -536,4 +537,4 @@ def query_all_tasks(savepath = None):
 def query_all_task(savepath = None):
     """Deprecated — use :func:`query_all_tasks` instead."""
     warnings.warn(DeprecationWarning("Use query_all_tasks instead"))
-    return query_all_task(savepath)
+    return query_all_tasks(savepath)

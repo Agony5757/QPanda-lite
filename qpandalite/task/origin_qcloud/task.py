@@ -104,12 +104,14 @@ def parse_response_body(response_body):
             - ``status`` (str) — ``'success'``, ``'failed'``, or ``'running'``.
             - ``result`` (list, optional) — Execution results (when
               ``status='success'``).
-            - ``result`` (dict, optional) — Error info with ``errcode`` and
-              ``errinfo`` (when ``status='failed'``).
 
     Raises:
         Exception: If the server response indicates a failure at the API
-            level.
+            level (``success`` field is ``False``). The error message includes
+            the server error code and message. Note: this means
+            ``status='failed'`` in the return dict is *not* for API-level
+            errors, but for task-level failures (e.g. circuit compilation
+            failure).
     """
 
     ret = dict()

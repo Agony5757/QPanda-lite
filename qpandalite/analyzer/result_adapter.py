@@ -2,6 +2,7 @@
 '''
 
 from copy import deepcopy
+import json
 import math
 import numpy as np
 from typing import Dict, Union, List
@@ -122,7 +123,7 @@ def convert_quafu_result(quafu_result : List[Union[Dict[str, Dict[str, int]], Di
                                       qubit_num=qubit_num) 
                                       for result in quafu_result]
 
-    quafu_result_dict = eval(quafu_result["res"])
+    quafu_result_dict = json.loads(quafu_result["res"])
     keys = list(quafu_result_dict.keys())
     keys = deepcopy([int(key, base=2) for key in keys])
 

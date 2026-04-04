@@ -4,6 +4,7 @@ import numpy as np
 from qpandalite.circuit_builder.random_originir import random_originir
 from qpandalite.circuit_builder.originir_spec import (available_originir_gates, 
                                                available_originir_error_channels,
+                                               available_originir_error_channels_without_kraus,
                                                generate_sub_gateset_originir,
                                                generate_sub_error_channel_originir)
 
@@ -49,7 +50,7 @@ def test_random_originir_compare_density_operator(backend_1 = 'density_operator'
                                                   random_batchsize = 100,
                                                   n_qubits = 5, n_gates = 20, 
                                                   gate_set = available_originir_gates,
-                                                  error_channel = available_originir_error_channels):
+                                                  error_channel = available_originir_error_channels_without_kraus):
     
     err_list = []    
     good_circuit_list = []

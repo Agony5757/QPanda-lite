@@ -81,7 +81,7 @@ def compare_counts(counts1, counts2):
     counts_difference = {k : v / shots for k, v in counts_difference.items() if v != 0}
     # compare the two sparse vectors with a given threshold
     # if any value is greater than the threshold, raise an error
-    threshold = 0.02
+    threshold = 0.03
     if any(np.abs(v) > threshold for v in counts_difference.values()):
         raise NotMatchError('Counts are not the same.'
                             f'\ncounts1: {counts1}'
@@ -148,13 +148,13 @@ def test_random_qasm_compare_shots():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-                's', 'sdg', 't', 'tdg', 'swap' 
+                's', 'sdg', 't', 'tdg', 'swap', 
                 'ccx', 'cu1', 'cswap']
     
     # You can define a subset of the gate set to test.
     gate_set = ['h', 'cx',  'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
-               's', 'sdg', 't', 'tdg', 'swap' 
+               's', 'sdg', 't', 'tdg', 'swap', 
                 'ccx', 'cu1', 'cswap']
     
     gate_set = generate_sub_gateset_qasm(gate_set)

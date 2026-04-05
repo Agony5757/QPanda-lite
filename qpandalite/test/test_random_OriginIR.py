@@ -94,7 +94,7 @@ def test_random_originir_compare_density_operator(backend_1 = 'density_operator'
     
 
 @qpandalite_test('Test Random OriginIR Density Operator')
-def test_random_originir_density_operator():
+def run_test_random_originir_density_operator():
     
     gate_set =  ['H', 'X', 'Y', 'Z', 'S', 'SX', 'T',
                  'RX', 'RY', 'RZ', 'U1', 'RPhi90', 'RPhi180',
@@ -150,4 +150,4 @@ def test_random_originir_density_operator():
 
 
 if __name__ == '__main__':
-    test_random_originir_density_operator()
+    run_test_random_originir_density_operator()

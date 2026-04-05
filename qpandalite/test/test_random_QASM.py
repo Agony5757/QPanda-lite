@@ -140,7 +140,7 @@ def test_random_qasm_batch(
 
 
 @qpandalite_test('Test Random QASM Statevector')
-def test_random_qasm_statevector():
+def run_test_random_qasm_statevector():
 
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -155,7 +155,7 @@ def test_random_qasm_statevector():
 
 
 @qpandalite_test('Test Random QASM Density Operator')
-def test_random_qasm_density_operator():
+def run_test_random_qasm_density_operator():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -174,7 +174,7 @@ def test_random_qasm_density_operator():
                            backend_type='density_operator')
 
 @qpandalite_test('Test Random QASM Density Operator (Qutip)')
-def test_random_qasm_density_operator_qutip():
+def run_test_random_qasm_density_operator_qutip():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -257,7 +257,7 @@ def test_random_qasm_compare_density_operator(
         raise ValueError('Some circuits failed!')
     
 @qpandalite_test('Test Random QASM Density Operator (Compare with QuTip)')
-def test_random_qasm_density_operator_compare_with_qutip():
+def run_test_random_qasm_density_operator_compare_with_qutip():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -276,7 +276,7 @@ def test_random_qasm_density_operator_compare_with_qutip():
         instruction_set=gate_set)
 
 if __name__ == '__main__':
-    test_random_qasm_statevector()
-    test_random_qasm_density_operator()
-    test_random_qasm_density_operator_qutip()
-    test_random_qasm_density_operator_compare_with_qutip()
+    run_test_random_qasm_statevector()
+    run_test_random_qasm_density_operator()
+    run_test_random_qasm_density_operator_qutip()
+    run_test_random_qasm_density_operator_compare_with_qutip()

@@ -1,5 +1,10 @@
-# This file specifies the QASM language specification, 
+# This file specifies the QASM language specification,
 # including the grammar and the syntax of the language.
+
+__all__ = [
+    'available_qasm_gates',
+    'generate_sub_gateset_qasm',
+]
 
 available_qasm_1q_gates = ['id', 'h', 'x', 'y', 'z', 's', 'sdg', 'sx', 'sxdg', 't', 'tdg']
 available_qasm_1q1p_gates = ['rx', 'ry', 'rz', 'u1']

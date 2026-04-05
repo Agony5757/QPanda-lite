@@ -5,6 +5,14 @@ from typing import List
 from .qasm_spec import available_qasm_gates
 from qpandalite.circuit_builder.qcircuit import OpcodeType
 
+__all__ = [
+    'build_qasm_gate',
+    'build_full_measurements',
+    'build_measurements',
+    'random_qasm',
+    'build_qasm_from_opcodes',
+]
+
 def build_qasm_gate(gate, qubits, params, qreg_name = 'q'):
     """
     Build a QASM gate string with the given gate, qubits, and parameters.

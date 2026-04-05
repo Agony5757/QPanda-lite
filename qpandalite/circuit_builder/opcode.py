@@ -5,6 +5,19 @@ This file is used to convert the opcode to various quantum code formats.
 from typing import List, Optional, Tuple, Union
 from .translate_qasm2_oir import OriginIR_QASM2_dict, get_QASM2_from_opcode
 
+__all__ = [
+    'make_header_originir',
+    'make_header_qasm',
+    'make_measure_originir',
+    'make_measure_qasm',
+    'opcode_to_line_originir',
+    'opcode_to_line_qasm',
+    'OpcodeType',
+    'QubitType',
+    'CbitType',
+    'ParameterType',
+]
+
 QubitType = Union[List[int], int]
 CbitType = Union[List[int], int]
 ParameterType = Optional[Union[List[float], float]]

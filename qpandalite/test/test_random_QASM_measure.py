@@ -101,7 +101,7 @@ def compare_shots(circuit, backend_type='statevector'):
 
     return compare_counts(count1, count2)
     
-def test_random_qasm_compare_shots_impl(  
+def _run_test_random_qasm_compare_shots_impl(  
         random_batchsize = 100, 
         n_qubit = 5,
         n_gates = 20,
@@ -144,7 +144,7 @@ def test_random_qasm_compare_shots_impl(
     
 
 @qpandalite_test('Test Random QASM Compare Shots')
-def test_random_qasm_compare_shots():
+def run_test_random_qasm_compare_shots():
     
     gate_set = ['h', 'cx', 'rx', 'ry', 'rz', 
                 'u1', 'u2', 'u3', 'id', 'x', 'y', 'z', 
@@ -158,23 +158,23 @@ def test_random_qasm_compare_shots():
                 'ccx', 'cu1', 'cswap']
     
     gate_set = generate_sub_gateset_qasm(gate_set)
-    test_random_qasm_compare_shots_impl(random_batchsize=10, 
+    _run_test_random_qasm_compare_shots_impl(random_batchsize=10, 
                                    n_qubit=5, 
                                    n_gates=50, 
                                    instruction_set=gate_set,
                                    backend_type='statevector')
     
-    test_random_qasm_compare_shots_impl(random_batchsize=10, 
+    _run_test_random_qasm_compare_shots_impl(random_batchsize=10, 
                                    n_qubit=5, 
                                    n_gates=50, 
                                    instruction_set=gate_set,
                                    backend_type='density_matrix')
     
-    test_random_qasm_compare_shots_impl(random_batchsize=10, 
+    _run_test_random_qasm_compare_shots_impl(random_batchsize=10, 
                                    n_qubit=5, 
                                    n_gates=50, 
                                    instruction_set=gate_set,
                                    backend_type='density_matrix_qutip')
 
 if __name__ == '__main__':
-    test_random_qasm_compare_shots()
+    run_test_random_qasm_compare_shots()

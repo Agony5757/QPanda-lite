@@ -186,7 +186,7 @@ setup(
         "Source Code": "https://github.com/Agony5757/QPanda-Lite.git",
     },
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-    packages = find_packages(),
+    packages = find_packages(exclude=['qpandalite.test', 'qpandalite.test.*']),
     package_data = {'qpandalite':['test/QASMBench.pkl', 'QPandaLitePy.pyi']},
     install_requires=['numpy',
                       'requests',

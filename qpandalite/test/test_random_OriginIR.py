@@ -45,7 +45,7 @@ def compare_density_operator(circuit, backend_1 = 'density_operator', backend_2 
         )
 
 
-def test_random_originir_compare_density_operator(backend_1 = 'density_operator',
+def _test_random_originir_compare_density_operator(backend_1 = 'density_operator',
                                                   backend_2 = 'density_operator_qutip',
                                                   random_batchsize = 100,
                                                   n_qubits = 5, n_gates = 20, 
@@ -94,7 +94,7 @@ def test_random_originir_compare_density_operator(backend_1 = 'density_operator'
     
 
 @qpandalite_test('Test Random OriginIR Density Operator')
-def test_random_originir_density_operator():
+def run_test_random_originir_density_operator():
     
     gate_set =  ['H', 'X', 'Y', 'Z', 'S', 'SX', 'T',
                  'RX', 'RY', 'RZ', 'U1', 'RPhi90', 'RPhi180',
@@ -130,7 +130,7 @@ def test_random_originir_density_operator():
     # Note: Kraus1Q excluded — random generation not yet implemented (see originir_spec.py TODO)
     error_channel = generate_sub_error_channel_originir(error_channel)
    
-    test_random_originir_compare_density_operator(
+    _test_random_originir_compare_density_operator(
         backend_1 = 'density_operator',
         backend_2 = 'density_operator_qutip',
         random_batchsize = 100,
@@ -139,7 +139,7 @@ def test_random_originir_density_operator():
         gate_set = gate_set,
         error_channel = error_channel)
     
-    test_random_originir_compare_density_operator(
+    _test_random_originir_compare_density_operator(
         backend_1 = 'density_operator',
         backend_2 = 'statevector',
         random_batchsize = 100,
@@ -150,4 +150,4 @@ def test_random_originir_density_operator():
 
 
 if __name__ == '__main__':
-    test_random_originir_density_operator()
+    run_test_random_originir_density_operator()

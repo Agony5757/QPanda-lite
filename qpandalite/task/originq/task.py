@@ -20,7 +20,7 @@ import warnings
 from json.decoder import JSONDecodeError
 import bz2
 
-from ..task_utils import *
+from qpandalite.task.task_utils import make_savepath, load_all_online_info, write_taskinfo
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def get_token(pilot_api, login_url):

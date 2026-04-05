@@ -1,5 +1,5 @@
 """
-[Module QPandaLitePy]
+[Module qpandalite_cpp]
 """
 from __future__ import annotations
 import typing

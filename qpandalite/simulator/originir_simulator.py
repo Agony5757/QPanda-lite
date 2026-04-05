@@ -8,7 +8,7 @@ from .base_simulator import BaseNoisySimulator, BaseSimulator
 from .error_model import *
 
 if TYPE_CHECKING:
-    from .QPandaLitePy import *
+    from .qpandalite_cpp import *
 
 class OriginIR_Simulator(BaseSimulator):    
         

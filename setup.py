@@ -154,7 +154,7 @@ class CMakeBuild(build_ext):
         )
 
 if BUILD_WITH_CPP:
-    ext_modules = [CMakeExtension("QPandaLitePy")]
+    ext_modules = [CMakeExtension("qpandalite_cpp")]
     cmdclass = {"build_ext": CMakeBuild}
 else:
     ext_modules = []
@@ -187,7 +187,7 @@ setup(
     },
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
     packages = find_packages(exclude=['qpandalite.test', 'qpandalite.test.*']),
-    package_data = {'qpandalite':['test/QASMBench.pkl', 'QPandaLitePy.pyi']},
+    package_data = {'qpandalite':['test/QASMBench.pkl', 'qpandalite_cpp.pyi']},
     install_requires=['numpy',
                       'requests',
                       'pandas',

@@ -1,10 +1,10 @@
 import warnings
 from typing import TYPE_CHECKING
 try:
-    # QPandaLitePy extension is implemented by C++
-    from QPandaLitePy import *
+    # qpandalite_cpp extension is implemented by C++
+    from qpandalite_cpp import *
     if TYPE_CHECKING:
-        from .QPandaLitePy import *
+        from .qpandalite_cpp import *
 except ImportError as e:
     # Note: Without compiling the QPandaLiteCpp, you can also use qpandalite.
     # Only the C++ simulator is disabled.

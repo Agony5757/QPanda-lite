@@ -1,6 +1,15 @@
 # This file specifies the OriginIR language specification,
 # including the grammar and the syntax of the language.
 
+__all__ = [
+    'available_originir_gates',
+    'angular_gates',
+    'available_originir_error_channels',
+    'available_originir_error_channels_without_kraus',
+    'generate_sub_gateset_originir',
+    'generate_sub_error_channel_originir',
+]
+
 available_originir_1q_gates = ['H', 'X', 'Y', 'Z', 'S', 'SX', 'T', 'I']
 available_originir_1q1p_gates = ['RX', 'RY', 'RZ', 'U1', 'RPhi90', 'RPhi180', ]
 available_originir_1q2p_gates = ['RPhi', 'U2']

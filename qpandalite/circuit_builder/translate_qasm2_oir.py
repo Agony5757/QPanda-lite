@@ -3,6 +3,14 @@
 from typing import List, Tuple, Union
 from .qasm_spec import available_qasm_gates
 
+__all__ = [
+    'OriginIR_QASM2_dict',
+    'QASM2_OriginIR_dict',
+    'direct_mapping_qasm2_to_oir',
+    'get_opcode_from_QASM2',
+    'get_QASM2_from_opcode',
+]
+
 qasm2_oir_mapping = {
     ('id', 'I'),
     ('h', 'H'),

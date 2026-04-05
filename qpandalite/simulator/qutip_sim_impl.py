@@ -1,3 +1,4 @@
+__all__ = ["DensityOperatorSimulatorQutip"]
 import numpy as np
 from qutip import (
     Qobj, basis, tensor, ket2dm, 

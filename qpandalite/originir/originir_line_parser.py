@@ -1,3 +1,4 @@
+__all__ = ["OriginIR_LineParser"]
 import re
 
 class OriginIR_LineParser:    

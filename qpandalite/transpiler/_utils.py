@@ -1,4 +1,5 @@
 
+__all__ = ["CompilationFailedException", "IRConversionFailedException"]
 class CompilationFailedException(RuntimeError):
     pass
 

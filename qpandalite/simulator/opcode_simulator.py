@@ -1,6 +1,7 @@
 '''Opcode simulator, a fundamental simulator for QPanda-lite.
 It simulates from a basic opcode
 '''
+__all__ = ["backend_alias", "OpcodeSimulator"]
 from typing import List, Optional, Tuple, TYPE_CHECKING, Union
 from .qutip_sim_impl import DensityOperatorSimulatorQutip
 import numpy as np

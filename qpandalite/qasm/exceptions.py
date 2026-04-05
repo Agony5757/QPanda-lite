@@ -1,4 +1,5 @@
 
+__all__ = ["NotSupportedGateError", "RegisterNotFoundError", "RegisterOutOfRangeError", "RegisterDefinitionError"]
 class NotSupportedGateError(Exception):
     pass
 

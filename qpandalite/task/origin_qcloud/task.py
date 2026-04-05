@@ -87,6 +87,15 @@ default_query_url = default_online_config['query_url']
 default_task_group_size = default_online_config['task_group_size']
 
 
+__all__ = [
+    'parse_response_body',
+    'query_by_taskid_single',
+    'query_by_taskid',
+    'query_by_taskid_sync',
+    'submit_task',
+    'query_all_tasks',
+    'query_all_task',
+]
 def parse_response_body(response_body):
     """Parse the raw response dict returned by the OriginQ Cloud query API.
 

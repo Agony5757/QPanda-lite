@@ -100,10 +100,6 @@ class CMakeBuild(build_ext):
                 except ImportError:
                     pass
 
-            cmake_args += [
-                '-DCMAKE_CXX_COMPILER=clang++' 
-            ]
-
         else:
 
             # Single config generators are handled "normally"
@@ -188,18 +184,23 @@ setup(
     classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
     packages = find_packages(exclude=['qpandalite.test', 'qpandalite.test.*']),
     package_data = {'qpandalite':['test/QASMBench.pkl', 'QPandaLitePy.pyi']},
-    install_requires=['numpy',
-                      'requests',
-                      'pandas',
-                      'seaborn',
-                      'matplotlib',
-                      'rb_generator',
-                      'pybind11-stubgen',
-                      'qiskit',
-                      'qiskit-aer',
-                      'qutip',
-                      'qutip-qip',
-                      'pyqpanda3'],
+    install_requires=[
+        'numpy',
+        'requests',
+        'pandas',
+        'seaborn',
+        'matplotlib',
+    ],
+    extras_require={
+        'qiskit': ['qiskit', 'qiskit-aer'],
+        'qutip': ['qutip', 'qutip-qip'],
+        'draw': ['pyqpanda3'],
+        'full': [
+            'qiskit', 'qiskit-aer',
+            'qutip', 'qutip-qip',
+            'pyqpanda3',
+        ],
+    },
     zip_safe = False,
     python_requires='>=3.9, <3.13',
 )

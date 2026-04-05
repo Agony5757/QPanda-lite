@@ -71,6 +71,14 @@ except Exception as e:
 
 backends = provider.backends()
 
+__all__ = [
+    'query_by_taskid_single',
+    'query_by_taskid',
+    'query_by_taskid_sync',
+    'submit_task',
+    'query_all_tasks',
+    'query_all_task',
+]
 def query_by_taskid_single(taskid: str, ):
     '''Query circuit status by taskid (Async). This function will return without waiting.
 

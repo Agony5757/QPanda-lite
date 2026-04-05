@@ -33,7 +33,7 @@ from json.decoder import JSONDecodeError
 
 
 from qpandalite.originir.originir_line_parser import OriginIR_LineParser
-from ..task_utils import load_all_online_info, write_taskinfo
+from qpandalite.task.task_utils import load_all_online_info, write_taskinfo
 
 # Initialize default_online_config with a default or dummy value
 default_online_config = {'default_token': 'dummy_token'}
@@ -75,6 +75,16 @@ if os.getenv('SPHINX_DOC_GEN') != '1':
                           'Unknown import error. Original exception is:\n'
                           f'{str(e)}')
 
+__all__ = [
+    'submit_task',
+    'query_by_taskid_single',
+    'query_by_taskid',
+    'query_by_taskid_sync',
+    'query_task_by_group',
+    'query_task_by_group_sync',
+    'query_all_tasks',
+    'query_all_task',
+]
 class Translation_OriginIR_to_QuafuCircuit(OriginIR_LineParser):
     """Translate OriginIR circuits to Quafu ``QuantumCircuit`` objects."""
 

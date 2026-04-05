@@ -38,7 +38,7 @@ import json
 import hashlib
 from json.decoder import JSONDecodeError
 
-from ..task_utils import *
+from qpandalite.task.task_utils import get_last_taskid, load_circuit, load_circuit_group, load_all_online_info, write_taskinfo
 
 try:
     with open('originq_online_config.json', 'r') as fp:
@@ -63,6 +63,15 @@ except Exception as e:
                       'Unknown import error. Original exception is:\n'
                       f'{str(e)}')
     
+__all__ = [
+    'set_dummy_path',
+    'save_dummy_cache',
+    'submit_task',
+    'query_by_taskid',
+    'query_by_taskid_sync',
+    'query_all_tasks',
+    'query_all_task',
+]
 class DummyCacheContainer:
     """In-memory and on-disk cache for dummy simulation results.
 

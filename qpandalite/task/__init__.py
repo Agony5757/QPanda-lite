@@ -1,3 +1,17 @@
+__all__ = [
+    # task_utils
+    'get_last_taskid',
+    'load_circuit',
+    'load_circuit_group',
+    'load_all_online_info',
+    # platform submodules (import separately, e.g. from qpandalite.task import origin_qcloud)
+    'origin_qcloud',
+    'originq_dummy',
+    'originq',
+    'quafu',
+    'ibm',
+]
+
 """Quantum computing task management module.
 
 This package provides a unified interface for submitting and querying
@@ -19,3 +33,11 @@ Each platform sub-module exposes a consistent set of public functions:
   completion or timeout.
 - ``query_all_tasks`` — Query all tasks recorded in the local save directory.
 """
+
+__all__ = [
+    # task utilities
+    'get_last_taskid',
+    'load_circuit',
+    'load_circuit_group',
+    'load_all_online_info',
+]

@@ -1,12 +1,11 @@
-'''
-Commit task to originq QPilot directly.
+"""Legacy OriginQ QPilot interface (currently unavailable; raises ImportError).
 
-This module is not available in current version. 
-Please use qpandalite.task.originq_cloud instead.
-'''
+This module previously provided direct access to the OriginQ QPilot platform.
+It is no longer maintained. Please use ``qpandalite.task.origin_qcloud`` instead.
+"""
 
 raise ImportError('This module is not available in current version. '
-                  'Please use qpandalite.task.originq_cloud instead.')
+                  'Please use qpandalite.task.origin_qcloud instead.')
 
 import time
 import traceback
@@ -20,9 +19,21 @@ import warnings
 from json.decoder import JSONDecodeError
 import bz2
 
-from ..task_utils import *
+from qpandalite.task.task_utils import get_last_taskid, load_circuit, load_circuit_group, load_all_online_info, write_taskinfo
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
+__all__ = [
+    'get_token',
+    'parse_response_body',
+    'query_by_taskid_single',
+    'query_by_taskid',
+    'query_by_taskid_sync',
+    'submit_task',
+    'submit_task_compile_only',
+    'query_all_tasks',
+    'query_all_task',
+]
 def get_token(pilot_api, login_url):
     request_body = dict()
     request_body['apiKey'] = pilot_api

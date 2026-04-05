@@ -13,6 +13,7 @@ Public API:
     - query_all_task — Query status of all locally recorded tasks.
 """
 
+__all__ = ["submit_task", "query_by_taskid", "query_by_taskid_sync", "query_all_task"]
 from typing import Any, Union, List, AnyStr
 from os import PathLike
 

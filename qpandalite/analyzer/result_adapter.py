@@ -1,6 +1,7 @@
 '''Result Adapter
 '''
 
+__all__ = ["convert_originq_result", "convert_quafu_result", "shots2prob", "kv2list"]
 from copy import deepcopy
 import json
 import math

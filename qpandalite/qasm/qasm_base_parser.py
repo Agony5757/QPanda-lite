@@ -1,3 +1,4 @@
+__all__ = ["OpenQASM2_BaseParser"]
 from typing import List, Tuple
 from qpandalite.circuit_builder.qcircuit import Circuit
 from qpandalite.originir.originir_base_parser import OriginIR_BaseParser

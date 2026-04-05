@@ -1,3 +1,4 @@
+__all__ = ["OriginIR_BaseParser"]
 from copy import deepcopy
 from typing import List, Tuple
 

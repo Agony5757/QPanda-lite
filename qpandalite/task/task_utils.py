@@ -5,6 +5,7 @@ records (``online_info``), and generating timestamp strings.  These are
 used internally by the platform-specific task modules.
 """
 
+__all__ = ["load_circuit", "load_circuit_group", "make_savepath", "load_all_online_info", "get_last_taskid", "write_taskinfo", "timestr", "timestr_ymd_hms"]
 import requests
 from pathlib import Path
 import os

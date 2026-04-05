@@ -1,3 +1,4 @@
+__all__ = ["get_backend"]
 from .originir_simulator import OriginIR_Simulator
 from .qasm_simulator import QASM_Simulator
 from .base_simulator import BaseSimulator

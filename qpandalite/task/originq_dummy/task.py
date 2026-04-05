@@ -38,7 +38,7 @@ import json
 import hashlib
 from json.decoder import JSONDecodeError
 
-from ..task_utils import *
+from ..task_utils import timestr, make_savepath, load_all_online_info, write_taskinfo
 
 try:
     with open('originq_online_config.json', 'r') as fp:

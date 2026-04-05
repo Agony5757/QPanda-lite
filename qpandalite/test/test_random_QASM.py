@@ -94,7 +94,7 @@ def _test_random_qasm(circuit, backend_type):
         # other unexpected error
         raise e
 
-def test_random_qasm_batch(
+def _test_random_qasm_batch(
     random_batchsize = 100, 
     n_qubit = 5,
     n_gates = 20,
@@ -148,7 +148,7 @@ def run_test_random_qasm_statevector():
                 'ccx', 'cu1', 'cswap']
     gate_set = generate_sub_gateset_qasm(gate_set)
 
-    test_random_qasm_batch(random_batchsize=100, 
+    _test_random_qasm_batch(random_batchsize=100, 
                            n_qubit=5, n_gates=50, 
                            instruction_set=gate_set,
                            backend_type='statevector')
@@ -168,7 +168,7 @@ def run_test_random_qasm_density_operator():
                 'ccx', 'cu1', 'cswap']
     gate_set = generate_sub_gateset_qasm(gate_set)
 
-    test_random_qasm_batch(random_batchsize=100, 
+    _test_random_qasm_batch(random_batchsize=100, 
                            n_qubit=5, n_gates=50, 
                            instruction_set=gate_set,
                            backend_type='density_operator')
@@ -186,7 +186,7 @@ def run_test_random_qasm_density_operator_qutip():
                 'ccx', 'cu1', 'cswap']
     gate_set = generate_sub_gateset_qasm(gate_set)
 
-    test_random_qasm_batch(random_batchsize=100, 
+    _test_random_qasm_batch(random_batchsize=100, 
                            n_qubit=5, n_gates=50, 
                            instruction_set=gate_set,
                            backend_type='density_operator_qutip')

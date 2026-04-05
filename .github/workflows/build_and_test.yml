@@ -61,6 +61,6 @@ jobs:
       
     - name: Test
       run: |
-        pip install pytest
+        pip install pytest --quiet
         pytest qpandalite/test/ -v
    

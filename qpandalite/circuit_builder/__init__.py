@@ -1,4 +1,4 @@
-from .qcircuit import Circuit, CircuitControlContext, CircuitDagContext
+from .qcircuit import Circuit
 from .opcode import (
     make_header_originir,
     make_header_qasm,
@@ -6,6 +6,10 @@ from .opcode import (
     make_measure_qasm,
     opcode_to_line_originir,
     opcode_to_line_qasm,
+    OpcodeType,
+    QubitType,
+    CbitType,
+    ParameterType,
 )
 from .originir_spec import (
     available_originir_gates,

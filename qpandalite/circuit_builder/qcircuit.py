@@ -8,8 +8,6 @@ import re
 
 __all__ = [
     'Circuit',
-    'CircuitControlContext',
-    'CircuitDagContext',
 ]
 
 class CircuitControlContext:

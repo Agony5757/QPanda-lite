@@ -54,7 +54,7 @@ zip-safe = false
 packages = { find = { exclude = ["qpandalite.test", "qpandalite.test.*"] } }
 
 [tool.setuptools.dynamic]
-version = { attr = "qpandalite.__version__" }
+version = { attr = "qpandalite.version.__version__" }
 
 [tool.setuptools.package-data]
 "qpandalite" = ["test/QASMBench.pkl"]

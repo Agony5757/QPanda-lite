@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=64", "wheel", "cmake>=3.15", "ninja"]
+build-backend = "setuptools.build_meta"
+# setup.py is retained for custom CMakeExtension / CMakeBuild logic
+
+[project]
+name = "qpandalite"
+dynamic = ["version"]
+description = "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.9,<3.13"
+authors = [
+    { name = "Agony", email = "chenzhaoyun@iai.ustc.edu.cn" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Programming Language :: C++",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+]
+dependencies = [
+    "numpy",
+    "requests",
+    "pandas",
+    "seaborn",
+    "matplotlib",
+    "rb_generator",
+    "pybind11-stubgen",
+    "qiskit",
+    "qiskit-aer",
+    "qutip",
+    "qutip-qip",
+    "pyqpanda3",
+]
+
+[project.urls]
+"Source Code" = "https://github.com/Agony5757/QPanda-Lite.git"
+
+[tool.setuptools]
+zip-safe = false
+packages = { find = { exclude = ["qpandalite.test", "qpandalite.test.*"] } }
+
+[tool.setuptools.dynamic]
+version = { attr = "qpandalite.version.__version__" }
+
+[tool.setuptools.package-data]
+"qpandalite" = ["test/QASMBench.pkl"]
+"qpandalite.simulator" = ["qpandalite_cpp.pyi"]

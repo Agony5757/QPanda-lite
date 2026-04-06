@@ -1,6 +1,12 @@
+"""
+Custom CMake build logic for qpandalite_cpp extension.
+
+Metadata and dependencies are defined in pyproject.toml.
+This file is retained solely for CMakeExtension / CMakeBuild,
+which cannot be expressed declaratively in pyproject.toml.
+"""
 import re
-from setuptools import Distribution, setup, Extension, find_packages
-import setuptools
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 import os
 import subprocess
@@ -19,26 +25,6 @@ for i, arg in enumerate(sys.argv):
 
 sys.argv = filtered_args
 
-
-CLASSIFIERS = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Science/Research
-Intended Audience :: Developers
-License :: OSI Approved :: Apache Software License
-Programming Language :: C++
-Programming Language :: Python
-Programming Language :: Python :: 3
-Programming Language :: Python :: 3.9
-Programming Language :: Python :: 3.10
-Programming Language :: Python :: 3.11
-Programming Language :: Python :: 3.12
-Programming Language :: Python :: 3 :: Only
-Topic :: Scientific/Engineering :: Artificial Intelligence
-Operating System :: Microsoft :: Windows
-Operating System :: POSIX
-Operating System :: Unix
-"""
-
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
     "win32": "Win32",
@@ -47,13 +33,12 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
-# A CMakeExtension needs a sourcedir instead of a file list.
-# The name must be the _single_ output extension from the CMake build.
-# If you need multiple extensions, see scikit-build.
+
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=""):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
+
 
 class CMakeBuild(build_ext):
     def build_extension(self, ext):
@@ -70,14 +55,12 @@ class CMakeBuild(build_ext):
         # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
-        # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
-        # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
-        # from Python.
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
         ]
         build_args = []
+
         # Adding CMake arguments set as environment variable
         # (needed e.g. to build for ARM OSx on conda-forge)
         if "CMAKE_ARGS" in os.environ:
@@ -88,10 +71,7 @@ class CMakeBuild(build_ext):
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
-            # multithreads automatically. MSVC would require all variables be
-            # exported for Ninja to pick it up, which is a little tricky to do.
-            # Users can override the generator with CMAKE_GENERATOR in CMake
-            # 3.15+.
+            # multithreads automatically. Not using MSVC.
             if not cmake_generator:
                 try:
                     import ninja  # noqa: F401
@@ -99,13 +79,8 @@ class CMakeBuild(build_ext):
                     cmake_args += ["-GNinja"]
                 except ImportError:
                     pass
-
-            cmake_args += [
-                '-DCMAKE_CXX_COMPILER=clang++' 
-            ]
-
+            # Let CMake auto-detect the C++ compiler instead of hardcoding one.
         else:
-
             # Single config generators are handled "normally"
             single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
 
@@ -148,10 +123,11 @@ class CMakeBuild(build_ext):
             ["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp
         )
         print(build_args)
-        
+
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
+
 
 if BUILD_WITH_CPP:
     ext_modules = [CMakeExtension("qpandalite_cpp")]
@@ -160,46 +136,7 @@ else:
     ext_modules = []
     cmdclass = {}
 
-__version__ = ''
-# Obtain version from versioneer
-exec(open('qpandalite/version.py').read())
-if not __version__:
-    raise ValueError('Version is not set')
-
-description = ('QPanda-Lite. A python-native version for pyqpanda. '
-               'Simple, easy, and transparent.')
-
-with open("README.md", 'r', encoding = 'utf-8') as fp:
-    readme = fp.read()
-
 setup(
-    name = "qpandalite",
-    version = __version__,
-    author = "Agony",
-    author_email = "chenzhaoyun@iai.ustc.edu.cn",
-    description= description,
-    long_description = readme,
-    long_description_content_type="text/markdown",
     ext_modules=ext_modules,
     cmdclass=cmdclass,
-    project_urls={
-        "Source Code": "https://github.com/Agony5757/QPanda-Lite.git",
-    },
-    classifiers=[_f for _f in CLASSIFIERS.split('\n') if _f],
-    packages = find_packages(exclude=['qpandalite.test', 'qpandalite.test.*']),
-    package_data = {'qpandalite':['test/QASMBench.pkl', 'qpandalite_cpp.pyi']},
-    install_requires=['numpy',
-                      'requests',
-                      'pandas',
-                      'seaborn',
-                      'matplotlib',
-                      'rb_generator',
-                      'pybind11-stubgen',
-                      'qiskit',
-                      'qiskit-aer',
-                      'qutip',
-                      'qutip-qip',
-                      'pyqpanda3'],
-    zip_safe = False,
-    python_requires='>=3.9, <3.13',
 )

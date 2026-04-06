@@ -5,10 +5,10 @@ __all__ = ["backend_alias", "OpcodeSimulator"]
 from typing import List, Optional, Tuple, TYPE_CHECKING, Union
 from .qutip_sim_impl import DensityOperatorSimulatorQutip
 import numpy as np
-from QPandaLitePy import *
+from qpandalite_cpp import *
 from qpandalite.circuit_builder.qcircuit import OpcodeType
 if TYPE_CHECKING:
-    from .QPandaLitePy import *
+    from .qpandalite_cpp import *
 
 
 def backend_alias(backend_type):

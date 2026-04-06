@@ -6,6 +6,6 @@ except ImportError:
     exit()
 
 import subprocess
-# generate stub for QPandaLitePy on the package directory
-# execute : pybind11-stubgen QPandaLitePy -o qpandalite
-subprocess.run(["pybind11-stubgen", "QPandaLitePy", "-o", "qpandalite/simulator"])
+# generate stub for qpandalite_cpp on the package directory
+# execute : pybind11-stubgen qpandalite_cpp -o qpandalite
+subprocess.run(["pybind11-stubgen", "qpandalite_cpp", "-o", "qpandalite/simulator"])

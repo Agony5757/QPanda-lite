@@ -83,7 +83,7 @@ autodoc_mock_imports = ["qiskit",
                         "qiskit_ibm_provider", 
                         "quafu", 
                         "pandas", 
-                        "QPandaLitePy",
+                        "qpandalite_cpp",
                         "qiskit-aer", 
                         "qutip",
                         "qutip_qip"]

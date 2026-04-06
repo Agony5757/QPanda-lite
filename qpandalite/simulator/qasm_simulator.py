@@ -8,7 +8,7 @@ from .opcode_simulator import OpcodeSimulator
 from .base_simulator import BaseNoisySimulator, BaseSimulator
 import numpy as np
 if TYPE_CHECKING:
-    from .QPandaLitePy import *
+    from .qpandalite_cpp import *
 
 class QASM_Simulator(BaseSimulator):
     def __init__(self, backend_type = 'statevector',                                                  

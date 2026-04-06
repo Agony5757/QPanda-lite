@@ -16,9 +16,9 @@ using namespace std;
 using namespace pybind11::literals;
 namespace py = pybind11;
 
-PYBIND11_MODULE(QPandaLitePy, m)
+PYBIND11_MODULE(qpandalite_cpp, m)
 {
-	m.doc() = "[Module QPandaLitePy]";
+	m.doc() = "[Module qpandalite_cpp]";
 	m.def("seed", &qpandalite::seed);
 	m.def("rand", &qpandalite::rand);
 

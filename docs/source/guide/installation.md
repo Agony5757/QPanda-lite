@@ -75,7 +75,7 @@ pip install -e .
 > 确保已执行 `git clone --recurse-submodules`，pybind11 子模块未初始化会导致此错误。运行 `git submodule update --init --recursive` 后重新安装。
 
 **Q：如何确认 C++ 模拟器已正确安装？**
-> 安装后运行 `python -c "from QPandaLiteCpp import *; print('C++ 模拟器正常')"`。若无声出输出说明 C++ 扩展未安装成功。
+> 安装后运行 `python -c "from qpandalite_cpp import *; print('C++ 模拟器正常')"`。若无声出输出说明 C++ 扩展未安装成功。
 
 ## 额外依赖
 

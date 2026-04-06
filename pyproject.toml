@@ -8,7 +8,7 @@ name = "qpandalite"
 dynamic = ["version"]
 description = "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent."
 readme = "README.md"
-license = "Apache-2.0"
+license = {file = "LICENSE"}
 requires-python = ">=3.9,<3.13"
 authors = [
     { name = "Agony", email = "chenzhaoyun@iai.ustc.edu.cn" },

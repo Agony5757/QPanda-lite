@@ -11,13 +11,16 @@ from .opcode import (
     opcode_to_line_qasm,
 )
 
-__all__ = ["Circuit"]
-
 # Opcode: (op_name, qubits, cbits, params, dagger, control_qubits)
 QubitSpec = int | list[int]
 CbitSpec = int | list[int] | None
 ParamSpec = float | list[float] | tuple[float, ...] | None
 OpCode = tuple[str, QubitSpec, CbitSpec, ParamSpec, bool, QubitSpec]
+
+__all__ = ["Circuit", "OpcodeType"]
+
+# Backward-compatible type alias
+OpcodeType = OpCode
 
 
 class CircuitControlContext:
@@ -146,7 +149,6 @@ class Circuit:
         self.opcode_list.append(opcode)
         self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
 
-    @property
     @property
     def depth(self) -> int:
         """Calculate the depth of the quantum circuit."""

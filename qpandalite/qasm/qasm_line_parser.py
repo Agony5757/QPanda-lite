@@ -7,33 +7,68 @@ from typing import Any
 
 
 class OpenQASM2_LineParser:  # noqa: N801
-    # Class-level compiled regex patterns (str)
-    regexp_qreg_str: str
-    regexp_creg_str: str
-    qreg_str: str
-    regexp_1q_str: str
-    regexp_2q_str: str
-    regexp_3q_str: str
-    regexp_4q_str: str
-    regexp_1qnp_str: str
-    regexp_2qnp_str: str
-    regexp_3qnp_str: str
-    regexp_measure_str: str
+    # Fragment patterns
+    identifier: str = r"([A-Za-z_][A-Za-z_\d]*)"
+    blank: str = r" *"
+    comma: str = r","
+    index: str = r"\[ *(\d+) *\]"
+    any_parameters: str = r"\(([^()]+)\)"
+
+    # Regex pattern strings
+    regexp_qreg_str: str = "^" + "qreg" + blank + identifier + blank + index + blank + "$"
+    regexp_creg_str: str = "^" + "creg" + blank + identifier + blank + index + blank + "$"
+    qreg_str: str = identifier + blank + index + blank
+    regexp_1q_str: str = "^" + identifier + blank + qreg_str + "$"
+    regexp_2q_str: str = "^" + identifier + blank + qreg_str + comma + blank + qreg_str + "$"
+    regexp_3q_str: str = "^" + identifier + blank + qreg_str + comma + blank + qreg_str + comma + blank + qreg_str + "$"
+    regexp_4q_str: str = (
+        "^"
+        + identifier
+        + blank
+        + qreg_str
+        + comma
+        + blank
+        + qreg_str
+        + comma
+        + blank
+        + qreg_str
+        + comma
+        + blank
+        + qreg_str
+        + "$"
+    )
+    regexp_1qnp_str: str = "^" + identifier + blank + any_parameters + blank + qreg_str + "$"
+    regexp_2qnp_str: str = "^" + identifier + blank + any_parameters + blank + qreg_str + comma + blank + qreg_str + "$"
+    regexp_3qnp_str: str = (
+        "^"
+        + identifier
+        + blank
+        + any_parameters
+        + blank
+        + qreg_str
+        + comma
+        + blank
+        + qreg_str
+        + comma
+        + blank
+        + qreg_str
+        + "$"
+    )
+    regexp_measure_str: str = "^" + "measure" + blank + qreg_str + "->" + blank + qreg_str + "$"
 
     # Compiled regex objects
-    regexp_qreg: re.Pattern[str]
-    regexp_creg: re.Pattern[str]
-    regexp_1q: re.Pattern[str]
-    regexp_2q: re.Pattern[str]
-    regexp_3q: re.Pattern[str]
-    regexp_4q: re.Pattern[str]
-    regexp_1qnp: re.Pattern[str]
-    regexp_2qnp: re.Pattern[str]
-    regexp_3qnp: re.Pattern[str]
-    regexp_measure: re.Pattern[str]
+    regexp_qreg: re.Pattern[str] = re.compile(regexp_qreg_str)
+    regexp_creg: re.Pattern[str] = re.compile(regexp_creg_str)
+    regexp_1q: re.Pattern[str] = re.compile(regexp_1q_str)
+    regexp_2q: re.Pattern[str] = re.compile(regexp_2q_str)
+    regexp_3q: re.Pattern[str] = re.compile(regexp_3q_str)
+    regexp_4q: re.Pattern[str] = re.compile(regexp_4q_str)
+    regexp_1qnp: re.Pattern[str] = re.compile(regexp_1qnp_str)
+    regexp_2qnp: re.Pattern[str] = re.compile(regexp_2qnp_str)
+    regexp_3qnp: re.Pattern[str] = re.compile(regexp_3qnp_str)
+    regexp_measure: re.Pattern[str] = re.compile(regexp_measure_str)
 
-    def __init__(self) -> None:
-        ...
+    def __init__(self) -> None: ...
 
     @staticmethod
     def handle_qreg(line: str) -> tuple[str, int]:
@@ -125,16 +160,12 @@ class OpenQASM2_LineParser:  # noqa: N801
         qubit_index: int = int(matches.group(4))  # type: ignore[union-attr]
         if len(parameters) != n_parameters:
             raise ValueError(
-                f"The number of parameters for {op_name} "
-                f"should be {n_parameters}, "
-                f"but got {len(parameters)}."
+                f"The number of parameters for {op_name} should be {n_parameters}, but got {len(parameters)}."
             )
         return op_name, parameters, qreg_name, qubit_index
 
     @staticmethod
-    def handle_2qnp(
-        line: str, n_parameters: int
-    ) -> tuple[str, list[float], str, int, str, int]:
+    def handle_2qnp(line: str, n_parameters: int) -> tuple[str, list[float], str, int, str, int]:
         matches = OpenQASM2_LineParser.regexp_2qnp.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         parameters: list[float] = OpenQASM2_LineParser.handle_parameters(matches.group(2))  # type: ignore[union-attr]
@@ -144,16 +175,12 @@ class OpenQASM2_LineParser:  # noqa: N801
         qubit_index2: int = int(matches.group(6))  # type: ignore[union-attr]
         if len(parameters) != n_parameters:
             raise ValueError(
-                f"The number of parameters for {op_name} "
-                f"should be {n_parameters}, "
-                f"but got {len(parameters)}."
+                f"The number of parameters for {op_name} should be {n_parameters}, but got {len(parameters)}."
             )
         return op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2
 
     @staticmethod
-    def handle_3qnp(
-        line: str, n_parameters: int
-    ) -> tuple[str, list[float], str, int, str, int, str, int]:
+    def handle_3qnp(line: str, n_parameters: int) -> tuple[str, list[float], str, int, str, int, str, int]:
         matches = OpenQASM2_LineParser.regexp_3qnp.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         parameters: list[float] = OpenQASM2_LineParser.handle_parameters(matches.group(2))  # type: ignore[union-attr]
@@ -165,9 +192,7 @@ class OpenQASM2_LineParser:  # noqa: N801
         qubit_index3: int = int(matches.group(8))  # type: ignore[union-attr]
         if len(parameters) != n_parameters:
             raise ValueError(
-                f"The number of parameters for {op_name} "
-                f"should be {n_parameters}, "
-                f"but got {len(parameters)}."
+                f"The number of parameters for {op_name} should be {n_parameters}, but got {len(parameters)}."
             )
         return (
             op_name,

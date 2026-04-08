@@ -20,9 +20,7 @@ pip install -e .
 For development dependencies (testing, linting):
 
 ```bash
-pip install -e ".[dev]"   # if a [dev] extras section is defined
-# otherwise manually install:
-pip install pytest ruff pre-commit
+pip install -e . && pip install pytest ruff pre-commit
 ```
 
 Install pre-commit hooks:
@@ -130,11 +128,7 @@ Run the test suite with [pytest](https://pytest.org/):
 pytest
 ```
 
-If the project uses [tox](https://tox.wiki/):
-
-```bash
-tox
-```
+The project uses [GitHub Actions](https://github.com/Agony5757/QPanda-lite/actions) for CI. If you encounter test failures, please open an issue.
 
 ## Questions?
 

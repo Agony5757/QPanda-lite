@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __all__ = ["OpenQASM2_LineParser"]
 
+import math
 import re
 from typing import Any
 
@@ -90,7 +91,7 @@ class OpenQASM2_LineParser:  # noqa: N801
         parameter_str_list = parameters_str.split(",")
         parameters: list[float] = []
         for parameter_str in parameter_str_list:
-            parameters.append(float(eval(parameter_str.strip())))  # noqa: PGH001, S307
+            parameters.append(float(eval(parameter_str.strip(), {"pi": math.pi})))  # noqa: PGH001, S307
         return parameters
 
     @staticmethod

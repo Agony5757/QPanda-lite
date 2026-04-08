@@ -52,6 +52,18 @@ dependencies = [
 zip-safe = false
 packages = { find = { exclude = ["qpandalite.test", "qpandalite.test.*"] } }
 
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
 [tool.setuptools.dynamic]
 version = { attr = "qpandalite.version.__version__" }
 

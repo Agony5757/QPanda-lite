@@ -10,51 +10,57 @@
 
 QPanda-lite is a simple, easy-to-use, and transparent Python-native version of QPanda.
 
+---
+
+## Table of Contents
+
+- [Quick Example](#quick-example)
+- [Features](#features)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+
+---
+
 ## Quick Example
 
 ```python
 from qpandalite.circuit_builder import Circuit
 from qpandalite.simulator import OriginIR_Simulator
 
+# Build a Bell state circuit
 circuit = Circuit()
-circuit.h(0)
-circuit.cnot(0, 1)
-circuit.measure(0, 1)
+circuit.h(0)           # Hadamard on qubit 0
+circuit.cnot(0, 1)     # CNOT from qubit 0 to qubit 1
+circuit.measure(0, 1)   # Measure both qubits
 
+# Simulate with 1000 shots
 sim = OriginIR_Simulator()
-print(sim.simulate_shots(circuit.originir, shots=1000))
+result = sim.simulate_shots(circuit.originir, shots=1000)
+print(result)
+# Possible output: {0: 497, 3: 503}
 ```
-
-## Status
-
-🚧 Actively developing. API may change.
-
-### Known Issues
-
-- **`crx`/`crz`/`cy` bug**：Density matrix 后端的受控旋转门在多门组合时计算结果错误。单门测试正常。如需带噪声模拟，请规避这三个门。
-- `controlled_by` simulation for density matrix is incorrect, including `backend='density_operator'` and `backend='density_operator_qutip'`.
 
 ---
 
-## Design Principles
+## Features
 
-- **Transparent** — a clear way to assemble and execute quantum programs
-- **Sync & Async** — support both modes for execution on quantum hardware
-- **Clear errors** — helpful error messages when things go wrong
-- **Well documented** — full, high-quality documentation
-- **Visualizable** — visualization of quantum programs
-- **Portable** — migrate to different quantum backends
-- **Extensible** — support more quantum operations and simulation backends
+QPanda-lite 围绕以下目标设计：
 
-### Core Concepts
+| 特性 | 说明 |
+|------|------|
+| **透明** | 清晰的量子程序组装与执行方式 |
+| **Python 原生** | 纯 Python 实现，安装简单，集成方便 |
+| **多后端** | 支持 OriginIR Simulator、QASM Simulator、Quafu、OriginQ 等多种执行后端 |
+| **同步/异步** | 支持同步和异步两种任务提交模式 |
+| **可扩展** | 易于添加新的量子门、操作符和模拟后端 |
 
-| Concept | Type | Description |
-|---------|------|-------------|
-| **Opcode** | `Tuple` | A tuple representing a quantum operation: name, qubits, parameters, etc. [📖 Docs](https://qpanda-lite.readthedocs.io/en/latest/source/guide/opcode.html) |
-| **Circuit** | `Circuit` | A collection of opcodes representing a quantum program. Can be converted to OriginIR/QASM. [📖 Docs](https://qpanda-lite.readthedocs.io/en/latest/source/guide/build_circuit_simple.html) |
-| **Circuit String** | `str` | A string in [OriginIR](https://qpanda-lite.readthedocs.io/en/latest/source/guide/originir_simple.html) or [QASM](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html) format, ready for backend execution. |
-| **Backend** | `Backend` | A [quantum simulator](https://qpanda-lite.readthedocs.io/en/latest/source/guide/simulation_simple.html) or hardware that executes a circuit. |
-| **Result** | `dict` / `list` / `ndarray` | Execution results (measurements, states) in native Python data structures. |
+**核心概念：**
+
+- **Circuit** — 量子线路构建器，支持 OriginIR / OpenQASM 格式输出
+- **Backend** — 量子模拟器或真实量子计算机
+- **Result** — 测量结果以原生 Python 数据结构返回（dict / list / ndarray）
 
 ---
 
@@ -62,33 +68,21 @@ print(sim.simulate_shots(circuit.originir, shots=1000))
 
 ### Supported Platforms
 
-- Windows
-- Linux (partially tested)
-- macOS (partially tested)
+- Windows / Linux / macOS
 
 ### Requirements
 
-- Python ≥ 3.8
+- Python 3.9 – 3.12
 
-#### Optional Dependencies
-
-| Feature | Install |
-|---------|---------|
-| **Quafu execution** | `pip install pyquafu` |
-| **Qiskit execution** | `pip install qiskit qiskit-ibm-provider qiskit-ibmq-provider` |
-| **C++ simulator** | CMake ≥ 3.1, C++ compiler with C++14 support (MSVC / gcc / clang) |
-
-### pip (Recommended)
+### pip（推荐）
 
 ```bash
 pip install qpandalite
 ```
 
-Python 3.9 – 3.12 supported.
-
 ### Build from Source
 
-**Minimum (pure Python):**
+**纯 Python（无 C++ 依赖）：**
 
 ```bash
 git clone https://github.com/Agony5757/QPanda-lite.git
@@ -96,15 +90,13 @@ cd QPanda-lite
 pip install . --no-cpp
 ```
 
-**Development mode:**
+**开发模式：**
 
 ```bash
-git clone https://github.com/Agony5757/QPanda-lite.git
-cd QPanda-lite
 pip install -e .
 ```
 
-**With C++ simulator (requires CMake in PATH):**
+**含 C++ 模拟器（需 CMake）：**
 
 ```bash
 git clone --recurse-submodules https://github.com/Agony5757/QPanda-lite.git
@@ -112,29 +104,30 @@ cd QPanda-lite
 pip install .
 ```
 
+### Optional Dependencies
+
+| 功能 | 安装命令 |
+|------|---------|
+| Quafu 执行后端 | `pip install pyquafu` |
+| Qiskit 执行后端 | `pip install qiskit qiskit-aer` |
+
 ---
 
-### 项目结构
+## Project Structure
 
 ```
 QPanda-lite/
-├── qpandalite/                  # Python 前端
-│   ├── circuit_builder/         # 量子线路构建（Circuit 类）
-│   ├── simulator/                # 本地模拟器
-│   │   ├── originir_simulator.py    # OriginIR 模拟器
-│   │   ├── qasm_simulator.py        # QASM 模拟器
-│   │   ├── opcode_simulator.py      # Opcode 底层模拟器
-│   │   └── error_model.py           # 噪声模型
-│   ├── qasm/                   # OpenQASM 2.0 解析器
-│   ├── originir/               # OriginIR 解析器
-│   ├── task/                   # 任务提交（OriginQ / Quafu / IBM）
-│   ├── transpiler/             # 电路转译（Qiskit / OriginIR 互转）
-│   ├── analyzer/               # 结果分析（期望值计算等）
-│   └── qcloud_config/          # 各平台云配置
-├── docs/                       # Sphinx 文档
-├── QPandaLiteCpp/              # C++ 后端（pybind11）
-├── test/                       # 单元测试
-└── setup.py
+├── qpandalite/
+│   ├── circuit_builder/          # Circuit class and gate definitions
+│   ├── simulator/                # Local simulators (OriginIR, QASM, etc.)
+│   ├── originir/                 # OriginIR parser
+│   ├── qasm/                    # OpenQASM 2.0 parser
+│   ├── task/                    # Cloud task submission (OriginQ / Quafu / IBM)
+│   ├── transpiler/              # Circuit conversion (Qiskit ↔ OriginIR)
+│   └── analyzer/                # Result analysis (expectation values, etc.)
+├── QPandaLiteCpp/               # C++ backend (pybind11)
+├── docs/                        # Sphinx documentation
+└── test/                       # Unit tests
 ```
 
 ---
@@ -147,51 +140,22 @@ QPanda-lite/
 from qpandalite.circuit_builder import Circuit
 
 c = Circuit()
-c.rx(1, 0.1)
-c.cnot(1, 0)
-c.measure(0, 1, 2, 3)
+c.rx(1, 0.1)         # RX rotation on qubit 1
+c.cnot(1, 0)         # CNOT with control=1, target=0
+c.measure(0, 1)      # Measure qubits 0 and 1
+
 print(c.circuit)
+# QINIT 2
+# CREG 2
+# RX q[1], (0.1)
+# CNOT q[1], q[0]
+# MEASURE q[0], c[0]
+# MEASURE q[1], c[1]
 ```
 
-| Function | Code | Note |
-|----------|------|------|
-| Initialize circuit | `c = Circuit()` | No need to specify qubit count |
-| Add gate | `c.cnot(1, 2)` | Use qubit indices directly |
-| Measure | `c.measure(0, 1, 2)` | No mid-circuit measurement support |
-| Remap qubits | `c = c.remapping({0:10, 1:11})` | Returns a new `Circuit` |
-| Export to string | `c.circuit` / `c.originir` | Returns `str` |
+> 注意：`measure` 只记录被测量的 qubit，电路中实际使用的 qubit 由门操作决定。
 
-### 2. Run on Quantum Devices / Simulators
-
-| Function | Code | Note |
-|----------|------|------|
-| Import platform | `import qpandalite.task.originq as originq` | Platforms are under `qpandalite.task` |
-| Submit task | `taskid = originq.submit_task(circuits)` | `circuits`: `str` or `List[str]` |
-| Query (sync) | `results = originq.query_by_taskid_sync(taskid)` | Blocks until done; returns `list` |
-| Query (async) | `res = originq.query_by_taskid(taskid)` | Returns immediately; check `res['status']` |
-| Convert result | `originq.convert_originq_result(results, style='keyvalue', prob_or_shots='prob', key_style='bin')` | Styles: `keyvalue` / `list` |
-| Expectation | `calculate_expectation(result, ['ZII', 'IZI', 'IIZ'])` | Diagonal Hamiltonians only |
-
-#### 2.1 OriginQ
-
-1. Create config — see [`qcloud_config_template/originq_template.py`](qcloud_config_template/originq_template.py)
-2. Call `create_originq_online_config` with token, URLs, group_size
-3. `originq_online_config.json` will be generated in your working directory
-4. Submit tasks to the online chip
-
-**Dummy mode** — use `create_originq_dummy_config` to simulate locally without accessing real hardware.
-
-#### 2.2 Quafu
-
-1. Create config — see [`qcloud_config_template/quafu_template.py`](qcloud_config_template/quafu_template.py)
-2. Call `create_quafu_online_config` with token, URLs, group_size
-3. Submit tasks
-
-#### 2.3 IBM
-
-*Coming soon.*
-
-### 3. Circuit Simulation
+### 2. Circuit Simulation
 
 ```python
 import qpandalite.simulator as qsim
@@ -200,7 +164,7 @@ sim = qsim.OriginIR_Simulator(reverse_key=False)
 
 originir = '''
 QINIT 72
-CREG 2
+CREG 3
 RY q[45],(0.9424777960769379)
 RY q[46],(0.9424777960769379)
 CZ q[45],q[46]
@@ -212,26 +176,36 @@ MEASURE q[46],c[2]
 MEASURE q[52],c[1]
 '''
 
-res = sim.simulate(originir)
+res = sim.simulate_statevector(originir)
 print(res)
 print(sim.state)
+```
+
+### 3. Submit to Cloud Hardware
+
+```python
+import qpandalite.task.quafu as quafu
+
+# Configure first: see qcloud_config_template/quafu_template.py
+# quafu.create_quafu_online_config(...)
+
+taskid = quafu.submit_task(circuit.originir, chip_id='ScQ-P10')
+result = quafu.query_by_taskid_sync(taskid)
 ```
 
 ---
 
 ## Documentation
 
-📖 **[Read the Docs](https://qpanda-lite.readthedocs.io/)**
+📖 [Read the Docs](https://qpanda-lite.readthedocs.io/)
 
-### OpenQASM 2.0 Support
+---
 
-[OpenQASM 2.0 Guide](https://qpanda-lite.readthedocs.io/en/latest/source/guide/qasm.html)
+## Status
 
-### Build Docs Locally
+🚧 Actively developing. API may change.
 
-```bash
-cd docs
-pip install -r requirements.txt
-sphinx-apidoc -o docs/source qpandalite
-make html
-```
+### Known Issues
+
+- **`crx`/`crz`/`cy` bug**：密度矩阵后端的受控旋转门在多门组合时计算结果错误，单门测试正常。带噪声模拟时请规避这三个门。
+- `controlled_by` simulation for density matrix is incorrect (`backend='density_operator'` / `backend='density_operator_qutip'`).

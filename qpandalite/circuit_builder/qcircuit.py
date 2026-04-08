@@ -1,79 +1,92 @@
-from typing import Dict, List, Optional, Tuple, Union
-from copy import deepcopy
-from .opcode import (make_header_originir, make_header_qasm,
-                     make_measure_originir, make_measure_qasm,
-                     opcode_to_line_originir, opcode_to_line_qasm,
-                     OpcodeType, )
-import re
+from __future__ import annotations
 
-__all__ = [
-    'Circuit',
-]
+from copy import deepcopy
+
+from .opcode import (
+    make_header_originir,
+    make_header_qasm,
+    make_measure_originir,
+    make_measure_qasm,
+    opcode_to_line_originir,
+    opcode_to_line_qasm,
+)
+
+__all__ = ["Circuit"]
+
+# Opcode: (op_name, qubits, cbits, params, dagger, control_qubits)
+QubitSpec = int | list[int]
+CbitSpec = int | list[int] | None
+ParamSpec = float | list[float] | tuple[float, ...] | None
+OpCode = tuple[str, QubitSpec, CbitSpec, ParamSpec, bool, QubitSpec]
+
 
 class CircuitControlContext:
-    """
-    (test)Definition of quantum circuit (Circuit).
+    """Context manager for controlled gate blocks."""
 
-    Class `Circuit` acts as the OriginIR generator and analysis tool supported by
-    `origin_line_parser` and `origin_base_parser`. Each function within the class
-    provides the necessary components to construct quantum circuits. After parsing,
-    each line is transferred to either the OriginIR_Simulator, OriginIR_Parser,
-    OpenQASM2_Parser, or actual quantum machines for execution or further processing.
-    """        
-    def __init__(self, c, control_list):
+    c: Circuit
+    control_list: tuple[int, ...]
+
+    def __init__(self, c: Circuit, control_list: tuple[int, ...]) -> None:
         self.c = c
         self.control_list = control_list
 
-    def _qubit_list(self):
-        ret = ''
+    def _qubit_list(self) -> str:
+        ret = ""
         for q in self.control_list:
-            ret += f'q[{q}], '
+            ret += f"q[{q}], "
+        return ret[:-2]
 
-        ret = ret[:-2]
-        return ret
-    
-    def __enter__(self):
-        ret = 'CONTROL ' + self._qubit_list() + '\n'
-        self.c.circuit_str += ret        
-        
-    def __exit__(self, exc_type, exc_val, exc_tb):        
-        ret = 'ENDCONTROL\n'
+    def __enter__(self) -> None:
+        ret = "CONTROL " + self._qubit_list() + "\n"
         self.c.circuit_str += ret
 
-class CircuitDagContext:      
-    def __init__(self, c):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore[no-untyped-def]
+        self.c.circuit_str += "ENDCONTROL\n"
+
+
+class CircuitDagContext:
+    """Context manager for dagger (adjoint) gate blocks."""
+
+    c: Circuit
+
+    def __init__(self, c: Circuit) -> None:
         self.c = c
 
-    def __enter__(self):
-        ret = 'DAGGER\n'
-        self.c.circuit_str += ret        
-        
-    def __exit__(self, exc_type, exc_val, exc_tb):        
-        ret = 'ENDDAGGER\n'
-        self.c.circuit_str += ret
+    def __enter__(self) -> None:
+        self.c.circuit_str += "DAGGER\n"
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore[no-untyped-def]
+        self.c.circuit_str += "ENDDAGGER\n"
 
 
 class Circuit:
-    """
-    Definition of quantum circuit (Circuit).
-
-    Class `Circuit` acts as the OriginIR generator and analysis tool supported by
-    `origin_line_parser` and `origin_base_parser`. Each function within the class
-    provides the necessary components to construct quantum circuits. After parsing,
-    each line is transferred to either the OriginIR_Simulator, OriginIR_Parser,
-    OpenQASM2_Parser, or actual quantum machines for execution or further processing.
+    """Quantum circuit builder that generates OriginIR and OpenQASM output.
 
     Attributes
     ----------
-    used_qubit_list : list
-        A list to keep track of the qubits used in the circuit.
+    used_qubit_list : list[int]
+        Qubits referenced in the circuit.
     circuit_str : str
-        The string representation of the circuit in OriginIR format.
+        Raw string builder used by context managers.
     max_qubit : int
-        The maximum index of qubits used in the circuit.
-    measure_list : list
-        A list of qubits that will be measured.
+        Highest qubit index used.
+    qubit_num : int
+        Total number of qubits.
+    cbit_num : int
+        Total number of classical bits.
+    measure_list : list[int]
+        Qubits scheduled for measurement.
+    opcode_list : list[OpCode]
+        Internal list of gate opcodes.
     """
+
+    used_qubit_list: list[int]
+    circuit_str: str
+    max_qubit: int
+    qubit_num: int
+    cbit_num: int
+    measure_list: list[int]
+    opcode_list: list[OpCode]
 
     def __init__(self) -> None:
         self.used_qubit_list = []
@@ -82,306 +95,252 @@ class Circuit:
         self.cbit_num = 0
         self.measure_list = []
         self.opcode_list = []
-    
+        self.circuit_str = ""
+
     def _make_originir_circuit(self) -> str:
-        '''
-        Generate the circuit in OriginIR format.
-        '''
         header = make_header_originir(self.qubit_num, self.cbit_num)
-        circuit_str = '\n'.join([opcode_to_line_originir(op) for op in self.opcode_list])
+        circuit_str = "\n".join([opcode_to_line_originir(op) for op in self.opcode_list])
         measure = make_measure_originir(self.measure_list)
-        return header + circuit_str + '\n' + measure
-    
-    def _make_qasm_circuit(self):
-        '''
-        Generate the circuit in OpenQASM format.
-        '''
+        return header + circuit_str + "\n" + measure
+
+    def _make_qasm_circuit(self) -> str:
         header = make_header_qasm(self.qubit_num, self.cbit_num)
-        circuit_str = '\n'.join([opcode_to_line_qasm(op) for op in self.opcode_list])
+        circuit_str = "\n".join([opcode_to_line_qasm(op) for op in self.opcode_list])
         measure = make_measure_qasm(self.measure_list)
-        return header + circuit_str + '\n' + measure
-    
+        return header + circuit_str + "\n" + measure
+
     @property
-    def circuit(self):
-        '''
-        Generate the circuit in OriginIR format.
-        '''
+    def circuit(self) -> str:
+        """Generate the circuit in OriginIR format."""
         return self._make_originir_circuit()
-    
+
     @property
-    def originir(self):
-        '''
-        Generate the circuit in OriginIR format.
-        '''
+    def originir(self) -> str:
+        """Generate the circuit in OriginIR format."""
         return self._make_originir_circuit()
-    
+
     @property
-    def qasm(self):
-        '''
-        Generate the circuit in OpenQASM format.
-        '''
+    def qasm(self) -> str:
+        """Generate the circuit in OpenQASM format."""
         return self._make_qasm_circuit()
-    
-    
-    def record_qubit(self, qubits):
-        '''Record the qubits used in the circuit.
-        '''
-        for qubit in qubits:
+
+    def record_qubit(self, qubits: int | list[int]) -> None:
+        """Record the qubits used in the circuit."""
+        for qubit in qubits if isinstance(qubits, list) else [qubits]:
             if qubit not in self.used_qubit_list:
                 self.used_qubit_list.append(qubit)
                 self.max_qubit = max(self.max_qubit, qubit)
-        
         self.qubit_num = self.max_qubit + 1
 
-
-    def add_gate(self, operation: str,
-                       qubits: Union[int, List[int]], 
-                       cbits: Optional[Union[int, List[int]]] = None, 
-                       params: Optional[Union[float, List[float]]] = None, 
-                       dagger: bool = False, 
-                       control_qubits: Optional[Union[int, List[int]]] = None) -> None:
-        """
-        Add a gate to the circuit.
-
-        This method adds a gate to the circuit with the specified operationname, qubits,
-        parameters, and classical bits. The gate can be controlled by the specified
-        control qubits.
-
-        Parameters
-        ----------
-        name : str
-            The name of the gate.
-        qubits : int or list of int
-            The qubits the gate acts on.
-        params : float or list of float, optional
-            The parameters of the gate.
-        cbits : int or list of int, optional
-            The classical bits the gate stores the result in.
-        dagger : bool, optional
-            Whether to add the dagger of the gate.
-        control_qubits : int or list of int, optional
-            The qubits to control the gate.
-
-        Raises
-        ------
-        ValueError
-            If the qubits are not valid or the control qubits are not valid.
-        """
-        
-        opcode = (operation, qubits, cbits, params, dagger, control_qubits)
+    def add_gate(
+        self,
+        operation: str,
+        qubits: QubitSpec,
+        cbits: CbitSpec = None,
+        params: ParamSpec = None,
+        dagger: bool = False,
+        control_qubits: QubitSpec = None,
+    ) -> None:
+        """Add a gate to the circuit."""
+        opcode: OpCode = (operation, qubits, cbits, params, dagger, control_qubits)  # type: ignore[assignment]
         self.opcode_list.append(opcode)
         self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
-    
+
     @property
-    def depth(self):
-        """
-        Calculate the depth of the quantum circuit.
+    @property
+    def depth(self) -> int:
+        """Calculate the depth of the quantum circuit."""
+        qubit_depths: dict[int, int] = {}
 
-        The depth of a quantum circuit is defined as the maximum number of gates 
-        on any single qubit path in the circuit. This is a measure of the circuit's 
-        complexity and can be used to analyze the circuit's execution time on a quantum computer.
-
-        Returns
-        -------
-        int
-            The depth of the quantum circuit, which is the longest path of sequential 
-            gate operations on a single qubit.
-
-        Notes
-        -----
-        The measurement is not counted when calculating the depth of the circuit.
-        """
-
-        # Initialize the depth of each qubit to zero
-        qubit_depths = {}
-
-        # Process each operation using the OriginIR_base_parser
         for opcode in self.opcode_list:
-            # Other options in the op_code will not affect the depth but the control
             op_name, qubits, _, _, _, control_qubits = opcode
-            
-            if op_name == 'I' or op_name == 'BARRIER':
-                # do not count identity or barrier gates
+
+            if op_name in ("I", "BARRIER"):
                 continue
 
-            # If the operation is on a single qubit, make it a list so that it could be processed
-            # with control qubits
             if not isinstance(qubits, list):
                 qubits = [qubits]
-            
-            # Determine the current maximum depth among the qubits involved
+
+            all_qubits = qubits + list(control_qubits) if control_qubits else qubits
+
             current_max_depth = 0
-            for q in qubits + list(control_qubits):
-                # If q is found return the value associated with it, if not, return 0
+            for q in all_qubits:
                 current_max_depth = max(current_max_depth, qubit_depths.get(q, 0))
-            
-            # Increment the depth of all involved qubits by 1
-            for q in qubits + list(control_qubits):
+
+            for q in all_qubits:
                 qubit_depths[q] = current_max_depth + 1
 
-        # The depth of the circuit is the maximum depth across all qubits
         return max(qubit_depths.values())
 
-    def identity(self, qn) -> None:
-        self.add_gate('I', qn)        
+    # ─────────────────── Single-qubit gates (no parameters) ───────────────────
 
-    def h(self, qn) -> None:
-        self.add_gate('H', qn)
-        
-    def x(self, qn) -> None:
-        self.add_gate('X', qn)
+    def identity(self, qn: int) -> None:
+        self.add_gate("I", qn)
 
-    def y(self, qn) -> None:
-        self.add_gate('Y', qn)
+    def h(self, qn: int) -> None:
+        self.add_gate("H", qn)
 
-    def z(self, qn) -> None:
-        self.add_gate('Z', qn)
+    def x(self, qn: int) -> None:
+        self.add_gate("X", qn)
 
-    def sx(self, qn) -> None:
-        self.add_gate('SX', qn)
+    def y(self, qn: int) -> None:
+        self.add_gate("Y", qn)
 
-    def sxdg(self, qn) -> None:
-        self.add_gate('SX', qn, dagger=True)
+    def z(self, qn: int) -> None:
+        self.add_gate("Z", qn)
 
-    def s(self, qn) -> None:
-        self.add_gate('S', qn)
+    def sx(self, qn: int) -> None:
+        self.add_gate("SX", qn)
 
-    def sdg(self, qn) -> None:
-        self.add_gate('S', qn, dagger=True)
-  
-    def t(self, qn) -> None:
-        self.add_gate('T', qn)
+    def sxdg(self, qn: int) -> None:
+        self.add_gate("SX", qn, dagger=True)
 
-    def tdg(self, qn) -> None:
-        self.add_gate('T', qn, dagger=True)
+    def s(self, qn: int) -> None:
+        self.add_gate("S", qn)
 
-    def rx(self, qn, theta) -> None:
-        self.add_gate('RX', qn, params=theta)
+    def sdg(self, qn: int) -> None:
+        self.add_gate("S", qn, dagger=True)
 
-    def ry(self, qn, theta) -> None:
-        self.add_gate('RY', qn, params=theta)
+    def t(self, qn: int) -> None:
+        self.add_gate("T", qn)
 
-    def rz(self, qn, theta) -> None:
-        self.add_gate('RZ', qn, params=theta)
+    def tdg(self, qn: int) -> None:
+        self.add_gate("T", qn, dagger=True)
 
-    def rphi(self, qn, theta, phi) -> None:
-        self.add_gate('RPhi', qn, params=[theta, phi])
+    # ─────────────────── Single-qubit parametric gates ───────────────────
 
-    def cnot(self, controller, target) -> None:
-        self.add_gate('CNOT', [controller, target])
+    def rx(self, qn: int, theta: float) -> None:
+        self.add_gate("RX", qn, params=theta)
 
-    def cx(self, controller, target) -> None:
+    def ry(self, qn: int, theta: float) -> None:
+        self.add_gate("RY", qn, params=theta)
+
+    def rz(self, qn: int, theta: float) -> None:
+        self.add_gate("RZ", qn, params=theta)
+
+    def rphi(self, qn: int, theta: float, phi: float) -> None:
+        self.add_gate("RPhi", qn, params=[theta, phi])
+
+    # ─────────────────── Two-qubit gates ───────────────────
+
+    def cnot(self, controller: int, target: int) -> None:
+        self.add_gate("CNOT", [controller, target])
+
+    def cx(self, controller: int, target: int) -> None:
         self.cnot(controller, target)
 
-    def cz(self, q1, q2) -> None:
-        self.add_gate('CZ', [q1, q2])
+    def cz(self, q1: int, q2: int) -> None:
+        self.add_gate("CZ", [q1, q2])
 
-    def iswap(self, q1, q2) -> None:
-        self.add_gate('ISWAP', [q1, q2])
+    def iswap(self, q1: int, q2: int) -> None:
+        self.add_gate("ISWAP", [q1, q2])
 
-    def u1(self, qn, lam) -> None:
-        self.add_gate('U1', qn, params=lam)
+    def swap(self, q1: int, q2: int) -> None:
+        self.add_gate("SWAP", [q1, q2])
 
-    def u2(self, qn, phi, lam) -> None:
-        self.add_gate('U2', qn, params=[phi, lam])
+    # ─────────────────── Three-qubit gates ───────────────────
 
-    def u3(self, qn, theta, phi, lam) -> None:
-        self.add_gate('U3', qn, params=[theta, phi, lam])
+    def cswap(self, q1: int, q2: int, q3: int) -> None:
+        self.add_gate("CSWAP", [q1, q2, q3])
 
-    def swap(self, q1, q2) -> None:
-        self.add_gate('SWAP', [q1, q2])
+    def toffoli(self, q1: int, q2: int, q3: int) -> None:
+        self.add_gate("TOFFOLI", [q1, q2, q3])
 
-    def cswap(self, q1, q2, q3) -> None:
-        self.add_gate('CSWAP', [q1, q2, q3])
+    # ─────────────────── Parametric gates ───────────────────
 
-    def toffoli(self, q1, q2, q3) -> None:
-        self.add_gate('TOFFOLI', [q1, q2, q3])
+    def u1(self, qn: int, lam: float) -> None:
+        self.add_gate("U1", qn, params=lam)
 
-    def xx(self, q1, q2, theta) -> None:
-        self.add_gate('XX', [q1, q2], params=theta)
+    def u2(self, qn: int, phi: float, lam: float) -> None:
+        self.add_gate("U2", qn, params=[phi, lam])
 
-    def yy(self, q1, q2, theta) -> None:
-        self.add_gate('YY', [q1, q2], params=theta)
+    def u3(self, qn: int, theta: float, phi: float, lam: float) -> None:
+        self.add_gate("U3", qn, params=[theta, phi, lam])
 
-    def zz(self, q1, q2, theta) -> None:
-        self.add_gate('ZZ', [q1, q2], params=theta)
+    def xx(self, q1: int, q2: int, theta: float) -> None:
+        self.add_gate("XX", [q1, q2], params=theta)
 
-    def phase2q(self, q1, q2, theta1, theta2, thetazz) -> None:
-        self.add_gate('PHASE2Q', [q1, q2], params=[theta1, theta2, thetazz])
+    def yy(self, q1: int, q2: int, theta: float) -> None:
+        self.add_gate("YY", [q1, q2], params=theta)
 
-    def uu15(self, q1, q2, params: List[float]) -> None:
-        self.add_gate('UU15', [q1, q2], params=params)
+    def zz(self, q1: int, q2: int, theta: float) -> None:
+        self.add_gate("ZZ", [q1, q2], params=theta)
 
-    def barrier(self, *qubits) -> None:
-        self.add_gate('BARRIER', list(qubits))
+    def phase2q(self, q1: int, q2: int, theta1: float, theta2: float, thetazz: float) -> None:
+        self.add_gate("PHASE2Q", [q1, q2], params=[theta1, theta2, thetazz])
 
-    def measure(self, *qubits):
-        self.record_qubit(qubits)
+    def uu15(self, q1: int, q2: int, params: list[float]) -> None:
+        self.add_gate("UU15", [q1, q2], params=params)
+
+    def barrier(self, *qubits: int) -> None:
+        self.add_gate("BARRIER", list(qubits))
+
+    # ─────────────────── Measurement ───────────────────
+
+    def measure(self, *qubits: int) -> None:
+        self.record_qubit(list(qubits))
         if self.measure_list is None:
-            self.measure_list = list()
-            
+            self.measure_list = []
         self.measure_list.extend(list(qubits))
         self.cbit_num = len(self.measure_list)
 
-    def control(self, *args):
-        self.record_qubit(args)
+    # ─────────────────── Control / Dagger context managers ───────────────────
+
+    def control(self, *args: int) -> CircuitControlContext:
+        self.record_qubit(list(args))
         if len(args) == 0:
-            raise ValueError('Controller qubit must not be empty.')
+            raise ValueError("Controller qubit must not be empty.")
         return CircuitControlContext(self, args)
-    
-    def set_control(self, *args):    
-        self.record_qubit(args)
-        ret = 'CONTROL '
-        for q in self.control_list:
-            ret += f'q[{q}], '
-        ret = ret[:-2] + '\n'
-        self.circuit_str += ret
 
-    def unset_control(self):
-        ret = 'ENDCONTROL\n'
-        self.circuit_str += ret
+    def set_control(self, *args: int) -> None:
+        self.record_qubit(list(args))
+        ret = "CONTROL "
+        for q in args:
+            ret += f"q[{q}], "
+        self.circuit_str += ret[:-2] + "\n"
 
-    def dagger(self):
+    def unset_control(self) -> None:
+        self.circuit_str += "ENDCONTROL\n"
+
+    def dagger(self) -> CircuitDagContext:
         return CircuitDagContext(self)
-    
-    def set_dagger(self):
-        self.circuit_str += 'DAGGER\n'
 
-    def unset_dagger(self):
-        self.circuit_str += 'ENDDAGGER\n'
+    def set_dagger(self) -> None:
+        self.circuit_str += "DAGGER\n"
 
-    def remapping(self, mapping : Dict[int, int]):
-        # Check that all keys and values in the mapping are integers and non-negative
+    def unset_dagger(self) -> None:
+        self.circuit_str += "ENDDAGGER\n"
+
+    # ─────────────────── Remapping ───────────────────
+
+    def remapping(self, mapping: dict[int, int]) -> Circuit:
+        """Create a new circuit with qubits remapped according to *mapping*."""
         if not all(isinstance(k, int) and isinstance(v, int) and k >= 0 and v >= 0 for k, v in mapping.items()):
-            raise TypeError('All keys and values in mapping must be non-negative integers.')
+            raise TypeError("All keys and values in mapping must be non-negative integers.")
 
-        # Check for duplicated physical qubits (same physical qubit assigned more than once)
         if len(set(mapping.values())) != len(mapping.values()):
-            raise ValueError('A physical qubit is assigned more than once.')
+            raise ValueError("A physical qubit is assigned more than once.")
 
-        # check if mapping is full
         for qubit in self.used_qubit_list:
             if qubit not in mapping:
-                raise ValueError('At lease one qubit is not appeared in mapping. '
-                                 f'(qubit : {qubit})')
-        
-        # check if mapping has duplicated qubits
-        unique_qubit_set = set()
+                raise ValueError(f"At least one qubit is not appeared in mapping. (qubit : {qubit})")
+
+        unique_qubit_set: set[int] = set()
         for qubit in mapping:
             if qubit in unique_qubit_set:
-                raise ValueError('Qubit is used twice in the mapping. Given mapping : '
-                                 f'({mapping})')
-            
+                raise ValueError(f"Qubit is used twice in the mapping. Given mapping : ({mapping})")
             unique_qubit_set.add(qubit)
 
         c = deepcopy(self)
-        
-        def remap_opcode(opcode, mapping):
+
+        def remap_opcode(opcode: OpCode, mp: dict[int, int]) -> OpCode:
             op_name, qubits, cbits, params, dagger, control_qubits = opcode
-            new_qubits = [mapping[q] for q in qubits] if isinstance(qubits, list) else mapping[qubits]
+            new_qubits = [mp[q] for q in qubits] if isinstance(qubits, list) else mp[qubits]
 
             if control_qubits is not None:
-                new_control_qubits = [mapping[q] for q in control_qubits] if isinstance(control_qubits, list) else mapping[control_qubits]
+                new_control_qubits = (
+                    [mp[q] for q in control_qubits] if isinstance(control_qubits, list) else mp[control_qubits]
+                )
             else:
                 new_control_qubits = None
 
@@ -394,53 +353,9 @@ class Circuit:
 
         for i, old_qubit in enumerate(self.measure_list):
             c.measure_list[i] = mapping[old_qubit]
-        
-        # update the circuit information
+
         c.max_qubit = max(c.used_qubit_list)
         c.qubit_num = c.max_qubit + 1
         c.cbit_num = len(c.measure_list)
 
         return c
-
-
-    # def unwrap(self):
-    #     """
-    #     Process the given list of OriginIR operations and performs the 'unwrap' 
-    #     operation to simplify control structures.
-
-    #     Parameters
-    #     ----------
-    #     originir : list of str
-    #         A list of strings representing OriginIR operations.
-
-    #     Returns
-    #     -------
-    #     list of str
-    #         A simplified list of OriginIR operations where control structures 
-    #         have been unwrapped. For example, given the input:
-            
-    #         .. code-block:: none
-
-    #             QINIT 2
-    #             CREG 2
-    #             H q[0]
-    #             CONTROL q[0]
-    #             X q[1]
-    #             ENDCONTROL q[0]
-            
-    #         The return will be: ["H q[0]", "X q[1] controlled q[0]"].
-
-    #     Notes
-    #     -----
-    #     The format for control structure strings is subject to change. The string 
-    #     "X q[1] controlled q[0]" is currently a placeholder.
-
-    #     Raises
-    #     ------
-    #     None
-    #     """
-
-    #     parser = OriginIR_BaseParser()
-    #     parser.parse(self.originir)
-    #     return parser.to_extended_originir()
-        

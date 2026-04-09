@@ -1,40 +1,86 @@
-# 提交任务到量子云平台
+# 提交任务到量子云平台 {#guide-submit-task}
 
-QPanda-lite 支持将量子线路提交到多个量子计算云平台的真机上运行。
+## 什么时候进入本页 {#guide-submit-task-when-to-read}
 
-## 支持的平台
+当你已经完成本地线路构建，并且已经通过 [快速上手](quickstart.md) 或 [本地模拟](simulation.md) 跑通了最小示例，接下来如果你希望：
 
-| 平台 | 模块 | 额外依赖 |
-|------|------|---------|
-| OriginQ（本源量子） | `qpandalite.task.originq` | — |
-| OriginQ Dummy | `qpandalite.task.originq_dummy` | — |
-| OriginQ Cloud | `qpandalite.task.origin_qcloud` | — |
-| Quafu（北大） | `qpandalite.task.quafu` | `pip install quafu` |
-| IBM Quantum | `qpandalite.task.ibm` | `pip install qiskit qiskit-ibm-provider` |
+- 把线路提交到云平台或真机执行
+- 查询远端任务状态与执行结果
+- 比较不同平台的接入方式与适用场景
 
-## 通用流程
+就应该进入本页。
 
-所有平台遵循相同的流程：
+本页讨论的是**远端任务提交路径**，它解决的是“如何把已经在本地验证过的线路交给外部平台执行”的问题，而不是“如何在本地验证线路是否正确”。
 
-1. **配置** — 设置平台 API 密钥/Token
-2. **构建线路** — 使用 `Circuit` 构建
-3. **提交任务** — 调用对应平台的提交函数
-4. **获取结果** — 查询任务状态，获取结果
+## 本页解决的问题 {#guide-submit-task-problems}
 
-## OriginQ 平台
+- 什么时候应从本地模拟切换到提交任务路径
+- 提交到云平台前需要准备哪些配置
+- 不同平台各自适合什么场景
+- 如何提交任务、查询状态并获取结果
+- 使用远端平台前需要先了解哪些边界与限制
 
-### 配置
+## 前置条件
+
+阅读本页前，默认你已经完成以下至少一项：
+
+- 已经完成 [快速上手](quickstart.md) 中的最小示例
+- 已经会使用 `Circuit` 构建线路，并能导出 `originir` 或 `qasm`
+- 已经通过 [本地模拟](simulation.md) 对线路做过基本验证
+
+如果你还不确定线路是否正确、输出是否合理，建议先留在本地模拟路径，不要直接进入远端提交。
+
+## 通用流程 {#guide-submit-task-flow}
+
+无论选择哪个平台，远端任务提交通常都遵循以下流程：
+
+1. **准备线路** —— 确认你已经有可提交的 `originir` 或 `qasm` 线路
+2. **选择平台** —— 根据目标平台、依赖、成熟度与接入条件决定使用哪条路径
+3. **准备配置** —— 配置 Token、URL 或账号信息
+4. **提交任务** —— 调用对应平台的 `submit_task`
+5. **查询结果** —— 通过任务 ID 查询执行状态与结果
+
+与本地模拟相比，这条路径多出了平台账号、配置文件、网络访问、任务排队与远端状态查询等因素。
+
+## 提交任务入口总览 {#guide-submit-task-entry-overview}
+
+在 QPanda-lite 中，“提交任务”指的是**把已经完成本地验证的线路交给外部平台执行，并通过任务 ID 查询远端状态与结果**。进入本页前，建议先区分它与“本地模拟”的边界：
+
+- 本地模拟：在当前环境直接运行线路，重点是验证线路是否正确，以及如何选择本地模拟后端。
+- 提交任务：把线路交给云平台或真机执行，重点是平台配置、任务提交、状态查询与结果获取。
+
+如果你仍在反复修改线路结构、量子门或输出解释，说明你还处在本地验证阶段，建议先回到 [本地模拟](simulation.md#guide-simulation-entry-overview)。
+
+## 平台选择说明 {#guide-submit-task-platform-selection}
+
+在阅读具体平台小节前，建议先按“定位 / 适用场景 / 当前状态”理解几条路径的区别：
+
+| 平台 | 定位 | 适用场景 | 额外依赖 / 配置 | 当前状态 |
+|------|------|---------|----------------|---------|
+| OriginQ Cloud | 主生产路径 | 已完成本地验证，准备提交到真实云平台或真机 | `originq_cloud_config.json` | 推荐优先阅读 |
+| OriginQ Dummy | 本地联调替身 | 想复用提交接口做开发、测试、联调，但不消耗真实量子资源 | 可选读取 `originq_online_config.json` | 推荐作为联调路径 |
+| Quafu | 第三方云平台路径 | 需要接入 Quafu 平台执行 | `pip install quafu` + `quafu_online_config.json` | 可用，但为独立平台接入 |
+| IBM Quantum | 第三方云平台路径 | 需要接入 IBM Quantum 生态 | `pip install qiskit qiskit-ibm-provider` + `ibm_online_config.json` | 可用，但接入方式独立 |
+| Legacy OriginQ (`qpandalite.task.originq`) | 旧接口说明 | 仅用于理解旧接口背景，不建议新用户进入 | 旧版配置 | 当前版本不可用 |
+
+如果你只是想验证“提交任务”这一套调用流程本身是否跑通，优先看 OriginQ Dummy；如果你要真正把任务发到云端执行，优先看 OriginQ Cloud。
+
+## 平台分节
+
+### OriginQ Cloud {#guide-submit-task-originq-cloud}
+
+这是当前应优先引导的真实云平台提交路径，适合已经完成本地验证、准备把线路提交到真实云端或真机执行的读者。
+
+#### 配置
+
+OriginQ Cloud 依赖当前工作目录下的 `originq_cloud_config.json`。可参考模板：
+
+- `qcloud_config_template/originq_cloud_template.py`
+
+#### 提交任务
 
 ```python
-from qpandalite.qcloud_config import originq_online_config
-
-originq_online_config.api_key = "your_api_key"
-```
-
-### 提交任务
-
-```python
-from qpandalite.task.originq import submit_task
+from qpandalite.task.origin_qcloud import submit_task
 
 task_id = submit_task(
     circuit=circuit.originir,
@@ -42,60 +88,25 @@ task_id = submit_task(
 )
 ```
 
-### 查询结果
+#### 查询结果
 
 ```python
-result = query_result(task_id)
+from qpandalite.task.origin_qcloud import query_by_taskid
+
+result = query_by_taskid(task_id)
 print(result)
 ```
 
-> ⚠️ 提交到 OriginQ 服务器可能需要 VPN。
+### OriginQ Dummy {#guide-submit-task-originq-dummy}
 
-## Quafu 平台
+这是本地联调与测试路径，接口风格与远端提交相近，但不会真正连接真实量子平台，也不会消耗真实量子资源。
 
-### 配置
+它适合：
+- 在开发阶段验证提交 / 查询调用链路
+- 本地测试任务提交流程
+- 在暂时不具备真实平台访问条件时先完成联调
 
-```python
-from qpandalite.qcloud_config import quafu_online_config
-
-quafu_online_config.api_key = "your_api_key"
-```
-
-### 提交任务
-
-```python
-from qpandalite.task.quafu import submit_task
-
-task_id = submit_task(
-    circuit=circuit.qasm,
-    shots=1000
-)
-```
-
-## IBM Quantum
-
-### 配置
-
-```python
-from qpandalite.qcloud_config import ibm_online_config
-
-ibm_online_config.api_key = "your_ibm_token"
-```
-
-### 提交任务
-
-```python
-from qpandalite.task.ibm import submit_task
-
-task_id = submit_task(
-    circuit=circuit.qasm,
-    shots=1000
-)
-```
-
-## OriginQ Dummy 模式
-
-用于本地测试，模拟真机返回结果，无需连接服务器。
+#### 提交任务
 
 ```python
 from qpandalite.task.originq_dummy import submit_task
@@ -106,13 +117,76 @@ result = submit_task(
 )
 ```
 
-## API 参考
+### Quafu {#guide-submit-task-quafu}
 
-各平台的完整 API 见：
+这是独立的第三方云平台接入路径，适合已经确认要接入 Quafu 平台，并已准备好对应依赖与平台 Token 的读者。
 
-- `qpandalite.task.originq`
-- `qpandalite.task.origin_qcloud`
-- `qpandalite.task.originq_dummy`
-- `qpandalite.task.quafu`
-- `qpandalite.task.ibm`
-- `qpandalite.task.platform_template` — 平台模板基类
+#### 配置
+
+- 需要额外安装依赖：`pip install quafu`
+- 需要准备 `quafu_online_config.json`
+- 可参考模板：`qcloud_config_template/quafu_template.py`
+
+#### 提交任务
+
+```python
+from qpandalite.task.quafu import submit_task
+
+task_id = submit_task(
+    circuit=circuit.qasm,
+    shots=1000
+)
+```
+
+### IBM Quantum {#guide-submit-task-ibm}
+
+这是 IBM Quantum 的独立接入路径，适合明确要使用 IBM 生态、并接受其依赖与账号体系的读者。
+
+#### 配置
+
+- 需要额外安装依赖：`pip install qiskit qiskit-ibm-provider`
+- 需要准备 `ibm_online_config.json`
+- 可参考模板：`qcloud_config_template/ibm_template.py`
+
+#### 提交任务
+
+```python
+from qpandalite.task.ibm import submit_task
+
+task_id = submit_task(
+    circuit=circuit.qasm,
+    shots=1000
+)
+```
+
+### Legacy OriginQ（`qpandalite.task.originq`） {#guide-submit-task-legacy-originq}
+
+这是旧的 OriginQ 接口说明。根据当前代码实现，`qpandalite.task.originq` 在当前版本中不可用，并在导入时直接提示应改用 `qpandalite.task.origin_qcloud`。
+
+因此：
+- 不应把它作为新用户入口
+- 不应在平台主路径里与 OriginQ Cloud 并列推荐
+- 仅在需要理解历史接口变化时再提及
+
+## 平台边界与限制
+
+在进入远端提交路径前，建议先确认以下几点：
+
+- **本地模拟 != 远端提交**：本地模拟解决的是线路验证问题；远端提交解决的是平台接入与任务执行问题。
+- **配置文件是前置条件**：不同平台依赖不同的 JSON 配置文件或账号保存机制。
+- **网络与账号会影响可用性**：远端平台可能受网络环境、认证状态、平台可用性和排队情况影响。
+- **平台输入格式不同**：OriginQ Cloud / Dummy 更偏向 `originir` 路径，Quafu 与 IBM 示例则使用 `qasm` 路径。
+- **平台成熟度不同**：OriginQ Cloud 是当前主生产路径；Dummy 适合联调；Quafu / IBM 是独立平台接入；Legacy OriginQ 当前不可用。
+
+如果你还在反复修改线路结构、量子门或输出解释，说明你仍处于本地验证阶段，建议先回到 [本地模拟](simulation.md#guide-simulation-entry-overview)。
+
+## 下一步与参考
+
+- 如果你还没有完成线路验证，先回到 [本地模拟](simulation.md#guide-simulation-entry-overview)
+- 如果你还不清楚线路如何构建，先阅读 [构建量子线路](circuit.md#guide-circuit-when-to-read)
+- 如果你已经确定目标平台，可继续查看对应模块 API：
+  - `qpandalite.task.origin_qcloud`
+  - `qpandalite.task.originq_dummy`
+  - `qpandalite.task.quafu`
+  - `qpandalite.task.ibm`
+  - `qpandalite.task.platform_template`

@@ -1,5 +1,13 @@
 # 线路分析
 
+## 什么时候进入本页
+
+当你需要查看线路信息（深度、门统计）、绘制线路图、分析门类型与数量，或了解量子比特重映射时，进入本页。
+
+本页是 [构建量子线路](../guide/circuit.md) 的延伸阅读，适合已经完成线路构建、需要进一步分析或可视化线路结构的读者。
+
+> 如果你还未完成基础线路构建，建议先阅读 [构建量子线路](../guide/circuit.md)。
+
 ## 线路信息
 
 ```python
@@ -35,7 +43,7 @@ draw_circuit(circuit)
 
 ## 线路转译
 
-QPanda-lite 支持在 OriginIR 和 QASM 格式之间互相转换。
+QPanda-lite 支持 OriginIR 和 QASM 格式互转。
 
 ```python
 # Circuit 同时支持两种格式输出

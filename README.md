@@ -140,9 +140,11 @@ QPanda-lite/
 from qpandalite.circuit_builder import Circuit
 
 c = Circuit()
+<<<<<<< HEAD
 c.rx(1, 0.1)         # RX rotation on qubit 1
 c.cnot(1, 0)         # CNOT with control=1, target=0
 c.measure(0, 1)      # Measure qubits 0 and 1
+
 
 print(c.circuit)
 # QINIT 2

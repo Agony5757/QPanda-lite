@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "wheel", "cmake>=3.15"]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 # setup.py is retained for custom CMakeExtension / CMakeBuild logic
 
@@ -58,7 +58,7 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]  # line length handled by formatter
+ignore = ["E501", "N801", "N803", "N806"]  # line length; CapWords for ErrorLoader subclasses; lowercase for math vars (U,H,K,E physics notation)
 
 [tool.ruff.format]
 quote-style = "double"
@@ -68,5 +68,5 @@ indent-style = "space"
 version = { attr = "qpandalite.version.__version__" }
 
 [tool.setuptools.package-data]
-"qpandalite" = ["test/QASMBench.pkl"]
+"qpandalite" = ["test/QASMBench.pkl", "*.pyi"]
 "qpandalite.simulator" = ["qpandalite_cpp.pyi"]

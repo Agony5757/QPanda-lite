@@ -57,7 +57,7 @@ prob = sim.simulate_pmeasure(originir_str)
 提交到 OriginQ 平台时，直接使用 `circuit.originir` 作为线路参数：
 
 ```python
-from qpandalite.task.originq import submit_task
+from qpandalite.task.origin_qcloud import submit_task
 
 task_id = submit_task(
     circuit=circuit.originir,
@@ -230,9 +230,12 @@ MEASURE q[0], c[0]
 MEASURE q[1], c[1]
 ```
 
+该示例演示了完整流程：先通过 `QINIT` / `CREG` 声明比特和寄存器，然后依次添加单比特门（H、RX）、双比特门（CNOT、CZ）、三比特门（TOFFOLI）和控制结构（CONTROL / DAGGER），最后通过 `MEASURE` 测量目标比特。
+
 ## 下一步
 
 - 如果你还不知道如何构建线路，先阅读 [构建量子线路](circuit.md)
 - 如果你想用 OriginIR 文本直接模拟，见 [本地模拟](simulation.md)
 - 如果你想提交到 OriginQ 平台，见 [提交任务](submit_task.md)
 - 如果你需要导出为 QASM 格式或做格式互转，见 [QASM](qasm.md)
+

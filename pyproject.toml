@@ -58,7 +58,7 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]  # line length handled by formatter
+ignore = ["E501", "N801", "N803", "N806"]  # line length; CapWords for ErrorLoader subclasses; lowercase for math vars (U,H,K,E physics notation)
 
 [tool.ruff.format]
 quote-style = "double"

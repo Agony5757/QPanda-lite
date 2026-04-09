@@ -149,7 +149,7 @@ from qpandalite.circuit_builder import Circuit
 c = Circuit()
 c.rx(1, 0.1)
 c.cnot(1, 0)
-c.measure(0, 1, 2, 3)
+c.measure(0, 1)
 print(c.circuit)
 ```
 
@@ -200,7 +200,7 @@ sim = qsim.OriginIR_Simulator(reverse_key=False)
 
 originir = '''
 QINIT 72
-CREG 2
+CREG 3
 RY q[45],(0.9424777960769379)
 RY q[46],(0.9424777960769379)
 CZ q[45],q[46]
@@ -212,7 +212,7 @@ MEASURE q[46],c[2]
 MEASURE q[52],c[1]
 '''
 
-res = sim.simulate(originir)
+res = sim.simulate_statevector(originir)
 print(res)
 print(sim.state)
 ```

@@ -13,7 +13,7 @@ OriginQ Cloud:
     QPANDA_TASK_GROUP_SIZE: Max circuits per submission (default: 200)
 
 Quafu:
-    QUAHU_API_TOKEN       : Quafu API token (required for quafu)
+    QUAFU_API_TOKEN       : Quafu API token (required for quafu)
 
 IBM:
     IBM_TOKEN             : IBM Quantum API token (required for ibm)
@@ -139,7 +139,7 @@ def load_quafu_config() -> dict[str, Any]:
 
     raise ImportError(
         "Quafu config not found. "
-        "Set QUAHU_API_TOKEN environment variable, "
+        "Set QUAFU_API_TOKEN environment variable, "
         "or provide quafu_online_config.json (deprecated)."
     )
 

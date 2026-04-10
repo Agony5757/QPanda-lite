@@ -92,7 +92,9 @@ class _OriginQHttpClient:
                     url=self._submit_url,
                     headers=headers,
                     json=request_body,
-                    verify=False,
+                    # OriginQ Cloud uses a self-signed certificate — disabling
+                    # verification is required for the HTTPS connection to work.
+                    verify=False,  # noqa: S501
                     timeout=timeout,
                 )
                 if response.status_code != 200:
@@ -134,7 +136,8 @@ class _OriginQHttpClient:
             url=self._query_url,
             headers=headers,
             json=request_body,
-            verify=False,
+            # OriginQ Cloud uses a self-signed certificate — see note above.
+            verify=False,  # noqa: S501
             timeout=timeout,
         )
         if response.status_code != 200:

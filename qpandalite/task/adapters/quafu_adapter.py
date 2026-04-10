@@ -39,6 +39,10 @@ class QuafuAdapter(QuantumAdapter):
     def __init__(self) -> None:
         config = load_quafu_config()
         self._api_token: str = config["api_token"]
+        # Internal task history: group_name -> {taskid: task_index}
+        # Updated on each submit_batch call so retrieve() can work without
+        # requiring the caller to pass history.
+        self._task_history: dict[str, dict[str, int]] = {}
 
         import quafu
         from quafu import QuantumCircuit, Task, User
@@ -162,6 +166,14 @@ class QuafuAdapter(QuantumAdapter):
                 c, wait=False, name=f"{task_name}-{index}", group=group_name  # type: ignore[arg-type]
             )
             taskids.append(result.taskid)
+
+        # Maintain history so query() can retrieve without caller-supplied history
+        if group_name:
+            if group_name not in self._task_history:
+                self._task_history[group_name] = {}
+            for i, taskid in enumerate(taskids):
+                self._task_history[group_name][taskid] = i
+
         return taskids
 
     # -------------------------------------------------------------------------
@@ -169,26 +181,46 @@ class QuafuAdapter(QuantumAdapter):
     # -------------------------------------------------------------------------
 
     def query(self, taskid: str) -> dict[str, Any]:
-        """Query a single Quafu task's status."""
-        import requests
+        """Query a single Quafu task's status via SDK ``Task.retrieve()``.
 
-        url = "https://quafu.baqis.ac.cn/qbackend/scq_task_recall/"
-        headers: dict[str, str] = {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            "api_token": self._api_token,
+        Uses the internally maintained history dict so the caller does not
+        need to pass any additional context.
+        """
+        user = self._User(api_token=self._api_token)
+        user.save_apitoken()
+        task = self._Task()
+
+        # Build a minimal history dict: try all known groups.
+        # Task.retrieve(taskid, history) will look up the taskid in history.
+        for group_name, id_to_idx in self._task_history.items():
+            if taskid in id_to_idx:
+                result = task.retrieve(taskid, history={group_name: {taskid: id_to_idx[taskid]}})
+                return self._result_to_dict(result)
+
+        # Fallback: try without history (may work if server accepts taskid alone)
+        result = task.retrieve(taskid)
+        return self._result_to_dict(result)
+
+    def _result_to_dict(self, result) -> dict[str, Any]:
+        """Convert a quafu ExecResult to the adapter's standard result dict."""
+        status_map = {
+            "Completed": TASK_STATUS_SUCCESS,
+            "Running": TASK_STATUS_RUNNING,
+            "In Queue": TASK_STATUS_RUNNING,
+            "Failed": TASK_STATUS_FAILED,
+            "Canceled": TASK_STATUS_FAILED,
         }
-        data: dict[str, str] = {"task_id": taskid}
-        res = requests.post(url, headers=headers, data=data, timeout=10)
-
-        res_dict: dict[str, Any] = res.json()
-        # status: 0=In Queue, 1=Running, 2=Completed, 3=Canceled, 4=Failed
-
-        if res_dict["status"] in (0, 1):
-            return {"status": TASK_STATUS_RUNNING}
-        if res_dict["status"] in (3, 4):
-            return {"status": TASK_STATUS_FAILED, "result": res_dict}
-
-        return {"status": TASK_STATUS_SUCCESS, "result": res_dict}
+        status_str = result.task_status
+        status = status_map.get(status_str, TASK_STATUS_RUNNING)
+        if status == TASK_STATUS_SUCCESS:
+            return {
+                "status": status,
+                "result": {
+                    "counts": result.counts,
+                    "probabilities": result.probabilities,
+                },
+            }
+        return {"status": status}
 
     def query_batch(self, taskids: list[str]) -> dict[str, Any]:
         """Query multiple Quafu tasks and merge results."""

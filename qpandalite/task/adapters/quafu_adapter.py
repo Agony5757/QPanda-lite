@@ -32,6 +32,11 @@ class QuafuAdapter(QuantumAdapter):
         {"ScQ-P10", "ScQ-P18", "ScQ-P136", "ScQ-P10C", "Dongling"}
     )
 
+    # Upper limit on the number of groups retained in _task_history.
+    # Beyond this threshold the oldest entry is evicted to avoid unbounded
+    # memory growth in long-running processes.
+    _MAX_HISTORY_GROUPS: int = 100
+
     @property
     def api_token(self) -> str:
         return self._api_token
@@ -43,6 +48,9 @@ class QuafuAdapter(QuantumAdapter):
         # Updated on each submit_batch call so retrieve() can work without
         # requiring the caller to pass history.
         self._task_history: dict[str, dict[str, int]] = {}
+        # Track insertion order so we can evict the oldest group when the
+        # cap is reached (simple FIFO).
+        self._history_order: list[str] = []
 
         import quafu
         from quafu import QuantumCircuit, Task, User
@@ -167,10 +175,15 @@ class QuafuAdapter(QuantumAdapter):
             )
             taskids.append(result.taskid)
 
-        # Maintain history so query() can retrieve without caller-supplied history
+        # Maintain history so query() can retrieve without caller-supplied history.
+        # Apply FIFO eviction when the cap is reached.
         if group_name:
             if group_name not in self._task_history:
+                if len(self._history_order) >= self._MAX_HISTORY_GROUPS:
+                    oldest = self._history_order.pop(0)
+                    self._task_history.pop(oldest, None)
                 self._task_history[group_name] = {}
+                self._history_order.append(group_name)
             for i, taskid in enumerate(taskids):
                 self._task_history[group_name][taskid] = i
 

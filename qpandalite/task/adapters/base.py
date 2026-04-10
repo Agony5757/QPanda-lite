@@ -127,5 +127,10 @@ class QuantumAdapter(abc.ABC):
     # -------------------------------------------------------------------------
 
     def is_available(self) -> bool:
-        """Return True if the required packages / credentials are configured."""
-        return True
+        """Return True if the required packages / credentials are configured.
+
+        Defaults to ``False`` so that subclasses must explicitly opt-in,
+        avoiding the risk of an unconfigured adapter incorrectly reporting
+        availability.
+        """
+        return False

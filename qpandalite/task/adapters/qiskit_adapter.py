@@ -21,6 +21,7 @@ from qpandalite.task.config import load_ibm_config
 
 if TYPE_CHECKING:
     import qiskit
+    import qiskit_ibm_provider  # noqa: F401
 
 
 class QiskitAdapter(QuantumAdapter):
@@ -46,13 +47,20 @@ class QiskitAdapter(QuantumAdapter):
     # -------------------------------------------------------------------------
 
     def translate_circuit(self, originir: str) -> "qiskit.QuantumCircuit":
-        """Translate an OriginIR string to a Qiskit QuantumCircuit via QASM."""
+        """Translate an OriginIR string to a Qiskit QuantumCircuit.
+
+        The conversion path is OriginIR → QASM string → Qiskit QuantumCircuit.
+        This is the most compatible route given the current API surface of
+        ``qpandalite.circuit_builder.qcircuit`` (which exposes QASM export
+        but not a direct Qiskit-native constructor).  An optimised
+        direct path can be evaluated in a future iteration if needed.
+        """
+        import qiskit
         from qpandalite.circuit_builder.qcircuit import Circuit
 
         circuit = Circuit()
         circuit.load_originir(originir)
         qasm_str = circuit.qasm
-        import qiskit
 
         return qiskit.QuantumCircuit.from_qasm_str(qasm_str)
 
@@ -108,7 +116,6 @@ class QiskitAdapter(QuantumAdapter):
     ) -> str:
         """Internal implementation shared by submit / submit_batch."""
         import qiskit
-        import qiskit_ibm_provider
 
         backends_name = [b.name for b in self._backends]
         if chip_id not in backends_name:

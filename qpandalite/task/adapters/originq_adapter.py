@@ -60,6 +60,10 @@ class _OriginQHttpClient:
         measurement_amend: bool = False,
         auto_mapping: bool = False,
         compile_only: bool = False,
+        # NOTE: ``compile_only`` is accepted for API compatibility but is not
+        # forwarded to the OriginQ Cloud API request body.  The server
+        # always performs compilation; returning a compiled-but-unexecuted
+        # result is not supported by this backend.
         specified_block: Any = None,
         timeout: float = 30.0,
         retry: int = 5,

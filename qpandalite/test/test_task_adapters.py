@@ -52,10 +52,10 @@ MEASURE q[2], c[2]
 # Config tests
 # ---------------------------------------------------------------------------
 
-class TestConfigEnvVars:
+class RunTestConfigEnvVars:
     """Config loading from environment variables (preferred)."""
 
-    def test_originq_config_from_env(self, monkeypatch, tmp_path):
+    def run_test_originq_config_from_env(self, monkeypatch, tmp_path):
         """OriginQ config is read from QPANDA_* env vars."""
         monkeypatch.setenv("QPANDA_API_KEY", "test_key_123")
         monkeypatch.setenv("QPANDA_SUBMIT_URL", "https://example.com/submit")
@@ -73,7 +73,7 @@ class TestConfigEnvVars:
         assert config["query_url"] == "https://example.com/query"
         assert config["task_group_size"] == 100
 
-    def test_quafu_config_from_env(self, monkeypatch, tmp_path):
+    def run_test_quafu_config_from_env(self, monkeypatch, tmp_path):
         """Quafu config is read from QUAHU_API_TOKEN env var."""
         monkeypatch.setenv("QUAFU_API_TOKEN", "quafu_secret_token")
         monkeypatch.chdir(tmp_path)
@@ -83,7 +83,7 @@ class TestConfigEnvVars:
         config = load_quafu_config()
         assert config["api_token"] == "quafu_secret_token"
 
-    def test_ibm_config_from_env(self, monkeypatch, tmp_path):
+    def run_test_ibm_config_from_env(self, monkeypatch, tmp_path):
         """IBM config is read from IBM_TOKEN env var."""
         monkeypatch.setenv("IBM_TOKEN", "ibm_secret_token")
         monkeypatch.chdir(tmp_path)
@@ -93,7 +93,7 @@ class TestConfigEnvVars:
         config = load_ibm_config()
         assert config["api_token"] == "ibm_secret_token"
 
-    def test_dummy_config_from_env(self, monkeypatch, tmp_path):
+    def run_test_dummy_config_from_env(self, monkeypatch, tmp_path):
         """OriginQ Dummy config is read from ORIGINQ_* env vars."""
         monkeypatch.setenv(
             "ORIGINQ_AVAILABLE_QUBITS", json.dumps([0, 1, 2, 3])
@@ -112,7 +112,7 @@ class TestConfigEnvVars:
         assert config["available_topology"] == [[0, 1], [1, 2], [2, 3]]
         assert config["task_group_size"] == 50
 
-    def test_originq_config_deprecated_file_fallback(self, monkeypatch, tmp_path):
+    def run_test_originq_config_deprecated_file_fallback(self, monkeypatch, tmp_path):
         """When env vars absent, originq_cloud_config.json is used (deprecated)."""
         monkeypatch.delenv("QPANDA_API_KEY", raising=False)
         monkeypatch.delenv("QPANDA_SUBMIT_URL", raising=False)
@@ -137,7 +137,7 @@ class TestConfigEnvVars:
             config = load_originq_config()
         assert config["api_key"] == "file_key"
 
-    def test_originq_config_import_error_without_config(self, monkeypatch, tmp_path):
+    def run_test_originq_config_import_error_without_config(self, monkeypatch, tmp_path):
         """ImportError raised when neither env vars nor config file exist."""
         monkeypatch.delenv("QPANDA_API_KEY", raising=False)
         monkeypatch.delenv("QPANDA_SUBMIT_URL", raising=False)
@@ -158,10 +158,10 @@ class TestConfigEnvVars:
 # OriginQ adapter tests
 # ---------------------------------------------------------------------------
 
-class TestOriginQAdapterCircuitTranslation:
+class RunTestOriginQAdapterCircuitTranslation:
     """OriginQAdapter.translate_circuit passes OriginIR through unchanged."""
 
-    def test_translate_circuit_returns_string(self):
+    def run_test_translate_circuit_returns_string(self):
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
@@ -177,7 +177,7 @@ class TestOriginQAdapterCircuitTranslation:
             result = adapter.translate_circuit(ORIGINIR_BELL)
             assert result == ORIGINIR_BELL
 
-    def test_submit_calls_http_client(self):
+    def run_test_submit_calls_http_client(self):
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
@@ -201,7 +201,7 @@ class TestOriginQAdapterCircuitTranslation:
                 assert args[0] == [ORIGINIR_BELL]
                 assert task_id == "task_abc123"
 
-    def test_submit_batch_splits_large_groups(self):
+    def run_test_submit_batch_splits_large_groups(self):
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
@@ -223,7 +223,7 @@ class TestOriginQAdapterCircuitTranslation:
                 assert mock_submit.call_count == 2
                 assert len(taskids) == 2
 
-    def test_query_single_success(self):
+    def run_test_query_single_success(self):
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
@@ -254,10 +254,10 @@ class TestOriginQAdapterCircuitTranslation:
 # Quafu adapter tests
 # ---------------------------------------------------------------------------
 
-class TestQuafuAdapterCircuitTranslation:
+class RunTestQuafuAdapterCircuitTranslation:
     """QuafuAdapter correctly translates OriginIR to quafu.QuantumCircuit."""
 
-    def test_translate_simple_gates(self):
+    def run_test_translate_simple_gates(self):
         originir = """
 QINIT 2
 H q[0]
@@ -290,7 +290,7 @@ MEASURE q[0], c[0]
                 # Verify QuantumCircuit was created with 2 qubits
                 mock_quafu.QuantumCircuit.assert_called_with(2)
 
-    def test_translate_unknown_gate_raises(self):
+    def run_test_translate_unknown_gate_raises(self):
         originir = """
 QINIT 1
 UNKNOWN_GATE q[0]
@@ -321,10 +321,10 @@ UNKNOWN_GATE q[0]
 # IBM adapter tests
 # ---------------------------------------------------------------------------
 
-class TestIBMAdapterCircuitTranslation:
+class RunTestIBMAdapterCircuitTranslation:
     """IBMAdapter translates OriginIR to qiskit.QuantumCircuit via QASM."""
 
-    def test_translate_calls_circuit_qasm(self):
+    def run_test_translate_calls_circuit_qasm(self):
         originir = """
 QINIT 2
 H q[0]
@@ -371,10 +371,10 @@ MEASURE q[1], c[1]
 # Adapter availability tests
 # ---------------------------------------------------------------------------
 
-class TestAdapterAvailability:
+class RunTestAdapterAvailability:
     """Each adapter reports availability based on installed packages / config."""
 
-    def test_originq_adapter_available_with_config(self):
+    def run_test_originq_adapter_available_with_config(self):
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
@@ -389,7 +389,7 @@ class TestAdapterAvailability:
             adapter = OriginQAdapter()
             assert adapter.is_available() is True
 
-    def test_quafu_adapter_available_with_quafu_installed(self):
+    def run_test_quafu_adapter_available_with_quafu_installed(self):
         with patch(
             "qpandalite.task.adapters.quafu_adapter.load_quafu_config",
             return_value={"api_token": "tok"},

@@ -1,4 +1,21 @@
-"""BAQIS Quafu (ScQ) quantum cloud platform backend."""
+"""BAQIS Quafu (ScQ) quantum cloud platform backend.
+
+All HTTP communication is routed through ``QuafuAdapter`` in the
+``adapters`` layer — the raw ``requests.post`` to the Quafu URL has been
+removed from this module.
+
+Configuration is loaded from environment variables (preferred) or from
+``quafu_online_config.json`` (deprecated fallback):
+
+    QUAFU_API_TOKEN: API token for Quafu
+
+Public API:
+    - submit_task           — Submit circuit(s) for execution on Quafu.
+    - query_by_taskid       — Asynchronously query task status by task ID.
+    - query_by_taskid_sync  — Synchronously query task status (blocking).
+    - query_task_by_group   — Retrieve all tasks in a named group.
+    - query_all_tasks       — Query all locally recorded tasks.
+"""
 
 from __future__ import annotations
 
@@ -16,178 +33,52 @@ __all__ = [
 import json
 import os
 import time
-import traceback
 import warnings
 from pathlib import Path
+from typing import Any, Union
 
-import requests
-
-try:
-    import quafu
-    from quafu import QuantumCircuit, Task, User
-except ImportError:
-    quafu = None  # type: ignore[assignment]
-    QuantumCircuit = None  # type: ignore[assignment]
-    User = None  # type: ignore[assignment]
-    Task = None  # type: ignore[assignment]
-
-from qpandalite.originir.originir_line_parser import OriginIR_LineParser
+from qpandalite.task.adapters import QuafuAdapter
 from qpandalite.task.task_utils import load_all_online_info, write_taskinfo
 
-# Initialize default_online_config with a default or dummy value
-default_online_config: dict[str, str] = {"default_token": "dummy_token"}
-default_token: str = "dummy_token"
-
-# Only attempt to read the config file if we're not generating docs
-if os.getenv("SPHINX_DOC_GEN") != "1":
-    try:
-        with open("quafu_online_config.json", encoding="utf-8") as fp:
-            default_online_config = json.load(fp)
-    except FileNotFoundError as e:
-        raise ImportError(
-            "Import quafu backend failed.\n"
-            "quafu_online_config.json is not found. "
-            "It should be always placed at current working directory (cwd)."
-        ) from e
-    except Exception as e:
-        raise ImportError(
-            "Import quafu backend failed.\n" "Unknown import error.\n" f"{traceback.format_exc()}"
-        ) from e
-
-    try:
-        default_token = default_online_config["default_token"]
-    except KeyError as e:
-        raise ImportError(
-            'Import quafu backend failed.\n'
-            'default_online_config.json should have the "default_token" key.'
-        ) from e
-    except Exception as e:
-        raise ImportError(
-            f"Import quafu backend failed.\n" f"Unknown import error. Original exception is:\n" f"{str(e)}"
-        ) from e
+# Module-level singleton adapter
+_adapter: QuafuAdapter | None = None
 
 
-# Valid chip IDs
-VALID_CHIP_IDS: frozenset[str] = frozenset(
-    {"ScQ-P10", "ScQ-P18", "ScQ-P136", "ScQ-P10C", "Dongling"}
-)
+def _get_adapter() -> QuafuAdapter:
+    """Lazily create and cache the QuafuAdapter instance."""
+    global _adapter
+    if _adapter is None:
+        _adapter = QuafuAdapter()
+    return _adapter
 
 
-class Translation_OriginIR_to_QuafuCircuit(OriginIR_LineParser):  # noqa: N801
-    """Translate OriginIR circuits to Quafu ``QuantumCircuit`` objects."""
+# Re-export the translation class for backwards compatibility
+class Translation_OriginIR_to_QuafuCircuit:
+    """Translate OriginIR circuits to Quafu QuantumCircuit objects.
+
+    Deprecated: use ``adapter.translate_circuit(originir)`` instead.
+    """
 
     @staticmethod
     def reconstruct_qasm(
-        qc: QuantumCircuit,
+        qc,
         operation: str | None,
         qubit: int | list[int],
         cbit: int | None,
         parameter: float | list[float] | None,
-    ) -> QuantumCircuit:
-        """Append a single gate operation to a Quafu ``QuantumCircuit``.
-
-        Args:
-            qc: Target circuit to modify in-place.
-            operation: Gate name (e.g. ``'H'``, ``'CNOT'``).
-            qubit: Target qubit index or list of indices.
-            cbit: Classical bit index (for measurements).
-            parameter: Rotation parameter for parametric gates.
-
-        Returns:
-            The updated circuit.
-        """
-        if operation == "RX":
-            qc.rx(int(qubit), parameter)  # type: ignore[arg-type]
-        elif operation == "RY":
-            qc.ry(int(qubit), parameter)  # type: ignore[arg-type]
-        elif operation == "RZ":
-            qc.rz(int(qubit), parameter)  # type: ignore[arg-type]
-        elif operation == "H":
-            qc.h(int(qubit))  # type: ignore[arg-type]
-        elif operation == "X":
-            qc.x(int(qubit))  # type: ignore[arg-type]
-        elif operation == "CZ":
-            qc.cz(int(qubit[0]), int(qubit[1]))  # type: ignore[index]
-        elif operation == "CNOT":
-            qc.cnot(int(qubit[0]), int(qubit[1]))  # type: ignore[index]
-        elif operation == "MEASURE":
-            qc.measure([int(qubit)], [int(cbit)])  # type: ignore[list-item]
-        elif operation is None or operation == "CREG":
-            pass
-        else:
-            raise RuntimeError(f"Unknown OriginIR operation. Operation: {operation}.")
-
-        return qc
+    ):
+        adapter = _get_adapter()
+        return adapter._reconstruct_qasm(qc, operation, qubit, cbit, parameter)
 
     @staticmethod
-    def translate(originir: str) -> QuantumCircuit:
-        """Translate a full OriginIR string into a Quafu ``QuantumCircuit``.
-
-        Args:
-            originir: An OriginIR circuit string.
-
-        Returns:
-            The translated circuit.
-        """
-        lines = originir.splitlines()
-        qc: QuantumCircuit | None = None
-        for line in lines:
-            operation, qubit, cbit, parameter = OriginIR_LineParser.parse_line(line)
-            if operation == "QINIT":
-                qc = quafu.QuantumCircuit(int(qubit))  # type: ignore[arg-type]
-                continue
-            if qc is None:
-                raise RuntimeError("QINIT must appear before any gate operation.")
-            qc = Translation_OriginIR_to_QuafuCircuit.reconstruct_qasm(
-                qc, operation, qubit, cbit, parameter
-            )
-
-        if qc is None:
-            raise RuntimeError("OriginIR string produced no circuit.")
-        return qc
+    def translate(originir: str):
+        adapter = _get_adapter()
+        return adapter.translate_circuit(originir)
 
 
-def _submit_task_group(
-    circuits: list[str] | None = None,
-    task_name: str | None = None,
-    chip_id: str | None = None,
-    shots: int = 10000,
-    auto_mapping: bool = True,
-    savepath: Path | str | None = None,
-    group_name: str | None = None,
-) -> tuple[str | None, list[str]]:
-    """Submit a group of circuits to the Quafu platform.
-
-    Returns:
-        (group_name, taskid_list)
-    """
-    if savepath is None:
-        savepath = Path.cwd() / "quafu_online_info"
-    if not circuits:
-        raise ValueError("circuit ??")
-    if isinstance(circuits, list):
-        user = User(api_token=default_token)  # type: ignore[arg-type]
-        user.save_apitoken()
-        task = Task()  # type: ignore[arg-type]
-        taskid_list: list[str] = []
-        for index, c in enumerate(circuits):
-            if not isinstance(c, str):
-                raise ValueError("Input is not a valid circuit list (a.k.a List[str]).")
-            qc = Translation_OriginIR_to_QuafuCircuit.translate(c)
-            task.config(backend=chip_id, shots=shots, compile=auto_mapping)
-
-            n_retries = 5
-            for i in range(n_retries):
-                try:
-                    result = task.send(qc, wait=False, name=f"{task_name}-{index}", group=group_name)  # type: ignore[arg-type]
-                    break
-                except Exception as e:
-                    if i != n_retries - 1:
-                        print(f"Retry {i + 1} / {n_retries}")
-                    raise e
-            taskid = result.taskid
-            taskid_list.append(taskid)
-    return group_name, taskid_list
+# ---------------------------------------------------------------------------
+# Task submission
+# ---------------------------------------------------------------------------
 
 
 def submit_task(
@@ -198,65 +89,60 @@ def submit_task(
     auto_mapping: bool = True,
     savepath: Path | str | None = None,
     group_name: str | None = None,
+    **kwargs,
 ) -> str | list[str]:
     """Submit one or more quantum circuits for execution on the Quafu platform.
 
+    Args:
+        circuit: OriginIR circuit string or list of strings.
+        task_name: Human-readable task name.
+        chip_id: Target chip ID (e.g. ``'ScQ-P10'``).
+        shots: Number of measurement shots.
+        auto_mapping: Whether to enable automatic qubit mapping / compilation.
+        savepath: Directory for local task records.
+        group_name: Optional group name for batch submissions.
+
     Returns:
-        Task ID(s) for the submitted circuit(s).
+        str or list[str]: Task ID(s) for the submitted circuit(s).
     """
-    if chip_id not in VALID_CHIP_IDS:
-        raise RuntimeError(
-            r"Invalid chip_id. "
-            r"Current quafu chip_id list: "
-            r"['ScQ-P10','ScQ-P18','ScQ-P136', 'ScQ-P10C', 'Dongling']"
-        )
+    adapter = _get_adapter()
+    savepath = Path(savepath) if savepath else Path.cwd() / "quafu_online_info"
 
     if isinstance(circuit, str):
-        qc = Translation_OriginIR_to_QuafuCircuit.translate(circuit)
-
-        user = User(api_token=default_token)  # type: ignore[arg-type]
-        user.save_apitoken()
-        task = Task()  # type: ignore[arg-type]
-        task.config(backend=chip_id, shots=shots, compile=auto_mapping)
-
-        n_retries = 5
-        for i in range(n_retries):
-            try:
-                result = task.send(qc, wait=False, name=task_name)  # type: ignore[arg-type]
-                break
-            except Exception as e:
-                if i != n_retries - 1:
-                    print(f"Retry {i + 1} / {n_retries}")
-                raise e
-
-        taskid: str = result.taskid
+        qc = adapter.translate_circuit(circuit)
+        taskid = adapter.submit(
+            circuit=qc,
+            shots=shots,
+            chip_id=chip_id,
+            auto_mapping=auto_mapping,
+            task_name=task_name,
+        )
 
         if savepath:
-            task_info: dict[str, str | None] = {
+            _ensure_savepath(savepath)
+            task_info: dict[str, Any] = {
                 "taskid": taskid,
                 "taskname": task_name,
                 "backend": chip_id,
             }
-            savepath = Path(savepath)
-            if not os.path.exists(savepath):
-                os.makedirs(savepath)
             with open(savepath / "online_info.txt", "a", encoding="utf-8") as fp:
                 fp.write(json.dumps(task_info) + "\n")
 
     elif isinstance(circuit, list):
-        group_name, taskid_list = _submit_task_group(
-            circuits=circuit,
-            task_name=task_name,
-            chip_id=chip_id,
+        circuits_qc = [adapter.translate_circuit(c) for c in circuit]
+        taskids = adapter.submit_batch(
+            circuits=circuits_qc,
             shots=shots,
+            chip_id=chip_id,
             auto_mapping=auto_mapping,
-            savepath=savepath,
+            task_name=task_name,
             group_name=group_name,
         )
 
         if savepath:
-            all_task_info: list[dict[str, str | None]] = []
-            for task_id in taskid_list:
+            _ensure_savepath(savepath)
+            all_task_info: list[dict[str, Any]] = []
+            for task_id in taskids:
                 task_info = {
                     "groupname": group_name,
                     "taskid": task_id,
@@ -264,86 +150,71 @@ def submit_task(
                     "backend": chip_id,
                 }
                 all_task_info.append(task_info)
-            savepath = Path(savepath)
-            if not os.path.exists(savepath):
-                os.makedirs(savepath)
             with open(savepath / "online_info.txt", "a", encoding="utf-8") as fp:
                 for task_info in all_task_info:
                     fp.write(json.dumps(task_info) + "\n")
-            taskid = taskid_list  # type: ignore[assignment]
     else:
-        raise ValueError("Input is not a valid originir string.")
+        raise ValueError("Input must be a valid originir string or list of strings.")
 
-    return taskid
+    return taskid if isinstance(circuit, str) else taskids
+
+
+def _ensure_savepath(savepath: Path) -> None:
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
+    if not (savepath / "online_info.txt").exists():
+        (savepath / "online_info.txt").touch()
+
+
+# ---------------------------------------------------------------------------
+# Task query
+# ---------------------------------------------------------------------------
 
 
 def query_by_taskid_single(
     taskid: str, savepath: Path | str
-) -> str | dict[str, str | int | dict[str, str]]:
-    """Query a single task's status from the Quafu platform.
-
-    Returns:
-        ``'Running'``, ``'Failed'``, or the full result dict.
-    """
-    data: dict[str, str] = {"task_id": taskid}
-    url = "https://quafu.baqis.ac.cn/qbackend/scq_task_recall/"
-
-    headers: dict[str, str] = {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        "api_token": default_token,
-    }
-    res = requests.post(url, headers=headers, data=data)
-
-    res_dict: dict[str, str | int | dict[str, str]] = json.loads(res.text)
-    # status {0: "In Queue", 1: "Running", 2: "Completed", "Canceled": 3, 4: "Failed"}
-
-    if res_dict["status"] in (0, 1):  # type: ignore[index]
-        return "Running"
-    if res_dict["status"] in (3, 4):  # type: ignore[index]
-        return "Failed"
-
-    results: dict[str, str | int | dict[str, str]] = res_dict
+) -> str | dict[str, Any]:
+    """Query a single task's status from the Quafu platform."""
+    adapter = _get_adapter()
+    result = adapter.query(taskid)
     savepath = Path(savepath)
+    if result["status"] in ("Running",):
+        return "Running"
+    if result["status"] in ("Failed",):
+        return "Failed"
     if not os.path.exists(savepath / f"{taskid}.txt"):
-        write_taskinfo(taskid, results, savepath)
-
-    return results
+        write_taskinfo(taskid, result, savepath)
+    return result
 
 
 def query_by_taskid(
     taskid: str | list[str],
     savepath: Path | str | None = None,
-) -> dict[str, str | list[dict[str, str | int | dict[str, str]]]]:
-    """Query task status by task ID (non-blocking).
+) -> dict[str, Any]:
+    """Query task status by task ID (non-blocking)."""
+    adapter = _get_adapter()
+    savepath = Path(savepath) if savepath else Path.cwd() / "quafu_online_info"
 
-    Returns:
-        Aggregated status and results dict.
-    """
-    if savepath is None:
-        savepath = Path.cwd() / "quafu_online_info"
     if not taskid:
         raise ValueError("Task id ??")
+
     if isinstance(taskid, list):
-        taskinfo: dict[str, str | list[dict[str, str | int | dict[str, str]]]] = {
-            "status": "success",
-            "result": [],
-        }
+        taskinfo: dict[str, Any] = {"status": "success", "result": []}
         for taskid_i in taskid:
             taskinfo_i = query_by_taskid_single(taskid_i, savepath)
             if taskinfo_i == "Failed":
-                taskinfo["status"] = "failed"  # type: ignore[literal]
+                taskinfo["status"] = "failed"
                 break
             elif taskinfo_i == "Running":
-                taskinfo["status"] = "running"  # type: ignore[literal]
+                taskinfo["status"] = "running"
             if taskinfo["status"] == "success":
-                taskinfo["result"].append(taskinfo_i)  # type: ignore[union-attr]
-
+                taskinfo["result"].append(taskinfo_i)
     elif isinstance(taskid, str):
-        taskinfo = query_by_taskid_single(taskid, savepath)  # type: ignore[assignment]
+        taskinfo = query_by_taskid_single(taskid, savepath)
     else:
         raise ValueError("Invalid Taskid")
 
-    return taskinfo  # type: ignore[return-value]
+    return taskinfo
 
 
 def query_by_taskid_sync(
@@ -351,35 +222,32 @@ def query_by_taskid_sync(
     interval: float = 2.0,
     timeout: float = 60.0,
     retry: int = 5,
-) -> list[dict[str, str | int | dict[str, str]]]:
-    """Query task status by task ID (blocking) until completion or timeout.
-
-    Returns:
-        Execution results once the task succeeds.
-    """
+) -> list[dict[str, Any]]:
+    """Query task status by task ID (blocking) until completion or timeout."""
+    adapter = _get_adapter()
     starttime = time.time()
+
     while True:
-        try:
-            now = time.time()
-            if now - starttime > timeout:
-                raise TimeoutError("Reach the maximum timeout.")
-            time.sleep(interval)
-            taskinfo = query_by_taskid(taskid)
-            if taskinfo["status"] == "running":  # type: ignore[comparison-overlap]
-                continue
-            if taskinfo["status"] == "success":  # type: ignore[comparison-overlap]
-                result = taskinfo["result"]  # type: ignore[union-attr]
-                return result
-            if taskinfo["status"] == "failed":  # type: ignore[comparison-overlap]
-                errorinfo = taskinfo["result"]  # type: ignore[union-attr]
-                raise RuntimeError(f"Failed to execute, errorinfo = {errorinfo}")
-        except RuntimeError as e:
-            if retry > 0:
-                retry -= 1
-                print(f"Query failed. Retry remains {retry} times.")
-            else:
-                print("Retry count exhausted.")
-                raise e
+        elapsed = time.time() - starttime
+        if elapsed > timeout:
+            raise TimeoutError("Reach the maximum timeout.")
+
+        time.sleep(interval)
+
+        taskinfo = query_by_taskid(taskid)
+        if taskinfo["status"] == "running":
+            continue
+        if taskinfo["status"] == "success":
+            return taskinfo.get("result", [])
+        if taskinfo["status"] == "failed":
+            raise RuntimeError(f"Failed to execute, errorinfo = {taskinfo.get('result')}")
+
+        if retry > 0:
+            retry -= 1
+            print(f"Query failed. Retry remains {retry} times.")
+        else:
+            print("Retry count exhausted.")
+            raise RuntimeError("Retry count exhausted.")
 
 
 def query_task_by_group(
@@ -388,11 +256,7 @@ def query_task_by_group(
     verbose: bool = True,
     savepath: Path | str | None = None,
 ) -> list:
-    """Retrieve all tasks belonging to a named Quafu group.
-
-    Returns:
-        A list of Quafu result objects.
-    """
+    """Retrieve all tasks belonging to a named Quafu group."""
     if not group_name:
         raise ValueError("Task id ??")
     if not isinstance(group_name, str):
@@ -400,6 +264,7 @@ def query_task_by_group(
     if savepath is None:
         savepath = Path.cwd() / "quafu_online_info"
 
+    savepath = Path(savepath)
     if history is None:
         online_info = load_all_online_info(savepath)
         history = {}
@@ -410,10 +275,14 @@ def query_task_by_group(
                     history[group] = [task["taskid"]]
                 else:
                     history[group].append(task["taskid"])
-    user = User(api_token=default_token)  # type: ignore[arg-type]
+
+    from quafu import Task, User
+
+    config = _get_adapter().api_token
+    user = User(api_token=config)
     user.save_apitoken()
-    task = Task()  # type: ignore[arg-type]
-    group_result = task.retrieve_group(group_name, history, verbose)  # type: ignore[arg-type]
+    task = Task()
+    group_result = task.retrieve_group(group_name, history, verbose)
     for result in group_result:
         result_dict = dict(result.__dict__)
         del result_dict["transpiled_circuit"]
@@ -432,8 +301,9 @@ def query_task_by_group_sync(
     """Blocking query for all tasks in a named Quafu group."""
     if savepath is None:
         savepath = Path.cwd() / "quafu_online_info"
+
     starttime = time.time()
-    online_info = load_all_online_info(savepath)
+    online_info = load_all_online_info(Path(savepath))
     history: dict[str, list[str]] = {}
     for task in online_info:
         if "groupname" in task:
@@ -442,30 +312,23 @@ def query_task_by_group_sync(
                 history[group] = [task["taskid"]]
             else:
                 history[group].append(task["taskid"])
+
     while True:
-        try:
-            now = time.time()
-            if now - starttime > timeout:
-                raise TimeoutError("Reach the maximum timeout.")
-            time.sleep(interval)
-            group_taskinfo = query_task_by_group(group_name, history, verbose, savepath)
-            status = [task.task_status for task in group_taskinfo]
-            if len(status) != len(history[group_name]):
-                continue
-            else:
-                return group_taskinfo
-        except RuntimeError as e:
-            if retry > 0:
-                retry -= 1
-                print(f"Query failed. Retry remains {retry} times.")
-            else:
-                print("Retry count exhausted.")
-                raise e
+        elapsed = time.time() - starttime
+        if elapsed > timeout:
+            raise TimeoutError("Reach the maximum timeout.")
+
+        time.sleep(interval)
+
+        group_taskinfo = query_task_by_group(group_name, history, verbose, savepath)
+        status = [task.task_status for task in group_taskinfo]
+        if len(status) != len(history[group_name]):
+            continue
+        else:
+            return group_taskinfo
 
 
-def query_all_tasks(
-    savepath: Path | str | None = None,
-) -> None:
+def query_all_tasks(savepath: Path | str | None = None) -> None:
     """Query all locally recorded Quafu tasks and cache results."""
     if savepath is None:
         savepath = Path.cwd() / "quafu_online_info"

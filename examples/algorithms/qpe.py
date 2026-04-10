@@ -243,11 +243,10 @@ def run_qpe(
     """
     # Define the unitary matrices
     if unitary == "t":
-        # T gate: phase = π/8
+        # T gate: |0⟩ → phase 0 (eigenvalue 1), |1⟩ → phase π/8 (eigenvalue e^{iπ/4})
         U = np.diag([1, np.exp(1j * np.pi / 4)])
-        true_phase = np.pi / 8
+        true_phase = 0  # phase of |0⟩ eigenstate
         eigenstate = [0]  # |0⟩ is eigenstate with eigenvalue 1 (phase 0)
-        eigenstate2 = [1]  # |1⟩ is eigenstate with eigenvalue e^{iπ/4} (phase π/8)
     elif unitary == "z":
         # Z gate: phase = 0.5 (since eigenvalue = -1 = e^{iπ})
         U = np.diag([1, -1])

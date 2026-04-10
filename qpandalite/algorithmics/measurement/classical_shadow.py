@@ -64,8 +64,8 @@ def _inject_random_basis(circuit: Circuit, unitary_indices: List[int]) -> str:
     for i, ui in enumerate(unitary_indices):
         if ui == 1:          # H  → X basis
             rot_gates[i].append(f"h q[{i}];")
-        elif ui == 2:        # S·H → Y basis
-            rot_gates[i].append(f"s q[{i}];")   # S then H = measure Y
+        elif ui == 2:        # Sdg·H → Y basis
+            rot_gates[i].append(f"sdg q[{i}];")  # S-dagger then H = measure Y
             rot_gates[i].append(f"h q[{i}];")
 
     lines = circuit.qasm.splitlines()

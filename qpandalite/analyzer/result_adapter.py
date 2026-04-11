@@ -1,7 +1,7 @@
 '''Result Adapter
 '''
 
-__all__ = ["convert_originq_result", "convert_quafu_result", "shots2prob", "kv2list"]
+__all__ = ["convert_originq_result", "convert_quafu_result", "shots2prob", "kv2list", "list2kv", "normalize_result"]
 from copy import deepcopy
 import json
 import math
@@ -174,6 +174,52 @@ def shots2prob(measured_result : Dict[str, int],
         total_shots = np.sum(list(measured_result.values()))
 
     return {k : measured_result[k] / total_shots for k in measured_result}
+
+def list2kv(data: List[str]) -> Dict[str, int]:
+    '''Convert a measurement result list to a key-value frequency dict.
+
+    Args:
+        data (List[str]): A list of measurement outcome strings,
+            e.g. ``['00', '01', '10', '00', '11', '00']``.
+
+    Returns:
+        Dict[str, int]: Frequency dict where keys are outcome strings
+        and values are occurrence counts. Returns ``{}`` for empty input.
+    '''
+    result: Dict[str, int] = {}
+    for item in data:
+        result[item] = result.get(item, 0) + 1
+    return result
+
+
+def normalize_result(data: Union[Dict[str, int], List[str]]) -> Dict[str, float]:
+    '''Normalize measurement results to a probability distribution.
+
+    Accepts either a frequency dict or a raw list of outcome strings.
+    List input is first converted via :func:`list2kv`.
+    Returns a dict whose values sum to 1.0.
+    Returns ``{}`` for empty input.
+
+    Args:
+        data (Union[Dict[str, int], List[str]]): Measurement results as
+            a frequency dict ``{'00': 3, '01': 1, ...}`` or a raw list
+            ``['00', '01', '10', ...]``.
+
+    Returns:
+        Dict[str, float]: Probability distribution dict with values
+        summing to 1.0.
+    '''
+    if isinstance(data, list):
+        kv = list2kv(data)
+    else:
+        kv = data
+
+    if not kv:
+        return {}
+
+    total = sum(kv.values())
+    return {k: v / total for k, v in kv.items()}
+
 
 def kv2list(kv_result : dict, guessed_qubit_num):
     ret = [0] * (2 ** guessed_qubit_num)

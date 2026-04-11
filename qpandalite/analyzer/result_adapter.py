@@ -6,7 +6,7 @@ from copy import deepcopy
 import json
 import math
 import numpy as np
-from typing import Dict, Union, List
+from typing import Dict, List, Optional, Union
 
 def convert_originq_result(key_value_result : Union[List[Dict[str,int]],
                                                     Dict[str, int]], 
@@ -265,8 +265,8 @@ class QASMResultAdapter:
     def __init__(
         self,
         counts: Dict[str, int],
-        shots: int = None,
-        metadata: dict = None,
+        shots: Optional[int] = None,
+        metadata: Optional[dict] = None,
     ):
         self.counts: Dict[str, int] = dict(counts)
         self.shots: int = shots if shots is not None else sum(self.counts.values())

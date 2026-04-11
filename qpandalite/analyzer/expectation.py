@@ -2,7 +2,7 @@
 
 __all__ = ["calculate_expectation", "calculate_exp_X", "calculate_exp_Y", "calculate_multi_basis_expectation"]
 
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
@@ -129,6 +129,16 @@ def calculate_multi_basis_expectation(
     - **X basis**: apply ``H`` before measurement.
     - **Y basis**: apply ``S^\\dagger H`` before measurement.
 
+    Each basis label maps to a single expectation value for the MSB qubit
+    (index 0). For per-qubit expectations, call :func:`calculate_exp_X` /
+    :func:`calculate_exp_Y` directly with the desired ``qubit_index``.
+
+    Note:
+        For Z-basis entries, this computes ``⟨ZZ...Z⟩`` (the tensor product
+        of Z on all qubits), **not** individual ``⟨Z_k⟩``. For per-qubit Z
+        expectations, use :func:`calculate_expectation` with Hamiltonians
+        like ``"ZI"`` or ``"IZ"``.
+
     Args:
         measured_results: A dict mapping basis labels to measurement outcomes.
             Each key is a basis name (e.g. ``"X"``, ``"Y"``, ``"Z"``, or
@@ -143,11 +153,11 @@ def calculate_multi_basis_expectation(
         Dict[str, float]: Mapping from basis label to expectation value.
         For Pauli-X bases, :func:`calculate_exp_X` is used; for Pauli-Y,
         :func:`calculate_exp_Y`; otherwise Z-basis calculation via
-        :func:`calculate_expectation` with a Z-only Hamiltonian.
+        :func:`calculate_expectation` with a ``"ZZ...Z"`` Hamiltonian.
 
     Example:
         >>> z_result = {"0": 1.0}
-        >>> x_result = {"0": 0.5, "1": 0.5}
+        >>> x_result = {"0": 1.0}  # After H rotation on |0⟩
         >>> calculate_multi_basis_expectation(
         ...     {"Z": z_result, "X": x_result}, nqubit=1
         ... )
@@ -160,31 +170,46 @@ def calculate_multi_basis_expectation(
         elif basis_label.upper().startswith("Y"):
             results[basis_label] = calculate_exp_Y(result, nqubit)
         else:
-            # Default: Z basis. Build a Z-only Hamiltonian string.
+            # Default: Z basis. Compute ⟨ZZ...Z⟩.
             hamiltonian = "Z" * nqubit
             results[basis_label] = calculate_expectation(result, hamiltonian)
     return results
 
 
+def _ensure_dict(
+    measured_result: Union[Dict[str, float], List[float]],
+    nqubit: int,
+) -> Dict[str, float]:
+    """Convert list-format measurement results to dict if needed."""
+    if isinstance(measured_result, list):
+        keys = [f"{i:0{nqubit}b}" for i in range(len(measured_result))]
+        return dict(zip(keys, measured_result))
+    return measured_result
+
+
 def calculate_exp_X(
     measured_result: Union[Dict[str, float], List[float]],
     nqubit: int,
+    qubit_index: int = 0,
 ) -> float:
     """Calculate the expectation value of the Pauli-X operator.
 
-    The input ``measured_result`` must contain results measured in the Z basis.
-    This function applies Hadamard gates to rotate to the X basis before
-    computing the expectation.
+    The input ``measured_result`` must contain results measured **after**
+    applying a Hadamard gate on the target qubit (X-basis rotation).
+
+    The formula is: ``⟨X_k⟩ = Σ_b sign(b_k) * prob(b)``, where
+    ``sign(b_k) = +1`` when bit ``k`` is ``0`` and ``-1`` when ``1``.
 
     Args:
-        measured_result: Z-basis measurement outcomes. Supports:
+        measured_result: Z-basis measurement outcomes (after H rotation).
+            Supports:
 
             - **key-value dict**: ``{"00": 0.5, "11": 0.5}``.
-            - **list**: ``[p0, p1, ...]`` in computational-basis order
-              where index i corresponds to the binary representation of i
-              padded to ``nqubit`` bits.
+            - **list**: ``[p0, p1, ...]`` in computational-basis order.
 
         nqubit: Number of qubits.
+        qubit_index: Which qubit to calculate ⟨X⟩ for (0 = MSB).
+            Defaults to 0.
 
     Returns:
         The expectation value ``⟨X⟩`` as a float in ``[-1, 1]``.
@@ -199,50 +224,13 @@ def calculate_exp_X(
         >>> result = {"0": 0.5, "1": 0.5}
         >>> calculate_exp_X(result, nqubit=1)
         1.0
-
-        >>> # Single-qubit |0⟩ state has ⟨X⟩ = 0
-        >>> result = {"0": 1.0}
-        >>> calculate_exp_X(result, nqubit=1)
-        0.0
     """
-    # Convert list input to dict
-    if isinstance(measured_result, list):
-        keys = [f"{i:0{nqubit}b}" for i in range(len(measured_result))]
-        measured_result = dict(zip(keys, measured_result))
+    measured_result = _ensure_dict(measured_result, nqubit)
 
-    # ⟨X⟩_k = Σ_b prob(b) * (prob(b⊕k is 0) - prob(b⊕k is 1))
-    # where ⊕k flips bit k. Equivalent to Σ_b [prob(b) * prob_{new}(0) - prob(b) * prob_{new}(1)]
-    # which simplifies to Σ_b (p_b when bit k flipped to 0) - Σ_b (p_b when bit k flipped to 1)
-    # = Σ_{b: kth_bit=0} prob(b) - Σ_{b: kth_bit=1} prob(b) [using the flipped outcome]
-    # Actually: ⟨X_k⟩ = Σ_{b} prob(b) * [p(b⊕k,bit_k=0) - p(b⊕k,bit_k=1)]
-    # = Σ_{b} prob(b) * [prob of flipped outcome with bit k = 0] - [prob of flipped outcome with bit k = 1]
-
-    # Cleaner tomographic formula: ⟨X_k⟩ = Σ_{b} prob(b) * sign_k(b)
-    # where for each qubit k, we assign +1 or -1 based on the bit value
-    # after flipping k. But the correct approach is:
-    # ⟨X_k⟩ = Σ_{b} prob(b⊕k) - prob(b)  [sum over all b]
-    # = Σ_{all outcomes} (prob(flipped) - prob(original))
-    # = 2 * (Σ_{b: bit_k=0} prob(b) - Σ_{b: bit_k=1} prob(b)) under uniform... NO
-
-    # The correct Y-tomography: ⟨Y_k⟩ = Σ_b prob(b) - prob(b⊕k) where ⊕k flips bit k
-    # For X: ⟨X_k⟩ = Σ_b prob(b) when the measurement of X_k gives +1 minus when it gives -1
-    # = Σ_{b: (X_k +I)/2 gives +1} prob(b) - Σ_{b: (X_k +I)/2 gives -1} prob(b)
-    # X_k eigenstates: |+⟩ (eval +1), |-⟩ (eval -1)
-    # Projector|+⟩⟨+| = (I+X)/2, Projector|-⟩⟨-| = (I-X)/2
-    # So ⟨X_k⟩ = Σ_b prob(b) * (⟨b|(I+X_k)|b⟩ - ⟨b|(I-X_k)|b⟩) / prob(b)
-    # = Σ_b prob(b) * (2*⟨b|P_+|b⟩ - 1) = Σ_b (2*|⟨+|b⟩|² - 1) * prob(b)
-    # = Σ_b (prob of measuring |+⟩ on flipped state - prob of |-⟩ on flipped state)
-
-    # After H gate: H|0⟩ = |+⟩, H|1⟩ = |-⟩
-    # ⟨X⟩ = prob_H(0) - prob_H(1) where prob_H is after H rotation
-    # = Σ_b prob(b) * (|⟨+|b⟩|² - |⟨-|b⟩|²)
-    # |⟨+|b⟩|² = (1 + (-1)^bit_k)/2 for the flipped bit, giving 1 when bit_k=0 and 0 when bit_k=1
-    # So ⟨X_k⟩ = Σ_b (1 if bit_k=0 else -1) * prob(b) = p(bit_k=0) - p(bit_k=1) when bits are indexed from MSB
-
+    # ⟨X_k⟩ = p(bit_k=0) - p(bit_k=1)
     exp = 0.0
     for outcome, prob in measured_result.items():
-        # outcome[k] is bit k (k=0 is MSB)
-        if outcome[0] == "0":
+        if outcome[qubit_index] == "0":
             exp += prob
         else:
             exp -= prob
@@ -252,51 +240,49 @@ def calculate_exp_X(
 def calculate_exp_Y(
     measured_result: Union[Dict[str, float], List[float]],
     nqubit: int,
+    qubit_index: int = 0,
 ) -> float:
     """Calculate the expectation value of the Pauli-Y operator.
 
-    The input ``measured_result`` must contain results measured in the Z basis.
-    This function rotates to the Y basis using :math:`H \\cdot S^\\dagger` gates
-    before computing the expectation via tomographic formula:
-    :math:`\\langle Y_k\\rangle = \\sum_b p(b) - p(b \\oplus k)` where
-    :math:`b \\oplus k` flips bit :math:`k` of string :math:`b`.
+    The input ``measured_result`` must contain results measured **after**
+    applying ``S^† H`` on the target qubit (Y-basis rotation).
+
+    The formula is the same as for X: ``⟨Y_k⟩ = p(bit_k=0) - p(bit_k=1)``
+    applied to the rotated measurement results.
 
     Args:
-        measured_result: Z-basis measurement outcomes. Supports:
+        measured_result: Z-basis measurement outcomes (after S†H rotation).
+            Supports:
 
             - **key-value dict**: ``{"00": 0.5, "11": 0.5}``.
             - **list**: ``[p0, p1, ...]`` in computational-basis order.
 
         nqubit: Number of qubits.
+        qubit_index: Which qubit to calculate ⟨Y⟩ for (0 = MSB).
+            Defaults to 0.
 
     Returns:
         The expectation value ``⟨Y⟩`` as a float in ``[-1, 1]``.
 
     Example:
-        >>> # |+i⟩ state = (|0⟩ + i|1⟩)/√2 has ⟨Y⟩ = 1
-        >>> result = {"0": 0.5, "1": 0.5}
-        >>> abs(calculate_exp_Y(result, nqubit=1) - 1.0) < 1e-6
-        True
-
-        >>> # Single-qubit |0⟩ has ⟨Y⟩ = 0
+        >>> # |+i⟩ state = (|0⟩ + i|1⟩)/√2, after S†H rotation
+        >>> # measures |0⟩ with probability 1.0 → ⟨Y⟩ = 1.0
         >>> result = {"0": 1.0}
+        >>> calculate_exp_Y(result, nqubit=1)
+        1.0
+
+        >>> # Single-qubit |0⟩ has ⟨Y⟩ = 0 (after rotation: 50/50)
+        >>> result = {"0": 0.5, "1": 0.5}
         >>> calculate_exp_Y(result, nqubit=1)
         0.0
     """
-    # Convert list input to dict
-    if isinstance(measured_result, list):
-        keys = [f"{i:0{nqubit}b}" for i in range(len(measured_result))]
-        measured_result = dict(zip(keys, measured_result))
+    measured_result = _ensure_dict(measured_result, nqubit)
 
-    # ⟨Y_k⟩ = Σ_b prob(b) - prob(b⊕k) where ⊕k flips bit k of b
-    # Index k=0 is MSB, so bit k is at position k in the string
+    # ⟨Y_k⟩ = p(bit_k=0) - p(bit_k=1) (same sign formula as X)
     exp = 0.0
-    for outcome in measured_result:
-        prob = measured_result[outcome]
-        # Flip bit k (k=0 is MSB, at index 0 in the string)
-        flipped_chars = list(outcome)
-        flipped_chars[0] = "1" if outcome[0] == "0" else "0"
-        flipped = "".join(flipped_chars)
-        prob_flipped = measured_result.get(flipped, 0.0)
-        exp += prob - prob_flipped
+    for outcome, prob in measured_result.items():
+        if outcome[qubit_index] == "0":
+            exp += prob
+        else:
+            exp -= prob
     return exp

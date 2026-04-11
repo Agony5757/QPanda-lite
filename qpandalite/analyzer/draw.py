@@ -2,22 +2,59 @@
 
 __all__ = ["plot_histogram", "plot_distribution"]
 
-from typing import Dict, List, Union, Tuple
-import matplotlib
+from typing import Dict, List, Tuple, Union
 
-# Use sans-serif as fallback for Chinese font support
-matplotlib.rcParams["font.sans-serif"] = [
-    "WenQuanYi Micro Hei",
-    "WenQuanYi Zen Hei",
-    "Noto Sans CJK SC",
-    "SimHei",
-    "Arial",
-    "sans-serif",
-]
-matplotlib.rcParams["axes.unicode_minus"] = False
-
-import matplotlib.pyplot as plt
 import numpy as np
+
+
+def _parse_measured_result(
+    measured_result: Union[Dict[str, float], List[float]],
+    figsize: Tuple[int, int],
+) -> Tuple[list, list, int, Tuple[int, int], int]:
+    """Parse measurement results and compute plot parameters.
+
+    Args:
+        measured_result: Measurement results as dict or list.
+        figsize: Original figure size.
+
+    Returns:
+        Tuple of (labels, values, nqubit, adjusted_figsize, rotation_angle).
+
+    Raises:
+        ValueError: List length is not a power of 2.
+        TypeError: Input is neither dict nor list.
+    """
+    if isinstance(measured_result, dict):
+        keys = list(measured_result.keys())
+        values = list(measured_result.values())
+        nqubit = len(keys[0]) if keys else 0
+        labels = keys
+    elif isinstance(measured_result, list):
+        n = len(measured_result)
+        if n == 0 or (n & (n - 1)) != 0:
+            raise ValueError(
+                f"List length {n} is not a power of 2 and cannot represent "
+                "a valid qubit system."
+            )
+        nqubit = int(np.log2(n))
+        labels = [f"{i:0{nqubit}b}" for i in range(n)]
+        values = measured_result
+    else:
+        raise TypeError(
+            "measured_result must be a dict or a list, "
+            f"got {type(measured_result).__name__}"
+        )
+
+    if nqubit >= 10:
+        figsize = (max(figsize[0], nqubit * 0.4), figsize[1])
+        rot = 45
+    elif nqubit >= 7:
+        figsize = (max(figsize[0], nqubit * 0.6), figsize[1])
+        rot = 30
+    else:
+        rot = 0
+
+    return labels, values, nqubit, figsize, rot
 
 
 def plot_histogram(
@@ -50,38 +87,22 @@ def plot_histogram(
         >>> # List format (2 qubits)
         >>> plot_histogram([0.5, 0, 0, 0.5], title="Bell State")
     """
-    # Detect input format
-    if isinstance(measured_result, dict):
-        keys = list(measured_result.keys())
-        values = list(measured_result.values())
-        # Determine qubit count from key length
-        nqubit = len(keys[0]) if keys else 0
-        labels = keys
-    elif isinstance(measured_result, list):
-        n = len(measured_result)
-        if n == 0 or (n & (n - 1)) != 0:
-            raise ValueError(
-                f"List length {n} is not a power of 2 and cannot represent "
-                "a valid qubit system."
-            )
-        nqubit = int(np.log2(n))
-        labels = [f"{i:0{nqubit}b}" for i in range(n)]
-        values = measured_result
-    else:
-        raise TypeError(
-            "measured_result must be a dict or a list, "
-            f"got {type(measured_result).__name__}"
-        )
+    import matplotlib
+    import matplotlib.pyplot as plt
 
-    # Dynamically adjust figure size and tick rotation for many qubits
-    if nqubit >= 10:
-        figsize = (max(figsize[0], nqubit * 0.4), figsize[1])
-        rot = 45
-    elif nqubit >= 7:
-        figsize = (max(figsize[0], nqubit * 0.6), figsize[1])
-        rot = 30
-    else:
-        rot = 0
+    matplotlib.rcParams["font.sans-serif"] = [
+        "WenQuanYi Micro Hei",
+        "WenQuanYi Zen Hei",
+        "Noto Sans CJK SC",
+        "SimHei",
+        "Arial",
+        "sans-serif",
+    ]
+    matplotlib.rcParams["axes.unicode_minus"] = False
+
+    labels, values, nqubit, figsize, rot = _parse_measured_result(
+        measured_result, figsize
+    )
 
     fig, ax = plt.subplots(figsize=figsize)
     x = np.arange(len(labels))
@@ -128,37 +149,22 @@ def plot_distribution(
         >>> # List format (2 qubits)
         >>> plot_distribution([0.5, 0, 0, 0.5], title="Bell State")
     """
-    # Detect input format (same logic as plot_histogram)
-    if isinstance(measured_result, dict):
-        keys = list(measured_result.keys())
-        values = list(measured_result.values())
-        nqubit = len(keys[0]) if keys else 0
-        labels = keys
-    elif isinstance(measured_result, list):
-        n = len(measured_result)
-        if n == 0 or (n & (n - 1)) != 0:
-            raise ValueError(
-                f"List length {n} is not a power of 2 and cannot represent "
-                "a valid qubit system."
-            )
-        nqubit = int(np.log2(n))
-        labels = [f"{i:0{nqubit}b}" for i in range(n)]
-        values = measured_result
-    else:
-        raise TypeError(
-            "measured_result must be a dict or a list, "
-            f"got {type(measured_result).__name__}"
-        )
+    import matplotlib
+    import matplotlib.pyplot as plt
 
-    # Dynamically adjust figure size and tick rotation for many qubits
-    if nqubit >= 10:
-        figsize = (max(figsize[0], nqubit * 0.4), figsize[1])
-        rot = 45
-    elif nqubit >= 7:
-        figsize = (max(figsize[0], nqubit * 0.6), figsize[1])
-        rot = 30
-    else:
-        rot = 0
+    matplotlib.rcParams["font.sans-serif"] = [
+        "WenQuanYi Micro Hei",
+        "WenQuanYi Zen Hei",
+        "Noto Sans CJK SC",
+        "SimHei",
+        "Arial",
+        "sans-serif",
+    ]
+    matplotlib.rcParams["axes.unicode_minus"] = False
+
+    labels, values, nqubit, figsize, rot = _parse_measured_result(
+        measured_result, figsize
+    )
 
     n_outcomes = len(labels)
     uniform_prob = 1.0 / n_outcomes

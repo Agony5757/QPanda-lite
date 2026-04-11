@@ -1,7 +1,7 @@
 '''Result Adapter
 '''
 
-__all__ = ["convert_originq_result", "convert_quafu_result", "shots2prob", "kv2list", "list2kv", "normalize_result"]
+__all__ = ["convert_originq_result", "convert_quafu_result", "shots2prob", "kv2list", "list2kv", "normalize_result", "QASMResultAdapter"]
 from copy import deepcopy
 import json
 import math
@@ -228,6 +228,73 @@ def kv2list(kv_result : dict, guessed_qubit_num):
         ret[k] = kv_result[k]
         
     return ret
+
+class QASMResultAdapter:
+    """Adapter for QASM Simulator results, converting raw output to a
+    standardized analysis-ready format.
+
+    Takes a raw measurement counts dict from a QASM simulator and produces
+    an :class:`AnalysisResult`-compatible object containing counts,
+    probabilities, and metadata.
+
+    The output can be passed directly to :mod:`qpandalite.analyzer.draw`
+    visualization functions.
+
+    Args:
+        counts: Raw measurement counts, e.g. ``{"00": 512, "11": 488}``.
+        shots: Total number of shots. If not provided, inferred from counts.
+        metadata: Optional metadata dict (e.g. simulator type, circuit info).
+
+    Attributes:
+        counts (Dict[str, int]): Original measurement counts.
+        probabilities (Dict[str, float]): Normalized probability distribution.
+        shots (int): Total number of shots.
+        metadata (dict): Simulation metadata.
+
+    Example:
+        >>> adapter = QASMResultAdapter(
+        ...     counts={"00": 512, "11": 488},
+        ...     metadata={"simulator": "qasm_simulator"},
+        ... )
+        >>> adapter.probabilities
+        {'00': 0.512, '11': 0.488}
+        >>> adapter.shots
+        1000
+    """
+
+    def __init__(
+        self,
+        counts: Dict[str, int],
+        shots: int = None,
+        metadata: dict = None,
+    ):
+        self.counts: Dict[str, int] = dict(counts)
+        self.shots: int = shots if shots is not None else sum(self.counts.values())
+        self.metadata: dict = metadata if metadata is not None else {}
+        self.metadata.setdefault("simulator", "qasm_simulator")
+        self.metadata.setdefault("shots", self.shots)
+        self.probabilities: Dict[str, float] = normalize_result(self.counts)
+
+    def __repr__(self) -> str:
+        return (
+            f"QASMResultAdapter(shots={self.shots}, "
+            f"outcomes={len(self.counts)}, "
+            f"metadata={self.metadata})"
+        )
+
+    def to_dict(self) -> dict:
+        """Convert to a plain dict for serialization.
+
+        Returns:
+            dict with keys ``counts``, ``probabilities``, ``shots``, ``metadata``.
+        """
+        return {
+            "counts": self.counts,
+            "probabilities": self.probabilities,
+            "shots": self.shots,
+            "metadata": self.metadata,
+        }
+
 
 if __name__ == '__main__':
 

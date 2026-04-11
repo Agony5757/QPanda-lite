@@ -239,3 +239,10 @@ MEASURE q[1], c[1]
 - 如果你想提交到 OriginQ 平台，见 [提交任务](submit_task.md)
 - 如果你需要导出为 QASM 格式或做格式互转，见 [QASM](qasm.md)
 
+## 相关测试
+
+- `test_originir_parser.py`：OriginIR 解析器 round-trip 测试
+- `test_random_OriginIR.py`：随机回归 + QuTip 对比
+
+详见 [测试覆盖说明](testing.md)。
+

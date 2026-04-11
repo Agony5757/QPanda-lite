@@ -142,3 +142,9 @@ draw_circuit(circuit)
 ## 下一步
 
 当你已经能生成 `circuit.originir` 或 `circuit.qasm`，且想在本地验证线路结果、比较不同模拟方式或做带噪声测试时，进入 [本地模拟](simulation.md#guide-simulation-entry-overview)。如果你已经完成本地验证，准备把线路提交到云平台或真机执行，则进入 [提交任务](submit_task.md#guide-submit-task-entry-overview)。
+
+## 相关测试
+
+- `test_general.py`：电路构建集成测试
+
+详见 [测试覆盖说明](testing.md)。

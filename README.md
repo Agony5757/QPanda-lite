@@ -140,7 +140,6 @@ QPanda-lite/
 from qpandalite.circuit_builder import Circuit
 
 c = Circuit()
-<<<<<<< HEAD
 c.rx(1, 0.1)         # RX rotation on qubit 1
 c.cnot(1, 0)         # CNOT with control=1, target=0
 c.measure(0, 1)      # Measure qubits 0 and 1
@@ -194,6 +193,27 @@ import qpandalite.task.quafu as quafu
 taskid = quafu.submit_task(circuit.originir, chip_id='ScQ-P10')
 result = quafu.query_by_taskid_sync(taskid)
 ```
+
+---
+
+## Examples
+
+📁 [examples/](examples/README.md) — Runnable demonstrations
+
+### Getting Started
+
+| Example | Description |
+|---------|-------------|
+| [Circuit Remapping](examples/getting-started/1_circuit_remap.py) | Build a circuit and remap qubits for real hardware |
+| [Dummy Server](examples/getting-started/2_dummy_server.py) | Submit tasks to the local dummy simulator |
+| [Result Post-Processing](examples/getting-started/3_result_postprocess.py) | Convert and analyze results |
+
+### Algorithms
+
+| Example | Description |
+|---------|-------------|
+| [Grover Search](examples/algorithms/grover.md) | Unstructured search with quadratic speedup |
+| [Quantum Phase Estimation](examples/algorithms/qpe.md) | Eigenvalue phase estimation |
 
 ---
 

@@ -1,11 +1,20 @@
-# Algorithm Examples
+# QPanda-Lite Examples
 
-This directory contains complete, runnable demonstrations of quantum algorithms
-built on top of the `qpandalite.algorithmics` component library.
+Runnable demonstrations of quantum algorithms and core workflows.
 
 ## Contents
 
+### Getting Started
+
+| Example | Description |
+|---------|-------------|
+| [Circuit Remapping](getting-started/1_circuit_remap.py) | Build a circuit and remap qubits for real hardware |
+| [Dummy Server](getting-started/2_dummy_server.py) | Submit tasks to the local dummy simulator |
+| [Result Post-Processing](getting-started/3_result_postprocess.py) | Convert and analyze results with result adapters |
+
 ### Algorithms
+
+> Built on top of the `qpandalite.algorithmics` component library.
 
 | Example | Description | Key Components |
 |---------|-------------|-----------------|

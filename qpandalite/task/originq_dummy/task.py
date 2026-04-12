@@ -39,29 +39,22 @@ import hashlib
 from json.decoder import JSONDecodeError
 
 from ..task_utils import timestr, make_savepath, load_all_online_info, write_taskinfo
+from ..config import load_dummy_config
 
 try:
-    with open('originq_online_config.json', 'r') as fp:
-        default_online_config = json.load(fp)
-    available_qubits = default_online_config['available_qubits']
-    available_topology = default_online_config['available_topology']
-    default_task_group_size = default_online_config['task_group_size']
-except FileNotFoundError as e:
-    warnings.warn(ImportWarning('originq_online_config.json is not found. '
-                'It is optional in dummy mode, '
-                'but it is necessary for the real quantum device. '))
-    
-    available_qubits = []
-    available_topology = []
-    default_task_group_size = 200
-except JSONDecodeError as e:
-    raise ImportError('Import originq_dummy backend failed.\n'
-                        'Cannot load json from the quafu_online_config.json. '
-                        'Please check the content.')
-except Exception as e:
-    raise ImportError('Import originq_dummy backend failed.\n'
-                      'Unknown import error. Original exception is:\n'
-                      f'{str(e)}')
+    _dummy_config = load_dummy_config()
+except ImportError as e:
+    warnings.warn(ImportWarning(f'originq_dummy config not available: {e}. '
+                'Using empty defaults (all qubits allowed, no topology restriction).'))
+    _dummy_config = {
+        'available_qubits': [],
+        'available_topology': [],
+        'task_group_size': 200,
+    }
+
+available_qubits = _dummy_config['available_qubits']
+available_topology = _dummy_config['available_topology']
+default_task_group_size = _dummy_config['task_group_size']
     
 class DummyCacheContainer:
     """In-memory and on-disk cache for dummy simulation results.

@@ -95,7 +95,7 @@ os.environ['SPHINX_DOC_GEN'] = '1'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'zh_CN'
+language = 'zh-CN'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -111,6 +111,13 @@ html_theme = "pydata_sphinx_theme"
 import pydata_sphinx_theme, os
 _html_theme_path = os.path.dirname(pydata_sphinx_theme.__file__)
 html_theme_path = [_html_theme_path]
+
+html_theme_options = {
+    "show_nav_level": 2,
+    "navigation_with_keys": True,
+    "show_toc_level": 2,
+    "header_links_before_dropdown": 6,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

@@ -12,10 +12,10 @@ def basis_state(
     state: int,
     qubits: Optional[List[int]] = None,
 ) -> None:
-    """Prepare a computational basis state |state> on the given qubits.
+    r"""Prepare a computational basis state ``|state>`` on the given qubits.
 
     Applies X gates to the qubits whose corresponding bit in the binary
-    representation of *state* is 1.  All other qubits are left in |0>.
+    representation of *state* is 1.  All other qubits are left in ``|0>``.
 
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
@@ -32,7 +32,7 @@ def basis_state(
         >>> from qpandalite.circuit_builder import Circuit
         >>> from qpandalite.algorithmics.state_preparation import basis_state
         >>> c = Circuit()
-        >>> basis_state(c, state=5, qubits=[0, 1, 2])  # |101>
+        >>> basis_state(c, state=5, qubits=[0, 1, 2])  # ``|101>``
     """
     if state < 0:
         raise ValueError(f"state must be non-negative, got {state}")

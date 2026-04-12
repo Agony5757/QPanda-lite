@@ -417,7 +417,7 @@ class Circuit:
         """Return a context manager that wraps gates in a CONTROL block.
 
         All gates added inside the ``with`` block will be executed only
-        when all specified control qubits are in state |1>.
+        when all specified control qubits are in state ``|1>``.
 
         Args:
             *args: One or more control qubit indices.

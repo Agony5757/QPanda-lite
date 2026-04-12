@@ -20,22 +20,6 @@ qpandalite.originir.originir\_line\_parser module
    :undoc-members:
    :show-inheritance:
 
-qpandalite.originir.originir\_spec module
------------------------------------------
-
-.. automodule:: qpandalite.originir.originir_spec
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-qpandalite.originir.random\_originir module
--------------------------------------------
-
-.. automodule:: qpandalite.originir.random_originir
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

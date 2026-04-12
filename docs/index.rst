@@ -47,34 +47,10 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
    source/advanced/noise_simulation
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: API 参考
 
-   source/qpandalite.rst
-   source/qpandalite.circuit_builder
-   source/qpandalite.simulator
-   source/qpandalite.originir
-   source/qpandalite.qasm
-   source/qpandalite.transpiler
-   source/qpandalite.analyzer
-   source/qpandalite.algorithmics
-   source/qpandalite.task
-
-.. Hidden toctrees for sub-module API pages
-.. toctree::
-   :hidden:
-
-   source/qpandalite.qcloud_config
-   source/qpandalite.algorithmics.ansatz
-   source/qpandalite.algorithmics.state_preparation
-   source/qpandalite.task.adapters
-   source/qpandalite.task.config
-   source/qpandalite.task.ibm
-   source/qpandalite.task.quafu
-   source/qpandalite.task.originq
-   source/qpandalite.task.originq_dummy
-   source/qpandalite.task.origin_qcloud
-   source/qpandalite.task.platform_template
+   source/qpandalite_api
 
 Indices and tables
 ==================

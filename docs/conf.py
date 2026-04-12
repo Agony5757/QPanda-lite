@@ -113,12 +113,15 @@ _html_theme_path = os.path.dirname(pydata_sphinx_theme.__file__)
 html_theme_path = [_html_theme_path]
 
 html_theme_options = {
-    "show_nav_level": 2,
+    "show_nav_level": 1,
     "navigation_with_keys": True,
     "show_toc_level": 2,
     "header_links_before_dropdown": 6,
-    "navigation_include_hidden": True,
 }
+
+suppress_warnings = ["myst.xref_missing"]
+
+autodoc_default_options = {"no-index": True}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

@@ -184,6 +184,7 @@ class OpenQASM2_BaseParser:
         Args:
             raw_qasm: OpenQASM 2.0 string to parse.
         """
+        self.raw_qasm = raw_qasm
 
         # format, and check if QASM code is valid
         # also return the collected statements

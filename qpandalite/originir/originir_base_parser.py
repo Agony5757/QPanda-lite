@@ -7,7 +7,17 @@ from qpandalite.circuit_builder.qcircuit import Circuit
 
 from .originir_line_parser import OriginIR_LineParser
 
-class OriginIR_BaseParser:    
+class OriginIR_BaseParser:
+    """Parser for OriginIR quantum circuit representation.
+
+    Attributes:
+        n_qubit: Number of qubits.
+        n_cbit: Number of classical bits.
+        program_body: List of operation opcodes.
+        raw_originir: Raw OriginIR string.
+        measure_qubits: List of measurement tuples (qubit, cbit).
+    """
+
     def __init__(self):
         self.n_qubit = None
         self.n_cbit = None        
@@ -43,6 +53,14 @@ class OriginIR_BaseParser:
             return i + 1
 
     def parse(self, originir_str):
+        """Parse an OriginIR string and populate internal state.
+
+        Args:
+            originir_str: OriginIR string to parse.
+
+        Returns:
+            Circuit: A qpandalite Circuit object.
+        """
         
         self.raw_originir = originir_str
 
@@ -186,6 +204,11 @@ class OriginIR_BaseParser:
                              'The DAGGER operation is not closed at the end of the OriginIR.')
         
     def to_extended_originir(self):
+        """Convert parsed data back to extended OriginIR string.
+
+        Returns:
+            str: Extended OriginIR string representation.
+        """
         ret = f'QINIT {self.n_qubit}\n'
         ret += f'CREG {self.n_cbit}\n'
         ret += '\n'.join([opcode_to_line_originir(opcode) for opcode in self.program_body])
@@ -193,6 +216,11 @@ class OriginIR_BaseParser:
     
     @property
     def originir(self):
+        """OriginIR string representation (alias for to_extended_originir).
+
+        Returns:
+            str: Extended OriginIR string.
+        """
         return self.to_extended_originir()
 
     def __str__(self):

@@ -7,7 +7,18 @@ from .qasm_line_parser import OpenQASM2_LineParser
 from .exceptions import NotSupportedGateError, RegisterDefinitionError, RegisterNotFoundError, RegisterOutOfRangeError
 
 
-class OpenQASM2_BaseParser:    
+class OpenQASM2_BaseParser:
+    """Parser for OpenQASM 2.0 quantum circuit representation.
+
+    Attributes:
+        qregs: List of quantum register tuples (name, size).
+        cregs: List of classical register tuples (name, size).
+        n_qubit: Total number of qubits.
+        n_cbit: Total number of classical bits.
+        program_body: List of operation opcodes.
+        measure_qubits: List of measurement tuples (qubit, cbit).
+    """
+
     def __init__(self):
         self.qregs = list()
         self.cregs = list()        
@@ -168,7 +179,11 @@ class OpenQASM2_BaseParser:
             self.measure_qubits.append((qid, cid))
 
     def parse(self, raw_qasm):
-        self.raw_qasm = raw_qasm
+        """Parse an OpenQASM 2.0 string and populate internal state.
+
+        Args:
+            raw_qasm: OpenQASM 2.0 string to parse.
+        """
 
         # format, and check if QASM code is valid
         # also return the collected statements
@@ -236,6 +251,11 @@ class OpenQASM2_BaseParser:
             self.program_body.append(opcode)
     
     def to_originir(self):
+        """Convert parsed OpenQASM data to OriginIR string.
+
+        Returns:
+            str: OriginIR string representation.
+        """
         oir_parser = OriginIR_BaseParser()
         oir_parser.n_qubit = self.n_qubit
         oir_parser.n_cbit = self.n_cbit

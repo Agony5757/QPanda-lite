@@ -8,6 +8,13 @@ from typing import Any
 
 
 class OpenQASM2_LineParser:  # noqa: N801
+    """Parser for individual OpenQASM 2.0 lines.
+
+    Provides regex-based parsing for OpenQASM 2.0 statements including
+    qreg/creg definitions, 1-4 qubit gates, parameterized gates, and measurements.
+    """
+
+    
     # Fragment patterns
     identifier: str = r"([A-Za-z_][A-Za-z_\d]*)"
     blank: str = r" *"
@@ -73,6 +80,14 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_qreg(line: str) -> tuple[str, int]:
+        """Parse a qreg definition line.
+
+        Args:
+            line: QASM line defining a quantum register.
+
+        Returns:
+            tuple: (register_name, size)
+        """
         matches = OpenQASM2_LineParser.regexp_qreg.match(line)
         qreg_name: str = matches.group(1)  # type: ignore[union-attr]
         qreg_size: int = int(matches.group(2))  # type: ignore[union-attr]
@@ -80,6 +95,14 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_creg(line: str) -> tuple[str, int]:
+        """Parse a creg definition line.
+
+        Args:
+            line: QASM line defining a classical register.
+
+        Returns:
+            tuple: (register_name, size)
+        """
         matches = OpenQASM2_LineParser.regexp_creg.match(line)
         creg_name: str = matches.group(1)  # type: ignore[union-attr]
         creg_size: int = int(matches.group(2))  # type: ignore[union-attr]
@@ -87,6 +110,14 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_parameters(parameters_str: str) -> list[float]:
+        """Parse a parameter string into a list of floats.
+
+        Args:
+            parameters_str: Comma-separated parameter expression string.
+
+        Returns:
+            list[float]: List of parsed parameter values.
+        """
         parameters_str = parameters_str.strip()
         parameter_str_list = parameters_str.split(",")
         parameters: list[float] = []
@@ -96,6 +127,11 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_1q(line: str) -> tuple[str, str, int]:
+        """Parse a 1-qubit gate line.
+
+        Returns:
+            tuple: (op_name, qreg_name, qubit_index)
+        """
         matches = OpenQASM2_LineParser.regexp_1q.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         qreg_name: str = matches.group(2)  # type: ignore[union-attr]
@@ -104,6 +140,11 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_2q(line: str) -> tuple[str, str, int, str, int]:
+        """Parse a 2-qubit gate line.
+
+        Returns:
+            tuple: (op_name, qreg_name1, qubit_index1, qreg_name2, qubit_index2)
+        """
         matches = OpenQASM2_LineParser.regexp_2q.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         qreg_name1: str = matches.group(2)  # type: ignore[union-attr]
@@ -116,6 +157,11 @@ class OpenQASM2_LineParser:  # noqa: N801
     def handle_3q(
         line: str,
     ) -> tuple[str, str, int, str, int, str, int]:
+        """Parse a 3-qubit gate line.
+
+        Returns:
+            tuple: (op_name, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3)
+        """
         matches = OpenQASM2_LineParser.regexp_3q.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         qreg_name1: str = matches.group(2)  # type: ignore[union-attr]
@@ -130,6 +176,11 @@ class OpenQASM2_LineParser:  # noqa: N801
     def handle_4q(
         line: str,
     ) -> tuple[str, str, int, str, int, str, int, str, int]:
+        """Parse a 4-qubit gate line.
+
+        Returns:
+            tuple: (op_name, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3, qreg_name4, qubit_index4)
+        """
         matches = OpenQASM2_LineParser.regexp_4q.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         qreg_name1: str = matches.group(2)  # type: ignore[union-attr]
@@ -154,6 +205,15 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_1qnp(line: str, n_parameters: int) -> tuple[str, list[float], str, int]:
+        """Parse a 1-qubit n-parameter gate line.
+
+        Args:
+            line: QASM line.
+            n_parameters: Expected number of parameters.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name, qubit_index)
+        """
         matches = OpenQASM2_LineParser.regexp_1qnp.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         parameters: list[float] = OpenQASM2_LineParser.handle_parameters(matches.group(2))  # type: ignore[union-attr]
@@ -167,6 +227,15 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_2qnp(line: str, n_parameters: int) -> tuple[str, list[float], str, int, str, int]:
+        """Parse a 2-qubit n-parameter gate line.
+
+        Args:
+            line: QASM line.
+            n_parameters: Expected number of parameters.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2)
+        """
         matches = OpenQASM2_LineParser.regexp_2qnp.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         parameters: list[float] = OpenQASM2_LineParser.handle_parameters(matches.group(2))  # type: ignore[union-attr]
@@ -182,6 +251,15 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_3qnp(line: str, n_parameters: int) -> tuple[str, list[float], str, int, str, int, str, int]:
+        """Parse a 3-qubit n-parameter gate line.
+
+        Args:
+            line: QASM line.
+            n_parameters: Expected number of parameters.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3)
+        """
         matches = OpenQASM2_LineParser.regexp_3qnp.match(line)
         op_name: str = matches.group(1)  # type: ignore[union-attr]
         parameters: list[float] = OpenQASM2_LineParser.handle_parameters(matches.group(2))  # type: ignore[union-attr]
@@ -208,54 +286,122 @@ class OpenQASM2_LineParser:  # noqa: N801
 
     @staticmethod
     def handle_1q1p(line: str) -> tuple[str, list[float], str, int]:
+        """Parse a 1-qubit 1-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name, qubit_index)
+        """
         return OpenQASM2_LineParser.handle_1qnp(line, 1)
 
     @staticmethod
     def handle_1q2p(line: str) -> tuple[str, list[float], str, int]:
+        """Parse a 1-qubit 2-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name, qubit_index)
+        """
         return OpenQASM2_LineParser.handle_1qnp(line, 2)
 
     @staticmethod
     def handle_1q3p(line: str) -> tuple[str, list[float], str, int]:
+        """Parse a 1-qubit 3-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name, qubit_index)
+        """
         return OpenQASM2_LineParser.handle_1qnp(line, 3)
 
     @staticmethod
     def handle_1q4p(line: str) -> tuple[str, list[float], str, int]:
+        """Parse a 1-qubit 4-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name, qubit_index)
+        """
         return OpenQASM2_LineParser.handle_1qnp(line, 4)
 
     @staticmethod
     def handle_2q1p(line: str) -> tuple[str, list[float], str, int, str, int]:
+        """Parse a 2-qubit 1-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2)
+        """
         return OpenQASM2_LineParser.handle_2qnp(line, 1)
 
     @staticmethod
     def handle_2q2p(line: str) -> tuple[str, list[float], str, int, str, int]:
+        """Parse a 2-qubit 2-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2)
+        """
         return OpenQASM2_LineParser.handle_2qnp(line, 2)
 
     @staticmethod
     def handle_2q3p(line: str) -> tuple[str, list[float], str, int, str, int]:
+        """Parse a 2-qubit 3-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2)
+        """
         return OpenQASM2_LineParser.handle_2qnp(line, 3)
 
     @staticmethod
     def handle_2q4p(line: str) -> tuple[str, list[float], str, int, str, int]:
+        """Parse a 2-qubit 4-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2)
+        """
         return OpenQASM2_LineParser.handle_2qnp(line, 4)
 
     @staticmethod
     def handle_3q1p(line: str) -> tuple[str, list[float], str, int, str, int, str, int]:
+        """Parse a 3-qubit 1-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3)
+        """
         return OpenQASM2_LineParser.handle_3qnp(line, 1)
 
     @staticmethod
     def handle_3q2p(line: str) -> tuple[str, list[float], str, int, str, int, str, int]:
+        """Parse a 3-qubit 2-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3)
+        """
         return OpenQASM2_LineParser.handle_3qnp(line, 2)
 
     @staticmethod
     def handle_3q3p(line: str) -> tuple[str, list[float], str, int, str, int, str, int]:
+        """Parse a 3-qubit 3-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3)
+        """
         return OpenQASM2_LineParser.handle_3qnp(line, 3)
 
     @staticmethod
     def handle_3q4p(line: str) -> tuple[str, list[float], str, int, str, int, str, int]:
+        """Parse a 3-qubit 4-parameter gate line.
+
+        Returns:
+            tuple: (op_name, parameters, qreg_name1, qubit_index1, qreg_name2, qubit_index2, qreg_name3, qubit_index3)
+        """
         return OpenQASM2_LineParser.handle_3qnp(line, 4)
 
     @staticmethod
     def handle_measure(line: str) -> tuple[str, int, str, int]:
+        """Parse a MEASURE statement line.
+
+        Args:
+            line: QASM measure statement.
+
+        Returns:
+            tuple: (qreg_name, qubit_index, creg_name, creg_index)
+        """
         matches = OpenQASM2_LineParser.regexp_measure.match(line)
         qreg_name: str = matches.group(1)  # type: ignore[union-attr]
         qubit_index: int = int(matches.group(2))  # type: ignore[union-attr]

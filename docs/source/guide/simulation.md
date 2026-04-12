@@ -42,10 +42,10 @@
 
 | 本地模拟入口 | 输入形式 | 适合先看什么问题 |
 | --- | --- | --- |
-| `OriginIR_Simulator` | `originir` 字符串 | 已经用 `Circuit` 构好线路，想先快速验证概率分布、状态向量或采样结果 |
-| `QASM_Simulator` | `qasm` 字符串 | 你的线路来自 OpenQASM 2.0，或准备沿着 QASM 路径与外部工具互操作 |
-| `OpcodeSimulator` | opcode 列表 | 需要更底层控制、特定后端或排查后端差异 |
-| `OriginIR_NoisySimulator` | `originir` 字符串 + 噪声配置 | 想在本地模拟阶段加入噪声模型并观察结果变化 |
+| {class}`qpandalite.simulator.OriginIR_Simulator` | `originir` 字符串 | 已经用 {class}`qpandalite.circuit_builder.Circuit` 构好线路，想先快速验证概率分布、状态向量或采样结果 |
+| {class}`qpandalite.simulator.QASM_Simulator` | `qasm` 字符串 | 你的线路来自 OpenQASM 2.0，或准备沿着 QASM 路径与外部工具互操作 |
+| {class}`qpandalite.simulator.OpcodeSimulator` | opcode 列表 | 需要更底层控制、特定后端或排查后端差异 |
+| {class}`qpandalite.simulator.OriginIR_NoisySimulator` | `originir` 字符串 + 噪声配置 | 想在本地模拟阶段加入噪声模型并观察结果变化 |
 
 如果你还在决定线路该如何表达，先回到 [构建量子线路](circuit.md#guide-circuit-when-to-read)；如果你已经完成本地验证，准备提交到云平台或真机执行，转到 [提交任务](submit_task.md#guide-submit-task-entry-overview)。
 
@@ -136,8 +136,8 @@ prob = sim.simulate_pmeasure(circuit.originir)
 | `density_matrix_qutip` | 复杂噪声模型，高精度需求 | ✅ | 较慢，依赖 Qutip |
 
 **选择建议**：
-- 一般无噪声模拟 → `OriginIR_Simulator`（基于 statevector）
-- 需要噪声模拟 → `OriginIR_NoisySimulator`（基于 density_matrix）
+- 一般无噪声模拟 → {class}`qpandalite.simulator.OriginIR_Simulator`（基于 statevector）
+- 需要噪声模拟 → {class}`qpandalite.simulator.OriginIR_NoisySimulator`（基于 density_matrix）
 - 复杂多比特噪声模型 → `density_matrix_qutip`
 
 ## 已知限制 {#guide-simulation-known-limitations}
@@ -151,10 +151,10 @@ prob = sim.simulate_pmeasure(circuit.originir)
 
 完整的模拟器 API 见：
 
-- `qpandalite.simulator` — 模拟器模块
-- `qpandalite.simulator.OpcodeSimulator`
-- `qpandalite.simulator.OriginIR_Simulator`
-- `qpandalite.simulator.QASM_Simulator`
+- {mod}`qpandalite.simulator` — 模拟器模块
+- {class}`qpandalite.simulator.OpcodeSimulator`
+- {class}`qpandalite.simulator.OriginIR_Simulator`
+- {class}`qpandalite.simulator.QASM_Simulator`
 
 ## 下一步
 

@@ -2,7 +2,7 @@
 
 ## 什么时候进入本页
 
-当你需要理解 `circuit.originir` 输出的文本格式，或者想知道 OriginIR 在 QPanda-lite 中扮演什么角色时，看本页。
+当你需要理解 `circuit.originir` 输出的文本格式，或者想知道 OriginIR 在 {mod}`qpandalite.originir` 中扮演什么角色时，看本页。
 
 ## 本页解决的问题
 

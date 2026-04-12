@@ -185,8 +185,8 @@ task_id = submit_task(
 - 如果你还没有完成线路验证，先回到 [本地模拟](simulation.md#guide-simulation-entry-overview)
 - 如果你还不清楚线路如何构建，先阅读 [构建量子线路](circuit.md#guide-circuit-when-to-read)
 - 如果你已经确定目标平台，可继续查看对应模块 API：
-  - `qpandalite.task.origin_qcloud`
-  - `qpandalite.task.originq_dummy`
-  - `qpandalite.task.quafu`
-  - `qpandalite.task.ibm`
-  - `qpandalite.task.platform_template`
+  - {mod}`qpandalite.task.origin_qcloud`
+  - {mod}`qpandalite.task.originq_dummy`
+  - {mod}`qpandalite.task.quafu`
+  - {mod}`qpandalite.task.ibm`
+  - {mod}`qpandalite.task.platform_template`

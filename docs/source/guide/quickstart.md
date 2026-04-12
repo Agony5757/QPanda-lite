@@ -5,7 +5,7 @@
 ## 构建量子线路
 
 第一个示例将让你看到如何创建量子线路并添加量子门。建议重点关注：
-- 如何使用 `Circuit` 创建空线路
+- 如何使用 {class}`qpandalite.circuit_builder.Circuit` 创建空线路
 - 如何添加量子门（如 `h`、`cnot`）
 - 如何添加测量指令 `measure`
 
@@ -29,7 +29,7 @@ print(circuit.originir)
 ## 本地模拟
 
 接下来使用本地模拟器运行线路并观察结果。建议重点关注：
-- 如何使用 `OriginIR_Simulator` 创建模拟器
+- 如何使用 {class}`qpandalite.simulator.OriginIR_Simulator` 创建模拟器
 - 如何调用 `simulate_pmeasure` 获取测量概率分布
 - 输出结果的含义（概率分布）
 

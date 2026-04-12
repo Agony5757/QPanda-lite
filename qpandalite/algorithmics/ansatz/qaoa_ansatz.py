@@ -49,11 +49,16 @@ def _apply_cost_unitary(
 
         # Apply basis rotation for non-Z terms, then CNOT cascade, Rz, undo
         # Step 1: Rotate non-Z qubits to Z basis
+        # Note: Y-basis rotation uses H·Rz(-π/2) (equivalent to S†·H).
+        # When the angle happens to be exactly 0, Circuit.rz omits the
+        # parameter, which crashes the OriginIR parser.  We therefore skip
+        # the gate entirely when the angle is negligible.
         for op, q in non_id:
             if op == "X":
                 circuit.h(q)
             elif op == "Y":
-                circuit.rz(q, -np.pi / 2 + 1e-15)
+                _angle = -np.pi / 2
+                circuit.rz(q, float(_angle))
                 circuit.h(q)
 
         # Step 2: CNOT cascade
@@ -73,8 +78,9 @@ def _apply_cost_unitary(
             if op == "X":
                 circuit.h(q)
             elif op == "Y":
+                _angle = np.pi / 2
+                circuit.rz(q, float(_angle))
                 circuit.h(q)
-                circuit.rz(q, np.pi / 2 + 1e-15)
 
 
 def _apply_mixer_unitary(

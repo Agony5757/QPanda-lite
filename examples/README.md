@@ -43,9 +43,13 @@ Runnable demonstrations of quantum algorithms and core workflows.
 
 ## Quick Start
 
-All examples are standalone Python scripts. Run them directly:
+All examples are standalone Python scripts. Run them directly from the
+**repository root**:
 
 ```bash
+# From the repo root directory
+cd QPanda-lite
+
 # Grover search
 python examples/algorithms/grover.py --n-qubits 3 --marked-state 5
 
@@ -61,6 +65,12 @@ python examples/state_preparation/rotation_prepare.py --state bell
 # Measurement
 python examples/measurement/shadow_tomography.py --n-shadow 100
 ```
+
+> **Note on `sys.path.insert`**: Example scripts include a
+> `sys.path.insert(0, ...)` line at the top so they can be executed
+> directly (e.g. `python examples/algorithms/vqe.py`) without installing
+> `qpandalite` as a package.  If you have installed qpandalite via
+> `pip install -e .`, this line is harmless and can be ignored.
 
 ## Architecture
 

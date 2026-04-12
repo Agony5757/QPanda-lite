@@ -90,7 +90,7 @@ def rotation_prepare(
 
     Uses the Shende–Bullock–Markov state-preparation algorithm.  The
     method works by computing the circuit that would *disentangle* the
-    target state back to |00...0>, collecting the gates, then applying
+    target state back to ``|00...0>``, collecting the gates, then applying
     them in reverse order.
 
     Gate count: O(2^n) for n qubits.

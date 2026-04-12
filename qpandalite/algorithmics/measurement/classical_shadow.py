@@ -27,12 +27,15 @@ class ShadowSnapshot:
     Attributes:
         unitary_indices: Tuple encoding which Clifford unitary was applied
             to each qubit before measurement.
+
             Mapping (index → unitary → basis measured):
+
                 0 → I  (Z basis)
                 1 → H  (X basis)
                 2 → S·H (Y basis, S = diag(1, i))
-            outcomes: Tuple of bits (0/1) from the computational-basis
-                measurement for each qubit.
+
+        outcomes: Tuple of bits (0/1) from the computational-basis
+            measurement for each qubit.
     """
 
     unitary_indices: Tuple[int, ...]
@@ -206,11 +209,12 @@ def shadow_expectation(
     single-snapshot estimators corrected by the shadow-inverse channel.
 
     For each snapshot the single-qubit estimator is:
+
         P_i = 1                                          if Pauli = I
         P_i = 2·⟨P⟩_b − 1 = 3·⟨b|P|b⟩ − 1            if Pauli ≠ I
-    where :math:`|b\⟩` is the measurement basis
-    (Z for unitary 0, X for unitary 1, Y for unitary 2) and
-    :math:`\⟨ P\⟩_b` is the Born probability of the
+
+    where the basis is ``\|b>`` (Z for unitary 0, X for unitary 1, Y for unitary 2)
+    and the Born probability is ``\<P>_b`` for the
     measurement outcome in that basis.
 
     The n-qubit estimator is the product :math:`hat{P}=prod_i hat{P}_i`.
@@ -221,7 +225,7 @@ def shadow_expectation(
             (e.g. ``"XYZ"``, ``"IZI"``).
 
     Returns:
-        Estimated expectation value :math:`\⟨ P\⟩`.
+        Estimated expectation value ``\<P>``.
 
     Raises:
         ValueError: ``pauli_string`` length does not match snapshot size.

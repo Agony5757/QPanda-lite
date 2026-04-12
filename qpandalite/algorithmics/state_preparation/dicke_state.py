@@ -1,6 +1,6 @@
 """Dicke state preparation.
 
-Prepares the symmetric Dicke state |D(n,k)> — the equal superposition
+Prepares the symmetric Dicke state ``|D(n,k)>`` — the equal superposition
 of all n-qubit basis states with exactly k excitations (ones).
 """
 
@@ -16,7 +16,7 @@ def dicke_state(
     qubits: Optional[List[int]] = None,
     k: int = 1,
 ) -> None:
-    """Prepare the symmetric Dicke state |D(n,k)>.
+    r"""Prepare the symmetric Dicke state ``|D(n,k)>``.
 
     The Dicke state is the equal superposition of all weight-k computational
     basis states on n qubits:
@@ -42,7 +42,7 @@ def dicke_state(
         >>> from qpandalite.circuit_builder import Circuit
         >>> from qpandalite.algorithmics.state_preparation import dicke_state
         >>> c = Circuit()
-        >>> dicke_state(c, qubits=[0, 1, 2], k=1)  # |D(3,1)>
+        >>> dicke_state(c, qubits=[0, 1, 2], k=1)  # ``|D(3,1)>``
     """
     if qubits is None:
         qubits = list(range(circuit.max_qubit + 1))

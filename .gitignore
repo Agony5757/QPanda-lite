@@ -175,3 +175,19 @@ good_circuits.txt
 bad_circuits.txt
 *.png
 *.pdf
+
+# CMake build artifacts
+QPandaLiteCpp/CMakeCache.txt
+QPandaLiteCpp/CMakeFiles/
+QPandaLiteCpp/Makefile
+QPandaLiteCpp/cmake_install.cmake
+QPandaLiteCpp/Pybinder/Makefile
+QPandaLiteCpp/Pybinder/CMakeFiles/
+QPandaLiteCpp/Thirdparty/Makefile
+QPandaLiteCpp/Thirdparty/CMakeFiles/
+QPandaLiteCpp/src/Makefile
+QPandaLiteCpp/src/CMakeFiles/
+QPandaLiteCpp/src/cmake_install.cmake
+QPandaLiteCpp/test/Makefile
+QPandaLiteCpp/test/CMakeFiles/
+QPandaLiteCpp/test/cmake_install.cmake

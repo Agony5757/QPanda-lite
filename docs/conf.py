@@ -110,10 +110,11 @@ source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
-html_theme = 'sphinx_rtd_theme'
+html_theme = "pydata_sphinx_theme"
+
+import pydata_sphinx_theme, os
+_html_theme_path = os.path.dirname(pydata_sphinx_theme.__file__)
+html_theme_path = [_html_theme_path]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -121,11 +122,5 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_js_files = ['hide_myst_anchors.js']
 
-try:
-    import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-except:
-    import warnings
-    warnings.warn('sphinx_rtd_theme is not installed in this environment.\n'
-                  'Compilation continues.')
+# pydata-sphinx-theme uses breadcrumbs by default; keep it enabled
+breadcrumbs = True

@@ -13,5 +13,5 @@ qpandalite
 - 本地模拟：`qpandalite.simulator`，对应教程页 :doc:`guide/simulation`
 - 提交任务：`qpandalite.task`，对应教程页 :doc:`guide/submit_task`
 - 格式与语言接口：`qpandalite.originir`、`qpandalite.qasm`，对应教程页 :doc:`guide/originir`、:doc:`guide/qasm`
-- 算法模块：`qpandalite.algorithmics`（ansatz、state_preparation、measurement）
+- 算法模块：`qpandalite.algorithmics` -- (ansatz, state_preparation, measurement)
 - 分析与格式互转：`qpandalite.analyzer`、`qpandalite.transpiler`，对应进阶页 :doc:`advanced/circuit_analysis`

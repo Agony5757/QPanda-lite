@@ -21,14 +21,17 @@ def basis_rotation_measurement(
     For each qubit, the rotation applied before measurement is determined
     by the corresponding entry in ``basis``:
 
-    ===========  ===================  =======================
-    basis entry  Rotation applied     Effectively measures
-    ===========  ===================  =======================
-    ``"Z"``     None                 Z basis (default)
-    ``"X"``     Hadamard (H)         X basis
-    ``"Y"``     :math:`S^dagger H`  Y basis
-    ``"I"``     None                 Z basis (identity)
-    ===========  ===================  =======================
+    **Basis entry** can be:
+
+    - ``"Z"`` or ``"I"`` (no rotation, measures Z basis)
+    - ``"X"`` (Hadamard gate, measures X basis)
+    - ``"Y"`` (:math:`S^\dagger H`, measures Y basis)
+
+    ``basis`` can be:
+
+    - A single string such as ``"XYZ"`` (applied left-to-right to ``qubits``)
+    - A list of strings such as ``["X", "Y", "Z"]``
+    - ``None`` (default, all qubits use the Z basis)
 
     When ``shots`` is ``None``, the statevector simulator is used to return
     the exact probability distribution.  When ``shots`` is given, the
@@ -37,22 +40,13 @@ def basis_rotation_measurement(
     Args:
         circuit: Quantum circuit (must contain MEASURE instructions).
         qubits: Indices of qubits to include.  ``None`` means all qubits.
-        basis: Per-qubit measurement basis.  Can be:
-
-            - A single string such as ``"XYZ"`` (applied left-to-right to
-              ``qubits``), where each character is ``"I"``, ``"X"``, ``"Y"``,
-              or ``"Z"``.
-            - A list of strings such as ``["X", "Y", "Z"]``.
-            - ``None`` (default), which means all qubits use the Z basis.
-
-        shots: Number of measurement shots.  ``None`` returns the exact
-            probability vector from the statevector simulator.
+        basis: Per-qubit measurement basis (see table above).
+        shots: Number of measurement shots.  ``None`` returns the exact probability vector from the statevector simulator.
 
     Returns:
-        - If ``shots`` is ``None``: a ``dict`` mapping each computational-basis
-          outcome string (e.g. ``"01"``) to its probability.
-        - If ``shots`` is given: a ``dict`` mapping outcome strings to
-          integer counts (frequency).
+        - If ``shots`` is ``None``: a ``dict`` mapping each computational-basis outcome string (e.g. ``"01"``) to its probability.
+        - If ``shots`` is given: a ``dict`` mapping outcome strings to integer counts (frequency).
+
 
     Raises:
         ValueError: ``len(basis)`` does not match ``len(qubits)``.

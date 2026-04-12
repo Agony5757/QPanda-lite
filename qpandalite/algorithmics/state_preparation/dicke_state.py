@@ -1,6 +1,6 @@
 """Dicke state preparation.
 
-Prepares the symmetric Dicke state |D(n,k)> — the equal superposition
+Prepares the symmetric Dicke state ``|D(n,k)>`` — the equal superposition
 of all n-qubit basis states with exactly k excitations (ones).
 """
 
@@ -16,7 +16,7 @@ def dicke_state(
     qubits: Optional[List[int]] = None,
     k: int = 1,
 ) -> None:
-    """Prepare the symmetric Dicke state |D(n,k)>.
+    """Prepare the symmetric Dicke state ``|D(n,k)>``.
 
     The Dicke state is the equal superposition of all weight-k computational
     basis states on n qubits:

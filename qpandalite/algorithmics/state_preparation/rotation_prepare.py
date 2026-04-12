@@ -1,6 +1,6 @@
 """Arbitrary state preparation via rotation method.
 
-Uses the Shende–Bullock–Markov (SBM) decomposition: disentangles qubits
+Uses the Shende-Bullock-Markov (SBM) decomposition. Disentangles qubits
 one at a time, then reverses the gate sequence.
 """
 
@@ -90,7 +90,7 @@ def rotation_prepare(
 
     Uses the Shende–Bullock–Markov state-preparation algorithm.  The
     method works by computing the circuit that would *disentangle* the
-    target state back to |00...0>, collecting the gates, then applying
+    target state back to ``|00...0>``, collecting the gates, then applying
     them in reverse order.
 
     Gate count: O(2^n) for n qubits.

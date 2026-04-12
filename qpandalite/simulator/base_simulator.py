@@ -205,7 +205,7 @@ class BaseSimulator:
         return statevector
     
     def simulate_stateprob(self, quantum_code):
-        """Compute state probabilities (|amplitude|^2) for all basis states.
+        """Compute state probabilities (``|amplitude|^2``) for all basis states.
 
         Args:
             quantum_code: Quantum program code.

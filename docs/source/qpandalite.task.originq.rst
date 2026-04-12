@@ -1,16 +1,10 @@
 qpandalite.task.originq package
 ===============================
 
-Submodules
-----------
+.. note::
 
-qpandalite.task.originq.task module
------------------------------------
-
-.. automodule:: qpandalite.task.originq.task
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   This module is not available in the current version.
+   Please use ``qpandalite.task.originq_cloud`` instead.
 
 Module contents
 ---------------
@@ -19,3 +13,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:

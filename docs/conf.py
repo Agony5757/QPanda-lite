@@ -73,6 +73,10 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
+# Suppress myst xref_missing warnings (cross-doc anchor references in markdown)
+myst_ref_domains = None
+suppress_warnings = ["myst.xref_missing"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -102,6 +106,9 @@ language = 'zh-CN'
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'source/qpandalite.test.rst']
 autodoc_typehints = "description"
+autodoc_default_options = {
+    'no-index': True,
+}
 source_suffix = {'.rst': 'restructuredtext', '.md': 'markdown'}
 
 # -- Options for HTML output -------------------------------------------------
@@ -117,7 +124,7 @@ html_theme_options = {
     "navigation_with_keys": True,
     "show_toc_level": 2,
     "header_links_before_dropdown": 6,
-    "navigation_include_hidden": True,
+
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

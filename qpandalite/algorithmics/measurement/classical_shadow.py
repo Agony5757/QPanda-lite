@@ -206,8 +206,11 @@ def shadow_expectation(
     single-snapshot estimators corrected by the shadow-inverse channel.
 
     For each snapshot the single-qubit estimator is:
+
         P_i = 1                                          if Pauli = I
+
         P_i = 2·⟨P⟩_b − 1 = 3·⟨b|P|b⟩ − 1            if Pauli ≠ I
+
     where :math:`|b\⟩` is the measurement basis
     (Z for unitary 0, X for unitary 1, Y for unitary 2) and
     :math:`\⟨ P\⟩_b` is the Born probability of the

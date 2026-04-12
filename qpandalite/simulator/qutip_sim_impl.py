@@ -45,7 +45,7 @@ class DensityOperatorSimulatorQutip:
         self.density_matrix = None
 
     def init_n_qubit(self, n: int) -> None:
-        """Initialize the simulator with n qubits in the |0...0> state."""
+        """Initialize the simulator with n qubits in the ``|0...0>`` state."""
         self.n_qubits = n
         zero_state = tensor([basis(2, 0) for _ in range(n)])
         self.density_matrix = ket2dm(zero_state)

@@ -285,7 +285,7 @@ class OpcodeSimulator:
         return statevector
     
     def simulate_opcodes_stateprob(self, n_qubit, program_body):
-        """Compute state probabilities (|amplitude|^2) for all basis states.
+        """Compute state probabilities (``|amplitude|^2``) for all basis states.
 
         Args:
             n_qubit: Number of qubits.

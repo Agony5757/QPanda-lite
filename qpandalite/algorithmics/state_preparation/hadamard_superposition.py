@@ -17,7 +17,7 @@ def hadamard_superposition(
     """Create a uniform Hadamard superposition on the given qubits.
 
     Applies an H gate to every qubit in *qubits*, transforming
-    |0...0> into an equal superposition of all 2^n basis states:
+    ``|0...0>`` into an equal superposition of all 2^n basis states:
 
     .. math::
 

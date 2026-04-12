@@ -12,10 +12,10 @@ def basis_state(
     state: int,
     qubits: Optional[List[int]] = None,
 ) -> None:
-    """Prepare a computational basis state |state> on the given qubits.
+    """Prepare a computational basis state ``|state>`` on the given qubits.
 
     Applies X gates to the qubits whose corresponding bit in the binary
-    representation of *state* is 1.  All other qubits are left in |0>.
+    representation of *state* is 1.  All other qubits are left in ``|0>``.
 
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).

@@ -24,9 +24,15 @@ def _apply_multiplexed_ry(
     """
     n = len(controls)
     if n == 0:
+        # Base case: no control qubits, just a single rotation.
+        # angles has length 1.
         if abs(angles[0]) > 1e-15:
             circuit.ry(target, float(angles[0]))
         return
+
+    assert len(angles) == 2**n, (
+        f"Expected {2**n} angles for {n} controls, got {len(angles)}"
+    )
 
     # Recursive decomposition:
     # Split angles into even (k with MSB=0) and odd (k with MSB=1)
@@ -54,9 +60,14 @@ def _apply_multiplexed_rz(
     """Apply a uniformly-controlled Rz (multiplexed Rz)."""
     n = len(controls)
     if n == 0:
+        # Base case: no control qubits, just a single rotation.
         if abs(angles[0]) > 1e-15:
             circuit.rz(target, float(angles[0]))
         return
+
+    assert len(angles) == 2**n, (
+        f"Expected {2**n} angles for {n} controls, got {len(angles)}"
+    )
 
     even_angles = angles[0::2]
     odd_angles = angles[1::2]
@@ -172,9 +183,14 @@ def rotation_prepare(
         for k in range(n_blocks):
             idx_even = 2 * k
             idx_odd = 2 * k + 1
+            a_e = alpha[idx_even]
+            a_o = alpha[idx_odd]
+            # Use the larger-magnitude element's phase as reference
+            # to avoid phase noise when one amplitude is near zero
+            ref = a_e if abs(a_e) >= abs(a_o) else a_o
             new_alpha[k] = np.sqrt(
-                abs(alpha[idx_even])**2 + abs(alpha[idx_odd])**2
-            ) * np.exp(1j * np.angle(alpha[idx_even]))
+                abs(a_e)**2 + abs(a_o)**2
+            ) * np.exp(1j * np.angle(ref))
         alpha = new_alpha
 
     # Apply gates in REVERSE order (preparation = reverse of disentangling)

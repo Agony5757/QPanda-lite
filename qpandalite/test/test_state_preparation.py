@@ -24,7 +24,7 @@ def _ensure_n_qubits(circuit: Circuit, n: int) -> None:
 
 class TestBasisState:
 
-    def test_zero_state(self):
+    def run_test_zero_state(self):
         from qpandalite.algorithmics.state_preparation import basis_state
         c = Circuit()
         _ensure_n_qubits(c, 3)
@@ -36,7 +36,7 @@ class TestBasisState:
         expected[0] = 1.0
         np.testing.assert_allclose(sv, expected, atol=1e-10)
 
-    def test_single_bit(self):
+    def run_test_single_bit(self):
         from qpandalite.algorithmics.state_preparation import basis_state
         c = Circuit()
         basis_state(c, 1, qubits=[0])
@@ -44,7 +44,7 @@ class TestBasisState:
         expected = np.array([0, 1], dtype=complex)
         np.testing.assert_allclose(sv, expected, atol=1e-10)
 
-    def test_multi_qubit(self):
+    def run_test_multi_qubit(self):
         from qpandalite.algorithmics.state_preparation import basis_state
         c = Circuit()
         _ensure_n_qubits(c, 3)
@@ -57,14 +57,14 @@ class TestBasisState:
         expected[5] = 1.0
         np.testing.assert_allclose(sv, expected, atol=1e-10)
 
-    def test_negative_raises(self):
+    def run_test_negative_raises(self):
         c = Circuit()
         _ensure_n_qubits(c, 1)
         from qpandalite.algorithmics.state_preparation import basis_state
         with pytest.raises(ValueError):
             basis_state(c, -1)
 
-    def test_custom_qubits(self):
+    def run_test_custom_qubits(self):
         from qpandalite.algorithmics.state_preparation import basis_state
         c = Circuit()
         _ensure_n_qubits(c, 4)
@@ -81,7 +81,7 @@ class TestBasisState:
 
 class TestHadamardSuperposition:
 
-    def test_single_qubit(self):
+    def run_test_single_qubit(self):
         from qpandalite.algorithmics.state_preparation import hadamard_superposition
         c = Circuit()
         hadamard_superposition(c, qubits=[0])
@@ -89,7 +89,7 @@ class TestHadamardSuperposition:
         expected = np.array([1, 1], dtype=complex) / np.sqrt(2)
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-10)
 
-    def test_two_qubit(self):
+    def run_test_two_qubit(self):
         from qpandalite.algorithmics.state_preparation import hadamard_superposition
         c = Circuit()
         hadamard_superposition(c, qubits=[0, 1])
@@ -97,7 +97,7 @@ class TestHadamardSuperposition:
         expected = np.ones(4, dtype=complex) / 2.0
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-10)
 
-    def test_custom_qubits(self):
+    def run_test_custom_qubits(self):
         from qpandalite.algorithmics.state_preparation import hadamard_superposition
         c = Circuit()
         _ensure_n_qubits(c, 3)
@@ -113,7 +113,7 @@ class TestHadamardSuperposition:
 
 class TestRotationPrepare:
 
-    def test_zero_state(self):
+    def run_test_zero_state(self):
         from qpandalite.algorithmics.state_preparation import rotation_prepare
         c = Circuit()
         target = np.array([1, 0, 0, 0], dtype=complex)
@@ -122,7 +122,7 @@ class TestRotationPrepare:
         expected = np.array([1, 0, 0, 0], dtype=complex)
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-8)
 
-    def test_bell_state(self):
+    def run_test_bell_state(self):
         from qpandalite.algorithmics.state_preparation import rotation_prepare
         c = Circuit()
         target = np.array([1, 0, 0, 1], dtype=complex) / np.sqrt(2)
@@ -130,7 +130,7 @@ class TestRotationPrepare:
         sv = _statevector(c)
         np.testing.assert_allclose(np.abs(sv), np.abs(target), atol=1e-8)
 
-    def test_normalisation(self):
+    def run_test_normalisation(self):
         from qpandalite.algorithmics.state_preparation import rotation_prepare
         c = Circuit()
         target = np.array([3, 4], dtype=complex)
@@ -139,13 +139,13 @@ class TestRotationPrepare:
         expected = np.array([3, 4], dtype=complex) / 5.0
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-8)
 
-    def test_non_power_of_2_raises(self):
+    def run_test_non_power_of_2_raises(self):
         c = Circuit()
         from qpandalite.algorithmics.state_preparation import rotation_prepare
         with pytest.raises(ValueError):
             rotation_prepare(c, np.array([1, 0, 0]))
 
-    def test_zero_vector_raises(self):
+    def run_test_zero_vector_raises(self):
         c = Circuit()
         from qpandalite.algorithmics.state_preparation import rotation_prepare
         with pytest.raises(ValueError):
@@ -156,7 +156,7 @@ class TestRotationPrepare:
 
 class TestThermalState:
 
-    def test_zero_beta(self):
+    def run_test_zero_beta(self):
         from qpandalite.algorithmics.state_preparation import thermal_state
         c = Circuit()
         thermal_state(c, beta=0.0, qubits=[0])
@@ -164,7 +164,7 @@ class TestThermalState:
         expected = np.array([1, 1], dtype=complex) / np.sqrt(2)
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-10)
 
-    def test_large_beta(self):
+    def run_test_large_beta(self):
         from qpandalite.algorithmics.state_preparation import thermal_state
         c = Circuit()
         _ensure_n_qubits(c, 1)
@@ -175,14 +175,14 @@ class TestThermalState:
         expected = np.array([1, 0], dtype=complex)
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-8)
 
-    def test_negative_beta_raises(self):
+    def run_test_negative_beta_raises(self):
         c = Circuit()
         _ensure_n_qubits(c, 1)
         from qpandalite.algorithmics.state_preparation import thermal_state
         with pytest.raises(ValueError):
             thermal_state(c, beta=-1.0)
 
-    def test_custom_hamiltonian(self):
+    def run_test_custom_hamiltonian(self):
         from qpandalite.algorithmics.state_preparation import thermal_state
         c = Circuit()
         H = np.array([[0, 1], [1, 0]], dtype=complex)
@@ -196,7 +196,7 @@ class TestThermalState:
 
 class TestDickeState:
 
-    def test_k0(self):
+    def run_test_k0(self):
         from qpandalite.algorithmics.state_preparation import dicke_state
         c = Circuit()
         _ensure_n_qubits(c, 3)
@@ -208,7 +208,7 @@ class TestDickeState:
         expected[0] = 1.0
         np.testing.assert_allclose(sv, expected, atol=1e-10)
 
-    def test_kn(self):
+    def run_test_kn(self):
         from qpandalite.algorithmics.state_preparation import dicke_state
         c = Circuit()
         dicke_state(c, qubits=[0, 1, 2], k=3)
@@ -217,7 +217,7 @@ class TestDickeState:
         expected[7] = 1.0
         np.testing.assert_allclose(sv, expected, atol=1e-10)
 
-    def test_d31(self):
+    def run_test_d31(self):
         from qpandalite.algorithmics.state_preparation import dicke_state
         c = Circuit()
         dicke_state(c, qubits=[0, 1, 2], k=1)
@@ -228,7 +228,7 @@ class TestDickeState:
         expected[4] = 1.0 / np.sqrt(3)
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-8)
 
-    def test_d42(self):
+    def run_test_d42(self):
         from qpandalite.algorithmics.state_preparation import dicke_state
         c = Circuit()
         dicke_state(c, qubits=[0, 1, 2, 3], k=2)
@@ -240,14 +240,14 @@ class TestDickeState:
                 expected[i] = amp
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-8)
 
-    def test_k_exceeds_n_raises(self):
+    def run_test_k_exceeds_n_raises(self):
         c = Circuit()
         _ensure_n_qubits(c, 2)
         from qpandalite.algorithmics.state_preparation import dicke_state
         with pytest.raises(ValueError):
             dicke_state(c, k=3)
 
-    def test_negative_k_raises(self):
+    def run_test_negative_k_raises(self):
         c = Circuit()
         _ensure_n_qubits(c, 2)
         from qpandalite.algorithmics.state_preparation import dicke_state

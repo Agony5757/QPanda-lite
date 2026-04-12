@@ -2,13 +2,13 @@
 
 ## 什么时候先看本页 {#guide-circuit-when-to-read}
 
-当你还没把量子线路表达出来——还不确定如何用 QPanda-lite 把一个量子算法或实验想法写成可执行的线路表示时，先看本页。
+当你还没把量子线路表达出来——还不确定如何用 {class}`qpandalite.circuit_builder.Circuit` 把一个量子算法或实验想法写成可执行的线路表示时，先看本页。
 
 本页解决的核心问题是：**如何从空线路开始，构建一个可以交给模拟器或真机的量子程序**。
 
 ## 本页解决的问题 {#guide-circuit-problems}
 
-- 如何创建空线路并添加量子门
+- 如何创建空线路并添加量子门（{class}`qpandalite.circuit_builder.Circuit`）
 - 如何添加测量指令
 - 如何使用 CONTROL / DAGGER 控制结构
 - 如何将线路导出为 OriginIR 或 OpenQASM 2.0 字符串
@@ -122,6 +122,8 @@ remapped = circuit.remapping({0: 3, 1: 5})
 ```
 
 ## 可视化
+
+{func}`qpandalite.transpiler.draw.draw_circuit` 用于绘制线路图：
 
 ```python
 from qpandalite.transpiler.draw import draw_circuit

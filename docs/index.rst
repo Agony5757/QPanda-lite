@@ -26,6 +26,27 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
 **格式与底层：** :doc:`OriginIR <source/guide/originir>` / :doc:`OpenQASM 2.0 <source/guide/qasm>` / :doc:`进阶分析 <source/advanced/circuit_analysis>` / :doc:`Opcode <source/advanced/opcode>`
 
 .. toctree::
+   :maxdepth: 2
+   :caption: 教程
+
+   source/guide/installation
+   source/guide/quickstart
+   source/guide/circuit
+   source/guide/simulation
+   source/guide/submit_task
+   source/guide/originir
+   source/guide/qasm
+   source/guide/testing
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 进阶
+
+   source/advanced/circuit_analysis
+   source/advanced/opcode
+   source/advanced/noise_simulation
+
+.. toctree::
    :maxdepth: 1
    :caption: API 参考
 
@@ -39,21 +60,10 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
    source/qpandalite.algorithmics
    source/qpandalite.task
 
-.. Hidden toctrees so pages remain accessible via :doc: links
+.. Hidden toctrees for sub-module API pages
 .. toctree::
    :hidden:
 
-   source/guide/installation
-   source/guide/quickstart
-   source/guide/circuit
-   source/guide/simulation
-   source/guide/submit_task
-   source/guide/originir
-   source/guide/qasm
-   source/guide/testing
-   source/advanced/circuit_analysis
-   source/advanced/opcode
-   source/advanced/noise_simulation
    source/qpandalite.qcloud_config
    source/qpandalite.algorithmics.ansatz
    source/qpandalite.algorithmics.state_preparation

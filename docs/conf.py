@@ -117,6 +117,7 @@ html_theme_options = {
     "navigation_with_keys": True,
     "show_toc_level": 2,
     "header_links_before_dropdown": 6,
+    "navigation_include_hidden": True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

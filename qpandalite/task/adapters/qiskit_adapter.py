@@ -40,6 +40,11 @@ class QiskitAdapter(QuantumAdapter):
         self._backends = self._provider.backends()
 
     def is_available(self) -> bool:
+        """Check if the Qiskit adapter is available (IBM provider initialized).
+
+        Returns:
+            bool: True if the IBM provider was successfully initialized.
+        """
         return self._provider is not None
 
     # -------------------------------------------------------------------------

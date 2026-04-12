@@ -222,6 +222,11 @@ class OriginQAdapter(QuantumAdapter):
         )
 
     def is_available(self) -> bool:
+        """Check if the OriginQ adapter is available (credentials configured).
+
+        Returns:
+            bool: True if api_key, submit_url, and query_url are all configured.
+        """
         return bool(self._api_key and self._submit_url and self._query_url)
 
     # -------------------------------------------------------------------------

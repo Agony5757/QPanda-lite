@@ -39,6 +39,11 @@ class QuafuAdapter(QuantumAdapter):
 
     @property
     def api_token(self) -> str:
+        """Return the API token used for Quafu authentication.
+
+        Returns:
+            str: The Quafu API token.
+        """
         return self._api_token
 
     def __init__(self) -> None:
@@ -61,6 +66,11 @@ class QuafuAdapter(QuantumAdapter):
         self._User = User
 
     def is_available(self) -> bool:
+        """Check if the Quafu adapter is available (quafu package installed).
+
+        Returns:
+            bool: True if the quafu package was successfully imported.
+        """
         return self._quafu is not None
 
     # -------------------------------------------------------------------------

@@ -123,12 +123,12 @@ remapped = circuit.remapping({0: 3, 1: 5})
 
 ## 可视化
 
-{func}`qpandalite.transpiler.draw.draw_circuit` 用于绘制线路图：
+{func}`qpandalite.transpiler.draw.draw` 用于绘制线路图：
 
 ```python
-from qpandalite.transpiler.draw import draw_circuit
+from qpandalite.transpiler.draw import draw
 
-draw_circuit(circuit)
+draw(circuit.originir)
 ```
 
 > 可视化功能详见 [线路分析](../advanced/circuit_analysis.md)。

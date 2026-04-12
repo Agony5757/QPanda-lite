@@ -177,109 +177,234 @@ class Circuit:
     # ─────────────────── Single-qubit gates (no parameters) ───────────────────
 
     def identity(self, qn: int) -> None:
+        """Apply the identity (no-op) gate to qubit."""
         self.add_gate("I", qn)
 
     def h(self, qn: int) -> None:
+        """Apply single-qubit Hadamard gate to qubit."""
         self.add_gate("H", qn)
 
     def x(self, qn: int) -> None:
+        """Apply Pauli-X (NOT) gate to qubit."""
         self.add_gate("X", qn)
 
     def y(self, qn: int) -> None:
+        """Apply Pauli-Y gate to qubit."""
         self.add_gate("Y", qn)
 
     def z(self, qn: int) -> None:
+        """Apply Pauli-Z gate to qubit."""
         self.add_gate("Z", qn)
 
     def sx(self, qn: int) -> None:
+        """Apply square-root-of-X (SX) gate to qubit."""
         self.add_gate("SX", qn)
 
     def sxdg(self, qn: int) -> None:
+        """Apply conjugate-transpose of SX gate to qubit."""
         self.add_gate("SX", qn, dagger=True)
 
     def s(self, qn: int) -> None:
+        """Apply S (phase) gate to qubit."""
         self.add_gate("S", qn)
 
     def sdg(self, qn: int) -> None:
+        """Apply S-dagger (inverse phase) gate to qubit."""
         self.add_gate("S", qn, dagger=True)
 
     def t(self, qn: int) -> None:
+        """Apply T gate to qubit."""
         self.add_gate("T", qn)
 
     def tdg(self, qn: int) -> None:
+        """Apply T-dagger (inverse T) gate to qubit."""
         self.add_gate("T", qn, dagger=True)
 
     # ─────────────────── Single-qubit parametric gates ───────────────────
 
     def rx(self, qn: int, theta: float) -> None:
+        """Apply RX rotation gate.
+
+        Args:
+            qn: Target qubit index.
+            theta: Rotation angle in radians.
+        """
         self.add_gate("RX", qn, params=theta)
 
     def ry(self, qn: int, theta: float) -> None:
+        """Apply RY rotation gate.
+
+        Args:
+            qn: Target qubit index.
+            theta: Rotation angle in radians.
+        """
         self.add_gate("RY", qn, params=theta)
 
     def rz(self, qn: int, theta: float) -> None:
+        """Apply RZ rotation gate.
+
+        Args:
+            qn: Target qubit index.
+            theta: Rotation angle in radians.
+        """
         self.add_gate("RZ", qn, params=theta)
 
     def rphi(self, qn: int, theta: float, phi: float) -> None:
+        """Apply RPhi rotation gate.
+
+        Args:
+            qn: Target qubit index.
+            theta: Polar rotation angle in radians.
+            phi: Azimuthal angle in radians.
+        """
         self.add_gate("RPhi", qn, params=[theta, phi])
 
     # ─────────────────── Two-qubit gates ───────────────────
 
     def cnot(self, controller: int, target: int) -> None:
+        """Apply CNOT (controlled-X) gate.
+
+        Args:
+            controller: Control qubit index.
+            target: Target qubit index.
+        """
         self.add_gate("CNOT", [controller, target])
 
     def cx(self, controller: int, target: int) -> None:
+        """Apply CX gate (alias for CNOT).
+
+        Args:
+            controller: Control qubit index.
+            target: Target qubit index.
+        """
         self.cnot(controller, target)
 
     def cz(self, q1: int, q2: int) -> None:
+        """Apply controlled-Z gate to two qubits."""
         self.add_gate("CZ", [q1, q2])
 
     def iswap(self, q1: int, q2: int) -> None:
+        """Apply iSWAP gate to two qubits."""
         self.add_gate("ISWAP", [q1, q2])
 
     def swap(self, q1: int, q2: int) -> None:
+        """Apply SWAP gate to two qubits."""
         self.add_gate("SWAP", [q1, q2])
 
     # ─────────────────── Three-qubit gates ───────────────────
 
     def cswap(self, q1: int, q2: int, q3: int) -> None:
+        """Apply CSWAP (Fredkin) gate to three qubits."""
         self.add_gate("CSWAP", [q1, q2, q3])
 
     def toffoli(self, q1: int, q2: int, q3: int) -> None:
+        """Apply Toffoli (CCNOT) gate to three qubits."""
         self.add_gate("TOFFOLI", [q1, q2, q3])
 
     # ─────────────────── Parametric gates ───────────────────
 
     def u1(self, qn: int, lam: float) -> None:
+        """Apply U1 single-parameter unitary gate.
+
+        Args:
+            qn: Target qubit index.
+            lam: Phase angle lambda in radians.
+        """
         self.add_gate("U1", qn, params=lam)
 
     def u2(self, qn: int, phi: float, lam: float) -> None:
+        """Apply U2 two-parameter unitary gate.
+
+        Args:
+            qn: Target qubit index.
+            phi: Phi angle in radians.
+            lam: Lambda angle in radians.
+        """
         self.add_gate("U2", qn, params=[phi, lam])
 
     def u3(self, qn: int, theta: float, phi: float, lam: float) -> None:
+        """Apply U3 three-parameter unitary gate.
+
+        Args:
+            qn: Target qubit index.
+            theta: Theta angle in radians.
+            phi: Phi angle in radians.
+            lam: Lambda angle in radians.
+        """
         self.add_gate("U3", qn, params=[theta, phi, lam])
 
     def xx(self, q1: int, q2: int, theta: float) -> None:
+        """Apply XX Ising interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+        """
         self.add_gate("XX", [q1, q2], params=theta)
 
     def yy(self, q1: int, q2: int, theta: float) -> None:
+        """Apply YY Ising interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+        """
         self.add_gate("YY", [q1, q2], params=theta)
 
     def zz(self, q1: int, q2: int, theta: float) -> None:
+        """Apply ZZ Ising interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+        """
         self.add_gate("ZZ", [q1, q2], params=theta)
 
     def phase2q(self, q1: int, q2: int, theta1: float, theta2: float, thetazz: float) -> None:
+        """Apply two-qubit phase gate with local and ZZ terms.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta1: Local phase angle for q1 in radians.
+            theta2: Local phase angle for q2 in radians.
+            thetazz: ZZ interaction angle in radians.
+        """
         self.add_gate("PHASE2Q", [q1, q2], params=[theta1, theta2, thetazz])
 
     def uu15(self, q1: int, q2: int, params: list[float]) -> None:
+        """Apply general two-qubit UU15 gate with 15 parameters.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            params: List of 15 rotation parameters in radians.
+        """
         self.add_gate("UU15", [q1, q2], params=params)
 
     def barrier(self, *qubits: int) -> None:
+        """Insert a barrier across the specified qubits.
+
+        Args:
+            *qubits: Qubit indices to include in the barrier.
+        """
         self.add_gate("BARRIER", list(qubits))
 
     # ─────────────────── Measurement ───────────────────
 
     def measure(self, *qubits: int) -> None:
+        """Schedule qubits for measurement.
+
+        Appends the given qubits to the measurement list.  Multiple calls
+        accumulate measurements; classical bit indices are assigned in the
+        order qubits are added.
+
+        Args:
+            *qubits: One or more qubit indices to measure.
+        """
         self.record_qubit(list(qubits))
         if self.measure_list is None:
             self.measure_list = []
@@ -289,12 +414,31 @@ class Circuit:
     # ─────────────────── Control / Dagger context managers ───────────────────
 
     def control(self, *args: int) -> CircuitControlContext:
+        """Return a context manager that wraps gates in a CONTROL block.
+
+        All gates added inside the ``with`` block will be executed only
+        when all specified control qubits are in state |1>.
+
+        Args:
+            *args: One or more control qubit indices.
+
+        Returns:
+            A :class:`CircuitControlContext` context manager.
+
+        Raises:
+            ValueError: No control qubits were supplied.
+        """
         self.record_qubit(list(args))
         if len(args) == 0:
             raise ValueError("Controller qubit must not be empty.")
         return CircuitControlContext(self, args)
 
     def set_control(self, *args: int) -> None:
+        """Manually open a CONTROL block (low-level API; prefer :meth:`control`).
+
+        Args:
+            *args: Control qubit indices.
+        """
         self.record_qubit(list(args))
         ret = "CONTROL "
         for q in args:
@@ -302,15 +446,26 @@ class Circuit:
         self.circuit_str += ret[:-2] + "\n"
 
     def unset_control(self) -> None:
+        """Manually close a CONTROL block (low-level API; prefer :meth:`control`)."""
         self.circuit_str += "ENDCONTROL\n"
 
     def dagger(self) -> CircuitDagContext:
+        """Return a context manager that wraps gates in a DAGGER block.
+
+        All gates added inside the ``with`` block will be conjugate-transposed
+        (adjoint).
+
+        Returns:
+            A :class:`CircuitDagContext` context manager.
+        """
         return CircuitDagContext(self)
 
     def set_dagger(self) -> None:
+        """Manually open a DAGGER block (low-level API; prefer :meth:`dagger`)."""
         self.circuit_str += "DAGGER\n"
 
     def unset_dagger(self) -> None:
+        """Manually close a DAGGER block (low-level API; prefer :meth:`dagger`)."""
         self.circuit_str += "ENDDAGGER\n"
 
     # ─────────────────── Remapping ───────────────────

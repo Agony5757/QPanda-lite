@@ -102,7 +102,7 @@ def classical_shadow(
 
     The collection of snapshots enables estimating the expectation value
     of *any* Pauli string via :func:`shadow_expectation` with sample
-    complexity :math:`O(\log M / ε^2)` for M observables.
+    complexity :math:`O(\\log M / ε^2)` for M observables.
 
     Args:
         circuit: Quantum circuit (must already contain MEASURE instructions).
@@ -201,7 +201,7 @@ def shadow_expectation(
     """Estimate the expectation value of a Pauli string from classical-shadow snapshots.
 
     Uses the median-of-means estimator with batch size
-    :math:`\lceil \log(2M)/δ \rceil` (default ``δ=0.01``, ``M=1``).
+    :math:`\\lceil \\log(2M)/δ \\rceil` (default ``δ=0.01``, ``M=1``).
     For a single observable this is equivalent to the mean of the
     single-snapshot estimators corrected by the shadow-inverse channel.
 

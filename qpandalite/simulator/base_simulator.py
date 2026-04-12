@@ -11,12 +11,16 @@ from qpandalite.circuit_builder.qcircuit import OpcodeType
 
 
 class TopologyError(Exception):
+    """Exception raised when an invalid qubit or topology is used."""
     pass
 
 class BaseSimulator:
-    # This class describes some common behaviors of simulators.
-    # It is not designed to be used directly.
-    # Instead, it should be subclassed by specific simulators.
+    """Abstract base class for quantum circuit simulators.
+
+    This class describes common behaviors of simulators.
+    It is not designed to be used directly; instead, it should be subclassed
+    by specific simulators (e.g., OriginIR_Simulator, QASM_Simulator).
+    """
 
     def __init__(self, backend_type = 'statevector',                                  
                  available_qubits : List[int] = None, 
@@ -139,8 +143,18 @@ class BaseSimulator:
         return processed_measure_qubits
 
     def simulate_preprocess(self, originir):
-        # extract the actual used qubit, and build qubit mapping
-        # like q45 -> 0, q46 -> 1, etc..
+        """Parse and preprocess the quantum program.
+
+        Extracts the actual used qubits, builds qubit mapping (e.g., q45 -> 0),
+        checks topology constraints, and returns processed program body and
+        measurement qubits.
+
+        Args:
+            originir: Quantum program in the simulator's input format.
+
+        Returns:
+            Tuple containing the processed program body and measurement qubits.
+        """
         self._clear()
         self.parser.parse(originir)
         # update self.qubit_mapping
@@ -161,84 +175,118 @@ class BaseSimulator:
         return processed_program_body, measure_qubit
     
     def simulate_pmeasure(self, quantum_code):
+        """Compute measurement probabilities for all qubits.
+
+        Args:
+            quantum_code: Quantum program code.
+
+        Returns:
+            List of probabilities for each measurement outcome.
+        """
         program_body, measure_qubit = self.simulate_preprocess(quantum_code)
-        
         prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
             self.qubit_num, program_body, measure_qubit
         )
-
         return prob_list
 
     def simulate_statevector(self, quantum_code):
+        """Compute the final statevector after executing the circuit.
+
+        Args:
+            quantum_code: Quantum program code.
+
+        Returns:
+            Statevector as a complex numpy array.
+        """
         program_body, measure_qubit = self.simulate_preprocess(quantum_code)
-        
         statevector = self.opcode_simulator.simulate_opcodes_statevector(
             self.qubit_num, program_body
         )
-
         return statevector
     
     def simulate_stateprob(self, quantum_code):
-        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+        """Compute state probabilities (|amplitude|^2) for all basis states.
 
+        Args:
+            quantum_code: Quantum program code.
+
+        Returns:
+            Array of probabilities for each basis state.
+        """
+        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
         stateprob = self.opcode_simulator.simulate_opcodes_stateprob(
             self.qubit_num, program_body
         )
-
         return stateprob
 
     def simulate_density_matrix(self, quantum_code):
-        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
+        """Compute the density matrix representation of the final state.
 
+        Args:
+            quantum_code: Quantum program code.
+
+        Returns:
+            Density matrix as a 2D numpy array.
+        """
+        program_body, measure_qubit = self.simulate_preprocess(quantum_code)
         density_matrix = self.opcode_simulator.simulate_opcodes_density_operator(
             self.qubit_num, program_body
         )
-
         return density_matrix
     
     def simulate_single_shot(self, quantum_code):
+        """Execute the circuit and return a single measurement sample.
+
+        Args:
+            quantum_code: Quantum program code.
+
+        Returns:
+            Integer representing the measured bitstring (decimal).
+        """
         processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
-        
         result = self.opcode_simulator.simulate_opcodes_shot(
             self.qubit_num, processed_program_body, measure_qubit)
-        
         return result
     
     def simulate_shots(self, quantum_code, shots):
+        """Execute the circuit multiple times and return measurement counts.
+
+        Args:
+            quantum_code: Quantum program code.
+            shots: Number of measurement shots to perform.
+
+        Returns:
+            Dictionary mapping outcome bitstrings (int) to their count.
+        """
         processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
-
-        # results = {}
-        # for _ in range(shots):
-        #     result = self.opcode_simulator.simulate_opcodes_shot(
-        #         self.qubit_num, processed_program_body, measure_qubit)
-            
-        #     results[result] = results.get(result, 0) + 1
-
-        # get pmeasured result
         pmeasured_result = self.simulate_pmeasure(quantum_code)
         cum_weights = []
         cumulative = 0
         for prob in pmeasured_result:
             cumulative += prob
             cum_weights.append(cumulative)
-        
         result = {}
-        # sample shots times from pmeasured result
         for _ in range(shots):
             shot_result = random.choices(range(len(pmeasured_result)), cum_weights=cum_weights, k=1)[0]
             result[shot_result] = result.get(shot_result, 0) + 1
-
         return result
         
     @property
     def simulator(self):
+        """Return the underlying simulator instance."""
         return self.opcode_simulator.simulator
 
     @property
     def state(self):
+        """Return the current state of the simulator (statevector or density matrix)."""
         return self.opcode_simulator.simulator.state
     
 class BaseNoisySimulator(BaseSimulator):
+    """Noisy simulator base class supporting error models and readout errors.
+
+    Extends BaseSimulator with noise simulation capabilities including
+    gate errors (via ErrorLoader) and measurement readout errors.
+    """
 
     def __init__(self, 
                  backend_type = 'statevector',                 
@@ -312,25 +360,46 @@ class BaseNoisySimulator(BaseSimulator):
     
 
     def simulate_preprocess(self, originir):
+        """Parse, preprocess, and inject errors into the quantum program.
+
+        Args:
+            originir: Quantum program in the simulator's input format.
+
+        Returns:
+            Tuple containing the error-injected program body and measurement qubits.
+        """
         processed_program_body, measure_qubit = super().simulate_preprocess(originir)
         if self.error_loader:
-            # replace the original program_body with the error-injected program_body
             self.error_loader.process_opcodes(processed_program_body)
             processed_program_body = self.error_loader.opcodes
-
         return processed_program_body, measure_qubit
-        
 
     def simulate_statevector(self, originir):
+        """Not supported for noisy simulators.
+
+        Raises:
+            NotImplementedError: Noisy simulators do not support statevector simulation.
+        """
         raise NotImplementedError('Noisy simulator does not support statevector.')
     
 
     def simulate_density_matrix(self, originir):
+        """Compute the density matrix with noise effects applied.
+
+        Args:
+            originir: Quantum program in the simulator's input format.
+
+        Returns:
+            Density matrix as a 2D numpy array.
+
+        Raises:
+            NotImplementedError: If readout_error is set.
+            ValueError: If backend is not density_operator type.
+        """
         if self.opcode_simulator.simulator_typestr == 'density_operator':
             density_matrix = super().simulate_density_matrix(originir)
             if self.readout_error:
                 raise NotImplementedError('density_matrix simulation does not support measurement error yet.')
-                return self._add_readout_error_density_matrix(density_matrix)
             else:
                 return density_matrix
         else:
@@ -338,57 +407,61 @@ class BaseNoisySimulator(BaseSimulator):
     
     
     def simulate_pmeasure(self, originir):
+        """Compute measurement probabilities with noise effects.
+
+        Args:
+            originir: Quantum program in the simulator's input format.
+
+        Returns:
+            List of probabilities for each measurement outcome.
+
+        Raises:
+            ValueError: If backend is not density_operator type.
+        """
         if self.opcode_simulator.simulator_typestr == 'density_operator':
             processed_program_body, measure_qubit = self.simulate_preprocess(originir)
-                
             prob_list = self.opcode_simulator.simulate_opcodes_pmeasure(
                 self.qubit_num, processed_program_body, measure_qubit)
-        
             if self.readout_error:
                 return self._add_readout_error_pmeasure(prob_list, measure_qubit)
             else:
                 return prob_list
-            
         else:
             raise ValueError('simulate_pmeasure is only available for density_operator type OpcodeSimulator backend.')
 
 
     def simulate_single_shot(self, originir):
-        '''Simulate originir with error model.
-        Free mode: let available_qubits = None, then simulate any topology.
-        Strict mode: input available_qubits and available_topology, then the originir is automatically checked.
+        """Execute the noisy circuit and return a single measurement sample.
 
         Args:
-            originir (str): OriginIR.
+            originir: OriginIR quantum program.
+
         Returns:
-            int: The sampled output from the ideal simulator
-
-        Note: Measurement protocol.
-
-        For measurement qubits, the result is returned in decimal form. Suppose the measure_qubit is [q0, q1, q2], and result is b0, b1, b2, then the decimal form is:
-
-        result = b2b1b0
-        '''
+            Integer representing the measured bitstring (decimal).
+        """
         processed_program_body, measure_qubit = self.simulate_preprocess(originir)
-
         result = self.opcode_simulator.simulate_opcodes_shot(
             self.qubit_num, processed_program_body, measure_qubit)
-        
         if self.readout_error:
             result = self._add_readout_error_single_shot(result, measure_qubit)
         return result
-    
-    def simulate_shots(self, quantum_code, shots):
-        processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
 
+    def simulate_shots(self, quantum_code, shots):
+        """Execute the noisy circuit multiple times and return measurement counts.
+
+        Args:
+            quantum_code: Quantum program code.
+            shots: Number of measurement shots to perform.
+
+        Returns:
+            Dictionary mapping outcome bitstrings (int) to their count.
+        """
+        processed_program_body, measure_qubit = self.simulate_preprocess(quantum_code)
         results = {}
         for _ in range(shots):
             result = self.opcode_simulator.simulate_opcodes_shot(
                 self.qubit_num, processed_program_body, measure_qubit)
-            
             if self.readout_error:
                 result = self._add_readout_error_single_shot(result, measure_qubit)
-            
             results[result] = results.get(result, 0) + 1
-
         return results

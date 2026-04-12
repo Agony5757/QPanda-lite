@@ -16,6 +16,10 @@ import pathlib
 parent_path = pathlib.Path(__file__).resolve().parent.parent
 
 sys.path.insert(0, os.path.abspath(parent_path))
+sys.path.insert(0, os.path.abspath(parent_path / 'algorithmics'))
+sys.path.insert(0, os.path.abspath(parent_path / 'algorithmics' / 'ansatz'))
+sys.path.insert(0, os.path.abspath(parent_path / 'algorithmics' / 'state_preparation'))
+sys.path.insert(0, os.path.abspath(parent_path / 'algorithmics' / 'measurement'))
 sys.path.insert(0, os.path.abspath(parent_path / 'analyzer'))
 sys.path.insert(0, os.path.abspath(parent_path / 'circuit_builder'))
 sys.path.insert(0, os.path.abspath(parent_path / 'originir'))

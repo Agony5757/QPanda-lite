@@ -13,9 +13,18 @@ Subpackages
    qpandalite.task.originq_dummy
    qpandalite.task.platform_template
    qpandalite.task.quafu
+   qpandalite.task.adapters
 
 Submodules
 ----------
+
+qpandalite.task.config module
+------------------------------
+
+.. automodule:: qpandalite.task.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 qpandalite.task.task\_utils module
 ----------------------------------

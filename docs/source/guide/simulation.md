@@ -160,3 +160,12 @@ prob = sim.simulate_pmeasure(circuit.originir)
 
 - 如果你发现自己仍不清楚线路该如何表达、量子门如何组织，回看 [构建量子线路](circuit.md)。
 - 如果你已经完成本地验证，并准备把线路提交到云平台或真机执行，进入 [提交任务](submit_task.md)。这一步开始关注的将不再是本地后端选择，而是平台配置、任务提交、状态查询与远端结果获取。
+
+## 相关测试
+
+- `test_simulator.py`：噪声模拟器单元测试
+- `test_random_OriginIR.py`：随机回归测试（密度矩阵对比）
+- `test_random_QASM.py`：随机回归测试（statevector/density matrix 对比）
+- `test_demos.py`：示例端到端测试
+
+详见 [测试覆盖说明](testing.md)。

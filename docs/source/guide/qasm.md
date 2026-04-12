@@ -117,3 +117,12 @@ originir_str = translate_qasm2_to_originir(qasm_str)
 - 如果你想用 QASM 文本直接模拟，见 [本地模拟](simulation.md)
 - 如果你想提交到 Quafu 或 IBM 平台，见 [提交任务](submit_task.md)
 - 如果你需要了解 OriginIR 格式，见 [OriginIR](originir.md)
+
+## 相关测试
+
+- `test_qasm_parser.py`：QASM 解析器 round-trip 测试
+- `test_random_QASM.py`：随机回归 + Qiskit 对比
+- `test_random_QASM_measure.py`：Shots 采样测试
+- `test_QASMBench.py`：QASMBench 兼容性测试
+
+详见 [测试覆盖说明](testing.md)。

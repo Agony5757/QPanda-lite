@@ -21,47 +21,12 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
 快速入口
 --------
 
-**首次接触 QPanda-lite？** 按以下路径快速上手：
+**首次接触？** :doc:`安装 <source/guide/installation>` → :doc:`快速上手 <source/guide/quickstart>` → :doc:`构建线路 <source/guide/circuit>` → :doc:`本地模拟 <source/guide/simulation>` → :doc:`提交任务 <source/guide/submit_task>`
 
-1. :doc:`安装 <source/guide/installation>`
-2. :doc:`快速上手 <source/guide/quickstart>`
-3. :doc:`构建量子线路 <source/guide/circuit>`
-4. :doc:`本地模拟 <source/guide/simulation>`
-5. :doc:`提交任务 <source/guide/submit_task>`
-
-**需要格式转换或底层细节？**
-
-- :doc:`OriginIR <source/guide/originir>` / :doc:`OpenQASM 2.0 <source/guide/qasm>`
-- :doc:`进阶分析 <source/advanced/circuit_analysis>` / :doc:`Opcode <source/advanced/opcode>`
+**格式与底层：** :doc:`OriginIR <source/guide/originir>` / :doc:`OpenQASM 2.0 <source/guide/qasm>` / :doc:`进阶分析 <source/advanced/circuit_analysis>` / :doc:`Opcode <source/advanced/opcode>`
 
 .. toctree::
-   :maxdepth: 2
-   :caption: 快速上手
-
-   source/guide/installation
-   source/guide/quickstart
-   source/guide/circuit
-   source/guide/simulation
-   source/guide/submit_task
-
-.. toctree::
-   :maxdepth: 2
-   :caption: 格式与接口
-
-   source/guide/originir
-   source/guide/qasm
-   source/guide/testing
-
-.. toctree::
-   :maxdepth: 2
-   :caption: 进阶
-
-   source/advanced/circuit_analysis
-   source/advanced/opcode
-   source/advanced/noise_simulation
-
-.. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: API 参考
 
    source/qpandalite.rst
@@ -72,8 +37,26 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
    source/qpandalite.transpiler
    source/qpandalite.analyzer
    source/qpandalite.algorithmics
-   source/qpandalite.qcloud_config
    source/qpandalite.task
+
+.. Hidden toctrees so pages remain accessible via :doc: links
+.. toctree::
+   :hidden:
+
+   source/guide/installation
+   source/guide/quickstart
+   source/guide/circuit
+   source/guide/simulation
+   source/guide/submit_task
+   source/guide/originir
+   source/guide/qasm
+   source/guide/testing
+   source/advanced/circuit_analysis
+   source/advanced/opcode
+   source/advanced/noise_simulation
+   source/qpandalite.qcloud_config
+   source/qpandalite.algorithmics.ansatz
+   source/qpandalite.algorithmics.state_preparation
    source/qpandalite.task.adapters
    source/qpandalite.task.config
    source/qpandalite.task.ibm

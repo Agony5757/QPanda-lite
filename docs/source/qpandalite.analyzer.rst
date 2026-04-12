@@ -20,6 +20,14 @@ qpandalite.analyzer.result\_adapter module
    :undoc-members:
    :show-inheritance:
 
+qpandalite.analyzer.draw module
+--------------------------------
+
+.. automodule:: qpandalite.analyzer.draw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

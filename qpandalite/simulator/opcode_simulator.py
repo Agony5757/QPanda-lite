@@ -12,14 +12,15 @@ if TYPE_CHECKING:
 
 
 def backend_alias(backend_type):
-    ''' Backend alias for different backends.
+    """Resolve backend type aliases to canonical names.
+
     Supported backends: statevector, density_matrix
 
     Note: Uppercase and lowercase are both supported.
 
-    Supported aliases: ['statevector', 'state_vector',
-    'density_matrix', 'density_operator', 'DensityMatrix', 'DensityOperator']
-    '''
+    Returns:
+        Canonical backend type string ("statevector" or "density_operator").
+    """
     statevector_alias = ['statevector', 'state_vector']
     density_operator_alias = ['density_matrix', 'density_operator',
                               'densitymatrix', 'densityoperator']
@@ -48,21 +49,13 @@ class OpcodeSimulator:
             typestr: Human-readable backend type string.
     """   
     def __init__(self, backend_type = 'statevector'):
-        '''OpcodeSimulator is a quantum circuit simulation based on C++ which runs locally on your PC.
-        
+        """Initialize the OpcodeSimulator.
+
         Args:
-            backend_type (str): The backend type for simulation. Supported backends: statevector, density_matrix. Default: 'statevector'.
-
-        Note: Uppercase and lowercase are both supported.
-
-        Supported aliases for backend_type:
-         statevector: ['statevector', 'state_vector']
-         density_matrix: ['density_matrix', 'density_operator', 'densitymatrix', 'densityoperator']
-         density_matrix_qutip: ['density_matrix_qutip', 'density_operator_qutip']
-
-         density_matrix_qutip is a backend based on Qutip library, which is used to compare with
-         the density matrix simulator in QPanda-lite.
-        '''
+            backend_type: The backend type for simulation ("statevector" or "density_matrix").
+                Supported aliases: statevector, state_vector, density_matrix,
+                density_operator, density_matrix_qutip, density_operator_qutip.
+        """
         backend_type = backend_alias(backend_type)        
         if backend_type =='statevector':
             self.SimulatorType = StatevectorSimulator

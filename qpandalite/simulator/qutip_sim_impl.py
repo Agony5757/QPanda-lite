@@ -96,6 +96,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the RX gate.
+
+        Args:
+            qubit: Target qubit index.
+            theta: Rotation angle in radians.
+            control_qubits_set: Control qubits for controlled rotation.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = rx(theta)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -106,6 +114,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the RY gate.
+
+        Args:
+            qubit: Target qubit index.
+            theta: Rotation angle in radians.
+            control_qubits_set: Control qubits for controlled rotation.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = ry(theta)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -116,6 +132,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the RZ gate.
+
+        Args:
+            qubit: Target qubit index.
+            theta: Rotation angle in radians.
+            control_qubits_set: Control qubits for controlled rotation.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = rz(theta)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -125,6 +149,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the X (NOT) gate.
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = sigmax()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -134,6 +165,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the Y gate.
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = sigmay()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -143,6 +181,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the Z gate.
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = sigmaz()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -152,6 +197,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the Hadamard gate.
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = snot()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -161,6 +213,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the SX (square-root of X) gate.
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = sqrtnot()
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -170,6 +229,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the S gate (phase gate, π/2).
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = phasegate(np.pi / 2)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -179,6 +245,13 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the T gate (π/4 phase gate).
+
+        Args:
+            qubit: Target qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = phasegate(np.pi / 4)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -191,6 +264,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the CNOT (controlled-NOT) gate.
+
+        Args:
+            control_qubit: Control qubit index.
+            target_qubit: Target qubit index.
+            control_qubits_set: Additional control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = cnot(2, 0, 1)
         self._apply_unitary(U, [control_qubit, target_qubit], control_qubits_set, is_dagger)
 
@@ -201,6 +282,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the CZ (controlled-Z) gate.
+
+        Args:
+            qubit1: First qubit index.
+            qubit2: Second qubit index.
+            control_qubits_set: Additional control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = Qobj([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dims=[[2, 2], [2, 2]])
         self._apply_unitary(U, [qubit1, qubit2], control_qubits_set, is_dagger)
 
@@ -211,6 +300,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the SWAP gate.
+
+        Args:
+            qubit1: First qubit index.
+            qubit2: Second qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = swap()
         self._apply_unitary(U, [qubit1, qubit2], control_qubits_set, is_dagger)
 
@@ -222,6 +319,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the Toffoli (CCNOT) gate.
+
+        Args:
+            c1: First control qubit index.
+            c2: Second control qubit index.
+            target: Target qubit index.
+            control_qubits_set: Additional control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = toffoli()
         self._apply_unitary(U, [c1, c2, target], control_qubits_set, is_dagger)
 
@@ -232,6 +338,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the iSWAP gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         matrix = Qobj(
             [[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]],
             dims=[[2, 2], [2, 2]],
@@ -246,6 +360,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the CSWAP (Fredkin) gate.
+
+        Args:
+            control_qubit: Control qubit index.
+            q1: First target qubit index.
+            q2: Second target qubit index.
+            control_qubits_set: Additional control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         total_control = list(control_qubits_set) + [control_qubit] if control_qubits_set else [control_qubit]
         swap_op = swap()
         self._apply_unitary(swap_op, [q1, q2], total_control, is_dagger)
@@ -259,6 +382,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the U1 gate.
+
+        Args:
+            qubit: Target qubit index.
+            theta: Phase angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = phasegate(theta)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -270,6 +401,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the U2 gate.
+
+        Args:
+            qubit: Target qubit index.
+            phi: First phase angle in radians.
+            lam: Second phase angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         sqrt2 = np.sqrt(2)
         matrix = np.array(
             [
@@ -290,6 +430,16 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the U3 gate.
+
+        Args:
+            qubit: Target qubit index.
+            theta: Polar angle in radians.
+            phi: First phase angle in radians.
+            lam: Second phase angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         matrix = np.array(
             [
                 [np.cos(theta / 2), -np.exp(1j * lam) * np.sin(theta / 2)],
@@ -308,6 +458,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the XY interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         H = (tensor(sigmax(), sigmax()) + tensor(sigmay(), sigmay())) * (-1j * theta / 4)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
@@ -320,6 +479,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the RPhi gate (rotation around axis in XY plane).
+
+        Args:
+            qubit: Target qubit index.
+            theta: Polar angle in radians.
+            phi: Azimuthal angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         U = rz(phi) * rx(theta) * rz(-phi)
         self._apply_unitary(U, [qubit], control_qubits_set, is_dagger)
 
@@ -330,6 +498,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the RPhi90 gate (π/2 rotation around axis in XY plane).
+
+        Args:
+            qubit: Target qubit index.
+            phi: Azimuthal angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         self.rphi(qubit, np.pi / 2, phi, control_qubits_set, is_dagger)
 
     def rphi180(
@@ -339,6 +515,14 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the RPhi180 gate (π rotation around axis in XY plane).
+
+        Args:
+            qubit: Target qubit index.
+            phi: Azimuthal angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         self.rphi(qubit, np.pi, phi, control_qubits_set, is_dagger)
 
     def xx(
@@ -349,6 +533,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the XX interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         H = tensor(sigmax(), sigmax()) * (-1j * theta / 2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
@@ -361,6 +554,15 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the YY interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         H = tensor(sigmay(), sigmay()) * (-1j * theta / 2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
@@ -373,11 +575,26 @@ class DensityOperatorSimulatorQutip:
         control_qubits_set: list[int] | None = None,
         is_dagger: bool = False,
     ) -> None:
+        """Apply the ZZ interaction gate.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            theta: Interaction angle in radians.
+            control_qubits_set: Control qubits.
+            is_dagger: Whether to apply the dagger version.
+        """
         H = tensor(sigmaz(), sigmaz()) * (-1j * theta / 2)
         U = H.expm()
         self._apply_unitary(U, [q1, q2], control_qubits_set, is_dagger)
 
     def phaseflip(self, qubit: int, prob: float) -> None:
+        """Apply phase-flip (Z) noise.
+
+        Args:
+            qubit: Target qubit index.
+            prob: Phase-flip probability.
+        """
         K0 = np.sqrt(1 - prob) * Qobj([[1, 0], [0, 1]])
         K1 = np.sqrt(prob) * Qobj([[1, 0], [0, -1]])
         self._apply_kraus([K0, K1], [qubit])
@@ -441,6 +658,14 @@ class DensityOperatorSimulatorQutip:
     # ─────────────────── Noise models ───────────────────
 
     def pauli_error_1q(self, qubit: int, px: float, py: float, pz: float) -> None:
+        """Apply single-qubit Pauli error.
+
+        Args:
+            qubit: Target qubit index.
+            px: Probability of X error.
+            py: Probability of Y error.
+            pz: Probability of Z error.
+        """
         p0 = max(1 - px - py - pz, 0)
         K0 = np.sqrt(p0) * qeye(2)
         K1 = np.sqrt(px) * sigmax()
@@ -449,6 +674,12 @@ class DensityOperatorSimulatorQutip:
         self._apply_kraus([K0, K1, K2, K3], [qubit])
 
     def depolarizing(self, qubit: int, p: float) -> None:
+        """Apply depolarizing noise to a single qubit.
+
+        Args:
+            qubit: Target qubit index.
+            p: Depolarizing probability.
+        """
         K0 = np.sqrt(1 - p) * qeye(2)
         K1 = np.sqrt(p / 3) * sigmax()
         K2 = np.sqrt(p / 3) * sigmay()
@@ -456,20 +687,45 @@ class DensityOperatorSimulatorQutip:
         self._apply_kraus([K0, K1, K2, K3], [qubit])
 
     def bitflip(self, qubit: int, p: float) -> None:
+        """Apply bit-flip (X) noise.
+
+        Args:
+            qubit: Target qubit index.
+            p: Bit-flip probability.
+        """
         K0 = np.sqrt(1 - p) * qeye(2)
         K1 = np.sqrt(p) * sigmax()
         self._apply_kraus([K0, K1], [qubit])
 
     def kraus1q(self, qubit: int, parameters: list[list[float]]) -> None:
+        """Apply single-qubit Kraus noise.
+
+        Args:
+            qubit: Target qubit index.
+            parameters: List of Kraus operator matrix elements (flattened 2x2).
+        """
         kraus_ops = [Qobj(np.array(k).reshape(2, 2)) for k in parameters]
         self._apply_kraus(kraus_ops, [qubit])
 
     def amplitude_damping(self, qubit: int, gamma: float) -> None:
+        """Apply amplitude damping noise.
+
+        Args:
+            qubit: Target qubit index.
+            gamma: Damping rate (0 to 1).
+        """
         K0 = Qobj([[1, 0], [0, np.sqrt(1 - gamma)]])
         K1 = Qobj([[0, np.sqrt(gamma)], [0, 0]])
         self._apply_kraus([K0, K1], [qubit])
 
     def kraus2q(self, q1: int, q2: int, parameters: list[list[float]]) -> None:
+        """Apply two-qubit Kraus noise.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            parameters: List of Kraus operator matrix elements (flattened 4x4).
+        """
         kraus_ops = [Qobj(np.array(k).reshape(4, 4)) for k in parameters]
         self._apply_kraus(kraus_ops, [q1, q2])
 
@@ -528,6 +784,13 @@ class DensityOperatorSimulatorQutip:
         self._apply_kraus(kraus, [q1, q2])
 
     def twoqubit_depolarizing(self, q1: int, q2: int, p: float) -> None:
+        """Apply two-qubit depolarizing noise.
+
+        Args:
+            q1: First qubit index.
+            q2: Second qubit index.
+            p: Depolarizing probability.
+        """
         self.pauli_error_2q(q1, q2, [p / 15] * 15)
 
     # ─────────────────── Measurement ───────────────────

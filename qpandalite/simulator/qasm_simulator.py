@@ -11,6 +11,18 @@ if TYPE_CHECKING:
     from .qpandalite_cpp import *
 
 class QASM_Simulator(BaseSimulator):
+    """OpenQASM 2.0 quantum program simulator.
+
+    Simulator for OpenQASM 2.0 format quantum programs.
+
+    Args:
+        backend_type: Backend type ("statevector" or "densitymatrix").
+        available_qubits: List of available qubit indices (optional).
+        available_topology: List of available qubit pairs (optional).
+        least_qubit_remapping: Whether to remap qubits to least-available indices (default False).
+        **extra_kwargs: Additional arguments passed to BaseSimulator.
+    """
+
     def __init__(self, backend_type = 'statevector',                                                  
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None,
@@ -22,12 +34,25 @@ class QASM_Simulator(BaseSimulator):
         self.parser = OpenQASM2_BaseParser()
 
     def _clear(self):
+        """Reset the simulator state."""
         self.qubit_num = 0
         self.measure_qubit = []
         self.parser = OpenQASM2_BaseParser()
         self.opcode_simulator = OpcodeSimulator(self.backend_type)
 
 class QASM_Noisy_Simulator(BaseNoisySimulator):
+    """Noisy OpenQASM 2.0 quantum program simulator.
+
+    Simulator for OpenQASM 2.0 format quantum programs with noise model support.
+
+    Args:
+        backend_type: Backend type ("statevector" or "densitymatrix").
+        available_qubits: List of available qubit indices (optional).
+        available_topology: List of available qubit pairs (optional).
+        error_loader: ErrorLoader instance for gate error injection (optional).
+        readout_error: Dict mapping qubit index to [p0, p1] readout error rates (optional).
+    """
+
     def __init__(self, backend_type = 'statevector',                                                  
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None,
@@ -38,6 +63,7 @@ class QASM_Noisy_Simulator(BaseNoisySimulator):
         self.parser = OpenQASM2_BaseParser()
 
     def _clear(self):
+        """Reset the simulator state."""
         self.qubit_num = 0
         self.measure_qubit = []
         self.parser = OpenQASM2_BaseParser()

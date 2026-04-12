@@ -4,6 +4,19 @@ from .qasm_simulator import QASM_Simulator
 from .base_simulator import BaseSimulator
 
 def get_backend(program_type: str = "originir", backend_type: str = "statevector", **kwargs) -> BaseSimulator:
+    """Get a simulator backend for the specified program type.
+
+    Args:
+        program_type: Type of quantum program ("originir" or "qasm").
+        backend_type: Backend simulation type ("statevector" or "density_matrix").
+        **kwargs: Additional arguments passed to the simulator constructor.
+
+    Returns:
+        A BaseSimulator instance for the given program type.
+
+    Raises:
+        ValueError: If program_type is not supported.
+    """
     if program_type == "originir":
         return OriginIR_Simulator(backend_type=backend_type)
 

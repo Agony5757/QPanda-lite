@@ -10,22 +10,23 @@ from .error_model import *
 if TYPE_CHECKING:
     from .qpandalite_cpp import *
 
-class OriginIR_Simulator(BaseSimulator):    
-        
+class OriginIR_Simulator(BaseSimulator):
+    """OriginIR quantum program simulator.
+
+    Simulator for OriginIR-format quantum programs, backed by C++.
+
+    Args:
+        backend_type: Backend type ("statevector" or "densitymatrix").
+        available_qubits: List of available qubit indices (optional).
+        available_topology: List of available qubit pairs (optional).
+        **extra_kwargs: Additional arguments passed to BaseSimulator.
+    """
+
     def __init__(self, 
                  backend_type = 'statevector',                 
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None,
                  **extra_kwargs):
-        '''OriginIR_Simulator is a quantum circuit simulation based on C++ which runs locally on your PC.
-        
-
-        Args:
-            reverse_key (bool, optional): Whether to reverse the qubit index when performing measurements. Defaults to False.            
-            backend_type (str, optional): The backend type. Defaults to 'statevector'. (optional = 'statevector', 'densitymatrix')
-            available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
-            available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
-        '''
         super().__init__(backend_type, available_qubits, available_topology, **extra_kwargs)
         self.parser = OriginIR_BaseParser()
         self.splitted_lines = None
@@ -79,22 +80,26 @@ class OriginIR_Simulator(BaseSimulator):
 
     
 
-class OriginIR_NoisySimulator(BaseNoisySimulator):    
+class OriginIR_NoisySimulator(BaseNoisySimulator):
+    """Noisy OriginIR quantum program simulator.
+
+    Simulator for OriginIR-format quantum programs with noise model support,
+    backed by C++.
+
+    Args:
+        backend_type: Backend type ("statevector" or "densitymatrix").
+        available_qubits: List of available qubit indices (optional).
+        available_topology: List of available qubit pairs (optional).
+        error_loader: ErrorLoader instance for gate error injection (optional).
+        readout_error: Dict mapping qubit index to [p0, p1] readout error rates (optional).
+    """
+
     def __init__(self, 
                  backend_type = 'statevector',                     
                  available_qubits : List[int] = None, 
                  available_topology : List[List[int]] = None,
                  error_loader : ErrorLoader = None,
                  readout_error : Dict[int, List[float]]={}):
-        '''OriginIR_Simulator is a quantum circuit simulation based on C++ which runs locally on your PC.
-        
-
-        Args:
-            reverse_key (bool, optional): Whether to reverse the qubit index when performing measurements. Defaults to False.            
-            backend_type (str, optional): The backend type. Defaults to 'statevector'. (optional = 'statevector', 'densitymatrix')
-            available_qubits (List[int], optional): Available qubits (if need checking). Defaults to None.
-            available_topology (list[Tuple[int, int]], optional): Available topology (if need checking). Defaults to None.
-        '''
         super().__init__(backend_type, available_qubits, available_topology,
                          error_loader, readout_error)
         self.parser = OriginIR_BaseParser()

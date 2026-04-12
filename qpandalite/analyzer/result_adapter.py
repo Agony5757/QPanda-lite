@@ -168,8 +168,18 @@ def convert_quafu_result(quafu_result : List[Union[Dict[str, Dict[str, int]], Di
     else:
         raise ValueError('style only accepts "keyvalue" or "list".')
 
-def shots2prob(measured_result : Dict[str, int], 
+def shots2prob(measured_result : Dict[str, int],
                total_shots = None):
+    """Convert a shot-counts dict to a probability distribution.
+
+    Args:
+        measured_result (Dict[str, int]): Measurement counts, e.g. ``{'00': 512, '11': 488}``.
+        total_shots (int, optional): Total number of shots. If not provided,
+            it is inferred by summing the values of *measured_result*.
+
+    Returns:
+        Dict[str, float]: Probability dict where each count is divided by *total_shots*.
+    """
     if not total_shots:
         total_shots = np.sum(list(measured_result.values()))
 
@@ -222,11 +232,25 @@ def normalize_result(data: Union[Dict[str, int], List[str]]) -> Dict[str, float]
 
 
 def kv2list(kv_result : dict, guessed_qubit_num):
+    """Convert a key-value result dict to a flat list indexed by integer keys.
+
+    The list has length ``2 ** guessed_qubit_num`` and is indexed by the
+    integer representation of the measurement outcome.
+
+    Args:
+        kv_result (dict): Key-value result dict, e.g. ``{0: 0.1, 3: 0.9}``.
+            Keys must be integers.
+        guessed_qubit_num (int): Number of qubits, used to determine the
+            output list length (``2 ** guessed_qubit_num``).
+
+    Returns:
+        list: Flat list where ``ret[k]`` holds the value for outcome ``k``.
+    """
     ret = [0] * (2 ** guessed_qubit_num)
     # The key style of kv_result needs to be specified.
     for k in kv_result:
         ret[k] = kv_result[k]
-        
+
     return ret
 
 class QASMResultAdapter:

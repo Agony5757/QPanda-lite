@@ -503,7 +503,7 @@ def tomography_summary(
 
     Shows eigenvalues, purity (:math:` mathrm{Tr}( rho^2)`), trace, and,
     if ``reference_state`` is provided, the fidelity
-    :math:`F( rho, \sigma) = ( mathrm{Tr}sqrt{sqrt{ rho}\sigmasqrt{ rho}})^2`.
+    :math:`F( rho, \\sigma) = ( mathrm{Tr}sqrt{sqrt{ rho}\\sigmasqrt{ rho}})^2`.
 
     Args:
         rho: Density matrix from :func:`state_tomography`.

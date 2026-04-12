@@ -1,7 +1,14 @@
 __all__ = ["OriginIR_LineParser"]
 import re
 
-class OriginIR_LineParser:    
+class OriginIR_LineParser:
+    """Parser for individual OriginIR lines.
+
+    Provides regex-based parsing for OriginIR gate statements with support for
+    1-3 qubit gates, parameterized gates, dagger flags, and control qubits.
+    """
+
+    
 
     opname = r'([A-Za-z][A-Za-z\d]*)'
     blank = r' *'
@@ -189,6 +196,11 @@ class OriginIR_LineParser:
 
     @staticmethod
     def handle_1q(line):
+        """Parse a 1-qubit gate line.
+
+        Returns:
+            tuple: (operation, qubit, dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_1q.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
@@ -201,6 +213,11 @@ class OriginIR_LineParser:
 
     @staticmethod
     def handle_2q(line):
+        """Parse a 2-qubit gate line.
+
+        Returns:
+            tuple: (operation, [q1, q2], dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_2q.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
@@ -214,6 +231,11 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_3q(line):
+        """Parse a 3-qubit gate line.
+
+        Returns:
+            tuple: (operation, [q1, q2, q3], dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_3q.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
@@ -228,6 +250,11 @@ class OriginIR_LineParser:
 
     @staticmethod
     def handle_1q1p(line):
+        """Parse a 1-qubit 1-parameter gate line.
+
+        Returns:
+            tuple: (operation, qubit, parameter, dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_1q1p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
@@ -241,6 +268,11 @@ class OriginIR_LineParser:
 
     @staticmethod
     def handle_1q2p(line):
+        """Parse a 1-qubit 2-parameter gate line.
+
+        Returns:
+            tuple: (operation, qubit, [p1, p2], dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_1q2p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
@@ -255,6 +287,11 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_1q3p(line):
+        """Parse a 1-qubit 3-parameter gate line.
+
+        Returns:
+            tuple: (operation, qubit, [p1, p2, p3], dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_1q3p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
@@ -270,6 +307,11 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_1q4p(line):
+        """Parse a 1-qubit 4-parameter gate line.
+
+        Returns:
+            tuple: (operation, qubit, [p1, p2, p3, p4], dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_1q4p.match(line)
         operation = matches.group(1)
         q = int(matches.group(2))
@@ -286,6 +328,11 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_2q1p(line):
+        """Parse a 2-qubit 1-parameter gate line.
+
+        Returns:
+            tuple: (operation, [q1, q2], parameter, dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_2q1p.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
@@ -300,6 +347,11 @@ class OriginIR_LineParser:
         
     @staticmethod
     def handle_2q3p(line):
+        """Parse a 2-qubit 3-parameter gate line.
+
+        Returns:
+            tuple: (operation, [q1, q2], [p1, p2, p3], dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_2q3p.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
@@ -316,6 +368,11 @@ class OriginIR_LineParser:
         
     @staticmethod
     def handle_2q15p(line):
+        """Parse a 2-qubit 15-parameter gate line.
+
+        Returns:
+            tuple: (operation, [q1, q2], parameters, dagger_flag, control_qubits)
+        """
         matches = OriginIR_LineParser.regexp_2q15p.match(line)
         operation = matches.group(1)
         q1 = int(matches.group(2))
@@ -333,6 +390,11 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_measure(line):
+        """Parse a MEASURE statement line.
+
+        Returns:
+            tuple: (qubit, cbit)
+        """
         matches = OriginIR_LineParser.regexp_meas.match(line)
         q = int(matches.group(1))
         c = int(matches.group(2))
@@ -340,6 +402,11 @@ class OriginIR_LineParser:
     
     @staticmethod
     def handle_barrier(line):
+        """Parse a BARRIER statement line.
+
+        Returns:
+            tuple: ("BARRIER", qubit_indices)
+        """
         matches = OriginIR_LineParser.regexp_barrier.match(line)
         # Extract individual qubit patterns
         qubits = OriginIR_LineParser.regexp_qid.findall(line)
@@ -415,6 +482,15 @@ class OriginIR_LineParser:
     
     @staticmethod
     def parse_line(line):
+        """Parse a single OriginIR line and return operation details.
+
+        Args:
+            line: Single line of OriginIR code.
+
+        Returns:
+            tuple: (operation, qubits, cbit, parameter, dagger_flag, control_qubits)
+        """
+
         try:
             q = None
             c = None

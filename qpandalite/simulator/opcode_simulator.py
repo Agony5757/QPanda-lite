@@ -36,7 +36,17 @@ def backend_alias(backend_type):
         raise ValueError(f'Unknown backend type: {backend_type}')
 
 
-class OpcodeSimulator:   
+class OpcodeSimulator:
+    """A quantum circuit simulator based on C++ that runs locally.
+
+    Args:
+        backend_type: Backend type for simulation. Supported: 'statevector',
+            'density_matrix', 'density_matrix_qutip'. Defaults to 'statevector'.
+
+    Attributes:
+        simulator: The underlying C++ simulator instance.
+            typestr: Human-readable backend type string.
+    """   
     def __init__(self, backend_type = 'statevector'):
         '''OpcodeSimulator is a quantum circuit simulation based on C++ which runs locally on your PC.
         
@@ -69,9 +79,11 @@ class OpcodeSimulator:
         self.simulator = self.SimulatorType()
 
     def _clear(self):
+        """Reset the simulator by creating a fresh simulator instance."""
         self.simulator = self.SimulatorType()
 
     def _simulate_common_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):
+        """Dispatch a single gate to the underlying simulator."""
         if operation == 'RX':
             self.simulator.rx(qubit, parameter, control_qubits_set, is_dagger)
         elif operation == 'RY':
@@ -221,6 +233,16 @@ class OpcodeSimulator:
                                 f'Full opcode: {(operation, qubit, cbit, parameter, control_qubits_set, is_dagger)}')
 
     def simulate_gate(self, operation, qubit, cbit, parameter, is_dagger, control_qubits_set):
+        """Apply a single gate opcode to the simulator.
+
+        Args:
+            operation: Gate name string.
+            qubit: Qubit index or list of indices.
+            cbit: Classical bit index.
+            parameter: Gate parameters.
+            is_dagger: Whether to apply the dagger version of the gate.
+            control_qubits_set: Set of control qubits.
+        """
         # convert from set to list (to adapt to C++ input)
         if control_qubits_set:
             control_qubits_set = list(control_qubits_set)
@@ -230,72 +252,121 @@ class OpcodeSimulator:
         self._simulate_common_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)    
 
     def simulate_opcodes_pmeasure(self, n_qubit, program_body, measure_qubits):
+        """Compute measurement probabilities for a list of opcodes.
+
+        Args:
+            n_qubit: Number of qubits.
+            program_body: List of opcodes to simulate.
+            measure_qubits: Qubits to measure.
+
+        Returns:
+            List of probabilities for each measurement outcome.
+        """
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
             operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
             self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-        
         prob_list = self.simulator.pmeasure(measure_qubits)
         return prob_list
     
     def simulate_opcodes_statevector(self, n_qubit, program_body):
+        """Compute the final statevector after executing a list of opcodes.
+
+        Args:
+            n_qubit: Number of qubits.
+            program_body: List of opcodes to simulate.
+
+        Returns:
+            Statevector as a complex numpy array.
+
+        Raises:
+            ValueError: If backend is density_matrix type.
+        """
         if self.simulator_typestr == 'density_matrix':
             raise ValueError('Density matrix is not supported for statevector simulation.')
-
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
             operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
             self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-        
         statevector = self.simulator.state
         return statevector
     
     def simulate_opcodes_stateprob(self, n_qubit, program_body):
-        if self.simulator_typestr == 'statevector':      
+        """Compute state probabilities (|amplitude|^2) for all basis states.
+
+        Args:
+            n_qubit: Number of qubits.
+            program_body: List of opcodes to simulate.
+
+        Returns:
+            Array of probabilities for each basis state.
+
+        Raises:
+            ValueError: If simulator type is unknown.
+        """
+        if self.simulator_typestr == 'statevector':
             statevector = self.simulate_opcodes_statevector(n_qubit, program_body)
             statevector = np.array(statevector)
             return np.abs(statevector) ** 2
-        
+
         if self.simulator_typestr == 'density_operator':
             self.simulator.init_n_qubit(n_qubit)
             for opcode in program_body:
                 operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
                 self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-
             return self.simulator.stateprob()
-        
+
         raise ValueError('Unknown simulator type.')
     
     def simulate_opcodes_density_operator(self, n_qubit, program_body):
+        """Compute the density matrix after executing a list of opcodes.
+
+        Args:
+            n_qubit: Number of qubits.
+            program_body: List of opcodes to simulate.
+
+        Returns:
+            Density matrix as a 2D numpy array.
+
+        Raises:
+            ValueError: If simulator type is unknown.
+        """
         if self.simulator_typestr == 'density_operator':
             self.simulator.init_n_qubit(n_qubit)
             for opcode in program_body:
                 operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
                 self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-
-            state = self.simulator.state            
+            state = self.simulator.state
             state = np.array(state)
-            
-            # reshape to 2^n x 2^n matrix
             density_matrix = np.reshape(state, (2 ** n_qubit, 2 ** n_qubit), order='F')
-            
             return density_matrix
-        
+
         if self.simulator_typestr =='statevector':
             statevector = self.simulate_opcodes_statevector(n_qubit, program_body)
             statevector = np.array(statevector)
             density_matrix = np.outer(statevector, np.conj(statevector))
             return density_matrix
-        
+
         raise ValueError('Unknown simulator type.')
     
     def simulate_opcodes_shot(self, n_qubit, program_body : List[OpcodeType], measure_qubits):
+        """Execute a list of opcodes and return a single measurement sample.
+
+        Args:
+            n_qubit: Number of qubits.
+            program_body: List of opcodes to simulate.
+            measure_qubits: Qubits to measure.
+
+        Returns:
+            Integer representing the measured bitstring (decimal).
+
+        Raises:
+            NotImplementedError: If backend is density_operator type.
+        """
         if self.simulator_typestr == 'density_operator':
             raise NotImplementedError('Density matrix is not supported for shot simulation.')
-        
         self.simulator.init_n_qubit(n_qubit)
         for opcode in program_body:
             operation, qubit, cbit, parameter, is_dagger, control_qubits_set = opcode
             self.simulate_gate(operation, qubit, cbit, parameter, is_dagger, control_qubits_set)
-        
         return self.simulator.measure_single_shot(measure_qubits)

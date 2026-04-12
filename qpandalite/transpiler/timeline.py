@@ -6,6 +6,14 @@ import os
 from pathlib import Path
 
 def format_result(compiled_prog):
+    """Format compiled program JSON into gate layers and qubit/time lists.
+
+    Args:
+        compiled_prog: JSON string of compiled program.
+
+    Returns:
+        tuple: (gate_layers, qubit_list, time_line)
+    """
     prog = json.loads(compiled_prog)
     layer_time = {}
     gate_layers = {}
@@ -59,6 +67,16 @@ def format_result(compiled_prog):
 
 
 def create_time_line_table(layer_dict, qubit_list, time_line):
+    """Create a pandas DataFrame timeline table.
+
+    Args:
+        layer_dict: Dict mapping layer index to gate info.
+        qubit_list: List of qubit indices.
+        time_line: List of time steps.
+
+    Returns:
+        pd.DataFrame: Timeline table with qubits as rows and time steps as columns.
+    """
     time_line_table = pd.DataFrame(columns=time_line, index=['qubit ' + str(i) for i in qubit_list])
 
     for layer, gates in layer_dict.items():
@@ -76,6 +94,12 @@ def create_time_line_table(layer_dict, qubit_list, time_line):
 
 
 def plot_time_line(compiled_prog, figure_save_path = Path.cwd() / 'timeline_plot'):
+    """Plot the quantum circuit timeline and save as PDF.
+
+    Args:
+        compiled_prog: JSON string of compiled program.
+        figure_save_path: Directory to save timeline PDF files.
+    """
     format_prog, qubit_list, time_line = format_result(compiled_prog)
     time_line_table = create_time_line_table(format_prog, qubit_list, time_line)
     depth = len(time_line)

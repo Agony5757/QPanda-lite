@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/QPandaLiteTest.dir/main.cpp.o -o QPandaLiteTest  ../src/libQPandaLiteCppCore.a ../Thirdparty/fmt/libfmt.a 

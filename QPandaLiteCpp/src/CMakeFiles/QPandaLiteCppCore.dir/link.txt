@@ -1,2 +1,0 @@
-/usr/bin/ar qc libQPandaLiteCppCore.a CMakeFiles/QPandaLiteCppCore.dir/basic_math.cpp.o CMakeFiles/QPandaLiteCppCore.dir/density_operator_simulator.cpp.o CMakeFiles/QPandaLiteCppCore.dir/qopcode.cpp.o CMakeFiles/QPandaLiteCppCore.dir/simulator.cpp.o CMakeFiles/QPandaLiteCppCore.dir/simulator_common.cpp.o CMakeFiles/QPandaLiteCppCore.dir/simulator_density_op_impl.cpp.o CMakeFiles/QPandaLiteCppCore.dir/simulator_statevector_impl.cpp.o
-/usr/bin/ranlib libQPandaLiteCppCore.a

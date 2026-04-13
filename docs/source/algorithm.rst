@@ -14,3 +14,8 @@
    algorithm/rotation_prepare
    algorithm/shadow_tomography
    algorithm/state_tomography
+   algorithm/qft
+   algorithm/deutsch-jozsa
+   algorithm/thermal_state
+   algorithm/dicke_state
+   algorithm/grover_oracle

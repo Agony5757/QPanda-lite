@@ -184,6 +184,8 @@ class Circuit:
             for q in all_qubits:
                 qubit_depths[q] = current_max_depth + 1
 
+        if not qubit_depths:
+            return 0
         return max(qubit_depths.values())
 
     # ─────────────────── Single-qubit gates (no parameters) ───────────────────

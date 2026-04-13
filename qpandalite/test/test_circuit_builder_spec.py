@@ -792,3 +792,391 @@ class TestGenerateSubErrorChannelOriginir:
         result = generate_sub_error_channel_originir(all_channels)
         assert isinstance(result, dict)
         assert len(result) == len(available_originir_error_channels)
+
+    def test_empty_channel_list_returns_empty_dict(self):
+        result = generate_sub_error_channel_originir([])
+        assert result == {}
+
+    def test_invalid_channel_names_skipped_gracefully(self):
+        # Invalid channel names should be silently skipped, not raise
+        mixed_list = ['Depolarizing', 'NotARealChannel', 'FAKE_CHANNEL', 'BitFlip']
+        result = generate_sub_error_channel_originir(mixed_list)
+        assert 'Depolarizing' in result
+        assert 'BitFlip' in result
+        assert 'NotARealChannel' not in result
+        assert 'FAKE_CHANNEL' not in result
+
+    def test_all_valid_channels_returned(self):
+        all_valid = list(available_originir_error_channels.keys())
+        result = generate_sub_error_channel_originir(all_valid)
+        assert len(result) == len(available_originir_error_channels)
+        assert result == available_originir_error_channels
+
+
+# ===========================================================================
+# Additional Boundary & Consistency Tests
+# ===========================================================================
+
+class TestQASMSubGatesetBoundaryConditions:
+    """Boundary tests for generate_sub_gateset_qasm."""
+
+    def test_empty_gate_set_returns_empty_dict(self):
+        # Empty list should return only headers (empty dict with no gates)
+        result = generate_sub_gateset_qasm([])
+        assert result == {}
+
+    def test_gates_not_in_available_gates_are_skipped(self):
+        # Gates not in available_qasm_gates should be silently skipped
+        mixed = ['h', 'nonexistent', 'cx', 'fake_gate', 'rx']
+        result = generate_sub_gateset_qasm(mixed)
+        assert 'h' in result
+        assert 'cx' in result
+        assert 'rx' in result
+        assert 'nonexistent' not in result
+        assert 'fake_gate' not in result
+
+    def test_all_available_gates_included_when_requested(self):
+        all_gates = list(available_qasm_gates.keys())
+        result = generate_sub_gateset_qasm(all_gates)
+        assert result == available_qasm_gates
+        assert len(result) == len(available_qasm_gates)
+
+
+class TestOriginIRSubGatesetBoundaryConditions:
+    """Boundary tests for generate_sub_gateset_originir."""
+
+    def test_empty_gate_set_returns_empty_dict(self):
+        result = generate_sub_gateset_originir([])
+        assert result == {}
+
+    def test_gates_not_in_available_gates_are_skipped(self):
+        mixed = ['H', 'FAKE_ORIGINIR_GATE', 'CNOT', 'nonexistent']
+        result = generate_sub_gateset_originir(mixed)
+        assert 'H' in result
+        assert 'CNOT' in result
+        assert 'FAKE_ORIGINIR_GATE' not in result
+        assert 'nonexistent' not in result
+
+    def test_all_available_gates_included_when_requested(self):
+        all_gates = list(available_originir_gates.keys())
+        result = generate_sub_gateset_originir(all_gates)
+        assert result == available_originir_gates
+        assert len(result) == len(available_originir_gates)
+
+
+class TestOriginIRSubErrorChannelBoundaryConditions:
+    """Boundary tests for generate_sub_error_channel_originir."""
+
+    def test_empty_channel_set_returns_empty_dict(self):
+        result = generate_sub_error_channel_originir([])
+        assert result == {}
+
+    def test_invalid_channel_names_skipped_gracefully(self):
+        mixed = ['Depolarizing', 'InvalidChannel', 'BitFlip']
+        result = generate_sub_error_channel_originir(mixed)
+        assert 'Depolarizing' in result
+        assert 'BitFlip' in result
+        assert 'InvalidChannel' not in result
+
+    def test_all_valid_channels_included_when_requested(self):
+        all_channels = list(available_originir_error_channels.keys())
+        result = generate_sub_error_channel_originir(all_channels)
+        assert result == available_originir_error_channels
+        assert len(result) == len(available_originir_error_channels)
+
+
+class TestQASMGateCounts:
+    """Verify gate counts in each QASM category match expected numbers."""
+
+    def test_1q_gate_count(self):
+        expected = len(available_qasm_1q_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 1 and e['params'] == 0])
+        assert actual == expected, (
+            f"1q gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_1q_gates}"
+        )
+
+    def test_1q1p_gate_count(self):
+        expected = len(available_qasm_1q1p_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 1 and e['params'] == 1])
+        assert actual == expected, (
+            f"1q1p gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_1q1p_gates}"
+        )
+
+    def test_1q2p_gate_count(self):
+        expected = len(available_qasm_1q2p_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 1 and e['params'] == 2])
+        assert actual == expected, (
+            f"1q2p gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_1q2p_gates}"
+        )
+
+    def test_1q3p_gate_count(self):
+        expected = len(available_qasm_1q3p_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 1 and e['params'] == 3])
+        assert actual == expected, (
+            f"1q3p gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_1q3p_gates}"
+        )
+
+    def test_2q_gate_count(self):
+        expected = len(available_qasm_2q_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 2 and e['params'] == 0])
+        assert actual == expected, (
+            f"2q gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_2q_gates}"
+        )
+
+    def test_3q_gate_count(self):
+        expected = len(available_qasm_3q_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 3 and e['params'] == 0])
+        assert actual == expected, (
+            f"3q gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_3q_gates}"
+        )
+
+    def test_4q_gate_count(self):
+        expected = len(available_qasm_4q_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 4 and e['params'] == 0])
+        assert actual == expected, (
+            f"4q gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_4q_gates}"
+        )
+
+    def test_2q1p_gate_count(self):
+        expected = len(available_qasm_2q1p_gates)
+        actual = len([g for g, e in available_qasm_gates.items() if e['qubit'] == 2 and e['params'] == 1])
+        assert actual == expected, (
+            f"2q1p gate count mismatch: expected {expected}, got {actual}. "
+            f"Gates: {available_qasm_2q1p_gates}"
+        )
+
+
+class TestOriginIRAngularGatesStructure:
+    """Extended structure tests for angular_gates."""
+
+    def test_angular_gates_has_expected_structure(self):
+        # angular_gates should be a list with at least one element
+        assert isinstance(angular_gates, list)
+        assert len(angular_gates) > 0
+
+    def test_key_angular_gates_present(self):
+        key_gates = ['RX', 'RY', 'RZ', 'U1', 'RPhi', 'U2', 'U3',
+                     'XX', 'YY', 'ZZ', 'XY', 'PHASE2Q', 'UU15']
+        for gate in key_gates:
+            assert gate in angular_gates, f"Key angular gate '{gate}' not found in angular_gates"
+
+    def test_zero_param_gates_excluded_from_angular_gates(self):
+        zero_param = (available_originir_1q_gates +
+                      available_originir_2q_gates +
+                      available_originir_3p_gates +
+                      available_barrier_gates)
+        for gate in zero_param:
+            assert gate not in angular_gates, (
+                f"Zero-param gate '{gate}' should not be in angular_gates"
+            )
+
+    def test_angular_gates_contains_all_parametric_gates(self):
+        # All gates with param > 0 should be in angular_gates
+        parametric_gates = (
+            available_originir_1q1p_gates +
+            available_originir_1q2p_gates +
+            available_originir_1q3p_gates +
+            available_originir_2q1p_gates +
+            available_originir_2q3p_gates +
+            available_originir_2q15p_gates
+        )
+        for gate in parametric_gates:
+            assert gate in angular_gates, (
+                f"Parametric gate '{gate}' not found in angular_gates"
+            )
+
+
+class TestOriginIRErrorChannelSubDictStructure:
+    """Test that each error channel sub-dict has correct structure."""
+
+    def _assert_channel_entry(self, channel_dict, ch_name, expected_qubit, expected_param):
+        assert ch_name in channel_dict, f"Channel '{ch_name}' not found"
+        entry = channel_dict[ch_name]
+        assert isinstance(entry, dict), f"Entry for '{ch_name}' is not a dict"
+        assert 'qubit' in entry, f"'qubit' key missing for channel '{ch_name}'"
+        assert 'param' in entry, f"'param' key missing for channel '{ch_name}'"
+        assert entry['qubit'] == expected_qubit
+        assert entry['param'] == expected_param
+
+    def test_1q1p_error_channels_have_correct_structure(self):
+        for ch in available_originir_error_channel_1q1p:
+            self._assert_channel_entry(available_originir_error_channels, ch, 1, 1)
+
+    def test_1q3p_error_channels_have_correct_structure(self):
+        for ch in available_originir_error_channel_1q3p:
+            self._assert_channel_entry(available_originir_error_channels, ch, 1, 3)
+
+    def test_1qnp_error_channels_have_correct_structure(self):
+        # Kraus1Q uses param=-1 as sentinel for variable params
+        for ch in available_originir_error_channel_1qnp:
+            self._assert_channel_entry(available_originir_error_channels, ch, 1, -1)
+
+    def test_2q1p_error_channels_have_correct_structure(self):
+        for ch in available_originir_error_channel_2q1p:
+            self._assert_channel_entry(available_originir_error_channels, ch, 2, 1)
+
+    def test_2q15p_error_channels_have_correct_structure(self):
+        for ch in available_originir_error_channel_2q15p:
+            self._assert_channel_entry(available_originir_error_channels, ch, 2, 15)
+
+    def test_all_error_channels_have_qubit_and_param_keys(self):
+        for name, entry in available_originir_error_channels.items():
+            assert 'qubit' in entry, f"'qubit' missing for channel '{name}'"
+            assert 'param' in entry, f"'param' missing for channel '{name}'"
+            assert isinstance(entry['qubit'], int)
+            assert isinstance(entry['param'], int)
+
+
+class TestLargeGateSetBoundary:
+    """Test boundary with very large gate sets."""
+
+    def test_generate_sub_gateset_qasm_with_large_gate_set(self):
+        # Create a list with 100+ gates (mix of valid and duplicates)
+        valid_gates = list(available_qasm_gates.keys())
+        large_list = valid_gates * 10  # 10x duplicates
+        result = generate_sub_gateset_qasm(large_list)
+        # Should return all valid gates without crashing
+        assert isinstance(result, dict)
+        assert len(result) == len(available_qasm_gates)
+        # All keys should be from available_qasm_gates
+        for key in result:
+            assert key in available_qasm_gates
+
+    def test_generate_sub_gateset_originir_with_large_gate_set(self):
+        valid_gates = list(available_originir_gates.keys())
+        large_list = valid_gates * 10
+        result = generate_sub_gateset_originir(large_list)
+        assert isinstance(result, dict)
+        assert len(result) == len(available_originir_gates)
+        for key in result:
+            assert key in available_originir_gates
+
+    def test_generate_sub_error_channel_originir_with_large_channel_set(self):
+        valid_channels = list(available_originir_error_channels.keys())
+        large_list = valid_channels * 10
+        result = generate_sub_error_channel_originir(large_list)
+        assert isinstance(result, dict)
+        assert len(result) == len(available_originir_error_channels)
+        for key in result:
+            assert key in available_originir_error_channels
+
+
+class TestQASMConsistency:
+    """Consistency tests for QASM spec."""
+
+    def test_all_qasm_gates_have_sub_gateset_entries(self):
+        # Every gate in available_qasm_gates should be returnable by generate_sub_gateset_qasm
+        for gate_name in available_qasm_gates:
+            result = generate_sub_gateset_qasm([gate_name])
+            assert gate_name in result, (
+                f"Gate '{gate_name}' is in available_qasm_gates but not returned by generate_sub_gateset_qasm"
+            )
+            assert result[gate_name] == available_qasm_gates[gate_name]
+
+    def test_gates_with_params_have_correct_param_count(self):
+        # 0-param gates
+        for gate in available_qasm_1q_gates:
+            assert available_qasm_gates[gate]['params'] == 0, f"Gate '{gate}' should have 0 params"
+        for gate in available_qasm_2q_gates:
+            assert available_qasm_gates[gate]['params'] == 0, f"Gate '{gate}' should have 0 params"
+        for gate in available_qasm_3q_gates:
+            assert available_qasm_gates[gate]['params'] == 0, f"Gate '{gate}' should have 0 params"
+        for gate in available_qasm_4q_gates:
+            assert available_qasm_gates[gate]['params'] == 0, f"Gate '{gate}' should have 0 params"
+        # 1-param gates
+        for gate in available_qasm_1q1p_gates:
+            assert available_qasm_gates[gate]['params'] == 1, f"Gate '{gate}' should have 1 param"
+        for gate in available_qasm_2q1p_gates:
+            assert available_qasm_gates[gate]['params'] == 1, f"Gate '{gate}' should have 1 param"
+        # 2-param gates
+        for gate in available_qasm_1q2p_gates:
+            assert available_qasm_gates[gate]['params'] == 2, f"Gate '{gate}' should have 2 params"
+        # 3-param gates
+        for gate in available_qasm_1q3p_gates:
+            assert available_qasm_gates[gate]['params'] == 3, f"Gate '{gate}' should have 3 params"
+
+    def test_qasm_gate_lists_are_disjoint(self):
+        # Gate lists should not overlap (each gate belongs to exactly one category)
+        all_lists = [
+            available_qasm_1q_gates,
+            available_qasm_1q1p_gates,
+            available_qasm_1q2p_gates,
+            available_qasm_1q3p_gates,
+            available_qasm_2q_gates,
+            available_qasm_2q1p_gates,
+            available_qasm_3q_gates,
+            available_qasm_4q_gates,
+        ]
+        seen = set()
+        for gate_list in all_lists:
+            for gate in gate_list:
+                assert gate not in seen, (
+                    f"Gate '{gate}' appears in multiple gate lists"
+                )
+                seen.add(gate)
+
+
+class TestOriginIRConsistency:
+    """Consistency tests for OriginIR spec."""
+
+    def test_all_originir_gates_have_sub_gateset_entries(self):
+        for gate_name in available_originir_gates:
+            result = generate_sub_gateset_originir([gate_name])
+            assert gate_name in result, (
+                f"Gate '{gate_name}' is in available_originir_gates but not returned by generate_sub_gateset_originir"
+            )
+            assert result[gate_name] == available_originir_gates[gate_name]
+
+    def test_originir_gate_lists_are_disjoint(self):
+        all_lists = [
+            available_originir_1q_gates,
+            available_originir_1q1p_gates,
+            available_originir_1q2p_gates,
+            available_originir_1q3p_gates,
+            available_originir_2q_gates,
+            available_originir_2q1p_gates,
+            available_originir_2q3p_gates,
+            available_originir_2q15p_gates,
+            available_originir_3p_gates,
+            available_barrier_gates,
+        ]
+        seen = set()
+        for gate_list in all_lists:
+            for gate in gate_list:
+                assert gate not in seen, (
+                    f"Gate '{gate}' appears in multiple gate lists"
+                )
+                seen.add(gate)
+
+    def test_all_error_channels_have_sub_error_channel_entries(self):
+        for ch_name in available_originir_error_channels:
+            result = generate_sub_error_channel_originir([ch_name])
+            assert ch_name in result, (
+                f"Channel '{ch_name}' is in available_originir_error_channels "
+                f"but not returned by generate_sub_error_channel_originir"
+            )
+            assert result[ch_name] == available_originir_error_channels[ch_name]
+
+    def test_error_channel_lists_are_disjoint(self):
+        all_lists = [
+            available_originir_error_channel_1q1p,
+            available_originir_error_channel_1q3p,
+            available_originir_error_channel_1qnp,
+            available_originir_error_channel_2q1p,
+            available_originir_error_channel_2q15p,
+        ]
+        seen = set()
+        for ch_list in all_lists:
+            for ch in ch_list:
+                assert ch not in seen, (
+                    f"Channel '{ch}' appears in multiple error channel lists"
+                )
+                seen.add(ch)
+

@@ -39,16 +39,13 @@ def _dicke_unitary(circuit: Circuit, i: int, j: int, n: int) -> None:
     # where i is 0-based index in the SCUC paper's (i+1) convention
     theta = math.acos(math.sqrt(j / (i + 2)))
 
-    # Rotation in {|10⟩, |01⟩} subspace decomposition
-    circuit.cnot(i, i + 1)
-    circuit.ry(i, theta)
-    circuit.ry(i + 1, theta)
+    # Rotation in {|10⟩, |01⟩} subspace (Givens rotation).
+    # Decomposition: CX(i+1,i) · CRY(i, i+1, 2θ) · CX(i+1,i)
+    # The CX conjugation maps |01⟩↔|11⟩ so CRY (which rotates {|10⟩,|11⟩})
+    # effectively rotates in the {|10⟩,|01⟩} subspace.
+    # QASM Ry(φ) uses half-angle, so pass 2θ for physical rotation by θ.
     circuit.cnot(i + 1, i)
-    circuit.ry(i, -theta)
-    circuit.ry(i + 1, -theta)
-    circuit.cnot(i, i + 1)
-    circuit.ry(i, theta)
-    circuit.ry(i + 1, theta)
+    circuit.add_gate("RY", i + 1, params=2 * theta, control_qubits=[i])
     circuit.cnot(i + 1, i)
 
 

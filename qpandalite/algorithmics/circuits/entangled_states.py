@@ -126,16 +126,10 @@ def _w_state_recursive(
     # cos(θ) = sqrt((length-1)/length), sin(θ) = sqrt(1/length)
     theta = math.acos(math.sqrt((length - 1) / length))
 
-    # Decompose the 2-qubit {|10⟩,|01⟩} rotation using CX + Ry:
-    circuit.cnot(control, target)
-    circuit.ry(control, theta)
-    circuit.ry(target, theta)
+    # Givens rotation decomposition: CX(tgt,ctrl) · CRY(ctrl, tgt, 2θ) · CX(tgt,ctrl)
+    # QASM Ry(φ) uses half-angle, so pass 2θ for physical rotation by θ.
     circuit.cnot(target, control)
-    circuit.ry(control, -theta)
-    circuit.ry(target, -theta)
-    circuit.cnot(control, target)
-    circuit.ry(control, theta)
-    circuit.ry(target, theta)
+    circuit.add_gate("RY", target, params=2 * theta, control_qubits=[control])
     circuit.cnot(target, control)
 
     # Recurse on the remaining (length-1) qubits

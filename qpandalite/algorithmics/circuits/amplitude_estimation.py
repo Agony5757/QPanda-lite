@@ -225,6 +225,9 @@ def amplitude_estimation_circuit(
         >>> c = Circuit(5)
         >>> amplitude_estimation_circuit(c, oracle, qubits=[3, 4], n_eval_qubits=3)
     """
+    if n_eval_qubits < 1:
+        raise ValueError("n_eval_qubits must be at least 1")
+
     total_qubits = circuit.max_qubit + 1 if circuit.max_qubit > 0 else 0
 
     if qubits is None:
@@ -238,9 +241,6 @@ def amplitude_estimation_circuit(
     n_search = len(qubits)
     if n_search < 1:
         raise ValueError("At least 1 search qubit is required")
-
-    if n_eval_qubits < 1:
-        raise ValueError("n_eval_qubits must be at least 1")
 
     # When qubits are explicitly provided, the Circuit auto-allocates as
     # gates are added, so no upfront capacity check is needed.
@@ -361,7 +361,7 @@ def amplitude_estimation_result(
         m = int(best)
 
     M = n_eval_qubits
-    theta = math.pi * m / (2 ** M)
+    theta = math.pi * m / (2 ** (M + 1))
     a = math.sin(theta) ** 2
 
     return a

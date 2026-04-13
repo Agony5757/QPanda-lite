@@ -296,6 +296,6 @@ def shadow_expectation(
             estimates.append(est)
 
         if estimates:
-            batch_medians.append(float(np.median(estimates)))
+            batch_medians.append(float(np.mean(estimates)))
 
     return float(np.median(batch_medians))

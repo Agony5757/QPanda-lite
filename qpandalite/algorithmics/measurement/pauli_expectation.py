@@ -13,18 +13,23 @@ from qpandalite.simulator.qasm_simulator import QASM_Simulator
 def _parity(bitstring: str, pauli_string: str) -> int:
     """Compute parity contribution of a measurement outcome for a Pauli string.
 
+    Note: bitstring uses big-endian convention (MSB first) matching the
+    measurement output format where q[0] corresponds to the rightmost bit.
+    Pauli string is reversed to align with this convention.
+
     For each qubit i:
       Z → contributes 1 if bit[i] == '1'
-      X → contributes 1 if bit[i] == '1' (equivalently, XOR of all X positions)
+      X → contributes 1 if bit[i] == '1'
       Y → contributes 1 if bit[i] == '1'
     The total parity is the XOR (sum mod 2) of all contributions.
     Returns 0 for even parity (+1 eigenvalue) or 1 for odd parity (-1 eigenvalue).
     """
     parity = 0
-    for i, (pauli, bit) in enumerate(zip(pauli_string, bitstring)):
-        if bit == '1':
-            if pauli in ('Z', 'z', 'X', 'x', 'Y', 'y'):
-                parity ^= 1
+    # Reverse pauli_string to match big-endian bitstring convention
+    # where pauli_string[0] corresponds to qubit 0 (rightmost bit)
+    for pauli, bit in zip(reversed(pauli_string), bitstring):
+        if bit == '1' and pauli.upper() in ('Z', 'X', 'Y'):
+            parity ^= 1
     return parity
 
 

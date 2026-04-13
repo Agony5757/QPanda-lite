@@ -19,3 +19,6 @@
    algorithm/thermal_state
    algorithm/dicke_state
    algorithm/grover_oracle
+   algorithm/vqd
+   algorithm/amplitude_estimation
+   algorithm/entangled_states

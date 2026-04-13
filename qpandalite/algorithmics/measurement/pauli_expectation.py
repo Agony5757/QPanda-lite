@@ -43,7 +43,7 @@ def _apply_basis_rotation(circuit: Circuit, pauli_string: str) -> Circuit:
         if p == 'X':
             rot_circuit.h(i)
         elif p == 'Y':
-            rot_circuit.sdag(i)
+            rot_circuit.sdg(i)
             rot_circuit.h(i)
         # Z and I: no rotation needed
     return rot_circuit
@@ -61,10 +61,10 @@ def _statevector_expectation(circuit: Circuit, pauli_string: str) -> float:
     # Use QASM simulator in statevector mode
     sim = QASM_Simulator(backend_type='statevector', n_qubits=n)
     qasm = rot_circuit.qasm
-    result = sim._simulate_qasm(qasm)
+    result = sim.simulate_statevector(qasm)
 
-    # result['prob'] is a list of length 2^n, probabilities in computational basis
-    probs = np.array(result['prob'])
+    # result is a list of complex amplitudes, convert to probabilities
+    probs = np.abs(result) ** 2
     exp_val = 0.0
     for idx, p in enumerate(probs):
         # Build bitstring for this index (big-endian: qubit 0 is MSB)
@@ -82,12 +82,9 @@ def _shots_expectation(circuit: Circuit, pauli_string: str, shots: int) -> float
     rot_circuit = _apply_basis_rotation(circuit, pauli_string)
     n = rot_circuit.max_qubit + 1
 
-    sim = QASM_Simulator(backend_type='qasm_simulator', n_qubits=n)
+    sim = QASM_Simulator(backend_type='statevector', n_qubits=n)
     qasm = rot_circuit.qasm
-    result = sim._simulate_qasm(qasm, shots=shots)
-
-    # result['int_result'] → dict mapping bitstring -> count
-    counts = result['int_result']
+    counts = sim.simulate_shots(qasm, shots=shots)
     total = sum(counts.values())
 
     exp_val = 0.0

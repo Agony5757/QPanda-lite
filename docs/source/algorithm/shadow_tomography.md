@@ -1,52 +1,46 @@
-# Classical Shadow Tomography
+# 经典阴影层析
 
-## Background
+## 背景
 
-Classical Shadow tomography (Huang, Kueng & Preskill, 2020) is a highly efficient
-method for predicting many properties of a quantum system from few measurements.
+经典阴影层析（Huang, Kueng & Preskill, 2020）是一种高效方法，可以从少量测量中预测量子系统的许多性质。
 
-### Key Idea
+### 核心思想
 
-Instead of full state tomography (which requires $O(4^n)$ measurements), classical
-shadow collects $N$ random Pauli measurements ("snapshots") and uses them to
-predict $M$ observables with sample complexity:
+不同于需要 $O(4^n)$ 次测量的完整态层析，经典阴影收集 $N$ 次随机 Pauli 测量（"快照"），利用它们预测 $M$ 个可观测量，样本复杂度为：
 
 $$N = O\left(\log(M) \cdot \max_i \|O_i\|_{\text{shadow}}^2 / \epsilon^2\right)$$
 
-This is **exponentially more efficient** than full tomography for predicting
-local observables.
+对于预测局部可观测量而言，这比完整层析**指数级更高效**。
 
-### Protocol
+### 协议流程
 
-1. **Random basis measurement**: For each snapshot, randomly choose $X$, $Y$, or
-   $Z$ basis for each qubit. Measure and record outcome.
-2. **Classical post-processing**: Reconstruct "classical shadow" — a snapshot
-   of the density matrix.
-3. **Prediction**: Average over snapshots to estimate any observable.
+1. **随机基测量**：对每次快照，为每个比特随机选择 $X$、$Y$ 或 $Z$ 基进行测量并记录结果。
+2. **经典后处理**：重建"经典阴影"——密度矩阵的一个快照。
+3. **预测**：对所有快照取平均以估计任意可观测量。
 
-## Running the Example
+## 运行示例
 
 ```bash
 python examples/measurement/shadow_tomography.py --n-shadow 100 --n-shots 1000
 ```
 
-## Code Walkthrough
+## 代码讲解
 
 ```python
 from qpandalite.algorithmics.measurement import classical_shadow, shadow_expectation
 
-# Collect shadow snapshots
+# 收集阴影快照
 shadows = classical_shadow(circuit, qubits=[0, 1], shots=1000, n_shadow=100)
 
-# Estimate observables
+# 估计可观测量
 est = shadow_expectation(shadows, {"Z0Z1": 1.0})
 ```
 
-### Key Features
+### 主要特性
 
-- **Efficient**: Predict many observables from few measurements.
-- **Flexible**: Works with any Pauli observable.
-- **No calibration needed**: Random Pauli measurements are device-ready.
+- **高效**：从少量测量中预测多个可观测量。
+- **灵活**：适用于任意 Pauli 可观测量。
+- **无需校准**：随机 Pauli 测量可直接在设备上执行。
 
 ## References
 

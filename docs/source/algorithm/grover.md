@@ -1,50 +1,48 @@
-# Grover's Search Algorithm
+# Grover 搜索算法
 
-## Background and Theory
+## 背景与理论
 
-Grover's search algorithm (Grover, 1996) provides a quadratic speedup for unstructured search.
-Given an oracle $f : \{0,1\}^n \to \{0,1\}$ such that $f(x) = 1$ iff $x$ is the marked
-state $|w\rangle$, Grover's algorithm finds $|w\rangle$ in $O(\sqrt{N})$ oracle calls
-instead of $O(N)$, where $N = 2^n$.
+Grover 搜索算法（Grover, 1996）为非结构化搜索提供了二次加速。
+给定一个预言机 $f : \{0,1\}^n \to \{0,1\}$，满足 $f(x) = 1$ 当且仅当 $x$ 是目标态 $|w\rangle$，
+Grover 算法只需 $O(\sqrt{N})$ 次预言机调用即可找到 $|w\rangle$，
+而非经典算法所需的 $O(N)$ 次，其中 $N = 2^n$。
 
-### Key Components
+### 核心组件
 
-**1. Oracle $U_\omega$**
-Phase-flip oracle that multiplies the amplitude of the marked state by $-1$:
+**1. 预言机 $U_\omega$**
+相位翻转预言机，将目标态的振幅乘以 $-1$：
 
 $$U_\omega |x\rangle = (-1)^{f(x)} |x\rangle$$
 
-The standard construction uses an ancilla qubit in the magic state $|-\rangle = (|0\rangle - |1\rangle)/\sqrt{2}$:
+标准构造使用一个处于魔术态 $|-\rangle = (|0\rangle - |1\rangle)/\sqrt{2}$ 的辅助比特：
 
 $$U_\omega |x\rangle |-\rangle = |x\rangle \otimes (-1)^{f(x)} |-\rangle$$
 
-**2. Diffusion Operator $D$**
-Also called the *amplitude amplification* operator:
+**2. 扩散算子 $D$**
+也称为*振幅放大*算子：
 
 $$D = 2|s\rangle\langle s| - I$$
 
-where $|s\rangle = H^{\otimes n}|0\rangle^{\otimes n}$ is the uniform superposition.
-$D$ reflects any vector about $|s\rangle$, transferring amplitude from unmarked
-to marked states.
+其中 $|s\rangle = H^{\otimes n}|0\rangle^{\otimes n}$ 是均匀叠加态。
+$D$ 将任意向量关于 $|s\rangle$ 做反射，将非目标态的振幅转移到目标态。
 
-**3. Grover Iteration**
-The combined oracle + diffusion step:
+**3. Grover 迭代**
+组合的预言机 + 扩散步：
 
 $$G = D \cdot U_\omega$$
 
-Applied $R \approx \frac{\pi}{4}\sqrt{N}$ times to $|s\rangle$, this concentrates
-the amplitude on the marked state.
+对 $|s\rangle$ 施加 $R \approx \frac{\pi}{4}\sqrt{N}$ 次后，振幅将集中于目标态。
 
-### State Evolution
+### 状态演化
 
-Starting from $|s\rangle = \frac{1}{\sqrt{N}} \sum_x |x\rangle$:
+从 $|s\rangle = \frac{1}{\sqrt{N}} \sum_x |x\rangle$ 出发：
 
-After one Grover iteration, the state is in a 2D subspace spanned by $\{|w\rangle, |s'\rangle\}$
-where $|s'\rangle$ is the superposition over all non-marked states.
+经过一次 Grover 迭代后，状态处于由 $\{|w\rangle, |s'\rangle\}$ 张成的二维子空间中，
+其中 $|s'\rangle$ 是所有非目标态的叠加。
 
-The amplitude on $|w\rangle$ grows as $\sin((2R+1)\theta)$ where $\sin\theta = 1/\sqrt{N}$.
+$|w\rangle$ 上的振幅按 $\sin((2R+1)\theta)$ 增长，其中 $\sin\theta = 1/\sqrt{N}$。
 
-## Code Walkthrough
+## 代码解析
 
 ### `build_oracle`
 
@@ -52,40 +50,40 @@ The amplitude on $|w\rangle$ grows as $\sin((2R+1)\theta)$ where $\sin\theta = 1
 def build_oracle(n_qubits, marked_state):
 ```
 
-Builds the phase-flip oracle for the given marked state:
+为给定目标态构建相位翻转预言机：
 
-1. **Ancilla preparation**: Initialise ancilla qubit to $|-\rangle = X \cdot H |0\rangle$
-2. **Marked-state encoding**: Flip data qubits that are $|0\rangle$ in the marked state
-3. **Phase kickback**: Apply multi-controlled Z (CCZ) from data qubits to ancilla
-4. **Uncompute**: Restore the flipped qubits
+1. **辅助比特准备**：将辅助比特初始化为 $|-\rangle = X \cdot H |0\rangle$
+2. **目标态编码**：翻转目标态中处于 $|0\rangle$ 的数据比特
+3. **相位回踢**：从数据比特到辅助比特施加多控 Z（CCZ）
+4. **逆计算**：恢复之前翻转的比特
 
 ### `build_diffusion`
 
-Implements $D = H^{\otimes n} \cdot Z^{\otimes n} \cdot H^{\otimes n}$:
+实现 $D = H^{\otimes n} \cdot Z^{\otimes n} \cdot H^{\otimes n}$：
 
-1. Apply $H^{\otimes n}$ to convert $|s\rangle \to |0\rangle^{\otimes n}$
-2. Apply $Z^{\otimes n}$ to flip the phase of $|0\rangle^{\otimes n}$
-3. Apply $H^{\otimes n}$ again — net effect is reflection about $|s\rangle$
+1. 施加 $H^{\otimes n}$ 将 $|s\rangle \to |0\rangle^{\otimes n}$
+2. 施加 $Z^{\otimes n}$ 翻转 $|0\rangle^{\otimes n}$ 的相位
+3. 再次施加 $H^{\otimes n}$——净效果是关于 $|s\rangle$ 的反射
 
 ### `run_grover`
 
-End-to-end Grover search:
+端到端的 Grover 搜索：
 
-1. Initialise data qubits to $|+\rangle$ (Hadamard on $|0\rangle$)
-2. Apply optimal number $R = \lfloor \frac{\pi}{4}\sqrt{N} \rfloor$ of Grover iterations
-3. Measure all data qubits
+1. 将数据比特初始化为 $|+\rangle$（对 $|0\rangle$ 施加 Hadamard）
+2. 施加最优迭代次数 $R = \lfloor \frac{\pi}{4}\sqrt{N} \rfloor$ 次 Grover 迭代
+3. 测量所有数据比特
 
-## Running the Example
+## 运行示例
 
 ```bash
-# Basic run with 3 qubits, marked state = 5
+# 基本运行：3 个比特，目标态 = 5
 python examples/algorithms/grover.py --n-qubits 3 --marked-state 5
 
-# Larger search space
+# 更大的搜索空间
 python examples/algorithms/grover.py --n-qubits 4 --marked-state 10 --shots 8192
 ```
 
-Expected output:
+预期输出：
 ```
  Grover's Search — 3 data qubits
  Marked state: 5 (101)
@@ -102,24 +100,18 @@ Expected output:
  Expected (ideal): ~95.0% (after optimal iterations)
 ```
 
-## Design Notes
+## 设计说明
 
-- **Ancilla qubit**: One extra qubit is used for the oracle to enable phase kickback.
-  This is the standard "auxiliary qubit" approach and works for any number of qubits.
-- **Multi-controlled Z**: For 2-qubit case, `ccx` (Toffoli) with a final Z implements CCZ.
-  For >2 qubits, a linear-depth CNOT cascade with H on the target implements MCZ.
-- **Optimal iterations**: The iteration count $R = \lfloor \frac{\pi}{4}\sqrt{N} \rfloor$
-  maximises the success probability. For small $N$, rounding and a small cap
-  prevent overshooting.
-- **Measurement**: Only the data qubits are measured (ancilla is not measured).
+- **辅助比特**：预言机使用一个额外的辅助比特来实现相位回踢。这是标准的"辅助比特"方法，适用于任意数量的比特。
+- **多控 Z 门**：对于 2 比特情况，使用 `ccx`（Toffoli）加末尾的 Z 门实现 CCZ。对于超过 2 个比特，使用线性深度的 CNOT 级联配合目标比特上的 H 门来实现 MCZ。
+- **最优迭代次数**：迭代次数 $R = \lfloor \frac{\pi}{4}\sqrt{N} \rfloor$ 可最大化成功概率。对于较小的 $N$，取整和上限可以防止过冲。
+- **测量**：仅测量数据比特（辅助比特不测量）。
 
-## Extension Ideas
+## 扩展方向
 
-- **Multi-target Grover**: Replace single target with $M$ marked states;
-  optimal iterations become $\frac{\pi}{4}\sqrt{N/M}$
-- **Inhomogeneous Grover**: Different oracle strengths per state
-- **Amplitude estimation**: Use `state_tomography` to characterise the
-  pre-measurement state and estimate success probability analytically
+- **多目标 Grover**：将单个目标替换为 $M$ 个目标态；最优迭代次数变为 $\frac{\pi}{4}\sqrt{N/M}$
+- **非均匀 Grover**：对每个状态使用不同的预言机强度
+- **振幅估计**：使用 `state_tomography` 表征测量前的状态，并解析地估计成功概率
 
 ## References
 

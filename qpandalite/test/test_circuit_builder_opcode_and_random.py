@@ -428,29 +428,30 @@ class TestGetQASM2FromOpcode:
     # supported (S→sdg, T→tdg, SX→sxdg, RX with negated angle).
     # The tests below document this actual (buggy) behaviour.
 
-    def test_s_dagger_raises_due_to_bug(self):
-        """BUG: 'S' != 's', so dagger on S raises instead of returning sdg."""
+    def test_s_dagger_returns_sdg(self):
+        """S with dagger returns 'sdg'."""
         opcode = ('S', 0, None, None, True, None)
-        with pytest.raises(NotImplementedError):
-            get_QASM2_from_opcode(opcode)
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == 'sdg'
 
-    def test_t_dagger_raises_due_to_bug(self):
-        """BUG: 'T' != 't', so dagger on T raises instead of returning tdg."""
+    def test_t_dagger_returns_tdg(self):
+        """T with dagger returns 'tdg'."""
         opcode = ('T', 0, None, None, True, None)
-        with pytest.raises(NotImplementedError):
-            get_QASM2_from_opcode(opcode)
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == 'tdg'
 
-    def test_sx_dagger_raises_due_to_bug(self):
-        """BUG: 'SX' != 'sx', so dagger on SX raises instead of returning sxdg."""
+    def test_sx_dagger_returns_sxdg(self):
+        """SX with dagger returns 'sxdg'."""
         opcode = ('SX', 0, None, None, True, None)
-        with pytest.raises(NotImplementedError):
-            get_QASM2_from_opcode(opcode)
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == 'sxdg'
 
-    def test_rx_dagger_raises_due_to_bug(self):
-        """BUG: 'RX' != 'rx', so dagger on RX raises instead of negating params."""
+    def test_rx_dagger_negates_params(self):
+        """RX with dagger returns 'rx' with negated parameters."""
         opcode = ('RX', 0, None, 0.5, True, None)
-        with pytest.raises(NotImplementedError):
-            get_QASM2_from_opcode(opcode)
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == 'rx'
+        assert result[3] == -0.5
 
     def test_unsupported_dagger_raises(self):
         # U2 doesn't have a defined dagger behaviour

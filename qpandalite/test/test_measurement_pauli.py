@@ -156,13 +156,13 @@ class TestThreeQubitPauli:
         assert np.isclose(pauli_expectation(c, "XXX", shots=None), 1.0)
 
     def test_ixx_on_ghz3(self):
-        """⟨IXX⟩ on 3-qubit GHZ: ⟨X₂X₃⟩ = +1."""
+        """⟨IXX⟩ on 3-qubit GHZ: ⟨X₂X₃⟩ = 0."""
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
         c.cx(0, 2)
         c.measure(0, 1, 2)
-        assert np.isclose(pauli_expectation(c, "IXX", shots=None), 1.0)
+        assert np.isclose(pauli_expectation(c, "IXX", shots=None), 0.0)
 
 
 class TestPauliEdgeCases:

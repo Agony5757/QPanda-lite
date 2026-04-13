@@ -10,3 +10,7 @@
    algorithm/qpe
    algorithm/qaoa
    algorithm/vqe
+   algorithm/hadamard_superposition
+   algorithm/rotation_prepare
+   algorithm/shadow_tomography
+   algorithm/state_tomography

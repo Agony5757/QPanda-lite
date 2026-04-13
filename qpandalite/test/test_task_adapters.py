@@ -198,7 +198,7 @@ class RunTestOriginQAdapterCircuitTranslation:
                 )
                 mock_submit.assert_called_once()
                 args, kwargs = mock_submit.call_args
-                assert args[0] == [ORIGINIR_BELL]
+                assert kwargs["circuits"] == [ORIGINIR_BELL]
                 assert task_id == "task_abc123"
 
     def run_test_submit_batch_splits_large_groups(self):
@@ -342,29 +342,26 @@ MEASURE q[1], c[1]
                 "qpandalite.task.adapters.qiskit_adapter.load_ibm_config",
                 return_value={"api_token": "ibm_tok"},
             ):
+                from qpandalite.task.adapters import QiskitAdapter
+
+                adapter = QiskitAdapter.__new__(QiskitAdapter)
+                adapter._api_token = "ibm_tok"
+                adapter._provider = MagicMock()
+                adapter._backends = []
+                adapter._provider.backends = MagicMock(return_value=[])
+
                 with patch(
-                    "qpandalite.task.adapters.qiskit_adapter.qiskit_ibm_provider.IBMProvider.save_account"
-                ):
-                    from qpandalite.task.adapters import QiskitAdapter
+                    "qpandalite.circuit_builder.qcircuit.Circuit"
+                ) as mock_circuit_cls:
+                    mock_circuit = MagicMock()
+                    mock_circuit.qasm = "OPENQASM 2.0; ..."
+                    mock_circuit_cls.return_value = mock_circuit
 
-                    adapter = QiskitAdapter.__new__(QiskitAdapter)
-                    adapter._api_token = "ibm_tok"
-                    adapter._provider = MagicMock()
-                    adapter._backends = []
-                    adapter._provider.backends = MagicMock(return_value=[])
+                    result = adapter.translate_circuit(originir)
 
-                    with patch(
-                        "qpandalite.circuit_builder.qcircuit.Circuit"
-                    ) as mock_circuit_cls:
-                        mock_circuit = MagicMock()
-                        mock_circuit.qasm = "OPENQASM 2.0; ..."
-                        mock_circuit_cls.return_value = mock_circuit
-
-                        result = adapter.translate_circuit(originir)
-
-                    mock_qiskit.QuantumCircuit.from_qasm_str.assert_called_once_with(
-                        "OPENQASM 2.0; ..."
-                    )
+                mock_qiskit.QuantumCircuit.from_qasm_str.assert_called_once_with(
+                    "OPENQASM 2.0; ..."
+                )
 
 
 # ---------------------------------------------------------------------------

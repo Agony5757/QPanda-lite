@@ -81,9 +81,9 @@ class TestQFTCircuit:
             for k in reversed(range(j + 1, n)):
                 angle = math.pi / (2 ** (k - j))
                 c.cnot(qubits[j], qubits[k])
-                c.rz(angle / 2, qubits[k])
+                c.rz(qubits[k], angle / 2)
                 c.cnot(qubits[j], qubits[k])
-                c.rz(-angle / 2, qubits[k])
+                c.rz(qubits[k], -angle / 2)
             c.h(qubits[j])
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=3)

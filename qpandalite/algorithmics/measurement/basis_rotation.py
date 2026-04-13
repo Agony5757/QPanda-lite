@@ -55,7 +55,9 @@ def basis_rotation_measurement(
 
     Raises:
         ValueError: ``len(basis)`` does not match ``len(qubits)``.
+
         ValueError: ``shots`` is not a positive integer.
+
         ValueError: ``basis`` contains invalid characters.
 
     Example:

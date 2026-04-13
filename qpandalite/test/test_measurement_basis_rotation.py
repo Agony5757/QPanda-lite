@@ -158,5 +158,5 @@ class TestBasisRotationEdgeCases:
         c.h(0)
         c.measure(0, 1)
         result = basis_rotation_measurement(c, basis=["X", "Z"], shots=None)
-        assert np.isclose(result["01"], 0.5)
-        assert np.isclose(result["00"], 0.5)
+        # X on q0: H|+⟩ = |0⟩, Z on q1: |0⟩ stays |0⟩ → P(00)=1
+        assert np.isclose(result["00"], 1.0)

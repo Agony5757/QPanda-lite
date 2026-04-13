@@ -370,10 +370,9 @@ def state_tomography(
         for outcome, prob in probs_dict.items():
             if prob == 0:
                 continue
-            outcome_str = f"{outcome:0{n}b}"
             sign = 1.0
             for i, (p_i, b_i) in enumerate(zip(p, basis_for_p)):
-                k_i = int(outcome_str[i])
+                k_i = (outcome >> i) & 1
                 if p_i == "I":
                     # identity: always +1
                     s = 1
@@ -454,21 +453,20 @@ def state_tomography(
         rho = (rho + rho.conj().T) / 2
 
     except ImportError:
-        # Fallback: manual construction (only handles real matrices correctly)
+        # Fallback: manual construction
         d = 2**n
-        rho = np.zeros((d, d), dtype=float)
+        rho = np.zeros((d, d), dtype=complex)
 
         # Build lookup: for each (a,b) pair, compute sum_P <P> * <a|P|b>
         for a in range(d):
             for b in range(d):
-                a_str = f"{a:0{n}b}"
-                b_str = f"{b:0{n}b}"
-                val = 0.0
+                val = 0.0 + 0.0j
                 for p in pauli_strings:
                     exp = expectations[p]
-                    prod = 1.0 + 0.0j  # complex for uniform handling
+                    prod = 1.0 + 0.0j
                     for i in range(n):
-                        ai, bi = int(a_str[i]), int(b_str[i])
+                        ai = (a >> i) & 1
+                        bi = (b >> i) & 1
                         pi = p[i]
                         if pi == "I":
                             prod *= 1
@@ -488,8 +486,7 @@ def state_tomography(
                     val += exp * prod
                 rho[a, b] = val / (2**n)
 
-        rho = rho.real
-        rho = (rho + rho.T) / 2  # symmetrize (should already be symmetric for pure states)
+        rho = (rho + rho.conj().T) / 2  # enforce Hermiticity
 
     return rho
 

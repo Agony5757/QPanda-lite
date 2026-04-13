@@ -211,7 +211,7 @@ def shadow_expectation(
     For each snapshot the single-qubit estimator is:
 
         P_i = 1                                          if Pauli = I
-        P_i = 2·⟨P⟩_b − 1 = 3·⟨b|P|b⟩ − 1            if Pauli ≠ I
+        P_i = 3·⟨b|P|b⟩                                   if Pauli ≠ I
 
     where the basis is ``\|b>`` (Z for unitary 0, X for unitary 1, Y for unitary 2)
     and the Born probability is ``\<P>_b`` for the
@@ -285,11 +285,11 @@ def shadow_expectation(
                         # Born probability of outcome o_i in basis b:
                         # eigenvalue of P_i for |b_o⟩ = (-1)^o_i
                         ev = 1.0 if o_i == 0 else -1.0
-                        # Shadow inverse channel: (d+1)*⟨P⟩_b - 1 with d=2 → 3*⟨P⟩_b - 1
-                        s = 3.0 * ev - 1.0
+                        # Shadow inverse channel: (d+1)*⟨P⟩_b with d=2 → 3*⟨P⟩_b
+                        s = 3.0 * ev
                     else:
-                        # Misaligned basis: estimator contribution = -1
-                        s = -1.0
+                        # Misaligned basis: estimator contribution = 0
+                        s = 0.0
 
                 est *= s
 

@@ -73,10 +73,16 @@ class BaseSimulator:
             self._add_used_qubit(qubit)
 
         if not self.least_qubit_remapping:
-            self.qubit_num = max(self.qubit_mapping.keys()) + 1
-            self.qubit_mapping = {q : q for q in range(self.qubit_num)}
+            if self.qubit_mapping:
+                self.qubit_num = max(self.qubit_mapping.keys()) + 1
+                self.qubit_mapping = {q : q for q in range(self.qubit_num)}
+            else:
+                self.qubit_num = 0
         else:
-            self.qubit_num = max(self.qubit_mapping.values()) + 1
+            if self.qubit_mapping:
+                self.qubit_num = max(self.qubit_mapping.values()) + 1
+            else:
+                self.qubit_num = 0
     
     def _check_available_qubits(self):        
         used_qubits = list(self.qubit_mapping.keys())

@@ -88,9 +88,9 @@ def _shots_expectation(circuit: Circuit, pauli_string: str, shots: int) -> float
     total = sum(counts.values())
 
     exp_val = 0.0
-    for bitstring, count in counts.items():
-        # Pad bitstring to n qubits (in case leading zeros are omitted)
-        bitstring = bitstring.zfill(n)
+    for bitstring_int, count in counts.items():
+        # Convert int to bitstring and pad to n qubits
+        bitstring = format(bitstring_int, f'0{n}b')
         parity = _parity(bitstring, pauli_string.upper())
         p = count / total
         if parity == 0:

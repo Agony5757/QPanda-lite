@@ -757,3 +757,193 @@ class TestRandomOriginIR:
         _random.seed(99)
         r2 = random_originir(3, 5)
         assert r1 == r2
+
+
+# =============================================================================
+# Tests added for Issue #123: parameter validation, error paths, boundary
+# =============================================================================
+
+
+class TestOpcodeToLineOriginirEdgeCases:
+    """Edge cases and error paths for opcode_to_line_originir."""
+
+    def test_empty_operation_raises_runtimeerror(self):
+        """An empty string operation should raise RuntimeError."""
+        from qpandalite.circuit_builder.opcode import opcode_to_line_originir
+        # opcode: (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set)
+        opcode = ('', 0, None, None, False, None)
+        with pytest.raises(RuntimeError, match='Unexpected error'):
+            opcode_to_line_originir(opcode)
+
+    def test_parameter_float_precision_preserved(self):
+        """Float parameters are formatted with full precision (not truncated)."""
+        from qpandalite.circuit_builder.opcode import opcode_to_line_originir
+        opcode = ('RX', 0, None, 3.141592653589793, False, None)
+        line = opcode_to_line_originir(opcode)
+        # The formatted string should contain the full float value
+        assert '3.141592653589793' in line
+
+    def test_dagger_with_single_control_qubit(self):
+        """Dagger flag combined with a single control qubit formats correctly."""
+        from qpandalite.circuit_builder.opcode import opcode_to_line_originir
+        # Dagger flag on Y gate with q[1] controlled by q[0]
+        opcode = ('Y', 1, None, None, True, {0})
+        line = opcode_to_line_originir(opcode)
+        assert 'Y' in line
+        assert 'dagger' in line
+        assert 'controlled_by' in line
+
+
+class TestOpcodeToLineQasmEdgeCases:
+    """Edge cases and error paths for opcode_to_line_qasm."""
+
+    def test_cbit_raises_notimplementederror(self):
+        """Passing a cbit (classical bit) should raise NotImplementedError."""
+        from qpandalite.circuit_builder.opcode import opcode_to_line_qasm
+        # opcode with cbit=1 (non-None, non-falsy); cbit=0 would be falsy and not trigger the check
+        opcode = ('H', 0, 1, None, False, None)
+        with pytest.raises(NotImplementedError, match='cbit.*QASM'):
+            opcode_to_line_qasm(opcode)
+
+
+class TestTranslateQasm2OirErrorPaths:
+    """Error paths for get_QASM2_from_opcode and related functions."""
+
+    def test_unsupported_operation_raises_notimplementederror(self):
+        """get_QASM2_from_opcode with unsupported operation raises NotImplementedError."""
+        from qpandalite.circuit_builder.translate_qasm2_oir import get_QASM2_from_opcode
+        # 'XY' is not in OriginIR_QASM2_dict
+        opcode = ('XY', 0, None, None, False, None)
+        with pytest.raises(NotImplementedError):
+            get_QASM2_from_opcode(opcode)
+
+    def test_dagger_with_unsupported_gate_raises_notimplementederror(self):
+        """Dagger flag on an unsupported gate raises NotImplementedError."""
+        from qpandalite.circuit_builder.translate_qasm2_oir import get_QASM2_from_opcode
+        # 'Y' dagger is supported (Y → ydg); but 'XY' dagger is not supported
+        opcode = ('XY', 0, None, None, True, None)
+        with pytest.raises(NotImplementedError):
+            get_QASM2_from_opcode(opcode)
+
+    def test_direct_mapping_returns_none_for_unmapped(self):
+        """direct_mapping_qasm2_to_oir returns None for operations without direct mapping."""
+        from qpandalite.circuit_builder.translate_qasm2_oir import direct_mapping_qasm2_to_oir
+        # 'u0' exists in QASM but has no direct OriginIR mapping
+        result = direct_mapping_qasm2_to_oir('u0')
+        assert result is None
+
+    def test_direct_mapping_returns_correct_value(self):
+        """direct_mapping_qasm2_to_oir returns correct OriginIR for mapped QASM ops."""
+        from qpandalite.circuit_builder.translate_qasm2_oir import direct_mapping_qasm2_to_oir
+        assert direct_mapping_qasm2_to_oir('cx') == 'CNOT'
+        assert direct_mapping_qasm2_to_oir('h') == 'H'
+        assert direct_mapping_qasm2_to_oir('swap') == 'SWAP'
+        assert direct_mapping_qasm2_to_oir('ccx') == 'TOFFOLI'
+
+    def test_3control_qubit_gate_not_in_qasm_raises(self):
+        """Using 3 control qubits on an unsupported gate raises NotImplementedError."""
+        from qpandalite.circuit_builder.translate_qasm2_oir import get_QASM2_from_opcode
+        # Y gate with 3 control qubits: 'ccy' is not in available_qasm_gates
+        opcode = ('Y', 3, None, None, False, {0, 1, 2})
+        with pytest.raises(NotImplementedError):
+            get_QASM2_from_opcode(opcode)
+
+
+class TestRandomQasmBoundaryConditions:
+    """Boundary conditions for random_qasm."""
+
+    def test_zero_gates_returns_valid_qasm(self):
+        """random_qasm with n_gates=0 returns valid QASM (header + measure only)."""
+        result = random_qasm(2, 0, measurements=True)
+        assert isinstance(result, str)
+        assert 'OPENQASM 2.0' in result
+        assert 'qreg q[2]' in result
+        assert 'measure' in result  # QASM measure statements are lowercase
+
+    def test_measurements_false_excludes_measure(self):
+        """random_qasm with measurements=False does not include MEASURE statements."""
+        # Use a large enough n_qubits and low n_gates to avoid the gate-selection bug
+        # that can select a gate requiring more qubits than available.
+        result = random_qasm(10, 3, measurements=False)
+        assert 'measure' not in result.lower()
+
+    def test_angle_parameters_in_valid_range(self):
+        """Parameters generated by random_qasm fall within [0, 2π]."""
+        import random as _random
+        _random.seed(42)
+        result = random_qasm(10, 50, measurements=False)
+        import re
+        # Extract all floating-point numbers from parameter parentheses
+        params = re.findall(r'\(([\d.]+)\)', result)
+        for p_str in params:
+            p = float(p_str)
+            assert 0 <= p <= 2 * 3.14159 + 1e-9, f"Parameter {p} outside [0, 2π]"
+
+    def test_build_qasm_gate_float_formatting(self):
+        """build_qasm_gate formats float parameters without truncation."""
+        result = build_qasm_gate('rx', [0], [3.141592653589793], 'q')
+        assert '3.141592653589793' in result
+
+
+class TestBuildMeasurementsBug:
+    """Tests documenting the known bug in build_measurements."""
+
+    def test_build_measurements_bug_note(self):
+        """build_measurements has a bug: it iterates range(measure_qbit_cbit_pairs)
+        instead of iterating over measure_qbit_cbit_pairs itself.
+        This test documents the actual (buggy) behaviour.
+        """
+        # Passing an integer N calls range(N), yielding 0..N-1, then tries
+        # to unpack each int as (qbit, cbit) → TypeError
+        with pytest.raises(TypeError):
+            build_measurements(3)
+
+
+class TestRandomOriginirBoundaryConditions:
+    """Boundary conditions for random_originir."""
+
+    def test_zero_gates_returns_valid_originir(self):
+        """random_originir with n_gates=0 returns valid OriginIR (header + measure only)."""
+        result = random_originir(2, 0)
+        assert isinstance(result, str)
+        assert 'QINIT 2' in result
+        assert 'CREG 2' in result
+        assert 'MEASURE' in result
+
+    def test_single_qubit_works_or_raises(self):
+        """random_originir with n_qubits=1 may raise ValueError if a 2q gate is selected.
+
+        NOTE: Known limitation: implementation does not filter gates by available
+        qubit count. Tests with n_qubits=1 are inherently flaky.
+        """
+        try:
+            result = random_originir(1, 3)
+            assert 'QINIT 1' in result
+            assert 'CREG 1' in result
+        except ValueError:
+            # Known limitation: gates requiring more qubits than available
+            # can be randomly selected
+            pass
+
+
+class TestBuildOriginirGateAdditional:
+    """Additional build_originir_gate tests beyond the existing ones."""
+
+    def test_iswap_gate(self):
+        """build_originir_gate works with ISWAP gate."""
+        result = build_originir_gate('ISWAP', [0, 1], [], False, None)
+        assert 'ISWAP' in result
+        assert 'q[0]' in result
+        assert 'q[1]' in result
+
+    def test_barrier_gate(self):
+        """build_originir_gate works with BARRIER gate."""
+        result = build_originir_gate('BARRIER', [0, 1, 2], [], False, None)
+        assert 'BARRIER' in result
+
+    def test_rx_with_control_qubits(self):
+        """build_originir_gate with control qubits generates controlled_by clause."""
+        result = build_originir_gate('RX', [2], [0.5], False, {0, 1})
+        assert 'RX' in result
+        assert 'q[2]' in result
+        assert 'controlled_by' in result

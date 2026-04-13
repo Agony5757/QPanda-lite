@@ -588,14 +588,8 @@ class TestDepth:
     """Tests for the depth property."""
 
     def test_empty_circuit_depth(self):
-        """Empty circuit should have depth 0.
-
-        NOTE: The current implementation raises ValueError on empty circuit
-        (max() on empty sequence). This test asserts the expected correct behaviour
-        and is marked xfail until the implementation is fixed.
-        """
+        """Empty circuit should have depth 0."""
         c = Circuit()
-        pytest.xfail("depth raises ValueError on empty circuit (known gap in implementation)")
         assert c.depth == 0
 
     def test_sequential_gates_same_qubit(self):
@@ -759,3 +753,303 @@ class TestGateCombinations:
         c.h(0)
         c.cnot(1, 2)
         assert set(c.used_qubit_list) == {0, 1, 2}
+
+
+# =============================================================================
+# TestISwapGate
+# =============================================================================
+
+
+class TestISwapGate:
+    """Tests for the iSWAP gate (added in #123 coverage effort)."""
+
+    def test_iswap_adds_opcode(self):
+        """iswap() adds an ISWAP opcode with correct qubits."""
+        c = Circuit()
+        c.iswap(0, 1)
+        assert len(c.opcode_list) == 1
+        op, qubits, cbits, params, dagger, ctrl = c.opcode_list[0]
+        assert op == "ISWAP"
+        assert qubits == [0, 1]
+        assert cbits is None
+        assert params is None
+        assert dagger is False
+        assert ctrl is None
+
+    def test_iswap_originir_format(self):
+        """iswap appears correctly in OriginIR output."""
+        c = Circuit()
+        c.iswap(0, 1)
+        assert "ISWAP q[0], q[1]" in c.originir
+
+    def test_iswap_qasm_format_raises(self):
+        """ISWAP is not supported in QASM output and raises NotImplementedError."""
+        c = Circuit()
+        c.iswap(0, 1)
+        # ISWAP is not in OriginIR_QASM2_dict, so qasm property raises NotImplementedError
+        with pytest.raises(NotImplementedError):
+            _ = c.qasm
+
+    def test_iswap_noncontiguous_qubits(self):
+        """iswap works with non-contiguous qubit indices."""
+        c = Circuit()
+        c.iswap(2, 5)
+        assert len(c.opcode_list) == 1
+        assert c.qubit_num == 6
+
+
+# =============================================================================
+# TestUU15Gate
+# =============================================================================
+
+
+class TestUU15Gate:
+    """Tests for the UU15 general two-qubit gate (15 parameters)."""
+
+    def test_uu15_adds_opcode(self):
+        """uu15() adds an UU15 opcode with all 15 parameters."""
+        c = Circuit()
+        params = [0.1 * i for i in range(15)]
+        c.uu15(0, 1, params)
+        assert len(c.opcode_list) == 1
+        op, qubits, cbits, stored_params, dagger, ctrl = c.opcode_list[0]
+        assert op == "UU15"
+        assert qubits == [0, 1]
+        assert stored_params == params
+
+    def test_uu15_originir_format(self):
+        """UU15 appears in OriginIR with its 15 parameters."""
+        c = Circuit()
+        params = [0.0] * 15
+        c.uu15(0, 1, params)
+        originir = c.originir
+        assert "UU15" in originir
+        assert "q[0]" in originir
+        assert "q[1]" in originir
+
+    def test_uu15_qasm_format_raises(self):
+        """UU15 is not supported in QASM output and raises NotImplementedError."""
+        c = Circuit()
+        c.uu15(0, 1, [0.0] * 15)
+        with pytest.raises(NotImplementedError):
+            _ = c.qasm
+
+
+# =============================================================================
+# TestPhase2QGate
+# =============================================================================
+
+
+class TestPhase2QGate:
+    """Tests for the PHASE2Q two-qubit phase gate (3 parameters)."""
+
+    def test_phase2q_adds_opcode(self):
+        """phase2q() adds a PHASE2Q opcode with 3 params [theta1, theta2, thetazz]."""
+        c = Circuit()
+        c.phase2q(0, 1, 0.5, 1.0, 1.5)
+        assert len(c.opcode_list) == 1
+        op, qubits, cbits, params, dagger, ctrl = c.opcode_list[0]
+        assert op == "PHASE2Q"
+        assert qubits == [0, 1]
+        assert params == [0.5, 1.0, 1.5]
+
+    def test_phase2q_originir_format(self):
+        """PHASE2Q appears in OriginIR with three parameters."""
+        c = Circuit()
+        c.phase2q(0, 1, 0.1, 0.2, 0.3)
+        originir = c.originir
+        assert "PHASE2Q" in originir
+
+    def test_phase2q_qasm_format_raises(self):
+        """PHASE2Q is not supported in QASM output and raises NotImplementedError."""
+        c = Circuit()
+        c.phase2q(0, 1, 0.1, 0.2, 0.3)
+        # PHASE2Q is not in OriginIR_QASM2_dict, so qasm property raises NotImplementedError
+        with pytest.raises(NotImplementedError):
+            _ = c.qasm
+
+
+# =============================================================================
+# TestRPhiGate
+# =============================================================================
+
+
+class TestRPhiGate:
+    """Tests for the RPhi rotation gate (2 parameters: theta and phi)."""
+
+    def test_rphi_adds_opcode(self):
+        """rphi() adds an RPhi opcode with params=[theta, phi]."""
+        c = Circuit()
+        c.rphi(0, 0.5, 1.2)
+        assert len(c.opcode_list) == 1
+        op, qubits, cbits, params, dagger, ctrl = c.opcode_list[0]
+        assert op == "RPhi"
+        assert qubits == 0
+        assert params == [0.5, 1.2]
+
+    def test_rphi_qubit_tracking(self):
+        """RPhi records the qubit correctly."""
+        c = Circuit()
+        c.rphi(3, 0.5, 1.0)
+        assert c.qubit_num == 4
+        assert 3 in c.used_qubit_list
+
+    def test_rphi_qasm_raises_notimplemented(self):
+        """RPhi is not supported in QASM and raises NotImplementedError."""
+        c = Circuit()
+        c.rphi(0, 0.5, 1.0)
+        with pytest.raises(NotImplementedError):
+            _ = c.qasm
+
+
+# =============================================================================
+# TestBarrierGate
+# =============================================================================
+
+
+class TestBarrierGate:
+    """Additional tests for the BARRIER gate beyond depth exclusions."""
+
+    def test_barrier_adds_barrier_opcode(self):
+        """barrier() adds a BARRIER opcode to opcode_list."""
+        c = Circuit()
+        c.barrier(0, 1)
+        assert len(c.opcode_list) == 1
+        op, qubits, cbits, params, dagger, ctrl = c.opcode_list[0]
+        assert op == "BARRIER"
+        assert qubits == [0, 1]
+
+    def test_barrier_in_originir(self):
+        """BARRIER appears in OriginIR output."""
+        c = Circuit()
+        c.h(0)
+        c.barrier(0, 1)
+        c.cnot(0, 1)
+        originir = c.originir
+        assert "BARRIER q[0], q[1]" in originir
+
+    def test_barrier_single_qubit(self):
+        """barrier() works with a single qubit."""
+        c = Circuit()
+        c.barrier(5)
+        assert len(c.opcode_list) == 1
+        assert c.opcode_list[0][1] == [5]
+
+    def test_barrier_does_not_count_as_measure(self):
+        """barrier() does not affect measure_list or cbit_num."""
+        c = Circuit()
+        c.barrier(0)
+        c.measure(0)
+        assert len(c.measure_list) == 1
+        assert c.cbit_num == 1
+
+
+# =============================================================================
+# TestCopy
+# =============================================================================
+
+
+class TestCopy:
+    """Tests for the Circuit.copy() method."""
+
+    def test_copy_is_independent(self):
+        """Modifying the copy does not affect the original circuit."""
+        c1 = Circuit()
+        c1.h(0)
+        c2 = c1.copy()
+        c2.x(1)
+        assert len(c1.opcode_list) == 1
+        assert len(c2.opcode_list) == 2
+
+    def test_copy_preserves_opcode_list(self):
+        """copy() preserves the opcode_list."""
+        c1 = Circuit()
+        c1.h(0)
+        c1.rx(1, 0.5)
+        c2 = c1.copy()
+        assert len(c2.opcode_list) == 2
+        assert c2.opcode_list[0][0] == "H"
+        assert c2.opcode_list[1][0] == "RX"
+
+    def test_copy_preserves_measure_list(self):
+        """copy() preserves the measure_list."""
+        c1 = Circuit()
+        c1.h(0)
+        c1.measure(0, 1)
+        c2 = c1.copy()
+        assert c2.measure_list == [0, 1]
+        assert c2.cbit_num == 2
+
+    def test_copy_preserves_qubit_tracking(self):
+        """copy() preserves used_qubit_list and qubit_num."""
+        c1 = Circuit()
+        c1.h(5)
+        c2 = c1.copy()
+        assert c2.used_qubit_list == [5]
+        assert c2.qubit_num == 6
+
+
+# =============================================================================
+# TestMeasureEdgeCases
+# =============================================================================
+
+
+class TestMeasureEdgeCases:
+    """Additional measure() edge case tests beyond the existing ones."""
+
+    def test_measure_same_qubit_twice(self):
+        """Measuring the same qubit multiple times accumulates correctly."""
+        c = Circuit()
+        c.h(0)
+        c.measure(0)
+        c.measure(0)
+        # Same qubit measured twice: measure_list = [0, 0], cbit_num = 2
+        assert c.measure_list == [0, 0]
+        assert c.cbit_num == 2
+
+    def test_measure_updates_cbit_num(self):
+        """measure() correctly sets cbit_num to len(measure_list)."""
+        c = Circuit()
+        c.h(0)
+        c.measure(0, 1, 2)
+        assert c.cbit_num == 3
+
+    def test_measure_with_barrier(self):
+        """barrier() before measure does not affect measurement."""
+        c = Circuit()
+        c.h(0)
+        c.barrier(0)
+        c.measure(0)
+        assert c.measure_list == [0]
+        assert c.cbit_num == 1
+
+
+# =============================================================================
+# TestQubitNumCbitNumTracking
+# =============================================================================
+
+
+class TestQubitNumCbitNumTracking:
+    """Tests verifying qubit_num and cbit_num update correctly."""
+
+    def test_qubit_num_starts_at_zero(self):
+        """A fresh circuit has qubit_num=0."""
+        c = Circuit()
+        assert c.qubit_num == 0
+
+    def test_cbit_num_starts_at_zero(self):
+        """A fresh circuit has cbit_num=0."""
+        c = Circuit()
+        assert c.cbit_num == 0
+
+    def test_qubit_num_after_single_gate(self):
+        """qubit_num updates after adding a gate to qubit q."""
+        c = Circuit()
+        c.x(3)
+        assert c.qubit_num == 4  # max qubit index 3 + 1
+
+    def test_cbit_num_after_measure(self):
+        """cbit_num equals number of measured qubits."""
+        c = Circuit()
+        c.measure(0, 2)
+        assert c.cbit_num == 2

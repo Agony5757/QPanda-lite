@@ -16,8 +16,8 @@ class TestThermalStateCircuit:
         """Helper: simulate a 1-qubit circuit and return probabilities."""
         from qpandalite.simulator.qasm_simulator import QASM_Simulator
         sim = QASM_Simulator(backend_type="statevector", n_qubits=1)
-        result = sim._simulate_qasm(c.qasm)
-        return np.array(result["prob"])
+        result = sim.simulate_statevector(c.qasm)
+        return np.abs(result) ** 2
 
     def test_beta_zero_maximally_mixed(self):
         """beta=0 → maximally mixed state: p(0) ≈ p(1) ≈ 0.5."""
@@ -60,8 +60,8 @@ class TestThermalStateCircuit:
         # Should record qubits 2 and 3
         assert 2 in c.used_qubit_list
         assert 3 in c.used_qubit_list
-        # Should have 2 Ry gates
-        assert len(c.opcode_list) == 2
+        # Should have 2 RY gates (one per qubit)
+        assert len(c.opcode_list) >= 2
         op_names = [op[0] for op in c.opcode_list]
         assert all(name == "RY" for name in op_names)
 

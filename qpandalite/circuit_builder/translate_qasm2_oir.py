@@ -167,11 +167,11 @@ def get_QASM2_from_opcode(opcode) -> Tuple[str, Union[int, List[int]], Union[int
     # RX(rx), RY(ry), RZ(rz), U1(u1), XX(xx), YY(yy), ZZ(zz), 
 
     if dagger_flag:
-        if operation in ['s', 't', 'sx']:
+        if operation_qasm2 in ['s', 't', 'sx']:
             operation_qasm2 += 'dg'
-        elif operation in ['id', 'h', 'x', 'y', 'z', 'cx', 'cz', 'swap', 'ccx']:
+        elif operation_qasm2 in ['id', 'h', 'x', 'y', 'z', 'cx', 'cz', 'swap', 'ccx']:
             pass
-        elif operation in ['rx', 'ry', 'rz', 'u1', 'rxx', 'ryy', 'rzz']:
+        elif operation_qasm2 in ['rx', 'ry', 'rz', 'u1', 'rxx', 'ryy', 'rzz']:
             parameters = -parameters
         else:
             raise NotImplementedError(f"The operation {operation} with dagger flag is not supported in QPanda-lite.")

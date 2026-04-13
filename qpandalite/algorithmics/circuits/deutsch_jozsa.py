@@ -43,7 +43,7 @@ def deutsch_jozsa_oracle(
 
     Example:
         >>> oracle = deutsch_jozsa_oracle(3, balanced=True)
-        >>> oracle.n_qubits  # 3 data + 1 ancilla
+        >>> oracle.qubit_num  # 3 data + 1 ancilla
         4
     """
     if n_qubits < 1:
@@ -96,9 +96,9 @@ def deutsch_jozsa_circuit(
         oracle: Oracle sub-circuit to embed.  Must operate on
             ``len(qubits) + 1`` qubits (data + ancilla).
         qubits: Data-qubit indices.  ``None`` means
-            ``list(range(n_data))`` where *n_data* = ``oracle.n_qubits - 1``.
+            ``list(range(n_data))`` where *n_data* = ``oracle.qubit_num - 1``.
         ancilla: Ancilla qubit index.  ``None`` means the last qubit
-            (``oracle.n_qubits - 1``).
+            (``oracle.qubit_num - 1``).
 
     Raises:
         ValueError: Qubit count mismatch between circuit and oracle.
@@ -113,7 +113,7 @@ def deutsch_jozsa_circuit(
         >>> c = Circuit(n + 1)
         >>> deutsch_jozsa_circuit(c, oracle)
     """
-    n_data = oracle.n_qubits - 1
+    n_data = oracle.qubit_num - 1
 
     if qubits is None:
         qubits = list(range(n_data))
@@ -132,7 +132,8 @@ def deutsch_jozsa_circuit(
     circuit.h(ancilla)
 
     # Step 2: Apply oracle
-    circuit.extend(oracle)
+    for op in oracle.opcode_list:
+        circuit.add_gate(*op)
 
     # Step 3: H on data qubits
     for q in qubits:

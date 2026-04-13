@@ -13,18 +13,23 @@ from qpandalite.simulator.qasm_simulator import QASM_Simulator
 def _parity(bitstring: str, pauli_string: str) -> int:
     """Compute parity contribution of a measurement outcome for a Pauli string.
 
+    Note: bitstring uses big-endian convention (MSB first) matching the
+    measurement output format where q[0] corresponds to the rightmost bit.
+    Pauli string is reversed to align with this convention.
+
     For each qubit i:
       Z → contributes 1 if bit[i] == '1'
-      X → contributes 1 if bit[i] == '1' (equivalently, XOR of all X positions)
+      X → contributes 1 if bit[i] == '1'
       Y → contributes 1 if bit[i] == '1'
     The total parity is the XOR (sum mod 2) of all contributions.
     Returns 0 for even parity (+1 eigenvalue) or 1 for odd parity (-1 eigenvalue).
     """
     parity = 0
-    for i, (pauli, bit) in enumerate(zip(pauli_string, bitstring)):
-        if bit == '1':
-            if pauli in ('Z', 'z', 'X', 'x', 'Y', 'y'):
-                parity ^= 1
+    # Reverse pauli_string to match big-endian bitstring convention
+    # where pauli_string[0] corresponds to qubit 0 (rightmost bit)
+    for pauli, bit in zip(reversed(pauli_string), bitstring):
+        if bit == '1' and pauli.upper() in ('Z', 'X', 'Y'):
+            parity ^= 1
     return parity
 
 
@@ -43,7 +48,7 @@ def _apply_basis_rotation(circuit: Circuit, pauli_string: str) -> Circuit:
         if p == 'X':
             rot_circuit.h(i)
         elif p == 'Y':
-            rot_circuit.sdag(i)
+            rot_circuit.sdg(i)
             rot_circuit.h(i)
         # Z and I: no rotation needed
     return rot_circuit
@@ -61,10 +66,10 @@ def _statevector_expectation(circuit: Circuit, pauli_string: str) -> float:
     # Use QASM simulator in statevector mode
     sim = QASM_Simulator(backend_type='statevector', n_qubits=n)
     qasm = rot_circuit.qasm
-    result = sim._simulate_qasm(qasm)
+    result = sim.simulate_statevector(qasm)
 
-    # result['prob'] is a list of length 2^n, probabilities in computational basis
-    probs = np.array(result['prob'])
+    # result is a list of complex amplitudes, convert to probabilities
+    probs = np.abs(result) ** 2
     exp_val = 0.0
     for idx, p in enumerate(probs):
         # Build bitstring for this index (big-endian: qubit 0 is MSB)
@@ -82,18 +87,15 @@ def _shots_expectation(circuit: Circuit, pauli_string: str, shots: int) -> float
     rot_circuit = _apply_basis_rotation(circuit, pauli_string)
     n = rot_circuit.max_qubit + 1
 
-    sim = QASM_Simulator(backend_type='qasm_simulator', n_qubits=n)
+    sim = QASM_Simulator(backend_type='statevector', n_qubits=n)
     qasm = rot_circuit.qasm
-    result = sim._simulate_qasm(qasm, shots=shots)
-
-    # result['int_result'] → dict mapping bitstring -> count
-    counts = result['int_result']
+    counts = sim.simulate_shots(qasm, shots=shots)
     total = sum(counts.values())
 
     exp_val = 0.0
-    for bitstring, count in counts.items():
-        # Pad bitstring to n qubits (in case leading zeros are omitted)
-        bitstring = bitstring.zfill(n)
+    for bitstring_int, count in counts.items():
+        # Convert int to bitstring and pad to n qubits
+        bitstring = format(bitstring_int, f'0{n}b')
         parity = _parity(bitstring, pauli_string.upper())
         p = count / total
         if parity == 0:

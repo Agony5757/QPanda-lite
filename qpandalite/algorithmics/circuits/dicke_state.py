@@ -31,9 +31,9 @@ def _dicke_unitary(circuit: Circuit, i: int, j: int, n: int) -> None:
 
     # Decompose controlled-Ry(2*theta) using CNOT sandwich
     # Controlled-Ry = Ry(theta) on target, CNOT ctrl->tgt, Ry(-theta) on target, CNOT ctrl->tgt
-    circuit.ry(theta, i + 1)
+    circuit.ry(i + 1, theta)
     circuit.cnot(i, i + 1)
-    circuit.ry(-theta, i + 1)
+    circuit.ry(i + 1, -theta)
     circuit.cnot(i, i + 1)
 
 
@@ -70,7 +70,7 @@ def dicke_state_circuit(
         k: Number of excitations (``1``s) in the target Dicke state.
             Must satisfy ``1 <= k <= n``.
         qubits: Qubit indices to use.  ``None`` means all qubits of
-            *circuit* (``list(range(circuit.n_qubits))``).  Must contain
+            *circuit* (``list(range(circuit.qubit_num))``).  Must contain
             at least *k* qubits.
 
     Raises:
@@ -79,11 +79,15 @@ def dicke_state_circuit(
     Example:
         >>> from qpandalite.circuit_builder import Circuit
         >>> from qpandalite.algorithmics.circuits import dicke_state_circuit
-        >>> c = Circuit(4)
-        >>> dicke_state_circuit(c, k=2)
+        >>> c = Circuit()
+        >>> c.x(0)
+        >>> c.x(1)
+        >>> c.x(2)
+        >>> c.x(3)
+        >>> dicke_state_circuit(c, k=2, qubits=[0,1,2,3])
     """
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     n = len(qubits)
 

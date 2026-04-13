@@ -324,9 +324,9 @@ def _inverse_qft(circuit: Circuit, qubits: List[int]) -> None:
         for k in range(n - 1, j, -1):
             angle = -math.pi / (2 ** (k - j))
             # Controlled phase via CNOT-Rz-CNOT decomposition
-            circuit.rz(angle / 2, qubits[k])
+            circuit.rz(qubits[k], angle / 2)
             circuit.cnot(qubits[j], qubits[k])
-            circuit.rz(-angle / 2, qubits[k])
+            circuit.rz(qubits[k], -angle / 2)
             circuit.cnot(qubits[j], qubits[k])
         circuit.h(qubits[j])
 

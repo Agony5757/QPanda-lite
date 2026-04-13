@@ -45,35 +45,15 @@ class TestDeutschJozsaCircuit:
 
         n = 3
         oracle = deutsch_jozsa_oracle(n, balanced=False)
-        # Constant oracle has qubit_num=0, but oracle.n_qubits is referenced
-        # We need oracle.n_qubits = n+1 for the algorithm to work
-        # The oracle uses qubit n as ancilla via cnot(idx, n)
-        # Constant oracle returns empty circuit, so qubit_num=0
-        # We need to manually handle this by adding a dummy qubit reference
-        oracle.record_qubit(list(range(n + 1)))
-
         c = Circuit()
-        for _ in range(n + 1):
-            c.identity(0)  # ensure circuit has enough qubits
-        # Rebuild: use explicit qubits and ancilla
-        c2 = Circuit()
-        c2.h(0)
-        c2.h(1)
-        c2.h(2)
-        c2.x(3)
-        c2.h(3)
-        # oracle is identity (constant), so skip oracle
-        c2.h(0)
-        c2.h(1)
-        c2.h(2)
-        c2.measure(0, 1, 2)
+        # Use explicit qubits: data qubits 0,1,2 and ancilla qubit 3
+        deutsch_jozsa_circuit(c, oracle, qubits=[0, 1, 2], ancilla=3)
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=n + 1)
-        result = sim._simulate_qasm(c2.qasm)
-        probs = np.array(result["prob"])
-        # Prob of |000_ancilla⟩ and |000_ancilla+1⟩ states
-        # States 0 and 1 (ancilla is qubit 3, data is qubits 0-2)
-        # |0000⟩ index 0, |0001⟩ index 1
+        result = sim.simulate_statevector(c.qasm)
+        probs = np.abs(result) ** 2
+        # |000⟩ on data qubits (ancilla in |−⟩ state)
+        # States |0000⟩ (idx 0) and |0001⟩ (idx 1) for ancilla in |0⟩/|1⟩
         p_all_zero = probs[0] + probs[1]
         assert np.isclose(p_all_zero, 1.0, atol=1e-6), f"p_all_zero={p_all_zero}"
 
@@ -85,14 +65,13 @@ class TestDeutschJozsaCircuit:
         n = 3
         oracle = deutsch_jozsa_oracle(n, balanced=True)
         c = Circuit()
-        deutsch_jozsa_circuit(c, oracle)
+        deutsch_jozsa_circuit(c, oracle, qubits=[0, 1, 2], ancilla=3)
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=n + 1)
-        result = sim._simulate_qasm(c.qasm)
-        probs = np.array(result["prob"])
+        result = sim.simulate_statevector(c.qasm)
+        probs = np.abs(result) ** 2
 
-        # For balanced, |000⟩ on data qubits should have probability 0
-        # Index 0 = |0000⟩, index 1 = |0001⟩
+        # For balanced, |000⟩ on data qubits should have probability ~0
         p_all_zero = probs[0] + probs[1]
         assert np.isclose(p_all_zero, 0.0, atol=1e-6), f"p_all_zero={p_all_zero}"
 
@@ -103,13 +82,13 @@ class TestDeutschJozsaCircuit:
 
         oracle = deutsch_jozsa_oracle(1, balanced=True)
         c = Circuit()
-        deutsch_jozsa_circuit(c, oracle)
+        deutsch_jozsa_circuit(c, oracle, qubits=[0], ancilla=1)
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=2)
-        result = sim._simulate_qasm(c.qasm)
-        probs = np.array(result["prob"])
+        result = sim.simulate_statevector(c.qasm)
+        probs = np.abs(result) ** 2
 
-        # Data qubit measured → should be |1⟩ (not |0⟩) for balanced
-        # States: |00⟩ idx 0, |01⟩ idx 1, |10⟩ idx 2, |11⟩ idx 3
-        p_data_zero = probs[0] + probs[1]
+        # Data qubit measured → should NOT be |0⟩ for balanced
+        # LSB-first statevector: index 0=|00⟩, 2=|10⟩ (q[0]=0 in both)
+        p_data_zero = probs[0] + probs[2]
         assert np.isclose(p_data_zero, 0.0, atol=1e-6)

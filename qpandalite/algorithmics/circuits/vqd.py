@@ -49,7 +49,7 @@ def _hea_ansatz(
     for _ in range(n_layers):
         # Single-qubit Ry rotations
         for q in qubits:
-            circuit.ry(params[idx], q)
+            circuit.ry(q, params[idx])
             idx += 1
         # Entangling CNOT chain
         for i in range(n_qubits - 1):
@@ -103,7 +103,7 @@ def vqd_circuit(
         >>> vqd_circuit(c, [0.1]*4, prev_states=[gs], n_layers=2)
     """
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     if len(prev_states) == 0:
         raise ValueError(
@@ -166,7 +166,7 @@ def vqd_overlap_circuit(
 
     # Total qubits: 1 ancilla + n (ansatz) + n (prev_state)
     total = 1 + 2 * n
-    circ = Circuit(total)
+    circ = Circuit()
 
     ancilla = 0
     data_a = list(range(1, 1 + n))       # ansatz register
@@ -249,11 +249,11 @@ def _state_prep_recursive(
         if amp < 1e-15:
             return
         theta = 2 * np.arccos(np.clip(abs(alpha) / amp, 0, 1))
-        circuit.ry(theta, qubits[0])
+        circuit.ry(qubits[0], theta)
         if beta != 0 and alpha != 0:
             phase_diff = np.angle(beta) - np.angle(alpha)
             if abs(phase_diff) > 1e-10:
-                circuit.rz(phase_diff, qubits[0])
+                circuit.rz(qubits[0], phase_diff)
         return
 
     # Split state into two halves (for most-significant qubit control)
@@ -269,7 +269,7 @@ def _state_prep_recursive(
         return
 
     theta = 2 * np.arccos(np.clip(norm_top / total, 0, 1))
-    circuit.ry(theta, qubits[0])
+    circuit.ry(qubits[0], theta)
 
     if norm_top > 1e-15:
         _state_prep_recursive(circuit, top / norm_top, qubits[1:])

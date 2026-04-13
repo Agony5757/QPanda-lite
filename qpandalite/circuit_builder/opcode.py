@@ -82,7 +82,7 @@ def opcode_to_line_originir(opcode : OpcodeType) -> str:
     else:
         ret += f' q[{qubit}]'
 
-    if parameter:
+    if parameter is not None and parameter != []:
         ret += ', ('
         if isinstance(parameter, list):
             ret += ', '.join([str(p) for p in parameter])
@@ -162,7 +162,7 @@ def opcode_to_line_qasm(opcode : OpcodeType) -> str:
     
     ret += operation
 
-    if parameter:
+    if parameter is not None:
         if isinstance(parameter, list):            
             parameter_str = ', '.join([str(p) for p in parameter])
         else:

@@ -85,7 +85,12 @@ class QuafuAdapter(QuantumAdapter):
         qc: "QuantumCircuit | None" = None
 
         for line in lines:
-            operation, qubit, cbit, parameter = OriginIR_LineParser.parse_line(line)
+            try:
+                operation, qubit, cbit, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(line)
+            except NotImplementedError:
+                raise RuntimeError(
+                    f"Unknown OriginIR operation in quafu adapter: {line.strip()}"
+                ) from None
             if operation == "QINIT":
                 qc = self._QuantumCircuit(int(qubit))  # type: ignore[arg-type]
                 continue

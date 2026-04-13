@@ -89,5 +89,6 @@ class TestDeutschJozsaCircuit:
         probs = np.abs(result) ** 2
 
         # Data qubit measured → should NOT be |0⟩ for balanced
-        p_data_zero = probs[0] + probs[1]
+        # LSB-first statevector: index 0=|00⟩, 2=|10⟩ (q[0]=0 in both)
+        p_data_zero = probs[0] + probs[2]
         assert np.isclose(p_data_zero, 0.0, atol=1e-6)

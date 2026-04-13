@@ -1,78 +1,77 @@
-# Quantum Phase Estimation (QPE)
+# 量子相位估计（QPE）
 
-## Background and Theory
+## 背景与理论
 
-Quantum Phase Estimation (QPE) estimates the eigenvalue phase of a unitary operator.
-Given a unitary $U$ and one of its eigenstates $|\psi\rangle$:
+量子相位估计（QPE）用于估计酉算子特征值的相位。
+给定酉算子 $U$ 及其一个特征态 $|\psi\rangle$：
 
 $$U|\psi\rangle = e^{2\pi i\varphi}|\psi\rangle$$
 
-QPE outputs $\varphi \in [0, 1)$ to $n$-bit precision using $n$ precision qubits.
+QPE 使用 $n$ 个精度比特输出 $\varphi \in [0, 1)$，精度为 $n$ 比特。
 
-### The Algorithm
+### 算法步骤
 
-**Step 1 — Prepare the eigenstate** on $m$ system qubits:
+**步骤 1 — 在 $m$ 个系统比特上制备特征态**：
 $$|\psi\rangle = \sum_x \alpha_x |x\rangle$$
 
-**Step 2 — Create superposition** on $n$ precision qubits:
+**步骤 2 — 在 $n$ 个精度比特上创建叠加态**：
 $$H^{\otimes n}|0\rangle^{\otimes n} = \frac{1}{\sqrt{2^n}}\sum_{k=0}^{2^n-1}|k\rangle$$
 
-**Step 3 — Controlled powers of $U$**: for each precision qubit $k$ (value $2^{n-k-1}$):
+**步骤 3 — 受控 $U$ 的幂次**：对每个精度比特 $k$（值为 $2^{n-k-1}$）：
 $$C-U^{2^{n-k-1}}: \frac{1}{\sqrt{2^n}}\sum_{k,j}|k\rangle|j\rangle \to \frac{1}{\sqrt{2^n}}\sum_{k,j}e^{2\pi i\varphi k \cdot 2^{n-k-1}}|k\rangle|j\rangle$$
 
-**Step 4 — Inverse QFT** on the precision register:
+**步骤 4 — 对精度寄存器施加逆 QFT**：
 $$\text{QFT}^{\dagger}\left(\sum_k e^{2\pi i\varphi k}|k\rangle\right) \approx |\tilde{\varphi}\rangle$$
-where $\tilde{\varphi}$ is the binary representation of $\varphi$.
+其中 $\tilde{\varphi}$ 是 $\varphi$ 的二进制表示。
 
-### Inverse QFT (QFTdagger)
+### 逆 QFT（QFTdagger）
 
-The QFT transforms $|x\rangle \to \frac{1}{\sqrt{N}}\sum_k e^{2\pi ixk/N}|k\rangle$.
-QFTdagger is its inverse — implemented by reversing the QFT circuit with adjoint rotation angles.
+QFT 将 $|x\rangle \to \frac{1}{\sqrt{N}}\sum_k e^{2\pi ixk/N}|k\rangle$。
+QFTdagger 是其逆变换——通过反转 QFT 电路并使用伴随旋转角度来实现。
 
-### Accuracy
+### 精度
 
-With $n$ precision qubits, QPE achieves precision $\pm 1/2^n$ with probability approaching 1
-for the most significant bits. The algorithm requires the eigenstate to be provided
-as input (it does not find eigenstates).
+使用 $n$ 个精度比特时，QPE 可达到 $\pm 1/2^n$ 的精度，最高有效位接近概率为 1。
+算法需要将特征态作为输入提供（它不能自行寻找特征态）。
 
-## Code Walkthrough
+## 代码解析
 
 ### `apply_cu1`
 
-Implements $CU_1(\theta)$ where $U_1(\theta) = \text{diag}(1, e^{i\theta})$:
+实现 $CU_1(\theta)$，其中 $U_1(\theta) = \text{diag}(1, e^{i\theta})$：
 $$CU_1(\theta) = \begin{pmatrix}1&0&0&0\\0&1&0&0\\0&0&1&0\\0&0&0&e^{i\theta}\end{pmatrix}$$
 
-Decomposition:
+分解方式：
 $$CU_1(\theta) = u_1(\theta/2) \cdot CX \cdot u_1(-\theta/2) \cdot CX$$
 
 ### `apply_qft_dagger`
 
-Inverse QFT circuit for the precision register:
-- Cascade of $CU_1(-\pi/2^{j-i})$ gates in reverse order
-- Followed by Hadamard on each qubit
+精度寄存器的逆 QFT 电路：
+- 以逆序级联施加 $CU_1(-\pi/2^{j-i})$ 门
+- 然后在每个比特上施加 Hadamard
 
 ### `build_qpe_circuit`
 
-1. Prepare the eigenstate on system qubits (defaults to $|0\rangle^{\otimes m}$)
-2. Apply $H^{\otimes n}$ on precision qubits for uniform superposition
-3. For each precision qubit $k$: apply $U^{2^k}$ controlled by that qubit
-4. Apply QFTdagger on precision qubits
-5. Measure the precision register
+1. 在系统比特上制备特征态（默认为 $|0\rangle^{\otimes m}$）
+2. 在精度比特上施加 $H^{\otimes n}$ 产生均匀叠加
+3. 对每个精度比特 $k$：施加由该比特控制的 $U^{2^k}$
+4. 对精度比特施加 QFTdagger
+5. 测量精度寄存器
 
-## Running the Example
+## 运行示例
 
 ```bash
-# Estimate the phase of the T gate (phase = π/8 ≈ 0.3927)
+# 估计 T 门的相位（相位 = π/8 ≈ 0.3927）
 python examples/algorithms/qpe.py --n-precision 4 --unitary t
 
-# Estimate Z-gate phase (eigenvalue = -1, so phase = 0.5)
+# 估计 Z 门的相位（特征值 = -1，即相位 = 0.5）
 python examples/algorithms/qpe.py --n-precision 4 --unitary z
 
-# More precision qubits
+# 更多精度比特
 python examples/algorithms/qpe.py --n-precision 6 --unitary t --shots 8192
 ```
 
-Expected output:
+预期输出：
 ```
  Quantum Phase Estimation
  Precision qubits: 4
@@ -90,23 +89,17 @@ Expected output:
   ✓ QPE complete.
 ```
 
-## Design Notes
+## 设计说明
 
-- **Eigenstate input**: QPE requires a *known* eigenstate. For non-diagonal unitaries,
-  the output is a superposition of phases corresponding to the eigenstate decomposition.
-- **Controlled unitaries**: For diagonal $U$, controlled-$U$ is implemented as
-  $CU_1$ gates encoding the phase angles. The cascade decomposition handles
-  multi-qubit phase encoding.
-- **Binary phase encoding**: QPE treats the precision register as a binary fraction
-  $\varphi = \sum_k b_k / 2^k$. The estimated integer $m$ from measurement gives
-  $\tilde{\varphi} = m / 2^n$.
+- **特征态输入**：QPE 需要一个*已知*的特征态。对于非对角酉算子，输出是对应特征态分解的多个相位的叠加。
+- **受控酉算子**：对于对角的 $U$，受控-$U$ 通过编码相位角的 $CU_1$ 门实现。级联分解处理多比特相位编码。
+- **二进制相位编码**：QPE 将精度寄存器视为二进制小数 $\varphi = \sum_k b_k / 2^k$。测量得到的整数 $m$ 给出 $\tilde{\varphi} = m / 2^n$。
 
-## Extension Ideas
+## 扩展方向
 
-- **HHL Algorithm**: Use QPE as the core of the quantum linear systems solver
-- **Iterative QPE (IQPE)**: Reduce qubit count by measuring and re-using one qubit
-  per iteration
-- **Quantum counting**: Combine Grover search with QPE to count marked states
+- **HHL 算法**：将 QPE 作为量子线性方程组求解器的核心
+- **迭代 QPE（IQPE）**：通过每次迭代测量并重用一个比特来减少比特数量
+- **量子计数**：结合 Grover 搜索与 QPE 来计数目标态数量
 
 ## References
 

@@ -1,63 +1,61 @@
-# Quantum Approximate Optimization Algorithm (QAOA)
+# 量子近似优化算法（QAOA）
 
-## Background and Theory
+## 背景与理论
 
-QAOA (Farhi et al., 2014) is a hybrid quantum-classical algorithm for solving
-combinatorial optimisation problems. It approximates the solution by applying
-alternating layers of cost and mixer unitaries.
+QAOA（Farhi 等人，2014）是一种用于求解组合优化问题的量子-经典混合算法。
+它通过交替施加代价酉和混合酉来逼近最优解。
 
-### MaxCut Problem
+### MaxCut 问题
 
-Given a graph $G = (V, E)$, MaxCut seeks a partition of $V$ into two sets
-that maximises the number of edges crossing the partition.
+给定图 $G = (V, E)$，MaxCut 寻求将 $V$ 划分为两个集合，
+使得跨越分割的边数最大化。
 
-**Cost Hamiltonian:**
+**代价哈密顿量：**
 
 $$H_C = -\frac{1}{2} \sum_{(i,j) \in E} (1 - Z_i Z_j)$$
 
-Maximising $-H_C$ is equivalent to maximising the cut.
+最大化 $-H_C$ 等价于最大化切割数。
 
-### QAOA Ansatz
+### QAOA 拟设
 
-The QAOA state is prepared as:
+QAOA 态的制备方式为：
 
 $$|\psi(\boldsymbol{\beta}, \boldsymbol{\gamma})\rangle
 = \prod_{l=1}^{p} e^{-i\beta_l H_M} e^{-i\gamma_l H_C} |+\rangle^{\otimes n}$$
 
-where $H_M = \sum_i X_i$ is the mixer Hamiltonian, and $p$ is the number of
-layers (higher $p$ → better approximation).
+其中 $H_M = \sum_i X_i$ 是混合哈密顿量，$p$ 是层数（$p$ 越大 → 近似效果越好）。
 
-### Algorithm Flow
+### 算法流程
 
 ```
-Initialise |+⟩⊗n → Apply e^{-iγ₁ Hc} → Apply e^{-iβ₁ Hm} → ... → Measure ⟨Hc⟩
+初始化 |+⟩⊗n → 施加 e^{-iγ₁ Hc} → 施加 e^{-iβ₁ Hm} → ... → 测量 ⟨Hc⟩
                      ↑                                                    ↓
-                     └──────── Classical optimiser (update β, γ) ←───────┘
+                     └──────── 经典优化器（更新 β, γ） ←────────────────┘
 ```
 
-### Components Used
+### 使用的组件
 
-| Component | Module | Role |
+| 组件 | 模块 | 功能 |
 |-----------|--------|------|
-| `qaoa_ansatz` | `algorithmics.ansatz` | Parameterised QAOA circuit |
-| `OriginIR_Simulator` | `simulator` | Statevector simulation |
+| `qaoa_ansatz` | `algorithmics.ansatz` | 参数化 QAOA 电路 |
+| `OriginIR_Simulator` | `simulator` | 态矢量模拟 |
 
-## Running the Example
+## 运行示例
 
 ```bash
-# Default: p=2 layers, triangle graph
+# 默认：p=2 层，三角形图
 python examples/algorithms/qaoa.py
 
-# More layers
+# 更多层数
 python examples/algorithms/qaoa.py -p 3
 
-# More iterations
+# 更多迭代次数
 python examples/algorithms/qaoa.py -p 2 --maxiter 200
 ```
 
-## Code Walkthrough
+## 代码解析
 
-### 1. Define the cost Hamiltonian
+### 1. 定义代价哈密顿量
 
 ```python
 def maxcut_hamiltonian(edges, n_nodes):
@@ -67,7 +65,7 @@ def maxcut_hamiltonian(edges, n_nodes):
     return terms
 ```
 
-### 2. Build the ansatz
+### 2. 构建拟设
 
 ```python
 from qpandalite.algorithmics.ansatz import qaoa_ansatz
@@ -80,23 +78,23 @@ circuit = qaoa_ansatz(
 )
 ```
 
-### 3. Evaluate and optimise
+### 3. 评估与优化
 
-The energy $\langle H_C \rangle$ is computed from the statevector and
-fed to a coordinate-descent optimiser.
+能量 $\langle H_C \rangle$ 由态矢量计算得出，
+并输入坐标下降优化器。
 
-### Expected Results
+### 预期结果
 
-For a triangle graph (3 edges):
-- Optimal cut: 2 edges (partition one vertex from the other two)
-- QAOA with $p=2$ should achieve the optimal cut with high probability
+对于三角形图（3 条边）：
+- 最优切割：2 条边（将一个顶点与其余两个分开）
+- $p=2$ 的 QAOA 应以高概率达到最优切割
 
-## Extensions
+## 扩展方向
 
-- **Weighted MaxCut**: Add edge weights to the Hamiltonian.
-- **Different graphs**: Try random graphs, planar graphs, etc.
-- **Higher $p$**: More layers improve approximation ratio toward 1.0.
-- **Shot-based**: Use `QASM_Simulator` for realistic noisy measurement.
+- **加权 MaxCut**：在哈密顿量中添加边权重。
+- **不同图结构**：尝试随机图、平面图等。
+- **更高的 $p$**：更多层数可将近似比提升至接近 1.0。
+- **基于采样的模拟**：使用 `QASM_Simulator` 进行真实噪声测量模拟。
 
 ## References
 

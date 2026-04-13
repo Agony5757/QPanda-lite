@@ -282,14 +282,14 @@ def shadow_expectation(
                 else:
                     # p_i != I: check if it aligns with the measurement basis
                     if p_i == basis:
-                        # Born probability of outcome o_i in basis b:
-                        # eigenvalue of P_i for |b_o⟩ = (-1)^o_i
+                        # Eigenvalue of Pauli P_i for the observed outcome state
                         ev = 1.0 if o_i == 0 else -1.0
-                        # Shadow inverse channel: (d+1)*⟨P⟩_b - 1 with d=2 → 3*⟨P⟩_b - 1
-                        s = 3.0 * ev - 1.0
+                        # Shadow inverse channel: Tr(P * ((d+1)*sigma - I))
+                        # For Pauli P != I, Tr(P)=0, so contribution = (d+1)*ev = 3*ev
+                        s = 3.0 * ev
                     else:
-                        # Misaligned basis: estimator contribution = -1
-                        s = -1.0
+                        # Misaligned basis: Tr(P * U|b><b|U†) = 0 for Pauli P
+                        s = 0.0
 
                 est *= s
 

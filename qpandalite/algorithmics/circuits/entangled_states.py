@@ -110,28 +110,33 @@ def _w_state_recursive(
 ) -> None:
     """Recursively distribute excitation for W state preparation.
 
-    Uses controlled rotations to split amplitude from qubits[start]
-    across qubits[start..start+length-1].
+    Uses rotations in the {|10⟩, |01⟩} subspace to split amplitude from
+    qubits[start] across qubits[start..start+length-1].
     """
     if length <= 1:
         return
 
     # Rotate from qubits[start] to qubits[start+length-1]
-    # Ry rotation angle: 2 * arccos(1/sqrt(length))
-    # This distributes |1⟩ amplitude as 1/sqrt(length) each
+    # Transfer 1/length of the |1⟩ amplitude to the target qubit
     target = qubits[start + length - 1]
     control = qubits[start]
 
-    # Controlled rotation: if control is |1⟩, rotate target
-    # R_y(θ) where cos(θ/2) = 1/sqrt(length), sin(θ/2) = sqrt((length-1)/length)
-    theta = 2 * math.acos(1.0 / math.sqrt(length))
+    # Rotation in {|10⟩, |01⟩} subspace:
+    # |10⟩ → cos(θ)|10⟩ + sin(θ)|01⟩
+    # cos(θ) = sqrt((length-1)/length), sin(θ) = sqrt(1/length)
+    theta = math.acos(math.sqrt((length - 1) / length))
 
-    # Decompose controlled-Ry using CNOT + Ry:
-    # CRy(θ) = Ry(θ/2) on target, CNOT(ctrl, tgt), Ry(-θ/2) on target, CNOT(ctrl, tgt)
-    circuit.ry(target, theta / 2)
+    # Decompose the 2-qubit {|10⟩,|01⟩} rotation using CX + Ry:
     circuit.cnot(control, target)
-    circuit.ry(target, -theta / 2)
+    circuit.ry(control, theta)
+    circuit.ry(target, theta)
+    circuit.cnot(target, control)
+    circuit.ry(control, -theta)
+    circuit.ry(target, -theta)
     circuit.cnot(control, target)
+    circuit.ry(control, theta)
+    circuit.ry(target, theta)
+    circuit.cnot(target, control)
 
     # Recurse on the remaining (length-1) qubits
     if length > 2:

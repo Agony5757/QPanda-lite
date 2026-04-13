@@ -11,13 +11,23 @@ from qpandalite.circuit_builder import Circuit
 def _dicke_unitary(circuit: Circuit, i: int, j: int, n: int) -> None:
     r"""Apply a single SCUC rotation unitary.
 
-    Implements the controlled rotation that redistributes amplitude
-    between basis states differing at positions *i* and *i+1* during
-    the Dicke-state construction (layer *j*, position *i*).
+    Implements the rotation in the {|10⟩, |01⟩} subspace that redistributes
+    amplitude between qubits *i* and *i+1* during Dicke-state construction
+    (layer *j*, position *i*).
 
-    The gate sequence is equivalent to a controlled :math:`R_y(2\theta)`
-    where :math:`\theta = \arccos\!\sqrt{(j)/(i+2)}`, decomposed into
-    elementary CNOT + single-qubit rotations.
+    The unitary acts as:
+        |10⟩ → cos(θ)|10⟩ + sin(θ)|01⟩
+        |01⟩ → -sin(θ)|10⟩ + cos(θ)|01⟩
+    where θ = arccos(sqrt(j / (i + 2))).
+
+    Decomposition (4 CX + 4 Ry):
+        CX(i, i+1); Ry(i, θ); Ry(i+1, θ);
+        CX(i+1, i); Ry(i, -θ); Ry(i+1, -θ);
+        CX(i, i+1); Ry(i, θ); Ry(i+1, θ);
+        CX(i+1, i)
+
+    This is the standard Dicke-state 2-qubit gate from
+    Bärtschi & Eidenbenz (2019).
 
     Args:
         circuit: Circuit to modify (in-place).
@@ -29,12 +39,17 @@ def _dicke_unitary(circuit: Circuit, i: int, j: int, n: int) -> None:
     # where i is 0-based index in the SCUC paper's (i+1) convention
     theta = math.acos(math.sqrt(j / (i + 2)))
 
-    # Decompose controlled-Ry(2*theta) using CNOT sandwich
-    # Controlled-Ry = Ry(theta) on target, CNOT ctrl->tgt, Ry(-theta) on target, CNOT ctrl->tgt
-    circuit.ry(i + 1, theta)
+    # Rotation in {|10⟩, |01⟩} subspace decomposition
     circuit.cnot(i, i + 1)
+    circuit.ry(i, theta)
+    circuit.ry(i + 1, theta)
+    circuit.cnot(i + 1, i)
+    circuit.ry(i, -theta)
     circuit.ry(i + 1, -theta)
     circuit.cnot(i, i + 1)
+    circuit.ry(i, theta)
+    circuit.ry(i + 1, theta)
+    circuit.cnot(i + 1, i)
 
 
 def dicke_state_circuit(

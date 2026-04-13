@@ -51,6 +51,11 @@ def deutsch_jozsa_oracle(
 
     oracle = Circuit()
 
+    # Record the qubit count: n_qubits data + 1 ancilla
+    # Even for constant oracle (no gates), deutsch_jozsa_circuit needs
+    # oracle.qubit_num to be correct to infer n_data.
+    oracle.record_qubit(list(range(n_qubits + 1)))
+
     if not balanced:
         # Constant oracle: output is always 0 → identity on ancilla
         return oracle

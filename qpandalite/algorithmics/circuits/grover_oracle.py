@@ -26,16 +26,11 @@ def _apply_mcz(
     controls: List[int],
     target: int,
 ) -> None:
-    """Apply a multi-controlled Z gate using the linear-depth CNOT cascade.
+    """Apply a multi-controlled Z gate.
 
-    The decomposition is::
-
-        H(target)
-        CNOT cascade: controls[0] → controls[1] → … → controls[-1] → target
-        CNOT cascade back (reverse order)
-        H(target)
-
-    This applies a Z rotation on *target* iff every control qubit is in ``|1>``.
+    Decomposes MCZ as H(target) + MCX + H(target), where MCX uses
+    Toffoli decomposition for 2 controls or native multi-controlled
+    gate support for more.
 
     Args:
         circuit: Circuit to append gates to (mutated in-place).
@@ -52,18 +47,33 @@ def _apply_mcz(
 
     circuit.h(target)
 
-    # Cascade CNOTs forward
-    circuit.cx(controls[0], controls[1])
-    for i in range(1, n - 1):
-        circuit.cx(controls[i], controls[i + 1])
-    circuit.cx(controls[-1], target)
-
-    # Cascade CNOTs back
-    for i in range(n - 2, 0, -1):
-        circuit.cx(controls[i], controls[i + 1])
-    circuit.cx(controls[0], controls[1])
+    # Multi-controlled X using Toffoli chain
+    _apply_mcx(circuit, controls, target)
 
     circuit.h(target)
+
+
+def _apply_mcx(
+    circuit: Circuit,
+    controls: List[int],
+    target: int,
+) -> None:
+    """Apply a multi-controlled X gate using Toffoli decomposition.
+
+    For 2 controls: direct Toffoli gate.
+    For 3+ controls: uses native multi-controlled gate support via
+    circuit.add_gate with control_qubits parameter.
+    """
+    n = len(controls)
+    if n == 0:
+        circuit.x(target)
+    elif n == 1:
+        circuit.cnot(controls[0], target)
+    elif n == 2:
+        circuit.toffoli(controls[0], controls[1], target)
+    else:
+        # Use native multi-controlled gate support
+        circuit.add_gate("X", target, control_qubits=controls)
 
 
 def grover_oracle(

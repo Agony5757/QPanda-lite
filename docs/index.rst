@@ -27,24 +27,21 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
 
 .. toctree::
    :maxdepth: 2
-   :caption: 教程
+   :caption: 入门指南
 
-   source/guide/installation
-   source/guide/quickstart
-   source/guide/circuit
-   source/guide/simulation
-   source/guide/submit_task
-   source/guide/originir
-   source/guide/qasm
-   source/guide/testing
+   source/guide
 
 .. toctree::
    :maxdepth: 2
-   :caption: 进阶
+   :caption: 进阶指南
 
-   source/advanced/circuit_analysis
-   source/advanced/opcode
-   source/advanced/noise_simulation
+   source/advanced
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 算法讲解
+
+   source/algorithm
 
 .. toctree::
    :maxdepth: 2

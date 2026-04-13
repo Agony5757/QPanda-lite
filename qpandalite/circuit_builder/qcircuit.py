@@ -100,6 +100,18 @@ class Circuit:
         self.opcode_list = []
         self.circuit_str = ""
 
+    def copy(self) -> "Circuit":
+        """Return a deep copy of this circuit."""
+        new_circuit = Circuit()
+        new_circuit.used_qubit_list = self.used_qubit_list.copy()
+        new_circuit.max_qubit = self.max_qubit
+        new_circuit.qubit_num = self.qubit_num
+        new_circuit.cbit_num = self.cbit_num
+        new_circuit.measure_list = self.measure_list.copy()
+        new_circuit.opcode_list = self.opcode_list.copy()
+        new_circuit.circuit_str = self.circuit_str
+        return new_circuit
+
     def _make_originir_circuit(self) -> str:
         header = make_header_originir(self.qubit_num, self.cbit_num)
         circuit_str = "\n".join([opcode_to_line_originir(op) for op in self.opcode_list])

@@ -21,8 +21,8 @@ class TestQFTCircuit:
         qft_circuit(c, qubits=[0, 1, 2])
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=3)
-        result = sim._simulate_qasm(c.qasm)
-        probs = np.array(result["prob"])
+        result = sim.simulate_statevector(c.qasm)
+        probs = np.abs(result) ** 2
 
         expected = np.full(8, 1.0 / 8.0)
         assert np.allclose(probs, expected, atol=1e-6), f"probs={probs}"
@@ -41,10 +41,10 @@ class TestQFTCircuit:
         c_h.h(0)
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=1)
-        r_qft = sim._simulate_qasm(c_qft.qasm)
-        r_h = sim._simulate_qasm(c_h.qasm)
+        r_qft = sim.simulate_statevector(c_qft.qasm)
+        r_h = sim.simulate_statevector(c_h.qasm)
 
-        assert np.allclose(r_qft["prob"], r_h["prob"], atol=1e-6)
+        assert np.allclose(np.abs(r_qft) ** 2, np.abs(r_h) ** 2, atol=1e-6)
 
     def test_swaps_true_produces_gates(self):
         """With swaps=True, the circuit should contain SWAP gates for n >= 2."""
@@ -87,20 +87,19 @@ class TestQFTCircuit:
             c.h(qubits[j])
 
         sim = QASM_Simulator(backend_type="statevector", n_qubits=3)
-        result = sim._simulate_qasm(c.qasm)
-        probs = np.array(result["prob"])
+        result = sim.simulate_statevector(c.qasm)
+        probs = np.abs(result) ** 2
 
         # Should be |000⟩
         assert np.isclose(probs[0], 1.0, atol=1e-6), f"probs[0]={probs[0]}"
 
     def test_default_qubits_uses_all(self):
-        """When circuit has gates and qubits=None, QFT should use all qubits."""
+        """When circuit has gates and qubits=None, QFT should use all used qubits."""
         c = Circuit()
         c.h(0)
         c.h(1)
         c.h(2)
-        # After adding gates, qubit_num=3, n_qubits alias should work
-        # If n_qubits doesn't exist, this test documents the issue
+        # After adding gates, qubit_num=3
         qft_circuit(c)
         # Should have gates (Hadamards + controlled phases + swaps)
         assert len(c.opcode_list) > 3

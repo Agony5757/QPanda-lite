@@ -41,7 +41,7 @@ def thermal_state_circuit(
         beta: Inverse temperature (:math:`\beta > 0`).  Larger values
             bias the state towards :math:`|0\rangle`.
         qubits: Qubit indices to use.  ``None`` means all qubits of
-            *circuit* (``list(range(circuit.n_qubits))``).
+            *circuit* (``list(range(circuit.qubit_num))``).
 
     Raises:
         ValueError: *beta* is negative.
@@ -56,7 +56,7 @@ def thermal_state_circuit(
         raise ValueError(f"beta must be non-negative, got {beta}")
 
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     # Compute rotation angle: theta = 2 * arccos(sqrt(p0))
     # p0 = e^beta / (e^beta + e^{-beta})
@@ -66,4 +66,4 @@ def thermal_state_circuit(
     theta = 2.0 * math.acos(math.sqrt(p0))
 
     for q in qubits:
-        circuit.ry(theta, q)
+        circuit.ry(q, theta)

@@ -43,7 +43,7 @@ def ghz_state(
         >>> ghz_state(c)
     """
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     n = len(qubits)
     if n < 2:
@@ -88,7 +88,7 @@ def w_state(
         >>> w_state(c)
     """
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     n = len(qubits)
     if n < 2:
@@ -128,9 +128,9 @@ def _w_state_recursive(
 
     # Decompose controlled-Ry using CNOT + Ry:
     # CRy(θ) = Ry(θ/2) on target, CNOT(ctrl, tgt), Ry(-θ/2) on target, CNOT(ctrl, tgt)
-    circuit.ry(theta / 2, target)
+    circuit.ry(target, theta / 2)
     circuit.cnot(control, target)
-    circuit.ry(-theta / 2, target)
+    circuit.ry(target, -theta / 2)
     circuit.cnot(control, target)
 
     # Recurse on the remaining (length-1) qubits
@@ -177,7 +177,7 @@ def cluster_state(
         >>> cluster_state(c2, edges=[(0,1), (1,2), (2,3), (3,0)])
     """
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     n = len(qubits)
     if n < 1:

@@ -11,8 +11,8 @@ def _simulate_probs(circuit, n_qubits):
     """Helper: run statevector simulation and return probability dict."""
     from qpandalite.simulator.qasm_simulator import QASM_Simulator
     sim = QASM_Simulator(backend_type='statevector', n_qubits=n_qubits)
-    result = sim._simulate_qasm(circuit.qasm)
-    probs = result['prob']
+    result = sim.simulate_statevector(circuit.qasm)
+    probs = np.abs(result) ** 2
     prob_dict = {}
     for i, p in enumerate(probs):
         if p > 1e-10:

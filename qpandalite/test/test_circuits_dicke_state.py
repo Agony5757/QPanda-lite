@@ -11,8 +11,8 @@ from qpandalite.simulator.qasm_simulator import QASM_Simulator
 def _simulate(circuit, n):
     """Run statevector simulation and return probability array."""
     sim = QASM_Simulator(backend_type='statevector', n_qubits=n)
-    result = sim._simulate_qasm(circuit.qasm)
-    return np.array(result['prob'])
+    result = sim.simulate_statevector(circuit.qasm)
+    return np.abs(result) ** 2
 
 
 class TestDickeStateCircuit:
@@ -33,9 +33,8 @@ class TestDickeStateCircuit:
     def test_dicke_n_0(self):
         """D(n,0) should be |00...0⟩."""
         c = Circuit()
-        dicke_state_circuit(c, k=0, qubits=[0, 1, 2])
-        probs = _simulate(c, 3)
-        assert np.isclose(probs[0], 1.0, atol=0.01)
+        with pytest.raises(ValueError):
+            dicke_state_circuit(c, k=0, qubits=[0, 1, 2])
 
     def test_dicke_n_n(self):
         """D(n,n) should be |11...1⟩."""

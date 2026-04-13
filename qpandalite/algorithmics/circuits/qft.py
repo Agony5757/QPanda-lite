@@ -41,7 +41,7 @@ def qft_circuit(
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
         qubits: Qubit indices to apply QFT on.  ``None`` means all qubits
-            of *circuit* (``list(range(circuit.n_qubits))``).
+            of *circuit* (``list(range(circuit.qubit_num))``).
         swaps: Whether to append SWAP gates to reverse qubit order.
             Defaults to ``True``.
 
@@ -55,7 +55,7 @@ def qft_circuit(
         >>> qft_circuit(c, qubits=[0, 1, 2])
     """
     if qubits is None:
-        qubits = list(range(circuit.n_qubits))
+        qubits = list(range(circuit.qubit_num))
 
     n = len(qubits)
     if n < 1:
@@ -70,9 +70,9 @@ def qft_circuit(
             # Controlled-Rz using CNOT decomposition:
             # CRz(θ) = Rz(θ/2) on target, CNOT, Rz(-θ/2) on target, CNOT
             # Equivalently, we can use controlled-phase via CNOT + Rz
-            circuit.rz(angle / 2, qubits[k])
+            circuit.rz(qubits[k], angle / 2)
             circuit.cnot(qubits[j], qubits[k])
-            circuit.rz(-angle / 2, qubits[k])
+            circuit.rz(qubits[k], -angle / 2)
             circuit.cnot(qubits[j], qubits[k])
 
     if swaps:

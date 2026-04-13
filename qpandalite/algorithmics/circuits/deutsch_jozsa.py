@@ -49,7 +49,6 @@ def deutsch_jozsa_oracle(
     if n_qubits < 1:
         raise ValueError(f"n_qubits must be >= 1, got {n_qubits}")
 
-    total = n_qubits + 1
     oracle = Circuit()
 
     if not balanced:

@@ -157,6 +157,5 @@ class TestBasisRotationEdgeCases:
         c = Circuit()
         c.h(0)
         c.measure(0, 1)
-        result = basis_rotation_measurement(c, basis=["X", "Z"], shots=None)
-        assert np.isclose(result["01"], 0.5)
-        assert np.isclose(result["00"], 0.5)
+        result = basis_rotation_measurement(c, basis=["Z", "X"], shots=None)
+        assert np.isclose(result["00"], 1.0)

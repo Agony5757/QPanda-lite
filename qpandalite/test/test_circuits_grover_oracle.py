@@ -105,8 +105,12 @@ class TestGroverFullSearch:
 
         # One Grover iteration: oracle + diffusion
         anc = grover_oracle(c, marked_state=marked, qubits=list(range(n)))
+        
+        print(c.originir)
+        
         grover_diffusion(c, qubits=list(range(n)), ancilla=anc)
-
+        
+        print(c.originir)
         # Simulate (ignore ancilla, look at data qubits)
         prob_dict = _simulate_probs(c, total_qubits)
 
@@ -116,6 +120,8 @@ class TestGroverFullSearch:
             data_state = state_idx >> 1  # remove ancilla bit (highest)
             data_probs[data_state] = data_probs.get(data_state, 0) + p
 
+        print(prob_dict)
+        print(data_probs)
         # Marked state should have the highest probability
         assert data_probs[marked] > data_probs.get(0, 0)
         assert data_probs[marked] > data_probs.get(1, 0)

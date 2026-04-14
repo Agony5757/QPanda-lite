@@ -99,7 +99,7 @@ def basis_rotation_measurement(
         basis_strs = [b.upper() for b in basis]
     else:
         raise TypeError(f"basis must be str, list, or None, got {type(basis).__name__}")
-
+        
     for b in basis_strs:
         if b not in ("I", "X", "Y", "Z"):
             raise ValueError(
@@ -111,7 +111,8 @@ def basis_rotation_measurement(
 
     # Build rotation gate injection map per qubit index
     rot_gates: dict[int, list[str]] = {i: [] for i in range(n)}
-    for i, b in enumerate(basis_strs):
+    for j, b in enumerate(basis_strs):
+        i = n - 1 - j # qubit index is in reversed order (right-to-left)
         if b == "X":
             rot_gates[i].append(f"h q[{i}];")
         elif b == "Y":

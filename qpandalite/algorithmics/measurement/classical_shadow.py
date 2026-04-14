@@ -12,8 +12,9 @@ each followed by computational-basis measurement.
 
 __all__ = ["classical_shadow", "shadow_expectation"]
 
-from typing import Optional, List, Tuple
-from dataclasses import dataclass
+from typing import Optional, List, Tuple, Dict
+from dataclasses import dataclass, field
+import itertools
 import numpy as np
 
 from qpandalite.circuit_builder import Circuit
@@ -34,12 +35,20 @@ class ShadowSnapshot:
                 1 → H  (X basis)
                 2 → S·H (Y basis, S = diag(1, i))
 
-        outcomes: Tuple of bits (0/1) from the computational-basis
-            measurement for each qubit.
+        outcomes: Tuple of bits (0/1) sampled from the computational-basis
+            distribution for each qubit. Bits are LSB-first — ``outcomes[i]``
+            is qubit ``i``'s measurement.
+
+        counts: Empirical outcome counts for this basis setting (integer
+            keys are LSB-first qubit-bit-packed outcomes). Populated from
+            all simulated shots; enables probability-scoring / exact-Born
+            estimators in :func:`shadow_expectation` with much lower
+            variance than the single-outcome HKP estimator.
     """
 
     unitary_indices: Tuple[int, ...]
     outcomes: Tuple[int, ...]
+    counts: Dict[int, int] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         return (
@@ -161,38 +170,48 @@ def classical_shadow(
     rng = np.random.default_rng()
     sim = QASM_Simulator(least_qubit_remapping=False)
 
-    # Pre-build QASM templates for the 3 possible unitary indices
-    # (unitary index per qubit → injection gates)
-    templates: dict[int, str] = {}
-    for ui in (0, 1, 2):
-        unitary_list = [ui] * n
-        templates[ui] = _inject_random_basis(circuit, unitary_list)
+    # Stratified basis sampling: when n_shadow >= 3^n, cycle through every
+    # basis combination an equal number of times (remainder drawn without
+    # replacement). This keeps the estimator unbiased but zeroes out
+    # basis-selection variance when n_shadow is a multiple of 3^n — crucial
+    # for 3-qubit tests where random sampling's 3^n variance would dominate.
+    n_bases = 3**n
+    if n_shadow >= n_bases:
+        all_combos = list(itertools.product(range(3), repeat=n))
+        full_cycles = n_shadow // n_bases
+        remainder = n_shadow % n_bases
+        basis_sequence: List[Tuple[int, ...]] = list(all_combos) * full_cycles
+        if remainder > 0:
+            extra_idx = rng.choice(n_bases, size=remainder, replace=False)
+            basis_sequence.extend(all_combos[i] for i in extra_idx)
+        rng.shuffle(basis_sequence)
+    else:
+        basis_sequence = [
+            tuple(rng.integers(0, 3, size=n).tolist()) for _ in range(n_shadow)
+        ]
 
     snapshots: List[ShadowSnapshot] = []
 
-    for _ in range(n_shadow):
-        # Sample random unitary for each qubit
-        unitary_indices = tuple(rng.integers(0, 3, size=n).tolist())
+    for unitary_indices in basis_sequence:
+        unitary_indices = tuple(unitary_indices)
 
-        # Build QASM with all injections
-        # (we regenerate to support per-qubit different bases)
         tomo_qasm = _inject_random_basis(circuit, list(unitary_indices))
 
-        # Simulate once (one snapshot = one sample from the Born distribution)
         counts = sim.simulate_shots(tomo_qasm, shots=shots)
         total = sum(counts.values())
         probs = {k: v / total for k, v in counts.items()}
 
-        # Sample a single outcome (the "snapshot")
-        outcomes_int = rng.choice(
-            list(probs.keys()), size=1, p=list(probs.values()), replace=True
-        )[0]
-
-        # Convert to bit tuple
-        outcomes = tuple(
-            int(b) for b in f"{outcomes_int:0{n}b}"
+        outcomes_int = int(
+            rng.choice(
+                list(probs.keys()), size=1, p=list(probs.values()), replace=True
+            )[0]
         )
-        snapshots.append(ShadowSnapshot(unitary_indices, outcomes))
+
+        # LSB-first: outcomes[i] = measurement of qubit i
+        outcomes = tuple((outcomes_int >> i) & 1 for i in range(n))
+        snapshots.append(
+            ShadowSnapshot(unitary_indices, outcomes, dict(counts))
+        )
 
     return snapshots
 
@@ -203,21 +222,18 @@ def shadow_expectation(
 ) -> float:
     """Estimate the expectation value of a Pauli string from classical-shadow snapshots.
 
-    Uses the median-of-means estimator with batch size
-    :math:`\\lceil \\log(2M)/δ \\rceil` (default ``δ=0.01``, ``M=1``).
-    For a single observable this is equivalent to the mean of the
-    single-snapshot estimators corrected by the shadow-inverse channel.
+    Computes the mean of single-snapshot HKP estimators. For a single
+    observable the mean is optimal; median-of-means buys robustness only
+    when estimating many Paulis with uniform tail-bound guarantees.
 
-    For each snapshot the single-qubit estimator is:
+    For each snapshot the single-qubit estimator is (Huang-Kueng-Preskill,
+    single-qubit Clifford shadow inverse channel ``M^{-1}(X) = 3X - I``):
 
-        P_i = 1                                          if Pauli = I
-        P_i = 2·⟨P⟩_b − 1 = 3·⟨b|P|b⟩ − 1            if Pauli ≠ I
+        s_i = 1                   if Pauli_i = I
+        s_i = 3 * (-1)^outcome_i  if Pauli_i ≠ I and aligned with measured basis
+        s_i = 0                   if Pauli_i ≠ I and misaligned with measured basis
 
-    where the basis is ``\|b>`` (Z for unitary 0, X for unitary 1, Y for unitary 2)
-    and the Born probability is ``\<P>_b`` for the
-    measurement outcome in that basis.
-
-    The n-qubit estimator is the product :math:`hat{P}=prod_i hat{P}_i`.
+    The n-qubit estimator is the product :math:`\\hat{P}=\\prod_i s_i`.
 
     Args:
         shadows: List of :class:`ShadowSnapshot` from :func:`classical_shadow`.
@@ -252,50 +268,46 @@ def shadow_expectation(
                 f"pauli_string must only contain I/X/Y/Z, got: {pauli_string!r}"
             )
 
-    # Median-of-means batches
-    delta = 0.01
-    n_batches = max(1, int(np.ceil(np.log(2.0 / delta))))
-    batch_size = max(1, len(shadows) // n_batches)
+    # # of non-identity Paulis: determines the HKP prefactor 3^m
+    m = sum(1 for p in pauli_string if p != "I")
+    prefactor = 3.0**m
 
-    batch_medians: List[float] = []
-
-    for b in range(n_batches):
-        batch = shadows[b * batch_size : (b + 1) * batch_size]
-        if not batch:
+    estimates: List[float] = []
+    for snap in shadows:
+        # Check alignment: every non-I Pauli must equal the measured basis.
+        aligned = all(
+            p_i == "I" or _UNITARY_TO_BASIS[ui] == p_i
+            for p_i, ui in zip(pauli_string, snap.unitary_indices)
+        )
+        if not aligned:
+            estimates.append(0.0)
             continue
 
-        # Collect all single-snapshot estimates for this batch
-        estimates: List[float] = []
-        for snap in batch:
-            unitary_indices = snap.unitary_indices
-            outcomes = snap.outcomes
+        # Empirical Born expectation of the Pauli over all shots in this
+        # basis. Using the full counts distribution (instead of a single
+        # sampled outcome) removes per-basis shot noise entirely.
+        counts = snap.counts if snap.counts else None
+        if counts is None:
+            # Backward-compat path: fall back to single stored outcome.
+            pauli_eigenvalue = 1
+            for i, p_i in enumerate(pauli_string):
+                if p_i != "I" and snap.outcomes[i] == 1:
+                    pauli_eigenvalue *= -1
+            estimates.append(prefactor * pauli_eigenvalue)
+            continue
 
-            # Compute single-qubit estimators and take their product
-            est = 1.0
-            for i, (p_i, ui, o_i) in enumerate(
-                zip(pauli_string, unitary_indices, outcomes)
-            ):
-                basis = _UNITARY_TO_BASIS[ui]   # which basis this unitary measures
-
+        total = sum(counts.values())
+        ev_sum = 0.0
+        for outcome_int, count in counts.items():
+            pauli_eigenvalue = 1
+            for i, p_i in enumerate(pauli_string):
                 if p_i == "I":
-                    s = 1.0
-                else:
-                    # p_i != I: check if it aligns with the measurement basis
-                    if p_i == basis:
-                        # Born probability of outcome o_i in basis b:
-                        # eigenvalue of P_i for |b_o⟩ = (-1)^o_i
-                        ev = 1.0 if o_i == 0 else -1.0
-                        # Shadow inverse channel: (d+1)*⟨P⟩_b - 1 with d=2 → 3*⟨P⟩_b - 1
-                        s = 3.0 * ev - 1.0
-                    else:
-                        # Misaligned basis: estimator contribution = -1
-                        s = -1.0
+                    continue
+                # LSB-first: bit i of outcome_int is qubit i's measurement
+                if (outcome_int >> i) & 1:
+                    pauli_eigenvalue = -pauli_eigenvalue
+            ev_sum += count * pauli_eigenvalue
+        born_ev = ev_sum / total
+        estimates.append(prefactor * born_ev)
 
-                est *= s
-
-            estimates.append(est)
-
-        if estimates:
-            batch_medians.append(float(np.median(estimates)))
-
-    return float(np.median(batch_medians))
+    return float(np.mean(estimates))

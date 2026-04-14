@@ -370,18 +370,18 @@ def state_tomography(
         for outcome, prob in probs_dict.items():
             if prob == 0:
                 continue
-            outcome_str = f"{outcome:0{n}b}"
             sign = 1.0
             for i, (p_i, b_i) in enumerate(zip(p, basis_for_p)):
-                k_i = int(outcome_str[i])
+                # LSB-first: bit i of outcome = measurement of qubit i
+                # (QASM_Simulator emits outcomes with c[j]=q[j], so bit j
+                # of the integer outcome is qubit j's measurement).
+                k_i = (outcome >> i) & 1
                 if p_i == "I":
-                    # identity: always +1
                     s = 1
                 elif p_i == "Z":
                     if b_i == "Z":
                         s = 1 if k_i == 0 else -1
                     else:
-                        # P=Z but basis is X or Y: diagonal is 0
                         sign = 0
                         break
                 elif p_i == "X":
@@ -441,10 +441,14 @@ def state_tomography(
 
         for p in pauli_strings:
             exp = expectations[p]
-            # Build the n-qubit Pauli operator by tensor product
-            # p[0] is qubit 0 (MSB in our bit ordering)
-            op = PAMS[p[0]]
-            for pi in p[1:]:
+            # Build the n-qubit Pauli operator by tensor product.
+            # Outcomes are LSB-first (qubit 0 = least significant bit of
+            # the integer index), and numpy/QuTiP tensor convention puts
+            # the first operand on the most-significant subsystem. So
+            # qt.tensor(A, B) = A_{MSB} ⊗ B_{LSB}: the Pauli for qubit
+            # n-1 must come first, down to qubit 0 last.
+            op = PAMS[p[-1]]
+            for pi in reversed(p[:-1]):
                 op = qt.tensor(op, PAMS[pi])
             rho = rho + exp * op.full()
 
@@ -461,14 +465,13 @@ def state_tomography(
         # Build lookup: for each (a,b) pair, compute sum_P <P> * <a|P|b>
         for a in range(d):
             for b in range(d):
-                a_str = f"{a:0{n}b}"
-                b_str = f"{b:0{n}b}"
                 val = 0.0
                 for p in pauli_strings:
                     exp = expectations[p]
                     prod = 1.0 + 0.0j  # complex for uniform handling
                     for i in range(n):
-                        ai, bi = int(a_str[i]), int(b_str[i])
+                        # LSB-first: bit i of a/b is qubit i
+                        ai, bi = (a >> i) & 1, (b >> i) & 1
                         pi = p[i]
                         if pi == "I":
                             prod *= 1

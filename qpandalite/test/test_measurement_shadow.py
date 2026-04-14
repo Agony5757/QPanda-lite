@@ -95,10 +95,15 @@ class TestThreeQubitShadow:
     """3-qubit classical shadow tests."""
 
     def test_zzz_on_computational(self):
-        """⟨ZZZ⟩ on |000⟩ via shadow should be ≈ +1."""
+        """⟨ZZZ⟩ on |000⟩ via shadow should be ≈ +1.
+
+        n_shadow chosen as a multiple of 3^n = 27 so stratified basis
+        sampling covers all bases equally — otherwise basis-count
+        variance on a 3-qubit Pauli would dominate at this sample size.
+        """
         c = Circuit()
         c.measure(0, 1, 2)
-        shadows = classical_shadow(c, shots=4096, n_shadow=100)
+        shadows = classical_shadow(c, shots=4096, n_shadow=108)
         est = shadow_expectation(shadows, "ZZZ")
         assert abs(est - 1.0) < 0.15
 

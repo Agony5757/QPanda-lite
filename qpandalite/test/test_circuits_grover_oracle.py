@@ -113,10 +113,37 @@ class TestGroverFullSearch:
         # Aggregate probabilities by data qubit state (sum over ancilla)
         data_probs = {}
         for state_idx, p in prob_dict.items():
-            data_state = state_idx >> 1  # remove ancilla bit (highest)
+            data_state = state_idx & ((1 << n) - 1)  # mask out ancilla (bit n)
             data_probs[data_state] = data_probs.get(data_state, 0) + p
 
         # Marked state should have the highest probability
         assert data_probs[marked] > data_probs.get(0, 0)
         assert data_probs[marked] > data_probs.get(1, 0)
         assert data_probs[marked] > data_probs.get(2, 0)
+
+    def test_grover_amplifies_non_palindrome_target(self):
+        """Grover on non-palindrome marked state catches MSB/LSB bit-order bugs."""
+        marked = 3  # 0b011 LSB-first: q0=1, q1=1, q2=0; non-palindrome
+        n = 3
+        total_qubits = n + 1
+
+        c = Circuit()
+        for i in range(n):
+            c.h(i)
+        anc = grover_oracle(c, marked_state=marked, qubits=list(range(n)))
+        grover_diffusion(c, qubits=list(range(n)), ancilla=anc)
+
+        prob_dict = _simulate_probs(c, total_qubits)
+        data_probs = {}
+        for state_idx, p in prob_dict.items():
+            data_state = state_idx & ((1 << n) - 1)
+            data_probs[data_state] = data_probs.get(data_state, 0) + p
+
+        # Marked state must beat every other basis state
+        for other in range(1 << n):
+            if other == marked:
+                continue
+            assert data_probs[marked] > data_probs.get(other, 0), (
+                f"marked={marked} not amplified above state {other}: "
+                f"{data_probs[marked]:.4f} vs {data_probs.get(other, 0):.4f}"
+            )

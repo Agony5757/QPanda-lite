@@ -44,8 +44,35 @@ def _apply_mcz(
         circuit.cz(controls[0], target)
         return
 
-    with circuit.control(*controls):
-        circuit.z(target)
+    # For n>=2, realize MCZ as H·MCX·H on the target.
+    circuit.h(target)
+    _apply_mcx(circuit, controls, target)
+    circuit.h(target)
+
+
+def _apply_mcx(
+    circuit: Circuit,
+    controls: List[int],
+    target: int,
+) -> None:
+    """Apply a multi-controlled X gate using gates supported by this QASM path."""
+    n = len(controls)
+    if n == 0:
+        circuit.x(target)
+        return
+    if n == 1:
+        circuit.cnot(controls[0], target)
+        return
+    if n == 2:
+        circuit.toffoli(controls[0], controls[1], target)
+        return
+    if n == 3:
+        circuit.add_gate("X", target, control_qubits=list(controls))
+        return
+
+    raise NotImplementedError(
+        "MCX with more than 3 controls is not supported by the current QASM gate set"
+    )
 
 
 def grover_oracle(
@@ -112,16 +139,16 @@ def grover_oracle(
     circuit.x(ancilla)
     circuit.h(ancilla)
 
-    # Bit pattern of marked_state (MSB first, aligned to qubits)
-    marked_bits = [(marked_state >> (n - 1 - i)) & 1 for i in range(n)]
+    # Bit pattern of marked_state (LSB-first: marked_bits[i] == bit i of marked_state)
+    marked_bits = [(marked_state >> i) & 1 for i in range(n)]
 
     # Flip qubits that should be |0⟩ in the marked state
     for i, bit in enumerate(marked_bits):
         if bit == 0:
             circuit.x(qubits[i])
 
-    # Multi-controlled Z targeting the ancilla
-    _apply_mcz(circuit, qubits, ancilla)
+    # Phase kickback via ancilla |−⟩ requires MCX, not MCZ.
+    _apply_mcx(circuit, qubits, ancilla)
 
     # Flip back
     for i, bit in enumerate(marked_bits):
@@ -183,13 +210,13 @@ def grover_diffusion(
     for q in qubits:
         circuit.x(q)
 
-    # Multi-controlled Z
+    # Multi-controlled Z on data qubits
     if n == 1:
         circuit.z(qubits[0])
     else:
-        if ancilla is None:
-            ancilla = max(qubits) + 1
-        _apply_mcz(circuit, qubits, ancilla)
+        # Keep ancilla parameter for API compatibility; current decomposition
+        # uses data qubits directly (target = last data qubit).
+        _apply_mcz(circuit, qubits[:-1], qubits[-1])
 
     # X on all qubits (undo)
     for q in qubits:

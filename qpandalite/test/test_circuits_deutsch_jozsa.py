@@ -52,9 +52,11 @@ class TestDeutschJozsaCircuit:
         sim = QASM_Simulator(backend_type="statevector", n_qubits=n + 1)
         result = sim.simulate_statevector(c.qasm)
         probs = np.abs(result) ** 2
-        # |000⟩ on data qubits (ancilla in |−⟩ state)
-        # States |0000⟩ (idx 0) and |0001⟩ (idx 1) for ancilla in |0⟩/|1⟩
-        p_all_zero = probs[0] + probs[1]
+        # LSB-first statevector: qubit k = bit k of index. Data qubits are
+        # q0,q1,q2 (bits 0-2); ancilla q3 is bit 3. All-zero data → any
+        # index where (i & 0b0111) == 0, i.e. idx 0 (ancilla=0) and idx 8
+        # (ancilla=1).
+        p_all_zero = probs[0] + probs[8]
         assert np.isclose(p_all_zero, 1.0, atol=1e-6), f"p_all_zero={p_all_zero}"
 
     def test_balanced_oracle_measures_non_zero(self):
@@ -71,8 +73,10 @@ class TestDeutschJozsaCircuit:
         result = sim.simulate_statevector(c.qasm)
         probs = np.abs(result) ** 2
 
-        # For balanced, |000⟩ on data qubits should have probability ~0
-        p_all_zero = probs[0] + probs[1]
+        # For balanced, |000⟩ on data qubits should have probability ~0.
+        # LSB-first indexing: data-all-zero is at idx 0 and idx 8 (see
+        # comment in test_constant_oracle_measures_all_zero).
+        p_all_zero = probs[0] + probs[8]
         assert np.isclose(p_all_zero, 0.0, atol=1e-6), f"p_all_zero={p_all_zero}"
 
     def test_1qubit_deutsch_balanced(self):

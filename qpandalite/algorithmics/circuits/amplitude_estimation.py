@@ -225,17 +225,26 @@ def amplitude_estimation_circuit(
         >>> c = Circuit(5)
         >>> amplitude_estimation_circuit(c, oracle, qubits=[3, 4], n_eval_qubits=3)
     """
-    total_qubits = circuit.max_qubit + 1
+    if n_eval_qubits < 1:
+        raise ValueError("n_eval_qubits must be at least 1")
+
+    current_width = circuit.max_qubit + 1
 
     if qubits is None:
-        qubits = list(range(n_eval_qubits, total_qubits))
+        qubits = list(range(n_eval_qubits, current_width))
+        total_qubits = current_width
+    else:
+        # Caller specified the search register explicitly — extend the
+        # effective total to cover those indices so a fresh circuit with
+        # max_qubit=0 doesn't spuriously fail the capacity check.
+        total_qubits = max(current_width, (max(qubits) + 1) if qubits else 0)
 
     n_search = len(qubits)
     if n_search < 1:
-        raise ValueError("At least 1 search qubit is required")
-
-    if n_eval_qubits < 1:
-        raise ValueError("n_eval_qubits must be at least 1")
+        raise ValueError(
+            "At least 1 search qubit is required; pass qubits explicitly "
+            "or ensure the circuit already has qubits beyond the eval register"
+        )
 
     if n_eval_qubits + n_search > total_qubits:
         raise ValueError(

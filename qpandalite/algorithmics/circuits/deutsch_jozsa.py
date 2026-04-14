@@ -113,16 +113,26 @@ def deutsch_jozsa_circuit(
         >>> c = Circuit(n + 1)
         >>> deutsch_jozsa_circuit(c, oracle)
     """
-    n_data = oracle.qubit_num - 1
-
-    if qubits is None:
+    if qubits is not None:
+        n_data = len(qubits)
+    else:
+        n_data = oracle.qubit_num - 1
+        if n_data < 1:
+            raise ValueError(
+                "Cannot infer data qubits from empty oracle; "
+                "provide explicit qubits argument"
+            )
         qubits = list(range(n_data))
+
     if ancilla is None:
         ancilla = n_data
 
-    if len(qubits) != n_data:
+    # Only validate oracle width when it has gates (empty constant oracle
+    # has qubit_num=0 but is still a valid DJ oracle for any n_data).
+    if oracle.qubit_num > 0 and oracle.qubit_num != n_data + 1:
         raise ValueError(
-            f"Expected {n_data} data qubits, got {len(qubits)}"
+            f"Oracle acts on {oracle.qubit_num} qubits, "
+            f"expected {n_data + 1} (data + ancilla)"
         )
 
     # Step 1: |+⟩ on data qubits, |−⟩ on ancilla

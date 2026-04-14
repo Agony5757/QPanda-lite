@@ -158,6 +158,7 @@ class Circuit:
     ) -> None:
         """Add a gate to the circuit."""
         opcode: OpCode = (operation, qubits, cbits, params, dagger, control_qubits)  # type: ignore[assignment]
+                
         self.opcode_list.append(opcode)
         self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
     

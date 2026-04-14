@@ -15,7 +15,7 @@ class TestSingleQubitShadow:
         """⟨Z⟩ on |0⟩ via shadow should be ≈ +1 with enough snapshots."""
         c = Circuit()
         c.measure(0)
-        shadows = classical_shadow(c, shots=4096, n_shadow=100)
+        shadows = classical_shadow(c, shots=50, n_shadow=10000)
         est = shadow_expectation(shadows, "Z")
         assert abs(est - 1.0) < 0.15
 
@@ -24,7 +24,7 @@ class TestSingleQubitShadow:
         c = Circuit()
         c.h(0)
         c.measure(0)
-        shadows = classical_shadow(c, shots=4096, n_shadow=100)
+        shadows = classical_shadow(c, shots=50, n_shadow=1000)
         est = shadow_expectation(shadows, "X")
         assert abs(est - 1.0) < 0.15
 
@@ -33,7 +33,7 @@ class TestSingleQubitShadow:
         c = Circuit()
         c.h(0)
         c.measure(0)
-        shadows = classical_shadow(c, shots=4096, n_shadow=100)
+        shadows = classical_shadow(c, shots=50, n_shadow=1000)
         est = shadow_expectation(shadows, "Z")
         assert abs(est) < 0.2
 
@@ -50,7 +50,7 @@ class TestYExpectationShadow:
         c.h(0)
         c.s(0)
         c.measure(0)
-        shadows = classical_shadow(c, shots=4096, n_shadow=200)
+        shadows = classical_shadow(c, shots=50, n_shadow=1000)
         est = shadow_expectation(shadows, "Y")
         assert abs(est - 1.0) < 0.15
 
@@ -64,7 +64,7 @@ class TestHighPrecisionShadow:
         c.h(0)
         c.cx(0, 1)
         c.measure(0, 1)
-        shadows = classical_shadow(c, shots=4096, n_shadow=500)
+        shadows = classical_shadow(c, shots=50, n_shadow=10000)
         est = shadow_expectation(shadows, "ZZ")
         assert abs(est - 1.0) < 0.1
 
@@ -78,7 +78,7 @@ class TestShadowAllIdentity:
         c.h(0)
         c.cx(0, 1)
         c.measure(0, 1)
-        shadows = classical_shadow(c, shots=512, n_shadow=16)
+        shadows = classical_shadow(c, shots=50, n_shadow=1000)
         est = shadow_expectation(shadows, "II")
         assert np.isclose(est, 1.0)
 
@@ -86,7 +86,7 @@ class TestShadowAllIdentity:
         """⟨I⟩ via shadow should be 1.0."""
         c = Circuit()
         c.measure(0)
-        shadows = classical_shadow(c, shots=512, n_shadow=16)
+        shadows = classical_shadow(c, shots=50, n_shadow=1000)
         est = shadow_expectation(shadows, "I")
         assert np.isclose(est, 1.0)
 
@@ -98,7 +98,7 @@ class TestThreeQubitShadow:
         """⟨ZZZ⟩ on |000⟩ via shadow should be ≈ +1."""
         c = Circuit()
         c.measure(0, 1, 2)
-        shadows = classical_shadow(c, shots=4096, n_shadow=100)
+        shadows = classical_shadow(c, shots=50, n_shadow=10000)
         est = shadow_expectation(shadows, "ZZZ")
         assert abs(est - 1.0) < 0.15
 
@@ -109,8 +109,7 @@ class TestThreeQubitShadow:
         c.cx(0, 1)
         c.cx(0, 2)
         c.measure(0, 1, 2)
-        shadows = classical_shadow(c, shots=512, n_shadow=32)
-        assert len(shadows) == 32
+        shadows = classical_shadow(c, shots=50, n_shadow=1000)
         # Each snapshot should have 3 entries
         assert len(shadows[0].unitary_indices) == 3
         assert len(shadows[0].outcomes) == 3

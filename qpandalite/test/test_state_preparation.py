@@ -162,6 +162,7 @@ class TestThermalState:
         thermal_state(c, beta=0.0, qubits=[0])
         sv = _statevector(c)
         expected = np.array([1, 1], dtype=complex) / np.sqrt(2)
+        print(sv, expected)
         np.testing.assert_allclose(np.abs(sv), np.abs(expected), atol=1e-10)
 
     def run_test_large_beta(self):

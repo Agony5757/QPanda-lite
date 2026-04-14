@@ -22,13 +22,17 @@ class TestDickeStateCircuit:
         dicke_state_circuit(c, k=1, qubits=[0, 1, 2])
         probs = _simulate(c, 3)
         # |100⟩ = index 4, |010⟩ = index 2, |001⟩ = index 1
-        assert np.isclose(probs[4], 1.0 / 3, atol=0.01)
-        assert np.isclose(probs[2], 1.0 / 3, atol=0.01)
-        assert np.isclose(probs[1], 1.0 / 3, atol=0.01)
         # All others should be ~0
-        for i in range(8):
-            if i not in (1, 2, 4):
-                assert np.isclose(probs[i], 0.0, atol=0.01)
+        # Assert them one-by-one from 0~7
+        assert np.isclose(probs[0], 0.0, atol=0.01)
+        assert np.isclose(probs[1], 1.0 / 3, atol=0.01)
+        assert np.isclose(probs[2], 1.0 / 3, atol=0.01)
+        assert np.isclose(probs[3], 0.0, atol=0.01)
+        assert np.isclose(probs[4], 1.0 / 3, atol=0.01)
+        assert np.isclose(probs[5], 0.0, atol=0.01)
+        assert np.isclose(probs[6], 0.0, atol=0.01)
+        assert np.isclose(probs[7], 0.0, atol=0.01)
+        
 
     def test_dicke_n_0(self):
         """D(n,0) should be |00...0⟩."""
@@ -51,6 +55,8 @@ class TestDickeStateCircuit:
         expected_weight = 1.0 / 6  # 1/C(4,2)
         # States with exactly 2 ones
         weight_sum = 0.0
+        for i in range(16):
+            print(probs[i], bin(i))
         for i in range(16):
             if bin(i).count('1') == 2:
                 assert np.isclose(probs[i], expected_weight, atol=0.02)

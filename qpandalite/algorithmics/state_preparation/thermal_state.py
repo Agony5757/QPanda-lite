@@ -51,6 +51,7 @@ def thermal_state(
 
         for q in qubits:
             if abs(theta) > 1e-15:
+                print(theta)
                 circuit.ry(q, theta)
     else:
         hamiltonian = np.asarray(hamiltonian, dtype=complex)

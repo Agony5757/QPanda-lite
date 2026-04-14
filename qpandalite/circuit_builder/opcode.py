@@ -3,6 +3,8 @@ This file is used to convert the opcode to various quantum code formats.
 '''
 
 from typing import List, Optional, Tuple, Union
+
+import numpy as np
 from .translate_qasm2_oir import OriginIR_QASM2_dict, get_QASM2_from_opcode
 
 __all__ = [
@@ -81,13 +83,18 @@ def opcode_to_line_originir(opcode : OpcodeType) -> str:
         ret += ', '.join([f'q[{q}]' for q in qubit])
     else:
         ret += f' q[{qubit}]'
-
-    if parameter is not None and parameter != []:
+    
+    # sometimes parameters are numpy types
+    
+    if parameter is not None:
         ret += ', ('
-        if isinstance(parameter, list):
-            ret += ', '.join([str(p) for p in parameter])
+        if isinstance(parameter, np.ndarray):
+            parameter = parameter.tolist()
+        
+        if isinstance(parameter, list) and len(parameter) > 0:  
+            ret += ', '.join([str(float(p)) for p in parameter])            
         else:
-            ret += str(parameter)
+            ret += str(float(parameter))
         ret += ')'
         
     if cbit: 

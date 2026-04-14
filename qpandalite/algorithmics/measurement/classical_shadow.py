@@ -159,7 +159,7 @@ def classical_shadow(
         raise ValueError(f"n_shadow must be a positive integer, got {n_shadow}")
 
     rng = np.random.default_rng()
-    sim = QASM_Simulator(least_qubit_remapping=False)
+    sim = QASM_Simulator()
 
     # Pre-build QASM templates for the 3 possible unitary indices
     # (unitary index per qubit → injection gates)
@@ -169,11 +169,10 @@ def classical_shadow(
         templates[ui] = _inject_random_basis(circuit, unitary_list)
 
     snapshots: List[ShadowSnapshot] = []
-
-    for _ in range(n_shadow):
+    
+    for _ in range(n_shadow):        
         # Sample random unitary for each qubit
         unitary_indices = tuple(rng.integers(0, 3, size=n).tolist())
-
         # Build QASM with all injections
         # (we regenerate to support per-qubit different bases)
         tomo_qasm = _inject_random_basis(circuit, list(unitary_indices))
@@ -194,6 +193,11 @@ def classical_shadow(
         )
         snapshots.append(ShadowSnapshot(unitary_indices, outcomes))
 
+    # print('-- snapshots --')
+    # for snap in snapshots:
+    #     print(snap)
+    # print('-- snapshots end --')
+        
     return snapshots
 
 
@@ -201,40 +205,7 @@ def shadow_expectation(
     shadows: List[ShadowSnapshot],
     pauli_string: str,
 ) -> float:
-    """Estimate the expectation value of a Pauli string from classical-shadow snapshots.
-
-    Uses the median-of-means estimator with batch size
-    :math:`\\lceil \\log(2M)/δ \\rceil` (default ``δ=0.01``, ``M=1``).
-    For a single observable this is equivalent to the mean of the
-    single-snapshot estimators corrected by the shadow-inverse channel.
-
-    For each snapshot the single-qubit estimator is:
-
-        P_i = 1                                          if Pauli = I
-        P_i = 2·⟨P⟩_b − 1 = 3·⟨b|P|b⟩ − 1            if Pauli ≠ I
-
-    where the basis is ``\|b>`` (Z for unitary 0, X for unitary 1, Y for unitary 2)
-    and the Born probability is ``\<P>_b`` for the
-    measurement outcome in that basis.
-
-    The n-qubit estimator is the product :math:`hat{P}=prod_i hat{P}_i`.
-
-    Args:
-        shadows: List of :class:`ShadowSnapshot` from :func:`classical_shadow`.
-        pauli_string: Case-insensitive Pauli string
-            (e.g. ``"XYZ"``, ``"IZI"``).
-
-    Returns:
-        Estimated expectation value ``\<P>``.
-
-    Raises:
-        ValueError: ``pauli_string`` length does not match snapshot size.
-        ValueError: ``pauli_string`` contains invalid characters.
-
-    Example:
-        >>> shadows = classical_shadow(circuit, shots=1024, n_shadow=32)
-        >>> shadow_expectation(shadows, "ZZ")   # estimate <ZZ>
-    """
+    """Estimate the expectation value of a Pauli string from classical-shadow snapshots."""
     if not shadows:
         raise ValueError("shadows list is empty")
 
@@ -252,19 +223,21 @@ def shadow_expectation(
                 f"pauli_string must only contain I/X/Y/Z, got: {pauli_string!r}"
             )
 
-    # Median-of-means batches
+    # Median-of-means 参数
     delta = 0.01
     n_batches = max(1, int(np.ceil(np.log(2.0 / delta))))
-    batch_size = max(1, len(shadows) // n_batches)
+    
+    # 使用 np.array_split 来更均匀地切分数组，避免尾部数据被丢弃
+    # 由于 shadows 是 list，返回的也会是 list 的切片数组
+    batches = np.array_split(shadows, n_batches)
 
-    batch_medians: List[float] = []
+    batch_means: List[float] = []
 
-    for b in range(n_batches):
-        batch = shadows[b * batch_size : (b + 1) * batch_size]
-        if not batch:
+    for batch in batches:
+        if len(batch) == 0:
             continue
 
-        # Collect all single-snapshot estimates for this batch
+        # 收集当前 batch 的所有单次测量估计值
         estimates: List[float] = []
         for snap in batch:
             unitary_indices = snap.unitary_indices
@@ -275,27 +248,26 @@ def shadow_expectation(
             for i, (p_i, ui, o_i) in enumerate(
                 zip(pauli_string, unitary_indices, outcomes)
             ):
-                basis = _UNITARY_TO_BASIS[ui]   # which basis this unitary measures
+                basis = _UNITARY_TO_BASIS[ui]
 
                 if p_i == "I":
                     s = 1.0
                 else:
-                    # p_i != I: check if it aligns with the measurement basis
                     if p_i == basis:
-                        # Born probability of outcome o_i in basis b:
-                        # eigenvalue of P_i for |b_o⟩ = (-1)^o_i
+                        # 0 -> +1 eigenvalue, 1 -> -1 eigenvalue
                         ev = 1.0 if o_i == 0 else -1.0
-                        # Shadow inverse channel: (d+1)*⟨P⟩_b - 1 with d=2 → 3*⟨P⟩_b - 1
-                        s = 3.0 * ev - 1.0
+                        s = 3.0 * ev
                     else:
-                        # Misaligned basis: estimator contribution = -1
-                        s = -1.0
+                        s = 0.0
 
                 est *= s
 
             estimates.append(est)
 
         if estimates:
-            batch_medians.append(float(np.median(estimates)))
+            # 修正核心Bug：这里必须是求平均值 (Mean)，而不是中位数
+            batch_means.append(float(np.mean(estimates)))
 
-    return float(np.median(batch_medians))
+    # 最后再求所有 Batch 平均值的中位数 (Median of Means)
+    return float(np.median(batch_means))
+

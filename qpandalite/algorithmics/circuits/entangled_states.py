@@ -10,6 +10,8 @@ from typing import List, Optional, Tuple
 import math
 
 from qpandalite.circuit_builder import Circuit
+from qpandalite.algorithmics.circuits.dicke_state import dicke_state_circuit
+
 
 
 def ghz_state(
@@ -87,55 +89,11 @@ def w_state(
         >>> c = Circuit(4)
         >>> w_state(c)
     """
-    if qubits is None:
-        qubits = list(range(circuit.qubit_num))
-
-    n = len(qubits)
-    if n < 2:
+    assert isinstance(qubits, list)
+    if len(qubits) < 2:
         raise ValueError("w_state requires at least 2 qubits")
-
-    # Start with |100...0⟩
-    circuit.x(qubits[0])
-
-    # Recursive decomposition:
-    # For n qubits, distribute the excitation from q[0] to q[1], q[2], ...
-    _w_state_recursive(circuit, qubits, 0, n)
-
-
-def _w_state_recursive(
-    circuit: Circuit,
-    qubits: List[int],
-    start: int,
-    length: int,
-) -> None:
-    """Recursively distribute excitation for W state preparation.
-
-    Uses controlled rotations to split amplitude from qubits[start]
-    across qubits[start..start+length-1].
-    """
-    if length <= 1:
-        return
-
-    # Rotate from qubits[start] to qubits[start+length-1]
-    # Ry rotation angle: 2 * arccos(1/sqrt(length))
-    # This distributes |1⟩ amplitude as 1/sqrt(length) each
-    target = qubits[start + length - 1]
-    control = qubits[start]
-
-    # Controlled rotation: if control is |1⟩, rotate target
-    # R_y(θ) where cos(θ/2) = 1/sqrt(length), sin(θ/2) = sqrt((length-1)/length)
-    theta = 2 * math.acos(1.0 / math.sqrt(length))
-
-    # Decompose controlled-Ry using CNOT + Ry:
-    # CRy(θ) = Ry(θ/2) on target, CNOT(ctrl, tgt), Ry(-θ/2) on target, CNOT(ctrl, tgt)
-    circuit.ry(target, theta / 2)
-    circuit.cnot(control, target)
-    circuit.ry(target, -theta / 2)
-    circuit.cnot(control, target)
-
-    # Recurse on the remaining (length-1) qubits
-    if length > 2:
-        _w_state_recursive(circuit, qubits, start, length - 1)
+    
+    return dicke_state_circuit(circuit, k=1, qubits=qubits)
 
 
 def cluster_state(

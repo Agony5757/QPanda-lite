@@ -7,100 +7,69 @@ import math
 
 from qpandalite.circuit_builder import Circuit
 
-
-def _dicke_unitary(circuit: Circuit, i: int, j: int, n: int) -> None:
-    r"""Apply a single SCUC rotation unitary.
-
-    Implements the controlled rotation that redistributes amplitude
-    between basis states differing at positions *i* and *i+1* during
-    the Dicke-state construction (layer *j*, position *i*).
-
-    The gate sequence is equivalent to a controlled :math:`R_y(2\theta)`
-    where :math:`\theta = \arccos\!\sqrt{(j)/(i+2)}`, decomposed into
-    elementary CNOT + single-qubit rotations.
-
-    Args:
-        circuit: Circuit to modify (in-place).
-        i: Current qubit index (0-based, ``0 ≤ i < n-1``).
-        j: Current layer index (1-based, ``1 ≤ j ≤ k``).
-        n: Total number of qubits.
+def dicke_state_circuit(circuit: Circuit, k: int, qubits: list = None):
     """
-    # Rotation angle: theta = arccos(sqrt(j / (i + 2)))
-    # where i is 0-based index in the SCUC paper's (i+1) convention
-    theta = math.acos(math.sqrt(j / (i + 2)))
-
-    # Decompose controlled-Ry(2*theta) using CNOT sandwich
-    # Controlled-Ry = Ry(theta) on target, CNOT ctrl->tgt, Ry(-theta) on target, CNOT ctrl->tgt
-    circuit.ry(i + 1, theta)
-    circuit.cnot(i, i + 1)
-    circuit.ry(i + 1, -theta)
-    circuit.cnot(i, i + 1)
-
-
-def dicke_state_circuit(
-    circuit: Circuit,
-    k: int,
-    qubits: Optional[List[int]] = None,
-) -> None:
-    r"""Prepare the Dicke state :math:`|D(n,k)\rangle`.
-
-    The Dicke state :math:`|D(n,k)\rangle` is the equal superposition of
-    all :math:`\binom{n}{k}` computational basis states with exactly *k*
-    qubits in :math:`|1\rangle`:
-
-    .. math::
-
-        |D(n,k)\rangle = \frac{1}{\sqrt{\binom{n}{k}}}
-        \sum_{x\,\in\,\{0,1\}^n,\;|x|=k} |x\rangle
-
-    This implementation uses the **SCUC** (Sequential Conditional Unitary
-    Cascade) algorithm from Bärtschi & Eidenbenz (2019), which constructs
-    the state using only CNOT and single-qubit rotation gates in
-    :math:`O(nk)` depth.
-
-    Algorithm outline:
-      1. Initialize the first *k* qubits to :math:`|1\rangle` (X gates).
-      2. For each layer ``j = k, k-1, …, 1`` and each position
-         ``i = j-1, j, …, n-2``, apply a controlled rotation that
-         redistributes weight to basis states with a ``1`` at position
-         ``i+1`` instead of position ``i``.
-
-    Args:
-        circuit: Quantum circuit to operate on (mutated in-place).
-        k: Number of excitations (``1``s) in the target Dicke state.
-            Must satisfy ``1 <= k <= n``.
-        qubits: Qubit indices to use.  ``None`` means all qubits of
-            *circuit* (``list(range(circuit.qubit_num))``).  Must contain
-            at least *k* qubits.
-
-    Raises:
-        ValueError: If *k* is not in ``[1, n]``.
-
-    Example:
-        >>> from qpandalite.circuit_builder import Circuit
-        >>> from qpandalite.algorithmics.circuits import dicke_state_circuit
-        >>> c = Circuit()
-        >>> c.x(0)
-        >>> c.x(1)
-        >>> c.x(2)
-        >>> c.x(3)
-        >>> dicke_state_circuit(c, k=2, qubits=[0,1,2,3])
+    Generate Dicke state |D^n_k> exactly.
     """
     if qubits is None:
         qubits = list(range(circuit.qubit_num))
 
     n = len(qubits)
-
     if k < 1 or k > n:
         raise ValueError(f"k must satisfy 1 <= k <= n (got k={k}, n={n})")
 
-    # Step 1: Initialize first k qubits to |1⟩
-    for i in range(k):
+    # Step 1: 初始化【最后 k 个】量子比特为 |1>
+    for i in range(n - k, n):
         circuit.x(qubits[i])
 
-    # Step 2: SCUC cascade
-    # For each layer j from k down to 1
-    for j in range(k, 0, -1):
-        # For each position i from j-1 to n-2
-        for i in range(j - 1, n - 1):
-            _dicke_unitary(circuit, i, j, n)
+    # Step 2: 使用 SCS (Single Combination Step) 降维网络构建
+    # 外层循环1：把 n 逐步降维到 k+1
+    for current_n in range(n, k, -1):
+        _scs_layer(circuit, current_n, k, qubits)
+        
+    # 外层循环2：把 k 逐步降维到 2
+    for current_k in range(k, 1, -1):
+        _scs_layer(circuit, current_k, current_k - 1, qubits)
+
+
+def _scs_layer(circuit, m: int, l: int, qubits: list):
+    """
+    应用一层单组合步 (Single Combination Step)
+    m: 当前处理的块大小
+    l: 当前块内最大的激发数 (1 的数量)
+    """
+    # 1. 基础情况 (k=1时的行为) -> 1个控制位
+    theta = math.acos(math.sqrt(1 / m))
+    tgt = qubits[m - 2]
+    ctrl = qubits[m - 1]
+
+    circuit.cx(tgt, ctrl)
+    _cry(circuit, ctrl, tgt, 2 * theta)
+    circuit.cx(tgt, ctrl)
+
+    # 2. 复杂情况 (k>=2时的行为) -> 2个控制位
+    for i in range(2, l + 1):
+        theta = math.acos(math.sqrt(i / m))
+        tgt = qubits[m - 1 - i]
+        ctrl1 = qubits[m - 1]
+        ctrl2 = qubits[m - i]
+
+        circuit.cx(tgt, ctrl1)
+        _ccry(circuit, ctrl1, ctrl2, tgt, 2 * theta)
+        circuit.cx(tgt, ctrl1)
+
+
+def _cry(circuit, ctrl, tgt, angle):
+    """标准的 Controlled-Ry 门分解"""
+    circuit.ry(tgt, angle / 2)
+    circuit.cx(ctrl, tgt)
+    circuit.ry(tgt, -angle / 2)
+    circuit.cx(ctrl, tgt)
+
+def _ccry(circuit, ctrl1, ctrl2, tgt, angle):
+    """标准的 Doubly-Controlled-Ry (CCRy) 门分解"""
+    _cry(circuit, ctrl2, tgt, angle / 2)
+    circuit.cx(ctrl1, ctrl2)
+    _cry(circuit, ctrl2, tgt, -angle / 2)
+    circuit.cx(ctrl1, ctrl2)
+    _cry(circuit, ctrl1, tgt, angle / 2)

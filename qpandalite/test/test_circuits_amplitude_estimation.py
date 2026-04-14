@@ -22,10 +22,10 @@ class TestAmplitudeEstimationResult:
         assert math.isclose(a, 0.0, abs_tol=1e-10)
 
     def test_result_all_max_outcome(self):
-        """counts={7: 100} with n_eval=3 → a = sin²(π·7/16) ≈ 0.9619."""
+        """counts={7: 100} with n_eval=3 → a = sin²(π·7/8) ≈ 0.1464."""
         a = amplitude_estimation_result({'111': 100}, n_eval_qubits=3)
-        # QAE formula: theta = pi * m / 2^(M+1), a = sin^2(theta)
-        expected = math.sin(math.pi * 7 / 16) ** 2
+        # QAE formula: theta = pi * m / 2^(M), a = sin^2(theta)
+        expected = math.sin(math.pi * 7 / 8) ** 2
         assert math.isclose(a, expected, abs_tol=1e-10)
 
     def test_result_integer_keys(self):
@@ -34,9 +34,9 @@ class TestAmplitudeEstimationResult:
         assert math.isclose(a, 0.0, abs_tol=1e-10)
 
     def test_result_half_half(self):
-        """counts={4: 50, 0: 50} → m=4, a=sin²(π/4)=0.5."""
+        """counts={4: 50, 0: 50} → m=4, a=sin²(π/2)=1."""
         a = amplitude_estimation_result({4: 50, 0: 50}, n_eval_qubits=3)
-        expected = math.sin(math.pi * 4 / 16) ** 2
+        expected = math.sin(math.pi * 4 / 8) ** 2
         assert math.isclose(a, expected, abs_tol=1e-10)
 
     def test_result_empty_counts(self):
@@ -87,7 +87,7 @@ class TestAmplitudeEstimationCircuit:
 
         # 2 eval qubits + 2 search qubits
         c = Circuit()
-        amplitude_estimation_circuit(c, oracle, qubits=[2, 3], n_eval_qubits=2)
+        amplitude_estimation_circuit(c, oracle, qubits=[0, 1], eval_qubits=[2, 3])
         assert len(c.opcode_list) > 0
 
     def test_circuit_not_enough_qubits_raises(self):
@@ -96,8 +96,8 @@ class TestAmplitudeEstimationCircuit:
         oracle.z(0)
 
         c = Circuit()
-        with pytest.raises(ValueError, match="qubits"):
-            amplitude_estimation_circuit(c, oracle, n_eval_qubits=3)
+        with pytest.raises(ValueError, match="search qubit"):
+            amplitude_estimation_circuit(c, oracle, qubits=[], eval_qubits=[2, 3])
 
     def test_circuit_zero_eval_qubits_raises(self):
         """Zero eval qubits should raise ValueError."""
@@ -105,5 +105,5 @@ class TestAmplitudeEstimationCircuit:
         oracle.z(0)
 
         c = Circuit()
-        with pytest.raises(ValueError, match="n_eval_qubits"):
-            amplitude_estimation_circuit(c, oracle, n_eval_qubits=0)
+        with pytest.raises(ValueError, match="eval_qubits"):
+            amplitude_estimation_circuit(c, oracle, qubits=[0, 1], eval_qubits=[])

@@ -187,8 +187,8 @@ def grover_operator(
 def amplitude_estimation_circuit(
     circuit: Circuit,
     oracle: Circuit,
-    qubits: Optional[List[int]] = None,
-    n_eval_qubits: int = 3,
+    qubits: List[int],
+    eval_qubits: List[int],
 ) -> None:
     r"""Apply Quantum Amplitude Estimation (QAE).
 
@@ -210,9 +210,8 @@ def amplitude_estimation_circuit(
         circuit: Quantum circuit to operate on (mutated in-place).
             Must have at least ``len(qubits) + n_eval_qubits`` qubits.
         oracle: Oracle circuit implementing the phase flip on marked states.
-        qubits: Qubit indices for the search register. ``None`` means
-            ``list(range(n_eval_qubits, n_eval_qubits + 2))``.
-        n_eval_qubits: Number of evaluation (precision) qubits.
+        qubits: Qubit indices for the search register.
+        eval_qubits: Evaluation (precision) qubits.
 
     Raises:
         ValueError: Invalid parameters.
@@ -222,28 +221,24 @@ def amplitude_estimation_circuit(
         >>> from qpandalite.algorithmics.circuits import amplitude_estimation_circuit
         >>> oracle = Circuit()
         >>> oracle.z(0)
-        >>> c = Circuit(5)
+        >>> c = Circuit()
         >>> amplitude_estimation_circuit(c, oracle, qubits=[3, 4], n_eval_qubits=3)
     """
-    total_qubits = circuit.max_qubit + 1
+    assert isinstance(eval_qubits, list)
+    assert isinstance(qubits, list)
+    
+    total_qubits = len(eval_qubits) + len(qubits)
 
     if qubits is None:
-        qubits = list(range(n_eval_qubits, total_qubits))
+        qubits = list(range(eval_qubits, total_qubits))
 
     n_search = len(qubits)
     if n_search < 1:
         raise ValueError("At least 1 search qubit is required")
 
+    n_eval_qubits = len(eval_qubits)
     if n_eval_qubits < 1:
         raise ValueError("n_eval_qubits must be at least 1")
-
-    if n_eval_qubits + n_search > total_qubits:
-        raise ValueError(
-            f"Not enough qubits: need {n_eval_qubits + n_search}, "
-            f"have {total_qubits}"
-        )
-
-    eval_qubits = list(range(n_eval_qubits))
 
     # Step 1: Initialize evaluation register in superposition
     for q in eval_qubits:
@@ -277,7 +272,7 @@ def _controlled_grover(
 
     Each gate is conditioned on control_qubit.
     """
-    # S_f (oracle) — controlled
+    # S_f (oracle) — controlled)
     _copy_circuit_gates_controlled(oracle, circuit, control_qubit)
 
     # A† = H^{⊗n} — controlled H on each search qubit

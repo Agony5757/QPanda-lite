@@ -8,9 +8,9 @@ from qpandalite.circuit_builder import Circuit
 
 
 def deutsch_jozsa_oracle(
-    n_qubits: int,
-    balanced: bool = True,
-    target_bits: Optional[List[int]] = None,
+    qubits: List[int],
+    target_bit: Optional[int] = None,
+    balanced: bool = True
 ) -> Circuit:
     r"""Build a Deutsch-Jozsa oracle circuit.
 
@@ -46,6 +46,9 @@ def deutsch_jozsa_oracle(
         >>> oracle.qubit_num  # 3 data + 1 ancilla
         4
     """
+    assert isinstance(qubits, list)
+    n_qubits = len(qubits)
+    
     if n_qubits < 1:
         raise ValueError(f"n_qubits must be >= 1, got {n_qubits}")
 
@@ -55,15 +58,11 @@ def deutsch_jozsa_oracle(
         # Constant oracle: output is always 0 → identity on ancilla
         return oracle
 
-    if target_bits is None:
-        target_bits = list(range(n_qubits))
+    if not target_bit:
+        target_bit = max(qubits) + 1
 
-    for idx in target_bits:
-        if idx < 0 or idx >= n_qubits:
-            raise ValueError(
-                f"target_bit {idx} out of range for {n_qubits} data qubits"
-            )
-        oracle.cnot(idx, n_qubits)
+    for idx in qubits:
+        oracle.cnot(idx, target_bit)
 
     return oracle
 
@@ -71,7 +70,7 @@ def deutsch_jozsa_oracle(
 def deutsch_jozsa_circuit(
     circuit: Circuit,
     oracle: Circuit,
-    qubits: Optional[List[int]] = None,
+    qubits: List[int],
     ancilla: Optional[int] = None,
 ) -> None:
     r"""Apply the Deutsch-Jozsa algorithm to the circuit.
@@ -113,18 +112,11 @@ def deutsch_jozsa_circuit(
         >>> c = Circuit(n + 1)
         >>> deutsch_jozsa_circuit(c, oracle)
     """
-    n_data = oracle.qubit_num - 1
-
-    if qubits is None:
-        qubits = list(range(n_data))
-    if ancilla is None:
-        ancilla = n_data
-
-    if len(qubits) != n_data:
-        raise ValueError(
-            f"Expected {n_data} data qubits, got {len(qubits)}"
-        )
-
+    # Step 0: If ancilla is None, set to defaults
+    assert isinstance(qubits, list)
+    if not ancilla:
+        ancilla = len(qubits)
+    
     # Step 1: |+⟩ on data qubits, |−⟩ on ancilla
     for q in qubits:
         circuit.h(q)
@@ -132,8 +124,7 @@ def deutsch_jozsa_circuit(
     circuit.h(ancilla)
 
     # Step 2: Apply oracle
-    for op in oracle.opcode_list:
-        circuit.add_gate(*op)
+    circuit.add_circuit(oracle)
 
     # Step 3: H on data qubits
     for q in qubits:

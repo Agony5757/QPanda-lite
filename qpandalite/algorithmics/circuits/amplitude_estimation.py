@@ -14,11 +14,7 @@ from qpandalite.circuit_builder import Circuit
 
 def _copy_circuit_gates(src: Circuit, dst: Circuit) -> None:
     """Copy all gates from src circuit into dst circuit."""
-    for op in src.opcode_list:
-        dst.opcode_list.append(op)
-        dst.record_qubit(
-            op[1] if isinstance(op[1], list) else [op[1]]
-        )
+    dst.add_circuit(src)
 
 
 def _copy_circuit_gates_controlled(

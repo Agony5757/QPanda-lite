@@ -160,7 +160,12 @@ class Circuit:
         opcode: OpCode = (operation, qubits, cbits, params, dagger, control_qubits)  # type: ignore[assignment]
         self.opcode_list.append(opcode)
         self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
-
+    
+    def add_circuit(self, other: "Circuit") -> None:
+        """Add a circuit to the current circuit."""
+        for op in other.opcode_list:
+            self.add_gate(*op)
+    
     @property
     def depth(self) -> int:
         """Calculate the depth of the quantum circuit."""

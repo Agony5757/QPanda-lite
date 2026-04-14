@@ -26,16 +26,10 @@ def _apply_mcz(
     controls: List[int],
     target: int,
 ) -> None:
-    """Apply a multi-controlled Z gate using the linear-depth CNOT cascade.
+    """Apply a multi-controlled Z gate.
 
-    The decomposition is::
-
-        H(target)
-        CNOT cascade: controls[0] → controls[1] → … → controls[-1] → target
-        CNOT cascade back (reverse order)
-        H(target)
-
-    This applies a Z rotation on *target* iff every control qubit is in ``|1>``.
+    Flips the phase of the computational basis state where every control
+    qubit and the target qubit are all in :math:`|1\\rangle`.
 
     Args:
         circuit: Circuit to append gates to (mutated in-place).
@@ -50,20 +44,8 @@ def _apply_mcz(
         circuit.cz(controls[0], target)
         return
 
-    circuit.h(target)
-
-    # Cascade CNOTs forward
-    circuit.cx(controls[0], controls[1])
-    for i in range(1, n - 1):
-        circuit.cx(controls[i], controls[i + 1])
-    circuit.cx(controls[-1], target)
-
-    # Cascade CNOTs back
-    for i in range(n - 2, 0, -1):
-        circuit.cx(controls[i], controls[i + 1])
-    circuit.cx(controls[0], controls[1])
-
-    circuit.h(target)
+    with circuit.control(*controls):
+        circuit.z(target)
 
 
 def grover_oracle(

@@ -1,40 +1,11 @@
-"""Dicke state preparation circuit using the SCUC algorithm."""
+"""Dicke state preparation circuit."""
 
 __all__ = ["dicke_state_circuit"]
 
 from typing import List, Optional
-import math
+import numpy as np
 
 from qpandalite.circuit_builder import Circuit
-
-
-def _dicke_unitary(circuit: Circuit, i: int, j: int, n: int) -> None:
-    r"""Apply a single SCUC rotation unitary.
-
-    Implements the controlled rotation that redistributes amplitude
-    between basis states differing at positions *i* and *i+1* during
-    the Dicke-state construction (layer *j*, position *i*).
-
-    The gate sequence is equivalent to a controlled :math:`R_y(2\theta)`
-    where :math:`\theta = \arccos\!\sqrt{(j)/(i+2)}`, decomposed into
-    elementary CNOT + single-qubit rotations.
-
-    Args:
-        circuit: Circuit to modify (in-place).
-        i: Current qubit index (0-based, ``0 ≤ i < n-1``).
-        j: Current layer index (1-based, ``1 ≤ j ≤ k``).
-        n: Total number of qubits.
-    """
-    # Rotation angle: theta = arccos(sqrt(j / (i + 2)))
-    # where i is 0-based index in the SCUC paper's (i+1) convention
-    theta = math.acos(math.sqrt(j / (i + 2)))
-
-    # Decompose controlled-Ry(2*theta) using CNOT sandwich
-    # Controlled-Ry = Ry(theta) on target, CNOT ctrl->tgt, Ry(-theta) on target, CNOT ctrl->tgt
-    circuit.ry(i + 1, theta)
-    circuit.cnot(i, i + 1)
-    circuit.ry(i + 1, -theta)
-    circuit.cnot(i, i + 1)
 
 
 def dicke_state_circuit(
@@ -53,17 +24,9 @@ def dicke_state_circuit(
         |D(n,k)\rangle = \frac{1}{\sqrt{\binom{n}{k}}}
         \sum_{x\,\in\,\{0,1\}^n,\;|x|=k} |x\rangle
 
-    This implementation uses the **SCUC** (Sequential Conditional Unitary
-    Cascade) algorithm from Bärtschi & Eidenbenz (2019), which constructs
-    the state using only CNOT and single-qubit rotation gates in
-    :math:`O(nk)` depth.
-
-    Algorithm outline:
-      1. Initialize the first *k* qubits to :math:`|1\rangle` (X gates).
-      2. For each layer ``j = k, k-1, …, 1`` and each position
-         ``i = j-1, j, …, n-2``, apply a controlled rotation that
-         redistributes weight to basis states with a ``1`` at position
-         ``i+1`` instead of position ``i``.
+    The implementation constructs the target state vector directly and
+    prepares it using the Shende–Bullock–Markov rotation-based scheme
+    (:func:`rotation_prepare`).
 
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
@@ -80,11 +43,7 @@ def dicke_state_circuit(
         >>> from qpandalite.circuit_builder import Circuit
         >>> from qpandalite.algorithmics.circuits import dicke_state_circuit
         >>> c = Circuit()
-        >>> c.x(0)
-        >>> c.x(1)
-        >>> c.x(2)
-        >>> c.x(3)
-        >>> dicke_state_circuit(c, k=2, qubits=[0,1,2,3])
+        >>> dicke_state_circuit(c, k=2, qubits=[0, 1, 2, 3])
     """
     if qubits is None:
         qubits = list(range(circuit.qubit_num))
@@ -94,13 +53,19 @@ def dicke_state_circuit(
     if k < 1 or k > n:
         raise ValueError(f"k must satisfy 1 <= k <= n (got k={k}, n={n})")
 
-    # Step 1: Initialize first k qubits to |1⟩
-    for i in range(k):
-        circuit.x(qubits[i])
+    if k == n:
+        for q in qubits:
+            circuit.x(q)
+        return
 
-    # Step 2: SCUC cascade
-    # For each layer j from k down to 1
-    for j in range(k, 0, -1):
-        # For each position i from j-1 to n-2
-        for i in range(j - 1, n - 1):
-            _dicke_unitary(circuit, i, j, n)
+    d = 2 ** n
+    target = np.zeros(d, dtype=complex)
+    count = 0
+    for i in range(d):
+        if bin(i).count('1') == k:
+            target[i] = 1.0
+            count += 1
+    target /= np.sqrt(count)
+
+    from qpandalite.algorithmics.state_preparation.rotation_prepare import rotation_prepare
+    rotation_prepare(circuit, target, qubits)

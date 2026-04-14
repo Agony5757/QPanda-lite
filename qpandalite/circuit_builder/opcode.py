@@ -86,13 +86,13 @@ def opcode_to_line_originir(opcode : OpcodeType) -> str:
     
     # sometimes parameters are numpy types
     
-    if parameter is not None:
+    if parameter:
         ret += ', ('
         if isinstance(parameter, np.ndarray):
             parameter = parameter.tolist()
         
-        if isinstance(parameter, list) and len(parameter) > 0:  
-            ret += ', '.join([str(float(p)) for p in parameter])            
+        if isinstance(parameter, list):
+            ret += ', '.join([str(float(p)) for p in parameter])                  
         else:
             ret += str(float(parameter))
         ret += ')'

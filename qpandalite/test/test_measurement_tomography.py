@@ -101,6 +101,7 @@ class TestThreeQubitTomography:
         c.cx(0, 2)
         c.measure(0, 1, 2)
         rho = state_tomography(c, shots=8192)
+        print(rho)
         purity = np.real(np.trace(rho @ rho))
         assert abs(purity - 1.0) < 0.1
 

@@ -82,9 +82,9 @@ def opcode_to_line_originir(opcode : OpcodeType) -> str:
     else:
         ret += f' q[{qubit}]'
 
-    if parameter is not None and parameter != []:
+    if parameter is not None and (not hasattr(parameter, '__len__') or len(parameter) > 0):
         ret += ', ('
-        if isinstance(parameter, list):
+        if hasattr(parameter, '__iter__') and not isinstance(parameter, str):
             ret += ', '.join([str(p) for p in parameter])
         else:
             ret += str(parameter)

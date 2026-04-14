@@ -359,7 +359,7 @@ def amplitude_estimation_result(
         m = int(best)
 
     M = n_eval_qubits
-    theta = math.pi * m / (2 ** M)
+    theta = math.pi * m / (2 ** (M + 1))
     a = math.sin(theta) ** 2
 
     return a

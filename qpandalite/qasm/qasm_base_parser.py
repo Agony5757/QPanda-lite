@@ -1,3 +1,12 @@
+"""OpenQASM 2.0 base parser module.
+
+This module provides the base parser for OpenQASM 2.0 quantum circuit representation,
+including parsing qreg/creg definitions, quantum operations, and measurement statements.
+
+Key exports:
+    OpenQASM2_BaseParser: Base parser class for OpenQASM 2.0 circuits.
+"""
+
 __all__ = ["OpenQASM2_BaseParser"]
 from typing import List, Tuple
 from qpandalite.circuit_builder.qcircuit import Circuit

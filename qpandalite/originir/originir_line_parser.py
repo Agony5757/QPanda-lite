@@ -1,3 +1,12 @@
+"""OriginIR line parser module.
+
+This module provides regex-based parsing for individual OriginIR lines,
+supporting 1-3 qubit gates, parameterized gates, dagger flags, and control qubits.
+
+Key exports:
+    OriginIR_LineParser: Parser class for individual OriginIR lines.
+"""
+
 __all__ = ["OriginIR_LineParser"]
 import re
 

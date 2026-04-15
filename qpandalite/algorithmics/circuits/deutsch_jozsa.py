@@ -8,7 +8,7 @@ from qpandalite.circuit_builder import Circuit
 
 
 def deutsch_jozsa_oracle(
-    n_qubits: int,
+    qubits: List[int],
     balanced: bool = True,
     target_bits: Optional[List[int]] = None,
 ) -> Circuit:
@@ -25,29 +25,35 @@ def deutsch_jozsa_oracle(
       This yields a balanced function because the ancilla flips exactly
       when an odd number of target bits are set.
 
-    The oracle acts on ``n_qubits + 1`` qubits: qubits ``[0, n_qubits-1]``
-    are data qubits and qubit ``n_qubits`` is the ancilla.
+    The oracle acts on the data qubits in *qubits* plus one ancilla qubit
+    at ``max(qubits) + 1``.
 
     Args:
-        n_qubits: Number of data qubits.
+        qubits: Data-qubit indices (explicit list, no default).
         balanced: If ``True``, build a balanced oracle; otherwise constant.
-        target_bits: Data-qubit indices that control the ancilla flip.
-            Only used when *balanced* is ``True``.  ``None`` means
-            ``list(range(n_qubits))``.
+        target_bits: Data-qubit indices (positions within *qubits*) that
+            control the ancilla flip.  Only used when *balanced* is ``True``.
+            ``None`` means all data qubits.
 
     Returns:
         A new :class:`Circuit` containing the oracle gates.
 
     Raises:
-        ValueError: *n_qubits* < 1, or *target_bits* contains invalid indices.
+        TypeError: *qubits* is not a list.
+        ValueError: *qubits* is empty, or *target_bits* contains invalid indices.
 
     Example:
-        >>> oracle = deutsch_jozsa_oracle(3, balanced=True)
+        >>> oracle = deutsch_jozsa_oracle(qubits=[0, 1, 2], balanced=True)
         >>> oracle.qubit_num  # 3 data + 1 ancilla
         4
     """
-    if n_qubits < 1:
-        raise ValueError(f"n_qubits must be >= 1, got {n_qubits}")
+    if not isinstance(qubits, list):
+        raise TypeError("qubits must be a list of qubit indices")
+    if len(qubits) < 1:
+        raise ValueError("qubits must contain at least 1 data qubit")
+
+    n_qubits = len(qubits)
+    ancilla = max(qubits) + 1
 
     oracle = Circuit()
 
@@ -63,7 +69,7 @@ def deutsch_jozsa_oracle(
             raise ValueError(
                 f"target_bit {idx} out of range for {n_qubits} data qubits"
             )
-        oracle.cnot(idx, n_qubits)
+        oracle.cnot(qubits[idx], ancilla)
 
     return oracle
 
@@ -71,7 +77,7 @@ def deutsch_jozsa_oracle(
 def deutsch_jozsa_circuit(
     circuit: Circuit,
     oracle: Circuit,
-    qubits: Optional[List[int]] = None,
+    qubits: List[int],
     ancilla: Optional[int] = None,
 ) -> None:
     r"""Apply the Deutsch-Jozsa algorithm to the circuit.
@@ -88,20 +94,17 @@ def deutsch_jozsa_circuit(
     3. Apply Hadamard on all data qubits.
     4. Measure data qubits: all-zeros → constant, otherwise → balanced.
 
-    The caller is responsible for allocating enough qubits:
-    ``len(qubits) + 1`` (one ancilla).
-
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
         oracle: Oracle sub-circuit to embed.  Must operate on
-            ``len(qubits) + 1`` qubits (data + ancilla).
-        qubits: Data-qubit indices.  ``None`` means
-            ``list(range(n_data))`` where *n_data* = ``oracle.qubit_num - 1``.
-        ancilla: Ancilla qubit index.  ``None`` means the last qubit
-            (``oracle.qubit_num - 1``).
+            ``len(qubits) + 1`` qubits (data + ancilla), or be empty
+            (constant-zero oracle).
+        qubits: Data-qubit indices (explicit list, no default).
+        ancilla: Ancilla qubit index.  ``None`` means ``max(qubits) + 1``.
 
     Raises:
-        ValueError: Qubit count mismatch between circuit and oracle.
+        TypeError: *qubits* is not a list.
+        ValueError: *qubits* is empty, or oracle qubit count mismatches.
 
     Example:
         >>> from qpandalite.circuit_builder import Circuit
@@ -109,23 +112,19 @@ def deutsch_jozsa_circuit(
         ...     deutsch_jozsa_circuit, deutsch_jozsa_oracle,
         ... )
         >>> n = 3
-        >>> oracle = deutsch_jozsa_oracle(n, balanced=True)
-        >>> c = Circuit(n + 1)
-        >>> deutsch_jozsa_circuit(c, oracle)
+        >>> oracle = deutsch_jozsa_oracle(qubits=list(range(n)), balanced=True)
+        >>> c = Circuit()
+        >>> deutsch_jozsa_circuit(c, oracle, qubits=list(range(n)), ancilla=n)
     """
-    if qubits is not None:
-        n_data = len(qubits)
-    else:
-        n_data = oracle.qubit_num - 1
-        if n_data < 1:
-            raise ValueError(
-                "Cannot infer data qubits from empty oracle; "
-                "provide explicit qubits argument"
-            )
-        qubits = list(range(n_data))
+    if not isinstance(qubits, list):
+        raise TypeError("qubits must be a list of qubit indices")
+    if len(qubits) < 1:
+        raise ValueError("qubits must contain at least 1 data qubit")
+
+    n_data = len(qubits)
 
     if ancilla is None:
-        ancilla = n_data
+        ancilla = max(qubits) + 1
 
     # Only validate oracle width when it has gates (empty constant oracle
     # has qubit_num=0 but is still a valid DJ oracle for any n_data).
@@ -142,8 +141,7 @@ def deutsch_jozsa_circuit(
     circuit.h(ancilla)
 
     # Step 2: Apply oracle
-    for op in oracle.opcode_list:
-        circuit.add_gate(*op)
+    circuit.add_circuit(oracle)
 
     # Step 3: H on data qubits
     for q in qubits:

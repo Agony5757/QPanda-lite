@@ -87,12 +87,12 @@ def run_qae(n_qubits: int, n_eval_qubits: int, marked_state: int, shots: int = 4
     total_qubits = n_qubits + n_eval_qubits
     oracle = build_simple_oracle(n_qubits, marked_state)
 
-    c = Circuit(total_qubits)
+    c = Circuit()
     amplitude_estimation_circuit(
         c,
         oracle,
         qubits=list(range(n_eval_qubits, total_qubits)),
-        n_eval_qubits=n_eval_qubits,
+        eval_qubits=list(range(n_eval_qubits)),
     )
 
     # Simulate

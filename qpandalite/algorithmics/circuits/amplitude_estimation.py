@@ -14,11 +14,7 @@ from qpandalite.circuit_builder import Circuit
 
 def _copy_circuit_gates(src: Circuit, dst: Circuit) -> None:
     """Copy all gates from src circuit into dst circuit."""
-    for op in src.opcode_list:
-        dst.opcode_list.append(op)
-        dst.record_qubit(
-            op[1] if isinstance(op[1], list) else [op[1]]
-        )
+    dst.add_circuit(src)
 
 
 def _copy_circuit_gates_controlled(
@@ -73,12 +69,7 @@ def _multi_controlled_x(
     controls: List[int],
     target: int,
 ) -> None:
-    """Apply multi-controlled X gate.
-
-    Uses toffoli decomposition with intermediate qubits from the same
-    register as working ancillas. For n controls > 2, chains toffoli
-    gates pairwise.
-    """
+    """Apply multi-controlled X gate."""
     n_controls = len(controls)
     if n_controls == 0:
         circuit.x(target)
@@ -87,60 +78,7 @@ def _multi_controlled_x(
     elif n_controls == 2:
         circuit.toffoli(controls[0], controls[1], target)
     else:
-        # Use pairwise toffoli decomposition with available qubits as ancilla
-        # Strategy: chain toffoli gates, using intermediate qubits
-        # e.g. for 3 controls [c0,c1,c2] -> target:
-        #   toffoli(c0, c1, c2)  [reuse c2 as ancilla]
-        #   toffoli(c2, c3, target) if needed
-        # Then uncompute.
-        #
-        # General: build a tree of toffoli gates
-        _multi_controlled_x_chain(circuit, controls, target)
-
-
-def _multi_controlled_x_chain(
-    circuit: Circuit,
-    controls: List[int],
-    target: int,
-) -> None:
-    """Implement multi-controlled X using pairwise toffoli chain.
-
-    Uses intermediate qubits as ancillas (taken from the control list).
-    For k controls, uses k-2 ancilla qubits from the available qubit pool.
-    The ancilla qubits are the control qubits themselves (they get
-    temporarily modified and then restored).
-    """
-    n = len(controls)
-    if n == 0:
-        circuit.x(target)
-        return
-    if n == 1:
-        circuit.cnot(controls[0], target)
-        return
-    if n == 2:
-        circuit.toffoli(controls[0], controls[1], target)
-        return
-
-    # For n >= 3: use the last control as an ancilla target for the
-    # intermediate toffoli, then chain.
-    # Decompose: MCCX(c[0..n-2], c[n-1]) then CCX(c[n-1], last_control_unused, target)
-    # Actually use a simpler recursive approach:
-    # Step 1: toffoli(c[0], c[1], target) — but this modifies target
-    # Better: use the linear-chain method
-    #
-    # We use the standard decomposition:
-    # 1. toffoli(c[n-2], c[n-1], target)
-    # 2. For i = n-3 down to 1: toffoli(c[i], c[i+1], c[i+1]) — store in next qubit
-    # 3. toffoli(c[0], c[1], c[2])
-    # Then reverse step 2 to uncompute.
-    #
-    # Simpler approach: just use add_gate with control_qubits directly
-    # since the Circuit supports it natively
-    circuit.add_gate(
-        "X",
-        target,
-        control_qubits=controls,
-    )
+        circuit.add_gate("X", target, control_qubits=controls)
 
 
 def grover_operator(
@@ -187,8 +125,8 @@ def grover_operator(
 def amplitude_estimation_circuit(
     circuit: Circuit,
     oracle: Circuit,
-    qubits: Optional[List[int]] = None,
-    n_eval_qubits: int = 3,
+    qubits: List[int],
+    eval_qubits: List[int],
 ) -> None:
     r"""Apply Quantum Amplitude Estimation (QAE).
 
@@ -198,21 +136,21 @@ def amplitude_estimation_circuit(
     Uses the canonical QPE-based construction:
 
     1. Prepare evaluation register in uniform superposition (H^{⊗m}).
-    2. For each evaluation qubit *j*, apply 2^j controlled-Grover
-       iterations on the search register.
+    2. For each evaluation qubit at position *i* (LSB-first), apply 2^i
+       controlled-Grover iterations on the search register.
     3. Apply inverse QFT on the evaluation register.
     4. Measure the evaluation register.
 
-    The search register is initialized with H^{⊗n} (uniform superposition)
+    The search register is initialised with H^{⊗n} (uniform superposition)
     before the controlled-Grover operations.
 
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
-            Must have at least ``len(qubits) + n_eval_qubits`` qubits.
         oracle: Oracle circuit implementing the phase flip on marked states.
-        qubits: Qubit indices for the search register. ``None`` means
-            ``list(range(n_eval_qubits, n_eval_qubits + 2))``.
-        n_eval_qubits: Number of evaluation (precision) qubits.
+        qubits: Qubit indices for the search register.
+        eval_qubits: Qubit indices for the evaluation (precision) register,
+            in LSB-first order (``eval_qubits[0]`` controls 2^0 = 1
+            Grover iteration, ``eval_qubits[1]`` controls 2^1 = 2, …).
 
     Raises:
         ValueError: Invalid parameters.
@@ -222,37 +160,23 @@ def amplitude_estimation_circuit(
         >>> from qpandalite.algorithmics.circuits import amplitude_estimation_circuit
         >>> oracle = Circuit()
         >>> oracle.z(0)
-        >>> c = Circuit(5)
-        >>> amplitude_estimation_circuit(c, oracle, qubits=[3, 4], n_eval_qubits=3)
+        >>> c = Circuit()
+        >>> amplitude_estimation_circuit(
+        ...     c, oracle, qubits=[3, 4], eval_qubits=[0, 1, 2]
+        ... )
     """
-    if n_eval_qubits < 1:
-        raise ValueError("n_eval_qubits must be at least 1")
-
-    current_width = circuit.max_qubit + 1
-
-    if qubits is None:
-        qubits = list(range(n_eval_qubits, current_width))
-        total_qubits = current_width
-    else:
-        # Caller specified the search register explicitly — extend the
-        # effective total to cover those indices so a fresh circuit with
-        # max_qubit=0 doesn't spuriously fail the capacity check.
-        total_qubits = max(current_width, (max(qubits) + 1) if qubits else 0)
+    if not isinstance(qubits, list):
+        raise TypeError("qubits must be a list of qubit indices")
+    if not isinstance(eval_qubits, list):
+        raise TypeError("eval_qubits must be a list of qubit indices")
 
     n_search = len(qubits)
     if n_search < 1:
-        raise ValueError(
-            "At least 1 search qubit is required; pass qubits explicitly "
-            "or ensure the circuit already has qubits beyond the eval register"
-        )
+        raise ValueError("At least 1 search qubit is required")
 
-    if n_eval_qubits + n_search > total_qubits:
-        raise ValueError(
-            f"Not enough qubits: need {n_eval_qubits + n_search}, "
-            f"have {total_qubits}"
-        )
-
-    eval_qubits = list(range(n_eval_qubits))
+    n_eval_qubits = len(eval_qubits)
+    if n_eval_qubits < 1:
+        raise ValueError("At least 1 evaluation qubit is required")
 
     # Step 1: Initialize evaluation register in superposition
     for q in eval_qubits:
@@ -262,11 +186,12 @@ def amplitude_estimation_circuit(
     for q in qubits:
         circuit.h(q)
 
-    # Step 3: Apply controlled-Grover iterations
-    for j in eval_qubits:
-        n_iters = 2 ** j
+    # Step 3: Apply controlled-Grover iterations.
+    # In QPE, the qubit at *position* i (LSB-first) controls 2^i repetitions.
+    for i, ctrl in enumerate(eval_qubits):
+        n_iters = 2 ** i
         for _ in range(n_iters):
-            _controlled_grover(circuit, oracle, qubits, j)
+            _controlled_grover(circuit, oracle, qubits, ctrl)
 
     # Step 4: Inverse QFT on evaluation register
     _inverse_qft(circuit, eval_qubits)
@@ -282,10 +207,7 @@ def _controlled_grover(
     qubits: List[int],
     control_qubit: int,
 ) -> None:
-    """Apply a controlled Grover iteration.
-
-    Each gate is conditioned on control_qubit.
-    """
+    """Apply a controlled Grover iteration. Each gate is conditioned on control_qubit."""
     # S_f (oracle) — controlled
     _copy_circuit_gates_controlled(oracle, circuit, control_qubit)
 
@@ -348,6 +270,11 @@ def amplitude_estimation_result(
 
     Converts the most-frequent measurement outcome to an angle θ and
     computes a = sin²(θ).
+
+    The QAE phase relation is ``theta = pi * m / 2^(M+1)`` where *m* is
+    the integer outcome and *M* = ``n_eval_qubits``.  The extra factor of
+    two compared to the bare QPE formula comes from the fact that the
+    Grover operator's eigenphase is ``2 theta`` rather than ``theta``.
 
     Args:
         counts: Dictionary mapping measurement outcomes (bit-strings or

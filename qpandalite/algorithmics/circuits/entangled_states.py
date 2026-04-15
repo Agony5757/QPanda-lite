@@ -7,9 +7,9 @@ __all__ = [
 ]
 
 from typing import List, Optional, Tuple
-import math
 
 from qpandalite.circuit_builder import Circuit
+from qpandalite.algorithmics.circuits.dicke_state import dicke_state_circuit
 
 
 def ghz_state(
@@ -67,12 +67,9 @@ def w_state(
         \frac{1}{\sqrt{n}}(|10\ldots0\rangle + |01\ldots0\rangle +
         \ldots + |00\ldots1\rangle)
 
-    Uses a recursive controlled-rotation cascade decomposition
-    (Cruz et al., 2019). For *n* qubits the circuit depth is O(n)
-    and requires no ancillas.
-
-    The algorithm works by distributing amplitude from qubit 0
-    to subsequent qubits via controlled rotation + CNOT pairs.
+    Implemented as a Dicke state :math:`|D(n,1)\rangle` (equal superposition
+    of all single-excitation computational basis states) via
+    :func:`dicke_state_circuit` with ``k=1``.
 
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
@@ -90,54 +87,10 @@ def w_state(
     if qubits is None:
         qubits = list(range(circuit.qubit_num))
 
-    n = len(qubits)
-    if n < 2:
+    if len(qubits) < 2:
         raise ValueError("w_state requires at least 2 qubits")
 
-    # Start with |100...0⟩
-    circuit.x(qubits[0])
-
-    # Recursive decomposition:
-    # For n qubits, distribute the excitation from q[0] to q[1], q[2], ...
-    _w_state_recursive(circuit, qubits, 0, n)
-
-
-def _w_state_recursive(
-    circuit: Circuit,
-    qubits: List[int],
-    start: int,
-    length: int,
-) -> None:
-    """Recursively distribute excitation for W state preparation.
-
-    Uses controlled rotations to split amplitude from qubits[start]
-    across qubits[start..start+length-1]. Transfers amplitude
-    sqrt((length-1)/length) from qubits[start] to qubits[start+1]
-    via F-gate (controlled-Ry + disentangling CNOT), then recurses
-    on qubits[start+1..start+length-1].
-    """
-    if length <= 1:
-        return
-
-    control = qubits[start]
-    target = qubits[start + 1]
-
-    # theta chosen so that amplitude on |control=1⟩ becomes 1/sqrt(length)
-    # and amplitude on |target=1⟩ becomes sqrt((length-1)/length).
-    theta = 2 * math.acos(1.0 / math.sqrt(length))
-
-    # Decompose controlled-Ry(theta) (control -> target) as
-    # Ry(theta/2) on target, CNOT, Ry(-theta/2) on target, CNOT.
-    circuit.ry(target, theta / 2)
-    circuit.cnot(control, target)
-    circuit.ry(target, -theta / 2)
-    circuit.cnot(control, target)
-
-    # Disentangle: if target is now |1⟩, flip control back to |0⟩ so
-    # the excitation is uniquely located on exactly one qubit.
-    circuit.cnot(target, control)
-
-    _w_state_recursive(circuit, qubits, start + 1, length - 1)
+    dicke_state_circuit(circuit, k=1, qubits=qubits)
 
 
 def cluster_state(

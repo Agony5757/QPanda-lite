@@ -41,10 +41,11 @@ def run_deutsch_jozsa(
         Dictionary mapping bit-strings to frequencies.
     """
     balanced = oracle_type == "balanced"
-    oracle = deutsch_jozsa_oracle(n_qubits, balanced=balanced)
+    data_qubits = list(range(n_qubits))
+    oracle = deutsch_jozsa_oracle(qubits=data_qubits, balanced=balanced)
 
-    c = Circuit(n_qubits + 1)
-    deutsch_jozsa_circuit(c, oracle)
+    c = Circuit()
+    deutsch_jozsa_circuit(c, oracle, qubits=data_qubits, ancilla=n_qubits)
 
     sim = QASM_Simulator(least_qubit_remapping=False)
     result = sim.simulate_shots(c.qasm, shots=shots)

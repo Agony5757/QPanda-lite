@@ -205,7 +205,22 @@ def query_by_taskid(
     taskid: str | list[str],
     savepath: Path | str | None = None,
 ) -> dict[str, Any]:
-    """Query task status by task ID (non-blocking)."""
+    """Query task status by task ID (non-blocking).
+
+    Args:
+        taskid (str | list[str]): Single task ID or list of task IDs to query.
+        savepath (Path | str | None, optional): Directory path for saving task
+            results locally. Defaults to ./quafu_online_info/.
+
+    Returns:
+        dict[str, Any]: Task status dictionary containing:
+            - "status": "success", "running", or "failed"
+            - "result": Task result data when status is "success",
+              or error information when status is "failed"
+
+    Raises:
+        ValueError: If taskid is empty or has invalid type.
+    """
     adapter = _get_adapter()
     savepath = Path(savepath) if savepath else Path.cwd() / "quafu_online_info"
 

@@ -195,3 +195,6 @@ QPandaLiteCpp/test/cmake_install.cmake
 
 # uv
 uv.lock
+
+# Local agent instructions (kept untracked; does not belong to upstream)
+CLAUDE.md

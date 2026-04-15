@@ -38,3 +38,11 @@
    :maxdepth: 1
 
    guide/testing
+
+已知问题
+--------
+
+.. toctree::
+   :maxdepth: 1
+
+   guide/known_issues

@@ -1,3 +1,9 @@
+"""OriginIR and OpenQASM2 format conversion utilities.
+
+This module provides bidirectional conversion between OriginIR and
+OpenQASM2 quantum circuit representations.
+"""
+
 __all__ = ["convert_oir_to_qasm", "convert_qasm_to_oir"]
 from qpandalite import OriginIR_BaseParser, OpenQASM2_BaseParser
 from ._utils import IRConversionFailedException

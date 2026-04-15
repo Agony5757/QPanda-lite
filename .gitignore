@@ -191,3 +191,6 @@ QPandaLiteCpp/src/cmake_install.cmake
 QPandaLiteCpp/test/Makefile
 QPandaLiteCpp/test/CMakeFiles/
 QPandaLiteCpp/test/cmake_install.cmake
+
+# uv
+uv.lock

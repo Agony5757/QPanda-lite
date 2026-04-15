@@ -9,6 +9,25 @@ Agony 的开放 PR：`Agony5757/QPanda-lite#140`（`fix/issue#133#134`）
 
 Agony 将多个算法电路函数签名改为要求传入显式量子比特列表（`qubits: List[int]`，不再有默认值），将 `n_eval_qubits: int` 这类整数参数替换为 `eval_qubits: List[int]`。其设计哲学是：*寄存器布局由调用方负责，函数内部不读取 `circuit.qubit_num`*，从而在结构上从根本防止了 R6 的空电路 bug。
 
+### API 变更对照
+
+```python
+# ── 旧 API（内部自动生成 range(n)，qubit 编号只能是 0..n-1）──────────
+amplitude_estimation_circuit(c, oracle, n_qubits=2, n_eval_qubits=2)
+deutsch_jozsa_oracle(n_qubits=3, balanced=True)
+deutsch_jozsa_circuit(c, oracle, n_qubits=3, ancilla=3)
+
+# ── 新 API（调用方显式传列表，qubit 编号任意）────────────────────────
+amplitude_estimation_circuit(c, oracle, qubits=[2, 3], eval_qubits=[0, 1])
+deutsch_jozsa_oracle(qubits=[0, 1, 2], balanced=True)
+deutsch_jozsa_circuit(c, oracle, qubits=[0, 1, 2], ancilla=3)
+```
+
+关键差异：
+- 旧 API 内部用 `range(n)` 固定占用 qubit 0…n-1，调用方无法把算法"嵌"进一个更大电路的任意 qubit 段。
+- 新 API qubit 编号完全由调用方决定，可以传 `[5, 6, 7]` 或非连续的 `[0, 2, 4]`，只要与外部电路的寄存器对齐即可。
+- `w_state` 保留了 `qubits=None` 默认值（内部回落到 `circuit.qubit_num` 推断）；`amplitude_estimation_circuit` 和 `deutsch_jozsa_*` 已去掉默认值，调用方必须显式传列表。
+
 **决策：采用 Agony 的设计。** 他的"调用方持有寄存器布局"方式比我们逐个打补丁的 `qubits=None` 防御性判断在结构上更简洁——R6 通过设计本身变为不可能，而不是逐个修补。拒绝他的 API 只是为了回避 breaking change，这并不明智；项目仍处于 pre-1.0 阶段，新的接口约定在语义上更健全。
 
 **采用他的 API 的同时，我们保留了以下内容：**
@@ -48,6 +67,7 @@ s = -1.0            →  s = 0.0        # 未对齐基底
 - 修复了**两个** bug（公式 + 位序）；Agony 只修了一个。
 - 5 个失败的 shadow 测试从"靠运气通过"变为"确定性通过"——分层采样对小 `n` 完全消除了基底选择方差。
 - 向后兼容：`counts` 默认为 `{}`，兜底路径处理旧格式 snapshot。
+- **numpy 向量化**：PR #140 的 `shadow_expectation` 保留 Python 内层循环（`for i, (p_i, ui, o_i) in enumerate(zip(...)): est *= s`）；我们用 `keys & non_i_mask` → `np.bitwise_count`（numpy ≥ 2.0）或 Kernighan popcount fallback，整个 snapshot 一次 numpy 完成，无 Python 级循环。n=6 大 counts 字典下性能差异显著。
 - 唯一取舍：移除了中位数-均值估计器（已在 docstring 中说明——对单个可观测量是次优选择，仅在从同一 snapshot 集估计多个 Pauli 时才有价值）。
 
 **决策：原样保留我们的 `classical_shadow.py`。**
@@ -86,6 +106,84 @@ s = -1.0            →  s = 0.0        # 未对齐基底
 
 ---
 
+## 维度四 — `CircuitControlContext` / `DagContext` 设计缺陷（Fix 1）
+
+### 问题
+
+`CircuitControlContext.__enter__/__exit__` 和 `CircuitDagContext.__enter__/__exit__`（以及
+`set_control` / `unset_control` / `set_dagger` / `unset_dagger`）只把 `CONTROL q[..]` /
+`ENDCONTROL` 等文本追加到 `circuit_str`，而 `_make_qasm_circuit` / `_make_originir_circuit`
+只从 `opcode_list` 渲染，**完全不读 `circuit_str`**。
+后果：`with circuit.control(a): circuit.z(b)` 产生的 QASM/OriginIR 中 CONTROL 块静默
+丢失，受控门退化为无条件版本。
+
+### Agony PR #140 的处理
+
+`qcircuit.py` 有 diff，但**只新增了 `add_circuit(other)` 辅助方法**（遍历 `other.opcode_list`
+依次 `add_gate`）和 `add_gate` 一行空格调整。`CircuitControlContext` / `CircuitDagContext` /
+`set_control` / `set_dagger` 以及 opcode 层的 `control_qubits` 合并逻辑**完全未动**。
+upstream 的 context manager 设计缺陷在 PR #140 中仍然存在。
+
+### 我们的修复
+
+`Circuit` 新增三个实时状态字段：
+
+```python
+self._active_controls: list[int] = []
+self._active_dagger: bool = False
+self._control_stack: list[tuple[int, ...]] = []
+```
+
+`add_gate` 在写入 opcode 前，将 `_active_controls` 并入 `control_qubits`（union 合并，重复
+qubit 抛 `ValueError`），将 `_active_dagger` XOR 入 `dagger` 标志。上下文管理器改为
+push/pop 操作；`measure()` 在活跃 context 内拒绝调用；`set_control` / `set_dagger` 路径
+同步对齐。10 条回归测试覆盖单层/嵌套/double-dagger-cancel/重复 qubit 拒绝/measure 拒绝场景。
+
+**决策：保留我们的修复——PR #140 未覆盖此设计缺陷；建议将此修复推动到上游合并。**
+
+---
+
+## 维度五 — MCX ≥4 控位支持（Fix 2）
+
+### 问题
+
+`_apply_mcx`（`grover_oracle.py`）和 `_multi_controlled_x`（`amplitude_estimation.py`）对
+n ≥ 4 个控制位直接抛 `NotImplementedError`。同时，`translate_qasm2_oir.py` 的
+`get_QASM2_from_opcode` 对 ≥4 控 X 门跑到函数体末尾无 `return`，隐式返回 `None`，导致
+`opcode_to_line_qasm` 后续崩溃。
+
+### Agony PR #140 的处理
+
+| 文件 | PR #140 diff |
+|---|---|
+| `grover_oracle.py` | **零 diff**——`_apply_mcx` 仍对 n≥4 抛 `NotImplementedError` |
+| `translate_qasm2_oir.py` | **零 diff**——导出层 `None` 崩溃未修 |
+| `amplitude_estimation.py` | 有 diff：签名改为 `eval_qubits: List[int]`，`_copy_circuit_gates` 改用 `add_circuit`；**未触碰 `_multi_controlled_x` 或 ≥4 控路径** |
+| `opcode.py` | 有 diff：只改 `opcode_to_line_originir` 的 numpy 参数处理；**未加 `qubit_num` 透传 / `_MCX_DECOMP_` 哨兵** |
+
+### 我们的修复
+
+clean-ancilla Toffoli ladder 分解：workspace qubits 从 `max(controls ∪ {target}) + 1` 起
+自动分配，`record_qubit` 幂等重用（多次 Grover 迭代时 workspace 不泄漏）。
+
+```
+_apply_mcx / _multi_controlled_x (n≥4):
+  workspace = [ws, ws+1, ..., ws+n-4]   (n-3 个辅助 qubit)
+  CCX(c[0], c[1], ws[0])
+  for i in 1..n-3: CCX(c[i+1], ws[i-1], ws[i])
+  CCX(c[-1], ws[-1], target)             ← 实际翻转
+  for i in n-4..0: CCX(c[i+1], ws[i-1], ws[i])  ← uncompute
+  CCX(c[0], c[1], ws[0])
+```
+
+QASM 导出层新增 `decompose_mcx_qasm_text(controls, target, qubit_num)`；`opcode_to_line_qasm`
+签名扩展为 `(opcode, qubit_num=None)` 并处理 `_MCX_DECOMP_` 哨兵。
+回归：`test_grover_5qubit_amplifies_target`（n=5, marked=13, 3 次迭代, P(marked) > 0.8）。
+
+**决策：保留我们的修复——PR #140 完全未覆盖 MCX ≥4 控路径；建议将此修复推动到上游合并。**
+
+---
+
 ## 总结
 
 | 条目 | 决策 | 状态 |
@@ -98,3 +196,6 @@ s = -1.0            →  s = 0.0        # 未对齐基底
 | `classical_shadow.py` 最小修复 | 拒绝——我们的版本严格更优 | — |
 | R3（QAE 公式 `2^(M+1)`） | 保留我们的——他的测试匹配了错误公式 | ✅ 已在分支中 |
 | R9（Grover MCZ + LSB） | 保留我们的——他的 PR 未涉及 grover_oracle.py | ✅ 已在分支中 |
+| `CircuitControlContext`/`DagContext` opcode 回填 | 保留我们的——PR #140 未触碰此设计缺陷 | ✅ 已完成（本 PR） |
+| `_apply_mcx` ≥4 控 + QASM 导出层 | 保留我们的——PR #140 未触碰 MCX ≥4 控路径 | ✅ 已完成（本 PR） |
+| `shadow_expectation` numpy 向量化 | 保留我们的——PR #140 保留 Python 热循环 | ✅ 已完成（本 PR） |

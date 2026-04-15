@@ -162,3 +162,51 @@ class TestShadowEdgeCases:
         assert "Shadow" in r
         assert "unitary_indices" in r
         assert "outcomes" in r
+
+
+class TestShadowVectorizedLargeN:
+    """Regression / correctness test for the vectorised shadow_expectation path.
+
+    n=6 makes the counts dict up to 64 entries per snapshot (when measuring
+    |+⟩^6 in Z basis), triggering the O(2^n) loop replaced by numpy
+    vectorisation in Fix 4.
+    """
+
+    def test_z0_on_superposition_n6(self):
+        """⟨ZIIIII⟩ on |+⟩^6 via the vectorised n=6 path should be ≈ 0.
+
+        Measuring |+⟩ in Z basis gives uniform 50/50 over {0,1}, so the
+        empirical ⟨Z⟩ per aligned snapshot is ≈ 0.  With alignment probability
+        1/3 and n_shadow=200 there are ~67 aligned snapshots — enough for a
+        reliable estimate.  The large counts dict (up to 64 entries per
+        snapshot when qubit indices spread uniformly) exercises the vectorised
+        loop.
+        """
+        c = Circuit()
+        for i in range(6):
+            c.h(i)
+        c.measure(0, 1, 2, 3, 4, 5)
+        shadows = classical_shadow(c, shots=512, n_shadow=200)
+        est = shadow_expectation(shadows, "ZIIIII")
+        assert abs(est) < 0.25  # should be ≈ 0
+
+    def test_z0_on_zero_n6(self):
+        """⟨ZIIIII⟩ on |000000⟩ via the vectorised path should be ≈ +1.
+
+        Alignment probability = 1/3; ~72 aligned snapshots out of 216.
+        """
+        c = Circuit()
+        c.measure(0, 1, 2, 3, 4, 5)
+        shadows = classical_shadow(c, shots=1024, n_shadow=216)
+        est = shadow_expectation(shadows, "ZIIIII")
+        assert abs(est - 1.0) < 0.2
+
+    def test_identity_expectation_n6(self):
+        """⟨IIIIII⟩ should be exactly 1.0 regardless of state."""
+        c = Circuit()
+        for i in range(6):
+            c.h(i)
+        c.measure(0, 1, 2, 3, 4, 5)
+        shadows = classical_shadow(c, shots=256, n_shadow=16)
+        est = shadow_expectation(shadows, "IIIIII")
+        assert np.isclose(est, 1.0)

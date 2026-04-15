@@ -504,6 +504,87 @@ class TestContextManagers:
         assert "ENDCONTROL" in s
         assert "ENDDAGGER" in s
 
+    # --- Fix 1: opcode-level correctness checks ---
+
+    def test_control_context_propagates_to_opcode(self):
+        """Gates inside control() must have control_qubits set in the opcode."""
+        c = Circuit()
+        with c.control(0):
+            c.x(1)
+        op = c.opcode_list[-1]
+        assert op[5] is not None, "control_qubits should not be None"
+        assert 0 in op[5], "control qubit 0 should appear in opcode"
+
+    def test_control_context_appears_in_originir(self):
+        """Gates inside control() must appear as controlled_by in OriginIR export."""
+        c = Circuit()
+        with c.control(0):
+            c.z(2)
+        assert "controlled_by" in c.originir
+        assert "q[0]" in c.originir
+
+    def test_control_multiple_qubits_in_opcode(self):
+        """Multi-qubit control() block propagates all controls to opcode."""
+        c = Circuit()
+        with c.control(0, 1):
+            c.x(2)
+        op = c.opcode_list[-1]
+        ctrl = list(op[5])
+        assert 0 in ctrl
+        assert 1 in ctrl
+
+    def test_dagger_context_propagates_to_opcode(self):
+        """Gates inside dagger() must have the dagger flag set in the opcode."""
+        c = Circuit()
+        with c.dagger():
+            c.s(0)
+        op = c.opcode_list[-1]
+        assert op[4] is True, "dagger flag should be True inside dagger() context"
+
+    def test_double_dagger_cancels(self):
+        """Two nested dagger() contexts cancel out (dagger^dagger = identity)."""
+        c = Circuit()
+        with c.dagger():
+            with c.dagger():
+                c.s(0)
+        op = c.opcode_list[-1]
+        assert op[4] is False, "double dagger should cancel to dagger=False"
+
+    def test_nested_control_unions(self):
+        """Nested control() contexts union their control qubits in the opcode."""
+        c = Circuit()
+        with c.control(0):
+            with c.control(1):
+                c.z(2)
+        op = c.opcode_list[-1]
+        ctrl = list(op[5])
+        assert 0 in ctrl
+        assert 1 in ctrl
+
+    def test_duplicate_control_rejected(self):
+        """Adding a gate with control_qubits overlapping active context raises."""
+        c = Circuit()
+        with c.control(0):
+            with pytest.raises(ValueError, match="overlap|appear"):
+                c.add_gate("X", 1, control_qubits=[0])
+
+    def test_measure_inside_control_raises(self):
+        """measure() inside a control() context should raise ValueError."""
+        c = Circuit()
+        with pytest.raises(ValueError):
+            with c.control(0):
+                c.measure(1)
+
+    def test_set_control_unset_control_propagates_to_opcode(self):
+        """Low-level set_control / unset_control should also propagate to opcodes."""
+        c = Circuit()
+        c.set_control(0)
+        c.z(1)
+        c.unset_control()
+        op = c.opcode_list[-1]
+        assert op[5] is not None
+        assert 0 in op[5]
+
 
 # =============================================================================
 # TestRemapping

@@ -73,7 +73,7 @@ class TestGroverDiffusion:
     def test_diffusion_nonempty(self):
         """Diffusion operator should produce a non-empty circuit."""
         c = Circuit()
-        grover_diffusion(c, qubits=[0, 1, 2], ancilla=3)
+        grover_diffusion(c, qubits=[0, 1, 2])
         assert len(c.opcode_list) > 0
 
     def test_diffusion_single_qubit(self):
@@ -105,7 +105,7 @@ class TestGroverFullSearch:
 
         # One Grover iteration: oracle + diffusion
         anc = grover_oracle(c, marked_state=marked, qubits=list(range(n)))
-        grover_diffusion(c, qubits=list(range(n)), ancilla=anc)
+        grover_diffusion(c, qubits=list(range(n)))
 
         # Simulate (ignore ancilla, look at data qubits)
         prob_dict = _simulate_probs(c, total_qubits)
@@ -131,7 +131,7 @@ class TestGroverFullSearch:
         for i in range(n):
             c.h(i)
         anc = grover_oracle(c, marked_state=marked, qubits=list(range(n)))
-        grover_diffusion(c, qubits=list(range(n)), ancilla=anc)
+        grover_diffusion(c, qubits=list(range(n)))
 
         prob_dict = _simulate_probs(c, total_qubits)
         data_probs = {}
@@ -147,3 +147,51 @@ class TestGroverFullSearch:
                 f"marked={marked} not amplified above state {other}: "
                 f"{data_probs[marked]:.4f} vs {data_probs.get(other, 0):.4f}"
             )
+
+    def test_grover_5qubit_amplifies_target(self):
+        """5-qubit Grover exercises the n≥4-control Toffoli-ladder MCX path."""
+        marked = 13  # 0b01101 — non-palindrome, exercises LSB ordering
+        n = 5
+
+        c = Circuit()
+        for i in range(n):
+            c.h(i)
+
+        # Three Grover iterations (sin²(7θ) ≈ 0.95 for N=32, 1 marked state).
+        anc = grover_oracle(c, marked_state=marked, qubits=list(range(n)))
+        grover_diffusion(c, qubits=list(range(n)))
+        grover_oracle(c, marked_state=marked, qubits=list(range(n)), ancilla=anc)
+        grover_diffusion(c, qubits=list(range(n)))
+        grover_oracle(c, marked_state=marked, qubits=list(range(n)), ancilla=anc)
+        grover_diffusion(c, qubits=list(range(n)))
+
+        total_qubits = c.qubit_num  # auto-includes workspace qubits
+        prob_dict = _simulate_probs(c, total_qubits)
+
+        data_mask = (1 << n) - 1
+        data_probs: dict = {}
+        for state_idx, p in prob_dict.items():
+            data_state = state_idx & data_mask
+            data_probs[data_state] = data_probs.get(data_state, 0) + p
+
+        assert data_probs.get(marked, 0.0) > 0.8, (
+            f"Grover 5-qubit: P(marked=13) = {data_probs.get(marked, 0.0):.4f}, expected > 0.8"
+        )
+
+
+class TestGroverDiffusionDeprecation:
+    """Tests for the deprecated ancilla parameter in grover_diffusion."""
+
+    def test_ancilla_deprecation_warning(self):
+        """Passing ancilla to grover_diffusion should emit a DeprecationWarning."""
+        c = Circuit()
+        with pytest.warns(DeprecationWarning, match="ancilla"):
+            grover_diffusion(c, qubits=[0, 1, 2], ancilla=3)
+
+    def test_no_warning_when_ancilla_none(self):
+        """grover_diffusion with ancilla=None should not warn."""
+        c = Circuit()
+        import warnings as _w
+        with _w.catch_warnings():
+            _w.simplefilter("error", DeprecationWarning)
+            grover_diffusion(c, qubits=[0, 1, 2])  # should not raise

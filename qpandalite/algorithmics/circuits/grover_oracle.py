@@ -16,6 +16,7 @@ References:
 
 __all__ = ["grover_oracle", "grover_diffusion"]
 
+import warnings
 from typing import List, Optional
 
 from qpandalite.circuit_builder import Circuit
@@ -55,7 +56,19 @@ def _apply_mcx(
     controls: List[int],
     target: int,
 ) -> None:
-    """Apply a multi-controlled X gate using gates supported by this QASM path."""
+    """Apply a multi-controlled X gate for any number of controls.
+
+    For n ≤ 3 uses native circuit gates (x / cnot / toffoli / c3x).
+    For n ≥ 4 uses a clean-ancilla Toffoli ladder: ``n - 2`` workspace qubits
+    are allocated automatically above the highest qubit index currently in the
+    circuit.  They are initialised to |0⟩ (circuit convention) and restored to
+    |0⟩ after the gate.
+
+    Args:
+        circuit: Circuit to append gates to (mutated in-place).
+        controls: Ordered list of control qubit indices.
+        target: Target qubit index.
+    """
     n = len(controls)
     if n == 0:
         circuit.x(target)
@@ -70,9 +83,27 @@ def _apply_mcx(
         circuit.add_gate("X", target, control_qubits=list(controls))
         return
 
-    raise NotImplementedError(
-        "MCX with more than 3 controls is not supported by the current QASM gate set"
-    )
+    # n >= 4: clean-ancilla Toffoli ladder.
+    # Workspace qubits are placed just above the highest index in use so they
+    # are always freshly |0⟩ and do not collide with data / ancilla qubits.
+    n_workspace = n - 2
+    workspace_start = max(list(controls) + [target]) + 1
+    workspace = list(range(workspace_start, workspace_start + n_workspace))
+
+    # Declare workspace qubits in the circuit (idempotent if already registered).
+    for q in workspace:
+        circuit.record_qubit(q)
+
+    # Forward ladder: compute AND(controls[0..n-3]) into workspace.
+    circuit.toffoli(controls[0], controls[1], workspace[0])
+    for i in range(1, n_workspace):
+        circuit.toffoli(controls[i + 1], workspace[i - 1], workspace[i])
+    # Apply MCX to target.
+    circuit.toffoli(controls[-1], workspace[-1], target)
+    # Uncompute workspace.
+    for i in range(n_workspace - 1, 0, -1):
+        circuit.toffoli(controls[i + 1], workspace[i - 1], workspace[i])
+    circuit.toffoli(controls[0], controls[1], workspace[0])
 
 
 def grover_oracle(
@@ -189,13 +220,21 @@ def grover_diffusion(
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
         qubits: Data qubit indices.  ``None`` means ``[0, 1]`` (2 qubits).
-        ancilla: Ancilla qubit for the MCZ decomposition.  ``None`` means
-            ``max(qubits) + 1``.  Not needed when *qubits* has length 1
-            (a single Z gate suffices).
+        ancilla: **Deprecated and unused.**  The current implementation derives
+            the MCZ target directly from ``qubits[-1]``, so this argument has
+            no effect regardless of its value.  It is retained for API
+            compatibility only and will be removed in a future release.
 
     Raises:
         ValueError: Fewer than 1 qubit specified.
     """
+    if ancilla is not None:
+        warnings.warn(
+            "The 'ancilla' argument of grover_diffusion() is unused and will be "
+            "removed in a future release.  Remove it from your call site.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     if qubits is None:
         qubits = [0, 1]
     n = len(qubits)

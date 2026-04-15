@@ -69,16 +69,39 @@ def _multi_controlled_x(
     controls: List[int],
     target: int,
 ) -> None:
-    """Apply multi-controlled X gate."""
-    n_controls = len(controls)
-    if n_controls == 0:
+    """Apply multi-controlled X gate for any number of controls.
+
+    For n ≤ 3 uses native gates; for n ≥ 4 uses a clean-ancilla Toffoli
+    ladder with workspace qubits auto-allocated above the highest index in use.
+    """
+    n = len(controls)
+    if n == 0:
         circuit.x(target)
-    elif n_controls == 1:
+        return
+    if n == 1:
         circuit.cnot(controls[0], target)
-    elif n_controls == 2:
+        return
+    if n == 2:
         circuit.toffoli(controls[0], controls[1], target)
-    else:
-        circuit.add_gate("X", target, control_qubits=controls)
+        return
+    if n == 3:
+        circuit.add_gate("X", target, control_qubits=list(controls))
+        return
+
+    # n >= 4: clean-ancilla Toffoli ladder.
+    n_workspace = n - 2
+    workspace_start = max(list(controls) + [target]) + 1
+    workspace = list(range(workspace_start, workspace_start + n_workspace))
+    for q in workspace:
+        circuit.record_qubit(q)
+
+    circuit.toffoli(controls[0], controls[1], workspace[0])
+    for i in range(1, n_workspace):
+        circuit.toffoli(controls[i + 1], workspace[i - 1], workspace[i])
+    circuit.toffoli(controls[-1], workspace[-1], target)
+    for i in range(n_workspace - 1, 0, -1):
+        circuit.toffoli(controls[i + 1], workspace[i - 1], workspace[i])
+    circuit.toffoli(controls[0], controls[1], workspace[0])
 
 
 def grover_operator(

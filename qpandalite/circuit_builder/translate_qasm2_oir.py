@@ -9,6 +9,7 @@ __all__ = [
     'direct_mapping_qasm2_to_oir',
     'get_opcode_from_QASM2',
     'get_QASM2_from_opcode',
+    'decompose_mcx_qasm_text',
 ]
 
 qasm2_oir_mapping = {
@@ -145,6 +146,58 @@ def get_opcode_from_QASM2(operation, qubits, cbits, parameters):
     
     return None
 
+def decompose_mcx_qasm_text(controls: List[int], target: int, qubit_num: int) -> str:
+    """Decompose an n-control X (MCX) gate into QASM 2.0 Toffoli-ladder statements.
+
+    Uses a clean-ancilla ladder (Barenco et al. 1995, adapted): n-2 workspace
+    qubits are borrowed from existing circuit qubits not involved in the gate.
+    The workspace qubits must be in state |0⟩ at the call site; they are
+    restored to |0⟩ after the decomposition.
+
+    Args:
+        controls: Ordered list of n ≥ 4 control qubit indices.
+        target: Target qubit index.
+        qubit_num: Total number of qubits declared in the circuit (``qreg q[N]``).
+
+    Returns:
+        Multi-line QASM 2.0 string (Toffoli gates only; no semicolon-separated
+        single line — the returned string may contain ``\\n``).
+
+    Raises:
+        NotImplementedError: Not enough workspace qubits are available in the
+            circuit.  Use OriginIR export (which supports arbitrary-width
+            controlled gates natively) or add workspace qubits to the circuit.
+    """
+    n = len(controls)
+    assert n >= 4, f"decompose_mcx_qasm_text requires n>=4, got {n}"
+    n_workspace = n - 2
+
+    used = set(controls) | {target}
+    workspace = [q for q in range(qubit_num) if q not in used][:n_workspace]
+
+    if len(workspace) < n_workspace:
+        raise NotImplementedError(
+            f"MCX with {n} controls needs {n_workspace} workspace qubits, "
+            f"but only {len(workspace)} are available in a {qubit_num}-qubit circuit. "
+            "Add workspace qubits to the circuit, or use OriginIR export which "
+            "supports arbitrary-width multi-controlled gates natively."
+        )
+
+    lines: List[str] = []
+    # Forward ladder: compute AND(c0, c1, …, c_{n-2}) into workspace[-1].
+    lines.append(f"ccx q[{controls[0]}], q[{controls[1]}], q[{workspace[0]}];")
+    for i in range(1, n_workspace):
+        lines.append(f"ccx q[{controls[i + 1]}], q[{workspace[i - 1]}], q[{workspace[i]}];")
+    # Apply to target using the last control and the accumulated AND.
+    lines.append(f"ccx q[{controls[-1]}], q[{workspace[-1]}], q[{target}];")
+    # Uncompute workspace (reverse order).
+    for i in range(n_workspace - 1, 0, -1):
+        lines.append(f"ccx q[{controls[i + 1]}], q[{workspace[i - 1]}], q[{workspace[i]}];")
+    lines.append(f"ccx q[{controls[0]}], q[{controls[1]}], q[{workspace[0]}];")
+
+    return "\n".join(lines)
+
+
 def get_QASM2_from_opcode(opcode) -> Tuple[str, Union[int, List[int]], Union[int, List[int]], Union[float, List[float]]]:
     '''
     Return the corresponding QASM2 operation by given OriginIR operation.
@@ -157,14 +210,14 @@ def get_QASM2_from_opcode(opcode) -> Tuple[str, Union[int, List[int]], Union[int
     # check if the operation is supported
     if operation not in OriginIR_QASM2_dict:
         raise NotImplementedError(f"The operation {operation} is not supported in QPanda-lite.")
-    
+
     operation_qasm2 = OriginIR_QASM2_dict[operation]
 
     # Dagger flag is supported only when operation is S or T or SX
     # These gates will skip the dagger flag:
     # I(id), H(h), X(x), Y(y), Z(z), CNOT(cx), CZ(cz), SWAP(swap), TOFFOLI(ccx)
     # These gates will invert the angle parameter:
-    # RX(rx), RY(ry), RZ(rz), U1(u1), XX(xx), YY(yy), ZZ(zz), 
+    # RX(rx), RY(ry), RZ(rz), U1(u1), XX(xx), YY(yy), ZZ(zz),
 
     if dagger_flag:
         if operation_qasm2 in ['s', 't', 'sx']:
@@ -175,51 +228,49 @@ def get_QASM2_from_opcode(opcode) -> Tuple[str, Union[int, List[int]], Union[int
             parameters = -parameters
         else:
             raise NotImplementedError(f"The operation {operation} with dagger flag is not supported in QPanda-lite.")
-    
+
     # When there is no control qubits, return
     if not control_qubits_set:
         return operation_qasm2, qubits, cbits, parameters
-    
+
+    # Work with a copy so we never mutate the original opcode's control list.
+    ctrl_list = list(control_qubits_set)
+
     # When there are 1 control qubit, add the control keyword
-    if len(control_qubits_set) == 1:
+    if len(ctrl_list) == 1:
         operation_qasm2 = 'c' + operation_qasm2
         # check whether this operation is still supported
         if operation_qasm2 not in available_qasm_gates:
             raise NotImplementedError(f"The operation {operation_qasm2} with control qubit is not supported in QPanda-lite.")
-        
-        # add it to the front of the qubit list
-        qubits = qubits if isinstance(qubits, list) else [qubits]
-        qubits.insert(0, control_qubits_set.pop())
+        qubits_out = ctrl_list + (list(qubits) if isinstance(qubits, list) else [qubits])
+        return operation_qasm2, qubits_out, cbits, parameters
 
-        return operation_qasm2, qubits, cbits, parameters
-    
     # When there are 2 control qubits, add the control keyword
-    if len(control_qubits_set) == 2:
+    if len(ctrl_list) == 2:
         operation_qasm2 = 'cc' + operation_qasm2
         # check whether this operation is still supported
         if operation_qasm2 not in available_qasm_gates:
             raise NotImplementedError(f"The operation {operation_qasm2} with control qubit is not supported in QPanda-lite.")
-        
-        # add it to the front of the qubit list
-        qubits = qubits if isinstance(qubits, list) else [qubits]
-        qubits.insert(0, control_qubits_set.pop())
-        qubits.insert(0, control_qubits_set.pop())
+        qubits_out = ctrl_list + (list(qubits) if isinstance(qubits, list) else [qubits])
+        return operation_qasm2, qubits_out, cbits, parameters
 
-        return operation_qasm2, qubits, cbits, parameters
-    
     # When there are 3 control qubits, add the control keyword
-    # Note that this is very unusual.
-    if len(control_qubits_set) == 3:
+    if len(ctrl_list) == 3:
         operation_qasm2 = 'c3' + operation_qasm2
         # check whether this operation is still supported
         if operation_qasm2 not in available_qasm_gates:
             raise NotImplementedError(f"The operation {operation_qasm2} with control qubit is not supported in QPanda-lite.")
-        
-        # add it to the front of the qubit list
-        qubits = qubits if isinstance(qubits, list) else [qubits]
-        qubits.insert(0, control_qubits_set.pop())
-        qubits.insert(0, control_qubits_set.pop())
-        qubits.insert(0, control_qubits_set.pop())
+        qubits_out = ctrl_list + (list(qubits) if isinstance(qubits, list) else [qubits])
+        return operation_qasm2, qubits_out, cbits, parameters
 
-        return operation_qasm2, qubits, cbits, parameters
-    
+    # n >= 4 controls: signal to opcode_to_line_qasm that decomposition is needed.
+    # Only X is handled; other gates raise NotImplementedError (see 已知问题.md).
+    if operation_qasm2 != 'x':
+        raise NotImplementedError(
+            f"QASM 2.0 export does not support the gate '{operation}' with "
+            f"{len(ctrl_list)} control qubits. Use OriginIR export instead."
+        )
+    # Return a sentinel that opcode_to_line_qasm will intercept.
+    target_qubit = qubits if not isinstance(qubits, list) else qubits[0]
+    return '_MCX_DECOMP_', (ctrl_list, target_qubit), None, None
+

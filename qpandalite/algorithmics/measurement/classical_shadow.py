@@ -241,7 +241,7 @@ def shadow_expectation(
             (e.g. ``"XYZ"``, ``"IZI"``).
 
     Returns:
-        Estimated expectation value ``\<P>``.
+        Estimated expectation value ``<P>``.
 
     Raises:
         ValueError: ``pauli_string`` length does not match snapshot size.
@@ -296,18 +296,29 @@ def shadow_expectation(
             estimates.append(prefactor * pauli_eigenvalue)
             continue
 
-        total = sum(counts.values())
-        ev_sum = 0.0
-        for outcome_int, count in counts.items():
-            pauli_eigenvalue = 1
-            for i, p_i in enumerate(pauli_string):
-                if p_i == "I":
-                    continue
-                # LSB-first: bit i of outcome_int is qubit i's measurement
-                if (outcome_int >> i) & 1:
-                    pauli_eigenvalue = -pauli_eigenvalue
-            ev_sum += count * pauli_eigenvalue
-        born_ev = ev_sum / total
+        # Build a bitmask of the non-I Pauli positions (LSB-first).
+        non_i_mask = 0
+        for i, p_i in enumerate(pauli_string):
+            if p_i != "I":
+                non_i_mask |= 1 << i
+
+        # Vectorised Born-rule expectation over all shots.
+        keys = np.fromiter(counts.keys(), dtype=np.int64, count=len(counts))
+        vals = np.fromiter(counts.values(), dtype=np.int64, count=len(counts))
+        masked = keys & non_i_mask
+        # parity = popcount(masked) & 1  → +1 if even, -1 if odd.
+        # numpy ≥ 2.0 has np.bitwise_count; fall back to Kernighan's trick.
+        try:
+            parity = np.bitwise_count(masked) & 1  # type: ignore[attr-defined]
+        except AttributeError:
+            # Kernighan's bit-counting loop (log2(max_bits) ≈ 6 iterations max)
+            parity = np.zeros(len(masked), dtype=np.int64)
+            tmp = masked.copy()
+            while np.any(tmp):
+                parity ^= tmp & 1
+                tmp >>= 1
+        signs = np.where(parity.astype(bool), -1, 1)
+        born_ev = float(np.sum(vals * signs) / vals.sum())
         estimates.append(prefactor * born_ev)
 
     return float(np.mean(estimates))

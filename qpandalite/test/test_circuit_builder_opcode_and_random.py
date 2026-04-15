@@ -558,24 +558,31 @@ class TestQasmBuildFullMeasurements:
 
 
 class TestBuildMeasurements:
-    """
-    BUG NOTE: `build_measurements` uses `range(measure_qbit_cbit_pairs)` instead
-    of iterating over the argument as pairs (it should use `for qbit, cbit in ...`).
-    This means passing an integer works (iterating range), but passing actual
-    pairs would raise a TypeError.  Tests below document the actual behaviour.
-    """
+    """Tests for `build_measurements` function."""
 
     def test_integer_arg_raises_typeerror(self):
-        # Passing an integer raises TypeError because range(int) yields ints,
-        # and the loop tries to unpack each int as (qbit, cbit).
+        # Passing an integer should raise TypeError because it is not iterable
+        # as pairs (the function expects an iterable of (qubit, cbit) tuples).
         with pytest.raises(TypeError):
             build_measurements(3)
 
-    def test_pairs_raises_typeerror(self):
-        # Passing correct pairs should work logically but the implementation
-        # has a bug: `range(measure_qbit_cbit_pairs)` calls range() on a list.
-        with pytest.raises(TypeError):
-            build_measurements([(0, 0), (1, 1)])
+    def test_pairs_works_correctly(self):
+        # After bug fix: passing correct pairs should work correctly
+        result = build_measurements([(0, 0), (1, 1)])
+        assert len(result) == 2
+        assert "measure q[0] -> c[0];" in result[0]
+        assert "measure q[1] -> c[1];" in result[1]
+
+    def test_single_pair(self):
+        # Test with a single (qubit, cbit) pair
+        result = build_measurements([(2, 0)])
+        assert len(result) == 1
+        assert "measure q[2] -> c[0];" in result[0]
+
+    def test_empty_pairs(self):
+        # Test with empty pairs list
+        result = build_measurements([])
+        assert result == []
 
 
 class TestRandomQasm:

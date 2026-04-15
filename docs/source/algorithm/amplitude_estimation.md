@@ -50,16 +50,16 @@ $G$ 的本征值为 $e^{\pm 2i\theta}$，其中 $\sin^2(\theta) = a$。
 def amplitude_estimation_circuit(
     circuit: Circuit,
     oracle: Circuit,
-    qubits: Optional[List[int]] = None,
-    n_eval_qubits: int = 3,
+    qubits: List[int],
+    eval_qubits: List[int],
 ) -> None:
 ```
 
-构建完整的 QAE 电路：
+构建完整的 QAE 电路（调用方负责指定寄存器索引）：
 
-1. 评估寄存器（前 `n_eval_qubits` 个量子比特）施加 Hadamard
-2. 搜索寄存器施加 Hadamard（均匀叠加）
-3. 受控 Grover 迭代级联
+1. 评估寄存器 `eval_qubits` 施加 Hadamard
+2. 搜索寄存器 `qubits` 施加 Hadamard（均匀叠加）
+3. 受控 Grover 迭代级联（`eval_qubits[i]` 控制 `2^i` 次迭代）
 4. 逆 QFT + 测量评估寄存器
 
 ### `grover_operator`
@@ -106,9 +106,9 @@ oracle.h(1)
 oracle.toffoli(0, 1, 1)  # 示例
 oracle.h(1)
 
-# 构建 QAE 电路
-c = Circuit(5)  # 3 eval + 2 search
-amplitude_estimation_circuit(c, oracle, n_eval_qubits=3)
+# 构建 QAE 电路（eval qubits=[0,1,2], search qubits=[3,4]）
+c = Circuit()
+amplitude_estimation_circuit(c, oracle, qubits=[3, 4], eval_qubits=[0, 1, 2])
 ```
 
 ## 参考文献

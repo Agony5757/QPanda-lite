@@ -40,11 +40,19 @@ class CircuitControlContext:
         return ret[:-2]
 
     def __enter__(self) -> None:
+        # Keep circuit_str for backward-compat with tests that inspect it directly.
         ret = "CONTROL " + self._qubit_list() + "\n"
         self.c.circuit_str += ret
+        # Push controls onto active-control stack so add_gate can merge them.
+        self.c._control_stack.append(tuple(self.control_list))
+        self.c._active_controls = self.c._active_controls + list(self.control_list)
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore[no-untyped-def]
         self.c.circuit_str += "ENDCONTROL\n"
+        # Pop the controls this context pushed.
+        if self.c._control_stack:
+            popped = self.c._control_stack.pop()
+            self.c._active_controls = self.c._active_controls[: len(self.c._active_controls) - len(popped)]
 
 
 class CircuitDagContext:
@@ -57,9 +65,11 @@ class CircuitDagContext:
 
     def __enter__(self) -> None:
         self.c.circuit_str += "DAGGER\n"
+        self.c._active_dagger = not self.c._active_dagger
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore[no-untyped-def]
         self.c.circuit_str += "ENDDAGGER\n"
+        self.c._active_dagger = not self.c._active_dagger
 
 
 class Circuit:
@@ -99,6 +109,12 @@ class Circuit:
         self.measure_list = []
         self.opcode_list = []
         self.circuit_str = ""
+        # Active-context state: accumulated control qubits and dagger flag for
+        # gates added inside with-control / with-dagger blocks.
+        self._active_controls: list[int] = []
+        self._active_dagger: bool = False
+        # Stack used by set_control / unset_control to remember each push size.
+        self._control_stack: list[tuple[int, ...]] = []
 
     def copy(self) -> "Circuit":
         """Return a deep copy of this circuit."""
@@ -110,6 +126,9 @@ class Circuit:
         new_circuit.measure_list = self.measure_list.copy()
         new_circuit.opcode_list = self.opcode_list.copy()
         new_circuit.circuit_str = self.circuit_str
+        new_circuit._active_controls = self._active_controls.copy()
+        new_circuit._active_dagger = self._active_dagger
+        new_circuit._control_stack = list(self._control_stack)
         return new_circuit
 
     def _make_originir_circuit(self) -> str:
@@ -120,7 +139,7 @@ class Circuit:
 
     def _make_qasm_circuit(self) -> str:
         header = make_header_qasm(self.qubit_num, self.cbit_num)
-        circuit_str = "\n".join([opcode_to_line_qasm(op) for op in self.opcode_list])
+        circuit_str = "\n".join([opcode_to_line_qasm(op, self.qubit_num) for op in self.opcode_list])
         measure = make_measure_qasm(self.measure_list)
         return header + circuit_str + "\n" + measure
 
@@ -157,9 +176,32 @@ class Circuit:
         control_qubits: QubitSpec = None,
     ) -> None:
         """Add a gate to the circuit."""
-        opcode: OpCode = (operation, qubits, cbits, params, dagger, control_qubits)  # type: ignore[assignment]
+        if operation in {"BARRIER", "I"}:
+            # These gates have no controlled / dagger semantics; store as-is.
+            merged_controls: QubitSpec = control_qubits
+            merged_dagger = dagger
+        else:
+            # Merge explicit control_qubits with any active context controls.
+            base: list[int] = list(control_qubits) if control_qubits is not None else []
+            if self._active_controls:
+                overlap = set(base) & set(self._active_controls)
+                if overlap:
+                    raise ValueError(
+                        f"Qubit(s) {sorted(overlap)} appear in both "
+                        "control_qubits and an enclosing control() context block."
+                    )
+                base = base + list(self._active_controls)
+            merged_controls = base if base else None  # type: ignore[assignment]
+            # XOR active-dagger with the explicit dagger flag.
+            merged_dagger = dagger ^ self._active_dagger
+        opcode: OpCode = (operation, qubits, cbits, params, merged_dagger, merged_controls)  # type: ignore[assignment]
         self.opcode_list.append(opcode)
         self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
+
+    def add_circuit(self, other: "Circuit") -> None:
+        """Add all gates from another circuit into this circuit."""
+        for op in other.opcode_list:
+            self.add_gate(*op)
 
     @property
     def depth(self) -> int:
@@ -418,7 +460,14 @@ class Circuit:
 
         Args:
             *qubits: One or more qubit indices to measure.
+
+        Raises:
+            ValueError: Called inside an active CONTROL or DAGGER context block.
         """
+        if self._active_controls:
+            raise ValueError("measure() cannot be called inside a control() context block.")
+        if self._active_dagger:
+            raise ValueError("measure() cannot be called inside a dagger() context block.")
         self.record_qubit(list(qubits))
         if self.measure_list is None:
             self.measure_list = []
@@ -458,10 +507,16 @@ class Circuit:
         for q in args:
             ret += f"q[{q}], "
         self.circuit_str += ret[:-2] + "\n"
+        # Update active-context state so add_gate picks up these controls.
+        self._control_stack.append(tuple(args))
+        self._active_controls = self._active_controls + list(args)
 
     def unset_control(self) -> None:
         """Manually close a CONTROL block (low-level API; prefer :meth:`control`)."""
         self.circuit_str += "ENDCONTROL\n"
+        if self._control_stack:
+            popped = self._control_stack.pop()
+            self._active_controls = self._active_controls[: len(self._active_controls) - len(popped)]
 
     def dagger(self) -> CircuitDagContext:
         """Return a context manager that wraps gates in a DAGGER block.
@@ -477,10 +532,12 @@ class Circuit:
     def set_dagger(self) -> None:
         """Manually open a DAGGER block (low-level API; prefer :meth:`dagger`)."""
         self.circuit_str += "DAGGER\n"
+        self._active_dagger = not self._active_dagger
 
     def unset_dagger(self) -> None:
         """Manually close a DAGGER block (low-level API; prefer :meth:`dagger`)."""
         self.circuit_str += "ENDDAGGER\n"
+        self._active_dagger = not self._active_dagger
 
     # ─────────────────── Remapping ───────────────────
 

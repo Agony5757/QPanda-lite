@@ -41,18 +41,18 @@ $$|\psi_2\rangle = \frac{1}{2^n} \sum_{x,z} (-1)^{x \cdot z + f(x)} |z\rangle \o
 ```python
 from qpandalite.algorithmics.circuits import deutsch_jozsa_oracle
 
-# 构建均衡 oracle（3 个数据比特）
-oracle = deutsch_jozsa_oracle(n_qubits=3, balanced=True)
+# 构建均衡 oracle（3 个数据比特，显式传入比特索引列表）
+oracle = deutsch_jozsa_oracle(qubits=[0, 1, 2], balanced=True)
 
 # 构建恒定 oracle
-oracle = deutsch_jozsa_oracle(n_qubits=3, balanced=False)
+oracle = deutsch_jozsa_oracle(qubits=[0, 1, 2], balanced=False)
 ```
 
 参数说明：
 
-- `n_qubits`: 数据比特数，oracle 总共使用 `n_qubits + 1` 个比特（含辅助比特）
+- `qubits`: 数据比特索引列表（调用方负责指定），辅助比特自动取 `max(qubits) + 1`
 - `balanced`: `True` 构建均衡 oracle，`False` 构建恒定 oracle
-- `target_bits`: 控制辅助比特翻转的数据比特索引，`None` 表示全部数据比特
+- `target_bits`: 控制辅助比特翻转的数据比特位置（在 `qubits` 列表中的下标），`None` 表示全部数据比特
 
 ### `deutsch_jozsa_circuit`
 
@@ -61,9 +61,9 @@ from qpandalite.circuit_builder import Circuit
 from qpandalite.algorithmics.circuits import deutsch_jozsa_circuit, deutsch_jozsa_oracle
 
 n = 3
-oracle = deutsch_jozsa_oracle(n, balanced=True)
-c = Circuit(n + 1)
-deutsch_jozsa_circuit(c, oracle)
+oracle = deutsch_jozsa_oracle(qubits=list(range(n)), balanced=True)
+c = Circuit()
+deutsch_jozsa_circuit(c, oracle, qubits=list(range(n)), ancilla=n)
 ```
 
 函数自动完成：

@@ -153,10 +153,17 @@ class TestBasisRotationEdgeCases:
         assert sum(result.values()) == 500
 
     def test_list_basis(self):
-        """Basis as list should work."""
+        """Basis as list should produce the same result as the string form.
+
+        State after ``c.h(0)`` is ``|+⟩_0 |0⟩_1``. Measuring q0 in the X
+        basis (applies H, mapping |+⟩ → |0⟩) and q1 in the Z basis gives
+        outcome "00" deterministically under LSB-first encoding (rightmost
+        bit = q0).
+        """
         c = Circuit()
         c.h(0)
         c.measure(0, 1)
-        result = basis_rotation_measurement(c, basis=["X", "Z"], shots=None)
-        assert np.isclose(result["01"], 0.5)
-        assert np.isclose(result["00"], 0.5)
+        result_list = basis_rotation_measurement(c, basis=["X", "Z"], shots=None)
+        result_str = basis_rotation_measurement(c, basis="XZ", shots=None)
+        assert result_list == result_str
+        assert np.isclose(result_list["00"], 1.0)

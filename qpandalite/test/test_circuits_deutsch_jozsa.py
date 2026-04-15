@@ -12,26 +12,24 @@ class TestDeutschJozsaOracle:
 
     def test_constant_oracle_returns_circuit(self):
         """Constant oracle should return a non-empty Circuit object."""
-        oracle = deutsch_jozsa_oracle(3, balanced=False)
+        oracle = deutsch_jozsa_oracle(qubits=[0, 1, 2], balanced=False)
         assert isinstance(oracle, Circuit)
 
     def test_balanced_oracle_has_gates(self):
         """Balanced oracle with n=3 should contain CNOT gates."""
-        oracle = deutsch_jozsa_oracle(3, balanced=True)
+        oracle = deutsch_jozsa_oracle(qubits=[0, 1, 2], balanced=True)
         assert len(oracle.opcode_list) > 0
         op_names = [op[0] for op in oracle.opcode_list]
         assert all(name == "CNOT" for name in op_names)
 
-    def test_n_qubits_less_than_1_raises(self):
-        """n_qubits < 1 should raise ValueError."""
+    def test_empty_qubits_raises(self):
+        """Empty qubits list should raise ValueError."""
         with pytest.raises(ValueError):
-            deutsch_jozsa_oracle(0)
-        with pytest.raises(ValueError):
-            deutsch_jozsa_oracle(-1)
+            deutsch_jozsa_oracle(qubits=[])
 
     def test_1qubit_oracle(self):
         """1-qubit (simplest) Deutsch oracle should work."""
-        oracle = deutsch_jozsa_oracle(1, balanced=True)
+        oracle = deutsch_jozsa_oracle(qubits=[0], balanced=True)
         assert len(oracle.opcode_list) == 1
 
 
@@ -44,7 +42,7 @@ class TestDeutschJozsaCircuit:
         from qpandalite.simulator.qasm_simulator import QASM_Simulator
 
         n = 3
-        oracle = deutsch_jozsa_oracle(n, balanced=False)
+        oracle = deutsch_jozsa_oracle(qubits=list(range(n)), balanced=False)
         c = Circuit()
         # Use explicit qubits: data qubits 0,1,2 and ancilla qubit 3
         deutsch_jozsa_circuit(c, oracle, qubits=[0, 1, 2], ancilla=3)
@@ -52,9 +50,11 @@ class TestDeutschJozsaCircuit:
         sim = QASM_Simulator(backend_type="statevector", n_qubits=n + 1)
         result = sim.simulate_statevector(c.qasm)
         probs = np.abs(result) ** 2
-        # |000⟩ on data qubits (ancilla in |−⟩ state)
-        # States |0000⟩ (idx 0) and |0001⟩ (idx 1) for ancilla in |0⟩/|1⟩
-        p_all_zero = probs[0] + probs[1]
+        # LSB-first statevector: qubit k = bit k of index. Data qubits are
+        # q0,q1,q2 (bits 0-2); ancilla q3 is bit 3. All-zero data → any
+        # index where (i & 0b0111) == 0, i.e. idx 0 (ancilla=0) and idx 8
+        # (ancilla=1).
+        p_all_zero = probs[0] + probs[8]
         assert np.isclose(p_all_zero, 1.0, atol=1e-6), f"p_all_zero={p_all_zero}"
 
     def test_balanced_oracle_measures_non_zero(self):
@@ -63,7 +63,7 @@ class TestDeutschJozsaCircuit:
         from qpandalite.simulator.qasm_simulator import QASM_Simulator
 
         n = 3
-        oracle = deutsch_jozsa_oracle(n, balanced=True)
+        oracle = deutsch_jozsa_oracle(qubits=list(range(n)), balanced=True)
         c = Circuit()
         deutsch_jozsa_circuit(c, oracle, qubits=[0, 1, 2], ancilla=3)
 
@@ -71,8 +71,10 @@ class TestDeutschJozsaCircuit:
         result = sim.simulate_statevector(c.qasm)
         probs = np.abs(result) ** 2
 
-        # For balanced, |000⟩ on data qubits should have probability ~0
-        p_all_zero = probs[0] + probs[1]
+        # For balanced, |000⟩ on data qubits should have probability ~0.
+        # LSB-first indexing: data-all-zero is at idx 0 and idx 8 (see
+        # comment in test_constant_oracle_measures_all_zero).
+        p_all_zero = probs[0] + probs[8]
         assert np.isclose(p_all_zero, 0.0, atol=1e-6), f"p_all_zero={p_all_zero}"
 
     def test_1qubit_deutsch_balanced(self):
@@ -80,7 +82,7 @@ class TestDeutschJozsaCircuit:
         pytest.importorskip("qpandalite.simulator.qasm_simulator")
         from qpandalite.simulator.qasm_simulator import QASM_Simulator
 
-        oracle = deutsch_jozsa_oracle(1, balanced=True)
+        oracle = deutsch_jozsa_oracle(qubits=[0], balanced=True)
         c = Circuit()
         deutsch_jozsa_circuit(c, oracle, qubits=[0], ancilla=1)
 

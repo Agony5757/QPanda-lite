@@ -82,3 +82,36 @@ class TestDickeStateCircuit:
         c = Circuit()
         dicke_state_circuit(c, k=2, qubits=[0, 1, 2, 3])
         assert len(c.opcode_list) > 0
+
+    def test_dicke_5_3_exact(self):
+        """D(5,3): uniform over C(5,3)=10 weight-3 states, zero elsewhere.
+
+        Stronger than test_dicke_4_2: explicitly asserts that all Hamming-weight
+        ≠ k amplitudes are zero, so the circuit cannot "cheat" by leaking
+        probability into non-Dicke sectors.
+        """
+        c = Circuit()
+        dicke_state_circuit(c, k=3, qubits=[0, 1, 2, 3, 4])
+        probs = _simulate(c, 5)
+        expected_weight = 1.0 / 10  # 1/C(5,3)
+        for i in range(32):
+            if bin(i).count('1') == 3:
+                assert np.isclose(probs[i], expected_weight, atol=0.01)
+            else:
+                assert np.isclose(probs[i], 0.0, atol=0.01)
+
+    def test_dicke_6_2_exact(self):
+        """D(6,2): uniform over C(6,2)=15 weight-2 states, zero elsewhere.
+
+        Exercises a larger n with mid-range k to catch regressions in the
+        first_block cascade (n-k = 4 iterations of SCS_{l,k}).
+        """
+        c = Circuit()
+        dicke_state_circuit(c, k=2, qubits=[0, 1, 2, 3, 4, 5])
+        probs = _simulate(c, 6)
+        expected_weight = 1.0 / 15  # 1/C(6,2)
+        for i in range(64):
+            if bin(i).count('1') == 2:
+                assert np.isclose(probs[i], expected_weight, atol=0.01)
+            else:
+                assert np.isclose(probs[i], 0.0, atol=0.01)

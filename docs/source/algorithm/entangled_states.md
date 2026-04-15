@@ -35,16 +35,12 @@ $$|W_n\rangle = \frac{1}{\sqrt{n}}(|10\ldots0\rangle + |01\ldots0\rangle + \ldot
 - 纠缠鲁棒性：丢失一个量子比特后仍保持纠缠（不同于 GHZ 态）
 - 属于 W 类纠缠，不能通过局域操作和经典通信（LOCC）转化为 GHZ 态
 
-**制备**（受控旋转级联）：
+**制备**（Dicke 态 $k=1$ 特例）：
 
-采用递归分解方法（Cruz et al., 2019）：
-
-1. 初始化为 $|100\ldots0\rangle$
-2. 对最后一个量子比特施加受控旋转：将 $|10\ldots0\rangle$ 分裂为
-   $\sqrt{\frac{n-1}{n}}|10\ldots0\rangle + \frac{1}{\sqrt{n}}|00\ldots1\rangle$
-3. 递归地对剩余 $n-1$ 个量子比特重复
-
-受控旋转分解为 CNOT + Ry 门，电路深度 $O(n)$，无需辅助量子比特。
+W 态即 $n$ 量子比特 Dicke 态 $|D(n,1)\rangle$（恰好一个激发的均匀叠加）。
+实现通过 `dicke_state_circuit(circuit, k=1, qubits=qubits)` 完成，
+使用 SCUC（Single Combination Step）算法，仅需 CNOT 和单量子比特旋转门，
+电路深度 $O(n)$，无需辅助量子比特。
 
 ### Cluster 态
 
@@ -82,7 +78,7 @@ def ghz_state(circuit: Circuit, qubits: Optional[List[int]] = None) -> None:
 def w_state(circuit: Circuit, qubits: Optional[List[int]] = None) -> None:
 ```
 
-制备 W 态：使用递归受控旋转分解，至少需要 2 个量子比特。
+制备 W 态：委托给 `dicke_state_circuit(k=1)`，至少需要 2 个量子比特。
 
 ### `cluster_state`
 

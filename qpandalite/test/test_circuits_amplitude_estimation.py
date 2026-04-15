@@ -87,23 +87,23 @@ class TestAmplitudeEstimationCircuit:
 
         # 2 eval qubits + 2 search qubits
         c = Circuit()
-        amplitude_estimation_circuit(c, oracle, qubits=[2, 3], n_eval_qubits=2)
+        amplitude_estimation_circuit(c, oracle, qubits=[2, 3], eval_qubits=[0, 1])
         assert len(c.opcode_list) > 0
 
-    def test_circuit_not_enough_qubits_raises(self):
-        """Too few qubits should raise ValueError."""
+    def test_circuit_non_list_qubits_raises(self):
+        """Non-list qubits should raise TypeError."""
         oracle = Circuit()
         oracle.z(0)
 
         c = Circuit()
-        with pytest.raises(ValueError, match="qubits"):
-            amplitude_estimation_circuit(c, oracle, n_eval_qubits=3)
+        with pytest.raises(TypeError, match="qubits"):
+            amplitude_estimation_circuit(c, oracle, qubits=(2, 3), eval_qubits=[0, 1])
 
     def test_circuit_zero_eval_qubits_raises(self):
-        """Zero eval qubits should raise ValueError."""
+        """Empty eval_qubits should raise ValueError."""
         oracle = Circuit()
         oracle.z(0)
 
         c = Circuit()
-        with pytest.raises(ValueError, match="n_eval_qubits"):
-            amplitude_estimation_circuit(c, oracle, n_eval_qubits=0)
+        with pytest.raises(ValueError, match="[Aa]t least 1 evaluation qubit"):
+            amplitude_estimation_circuit(c, oracle, qubits=[2, 3], eval_qubits=[])

@@ -135,7 +135,7 @@ namespace density_operator_simulator_impl {
                     complex_t& i1j1 = val(state, i + mask, j + mask, N);
 
                     // 应用演化
-                    evolve_u22(u00, u01, u10, u11, i0j0, i1j0, i0j1, i1j1);
+                    evolve_u22(u00, u01, u10, u11, i0j0, i0j1, i1j0, i1j1);
                 }
             }
         }
@@ -307,10 +307,10 @@ namespace density_operator_simulator_impl {
                         u10, u11, u12, u13,
                         u20, u21, u22, u23,
                         u30, u31, u32, u33,
-                        i00j00, i01j00, i10j00, i11j00,
-                        i00j01, i01j01, i10j01, i11j01,
-                        i00j10, i01j10, i10j10, i11j10,
-                        i00j11, i01j11, i10j11, i11j11
+                        i00j00, i00j01, i00j10, i00j11,
+                        i01j00, i01j01, i01j10, i01j11,
+                        i10j00, i10j01, i10j10, i10j11,
+                        i11j00, i11j01, i11j10, i11j11
                     );
                    
                 }

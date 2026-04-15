@@ -64,6 +64,12 @@ ignore = ["E501", "N801", "N803", "N806"]  # line length; CapWords for ErrorLoad
 quote-style = "double"
 indent-style = "space"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-cov>=7.1.0",
+]
+
 [tool.setuptools.dynamic]
 version = { attr = "qpandalite.version.__version__" }
 

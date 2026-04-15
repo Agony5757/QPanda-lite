@@ -16,6 +16,7 @@ References:
 
 __all__ = ["grover_oracle", "grover_diffusion"]
 
+import warnings
 from typing import List, Optional
 
 from qpandalite.circuit_builder import Circuit
@@ -26,16 +27,10 @@ def _apply_mcz(
     controls: List[int],
     target: int,
 ) -> None:
-    """Apply a multi-controlled Z gate using the linear-depth CNOT cascade.
+    """Apply a multi-controlled Z gate.
 
-    The decomposition is::
-
-        H(target)
-        CNOT cascade: controls[0] → controls[1] → … → controls[-1] → target
-        CNOT cascade back (reverse order)
-        H(target)
-
-    This applies a Z rotation on *target* iff every control qubit is in ``|1>``.
+    Flips the phase of the computational basis state where every control
+    qubit and the target qubit are all in :math:`|1\\rangle`.
 
     Args:
         circuit: Circuit to append gates to (mutated in-place).
@@ -50,20 +45,65 @@ def _apply_mcz(
         circuit.cz(controls[0], target)
         return
 
+    # For n>=2, realize MCZ as H·MCX·H on the target.
+    circuit.h(target)
+    _apply_mcx(circuit, controls, target)
     circuit.h(target)
 
-    # Cascade CNOTs forward
-    circuit.cx(controls[0], controls[1])
-    for i in range(1, n - 1):
-        circuit.cx(controls[i], controls[i + 1])
-    circuit.cx(controls[-1], target)
 
-    # Cascade CNOTs back
-    for i in range(n - 2, 0, -1):
-        circuit.cx(controls[i], controls[i + 1])
-    circuit.cx(controls[0], controls[1])
+def _apply_mcx(
+    circuit: Circuit,
+    controls: List[int],
+    target: int,
+) -> None:
+    """Apply a multi-controlled X gate for any number of controls.
 
-    circuit.h(target)
+    For n ≤ 3 uses native circuit gates (x / cnot / toffoli / c3x).
+    For n ≥ 4 uses a clean-ancilla Toffoli ladder: ``n - 2`` workspace qubits
+    are allocated automatically above the highest qubit index currently in the
+    circuit.  They are initialised to |0⟩ (circuit convention) and restored to
+    |0⟩ after the gate.
+
+    Args:
+        circuit: Circuit to append gates to (mutated in-place).
+        controls: Ordered list of control qubit indices.
+        target: Target qubit index.
+    """
+    n = len(controls)
+    if n == 0:
+        circuit.x(target)
+        return
+    if n == 1:
+        circuit.cnot(controls[0], target)
+        return
+    if n == 2:
+        circuit.toffoli(controls[0], controls[1], target)
+        return
+    if n == 3:
+        circuit.add_gate("X", target, control_qubits=list(controls))
+        return
+
+    # n >= 4: clean-ancilla Toffoli ladder.
+    # Workspace qubits are placed just above the highest index in use so they
+    # are always freshly |0⟩ and do not collide with data / ancilla qubits.
+    n_workspace = n - 2
+    workspace_start = max(list(controls) + [target]) + 1
+    workspace = list(range(workspace_start, workspace_start + n_workspace))
+
+    # Declare workspace qubits in the circuit (idempotent if already registered).
+    for q in workspace:
+        circuit.record_qubit(q)
+
+    # Forward ladder: compute AND(controls[0..n-3]) into workspace.
+    circuit.toffoli(controls[0], controls[1], workspace[0])
+    for i in range(1, n_workspace):
+        circuit.toffoli(controls[i + 1], workspace[i - 1], workspace[i])
+    # Apply MCX to target.
+    circuit.toffoli(controls[-1], workspace[-1], target)
+    # Uncompute workspace.
+    for i in range(n_workspace - 1, 0, -1):
+        circuit.toffoli(controls[i + 1], workspace[i - 1], workspace[i])
+    circuit.toffoli(controls[0], controls[1], workspace[0])
 
 
 def grover_oracle(
@@ -130,16 +170,16 @@ def grover_oracle(
     circuit.x(ancilla)
     circuit.h(ancilla)
 
-    # Bit pattern of marked_state (MSB first, aligned to qubits)
-    marked_bits = [(marked_state >> (n - 1 - i)) & 1 for i in range(n)]
+    # Bit pattern of marked_state (LSB-first: marked_bits[i] == bit i of marked_state)
+    marked_bits = [(marked_state >> i) & 1 for i in range(n)]
 
     # Flip qubits that should be |0⟩ in the marked state
     for i, bit in enumerate(marked_bits):
         if bit == 0:
             circuit.x(qubits[i])
 
-    # Multi-controlled Z targeting the ancilla
-    _apply_mcz(circuit, qubits, ancilla)
+    # Phase kickback via ancilla |−⟩ requires MCX, not MCZ.
+    _apply_mcx(circuit, qubits, ancilla)
 
     # Flip back
     for i, bit in enumerate(marked_bits):
@@ -180,13 +220,21 @@ def grover_diffusion(
     Args:
         circuit: Quantum circuit to operate on (mutated in-place).
         qubits: Data qubit indices.  ``None`` means ``[0, 1]`` (2 qubits).
-        ancilla: Ancilla qubit for the MCZ decomposition.  ``None`` means
-            ``max(qubits) + 1``.  Not needed when *qubits* has length 1
-            (a single Z gate suffices).
+        ancilla: **Deprecated and unused.**  The current implementation derives
+            the MCZ target directly from ``qubits[-1]``, so this argument has
+            no effect regardless of its value.  It is retained for API
+            compatibility only and will be removed in a future release.
 
     Raises:
         ValueError: Fewer than 1 qubit specified.
     """
+    if ancilla is not None:
+        warnings.warn(
+            "The 'ancilla' argument of grover_diffusion() is unused and will be "
+            "removed in a future release.  Remove it from your call site.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     if qubits is None:
         qubits = [0, 1]
     n = len(qubits)
@@ -201,13 +249,13 @@ def grover_diffusion(
     for q in qubits:
         circuit.x(q)
 
-    # Multi-controlled Z
+    # Multi-controlled Z on data qubits
     if n == 1:
         circuit.z(qubits[0])
     else:
-        if ancilla is None:
-            ancilla = max(qubits) + 1
-        _apply_mcz(circuit, qubits, ancilla)
+        # Keep ancilla parameter for API compatibility; current decomposition
+        # uses data qubits directly (target = last data qubit).
+        _apply_mcz(circuit, qubits[:-1], qubits[-1])
 
     # X on all qubits (undo)
     for q in qubits:

@@ -1,3 +1,12 @@
+"""OriginIR base parser module.
+
+This module provides the base parser for OriginIR quantum circuit representation,
+including parsing QINIT, CREG statements and quantum operations.
+
+Key exports:
+    OriginIR_BaseParser: Base parser class for OriginIR circuits.
+"""
+
 __all__ = ["OriginIR_BaseParser"]
 from copy import deepcopy
 from typing import List, Tuple

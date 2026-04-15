@@ -1,3 +1,12 @@
+"""OpenQASM 2.0 line parser module.
+
+This module provides regex-based parsing for individual OpenQASM 2.0 lines,
+supporting qreg/creg definitions, 1-4 qubit gates, parameterized gates, and measurements.
+
+Key exports:
+    OpenQASM2_LineParser: Parser class for individual OpenQASM 2.0 lines.
+"""
+
 from __future__ import annotations
 
 __all__ = ["OpenQASM2_LineParser"]

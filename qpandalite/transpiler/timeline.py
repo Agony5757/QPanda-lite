@@ -1,3 +1,9 @@
+"""Compiled circuit timeline analysis and visualization.
+
+This module provides tools for analyzing and visualizing the temporal
+execution schedule of compiled quantum programs.
+"""
+
 __all__ = ["format_result", "create_time_line_table", "plot_time_line"]
 import pandas as pd
 import matplotlib.pyplot as plt

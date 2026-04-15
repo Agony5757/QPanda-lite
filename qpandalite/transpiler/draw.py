@@ -1,3 +1,9 @@
+"""Quantum circuit visualization tools.
+
+This module provides text-based circuit drawing capabilities for
+quantum programs in OriginIR or QASM format.
+"""
+
 __all__ = ["draw"]
 from pyqpanda3.core import draw_qprog, PIC_TYPE
 from pyqpanda3.intermediate_compiler import convert_originir_string_to_qprog

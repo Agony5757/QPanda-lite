@@ -1,3 +1,9 @@
+"""Qiskit transpiler backend integration.
+
+This module provides transpilation services using Qiskit's transpiler
+for optimizing quantum circuits with configurable topology and gate sets.
+"""
+
 __all__ = ["transpile_qasm", "transpile_originir"]
 import qiskit
 from qiskit import QuantumCircuit

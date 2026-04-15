@@ -1,4 +1,15 @@
-# random_originir.py is a python file that generates random OriginIR code.
+"""Random OriginIR circuit generator.
+
+This module provides functions for generating random quantum circuits in OriginIR
+format. It supports random gate selection, error channel insertion, and full
+measurement generation for testing and simulation purposes.
+
+Key exports:
+    build_originir_gate: Build a single OriginIR gate string.
+    build_originir_error_channel: Build an error channel instruction.
+    build_full_measurements: Generate measurement instructions for all qubits.
+    random_originir: Generate a complete random OriginIR program.
+"""
 
 import random
 from .opcode import opcode_to_line_originir

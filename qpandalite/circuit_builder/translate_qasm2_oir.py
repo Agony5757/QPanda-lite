@@ -1,4 +1,17 @@
-# Translation between QASM2 and OriginIR.
+"""Translation utilities between OpenQASM 2.0 and OriginIR.
+
+This module provides bidirectional translation between OpenQASM 2.0 and OriginIR
+quantum circuit representations. It includes direct mapping dictionaries,
+opcode conversion functions, and multi-controlled gate decomposition.
+
+Key exports:
+    OriginIR_QASM2_dict: Mapping from OriginIR to QASM2 operations.
+    QASM2_OriginIR_dict: Mapping from QASM2 to OriginIR operations.
+    direct_mapping_qasm2_to_oir: Function for direct QASM2 to OriginIR lookup.
+    get_opcode_from_QASM2: Convert QASM2 operation to OriginIR opcode.
+    get_QASM2_from_opcode: Convert OriginIR opcode to QASM2 operation.
+    decompose_mcx_qasm_text: Decompose multi-controlled X gates for QASM2.
+"""
 
 from typing import List, Tuple, Union
 from .qasm_spec import available_qasm_gates

@@ -1,4 +1,16 @@
-# random_qasm.py is a python script that generates random QASM code.
+"""Random OpenQASM 2.0 circuit generator.
+
+This module provides functions for generating random quantum circuits in OpenQASM
+2.0 format. It supports random gate selection, measurement generation, and
+circuit construction from opcode lists.
+
+Key exports:
+    build_qasm_gate: Build a single QASM gate string.
+    build_full_measurements: Generate measurement instructions for all qubits.
+    build_measurements: Generate measurement instructions for specified qubits.
+    random_qasm: Generate a complete random QASM program.
+    build_qasm_from_opcodes: Convert a list of opcodes to QASM code.
+"""
 
 import random
 from typing import List

@@ -174,7 +174,21 @@ def _ensure_savepath(savepath: Path) -> None:
 def query_by_taskid_single(
     taskid: str, savepath: Path | str
 ) -> str | dict[str, Any]:
-    """Query a single task's status from the Quafu platform."""
+    """Query a single task's status from the Quafu platform.
+
+    Args:
+        taskid (str): The unique task identifier.
+        savepath (Path | str): Directory path for saving task results.
+
+    Returns:
+        str | dict[str, Any]: One of the following:
+            - "Running": Task is still executing.
+            - "Failed": Task execution failed.
+            - dict: Task result dictionary when completed successfully.
+
+    Note:
+        Results are cached locally to avoid redundant API calls.
+    """
     adapter = _get_adapter()
     result = adapter.query(taskid)
     savepath = Path(savepath)
@@ -191,7 +205,22 @@ def query_by_taskid(
     taskid: str | list[str],
     savepath: Path | str | None = None,
 ) -> dict[str, Any]:
-    """Query task status by task ID (non-blocking)."""
+    """Query task status by task ID (non-blocking).
+
+    Args:
+        taskid (str | list[str]): Single task ID or list of task IDs to query.
+        savepath (Path | str | None, optional): Directory path for saving task
+            results locally. Defaults to ./quafu_online_info/.
+
+    Returns:
+        dict[str, Any]: Task status dictionary containing:
+            - "status": "success", "running", or "failed"
+            - "result": Task result data when status is "success",
+              or error information when status is "failed"
+
+    Raises:
+        ValueError: If taskid is empty or has invalid type.
+    """
     adapter = _get_adapter()
     savepath = Path(savepath) if savepath else Path.cwd() / "quafu_online_info"
 
@@ -223,7 +252,24 @@ def query_by_taskid_sync(
     timeout: float = 60.0,
     retry: int = 5,
 ) -> list[dict[str, Any]]:
-    """Query task status by task ID (blocking) until completion or timeout."""
+    """Query task status by task ID (blocking) until completion or timeout.
+
+    Continuously polls the Quafu platform until the task completes,
+    fails, or the timeout is reached.
+
+    Args:
+        taskid (str | list[str]): Single task ID or list of task IDs to query.
+        interval (float, optional): Polling interval in seconds. Defaults to 2.0.
+        timeout (float, optional): Maximum wait time in seconds. Defaults to 60.0.
+        retry (int, optional): Number of retry attempts on query failure. Defaults to 5.
+
+    Raises:
+        TimeoutError: If the task does not complete within the specified timeout.
+        RuntimeError: If the task fails or all retry attempts are exhausted.
+
+    Returns:
+        list[dict[str, Any]]: List of task result dictionaries when all tasks succeed.
+    """
     adapter = _get_adapter()
     starttime = time.time()
 
@@ -256,7 +302,25 @@ def query_task_by_group(
     verbose: bool = True,
     savepath: Path | str | None = None,
 ) -> list:
-    """Retrieve all tasks belonging to a named Quafu group."""
+    """Retrieve all tasks belonging to a named Quafu group.
+
+    Queries the Quafu platform for all tasks associated with the specified
+    group name and caches the results locally.
+
+    Args:
+        group_name (str): The name of the task group to query.
+        history (dict[str, list[str]] | None, optional): Cache of previously
+            queried group tasks. If None, loads from local savepath.
+        verbose (bool, optional): Whether to print detailed output. Defaults to True.
+        savepath (Path | str | None, optional): Directory for saving results.
+            Defaults to current working directory / "quafu_online_info".
+
+    Raises:
+        ValueError: If group_name is empty or not a string.
+
+    Returns:
+        list: List of task result objects from the Quafu platform.
+    """
     if not group_name:
         raise ValueError("Task id ??")
     if not isinstance(group_name, str):
@@ -298,7 +362,26 @@ def query_task_by_group_sync(
     timeout: float = 60.0,
     retry: int = 5,
 ) -> list:
-    """Blocking query for all tasks in a named Quafu group."""
+    """Blocking query for all tasks in a named Quafu group.
+
+    Polls the Quafu platform until all tasks in the specified group have
+    reached a terminal state (completed or failed), or until timeout.
+
+    Args:
+        group_name (str): The name of the task group to query.
+        verbose (bool, optional): Whether to print detailed output. Defaults to True.
+        savepath (Path | str | None, optional): Directory for saving results.
+            Defaults to current working directory / "quafu_online_info".
+        interval (float, optional): Polling interval in seconds. Defaults to 2.0.
+        timeout (float, optional): Maximum wait time in seconds. Defaults to 60.0.
+        retry (int, optional): Number of retry attempts on query failure. Defaults to 5.
+
+    Raises:
+        TimeoutError: If not all tasks complete within the specified timeout.
+
+    Returns:
+        list: List of task result objects when all tasks are complete.
+    """
     if savepath is None:
         savepath = Path.cwd() / "quafu_online_info"
 

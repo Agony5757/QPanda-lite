@@ -62,8 +62,5 @@ jobs:
     - name: Test
       run: |
         pip install pytest --quiet
-        pytest qpandalite/test/ -v \
-          --deselect qpandalite/test/test_random_QASM.py::test_random_qasm_compare_density_operator \
-          --deselect qpandalite/test/test_random_OriginIR.py::run_test_random_originir_density_operator \
-          --deselect qpandalite/test/test_random_QASM.py::run_test_random_qasm_density_operator_compare_with_qutip
+        pytest qpandalite/test/ -v --deselect qpandalite/test/test_random_QASM.py::test_random_qasm_compare_density_operator --deselect qpandalite/test/test_random_OriginIR.py::run_test_random_originir_density_operator --deselect qpandalite/test/test_random_QASM.py::run_test_random_qasm_density_operator_compare_with_qutip
    

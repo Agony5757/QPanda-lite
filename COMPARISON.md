@@ -1,7 +1,7 @@
 # PR Comparison: Our fixes vs Agony's PR #140
 
 Agony's open PR: `Agony5757/QPanda-lite#140` (`fix/issue#133#134`)  
-Our branch: `fix/ci-r1r3r10` (and merge branch `fix/ci-r1r3r10-merge-agony`)
+Our branch: `fix/ci-r1r3r10` (evaluation branch `fix/ci-r1r3r10-merge-agony` folded back on 2026-04-15)
 
 ---
 
@@ -20,7 +20,7 @@ Agony changed several algorithm circuit signatures to require explicit qubit lis
 **Also cherry-picked (non-breaking helpers):**
 
 1. `Circuit.add_circuit(other)` in `qcircuit.py` — replays opcodes via `add_gate(*op)`. ✅ Done in `b1924d6`.
-2. `dicke_state_circuit` SCUC rewrite — algorithmically cleaner (CNOT + Ry only, no `rotation_prepare`), public signature preserved. ✅ Done in `b1924d6`.
+2. `dicke_state_circuit` SCUC rewrite — algorithmically cleaner (CNOT + Ry only, no `rotation_prepare`), public signature preserved. ✅ Done in `b1924d6`; further refined in `dc5a47d` (factored into paper-referenced helpers `_gate_i` / `_ccry` / `_gate_ii_l` / `_scs` + added `test_dicke_5_3_exact` / `test_dicke_6_2_exact` regression guards covering non-Hamming-weight-k amplitude leakage).
 
 ---
 
@@ -91,8 +91,8 @@ When upstream PR #140 review happens, push back on Agony's `basis_rotation.py` c
 | Item | Decision | Status |
 |---|---|---|
 | `Circuit.add_circuit()` helper | Cherry-pick from Agony | ✅ done (`b1924d6`) |
-| `dicke_state_circuit` SCUC rewrite | Cherry-pick from Agony | ✅ done (`b1924d6`) |
-| AE / DJ / w_state signature change | **Adopt from Agony** (+ keep R3 formula fix + fix w_state None-default bug) | in progress |
+| `dicke_state_circuit` SCUC rewrite | Cherry-pick from Agony | ✅ done (`b1924d6`, `dc5a47d`) |
+| AE / DJ / w_state signature change | **Adopt from Agony** (+ keep R3 formula fix + fix w_state None-default bug) | ✅ done (`e3f5ee7`) |
 | `basis_rotation.py` R7 source change | Reject — LSB convention conflict (Axis 3) | — |
 | `state_tomography.py` R8 | Keep ours — Agony didn't touch; R8 is independent of R7 (Axis 3) | ✅ already in branch |
 | `classical_shadow.py` minimal fix | Reject — ours is strictly better | — |

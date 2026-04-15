@@ -1,3 +1,13 @@
+"""OpenQASM 2.0 quantum program simulator.
+
+This module provides simulators for OpenQASM 2.0 format quantum programs,
+supporting both ideal and noisy simulations.
+
+Key exports:
+    - QASM_Simulator: Ideal simulator for OpenQASM 2.0 programs.
+    - QASM_Noisy_Simulator: Noisy simulator for OpenQASM 2.0 programs with error models.
+"""
+
 __all__ = ["QASM_Simulator", "QASM_Noisy_Simulator"]
 from typing import Dict, List, Tuple, TYPE_CHECKING
 from qpandalite.qasm import OpenQASM2_BaseParser

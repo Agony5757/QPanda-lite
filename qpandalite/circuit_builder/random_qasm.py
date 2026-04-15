@@ -87,7 +87,7 @@ def build_measurements(measure_qbit_cbit_pairs, qreg_name = 'q', creg_name = 'c'
         List[str]: a list of QASM measurement instructions.
     """
     measure_instructions = []
-    for qbit, cbit in range(measure_qbit_cbit_pairs):
+    for qbit, cbit in measure_qbit_cbit_pairs:
         measure_instructions.append(f"measure {qreg_name}[{qbit}] -> {creg_name}[{cbit}];")
 
     return measure_instructions

@@ -1,4 +1,3 @@
-
 """QASM parser exceptions module.
 
 This module defines custom exceptions for OpenQASM 2.0 parsing,

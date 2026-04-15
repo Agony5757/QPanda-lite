@@ -1,4 +1,14 @@
-# generic simulator class for qpanda-lite
+"""Base simulator classes for QPanda-lite.
+
+This module provides abstract base classes for quantum circuit simulators,
+defining common behaviors and interfaces for statevector and density matrix
+simulations. It also includes topology validation and qubit mapping utilities.
+
+Key exports:
+    - TopologyError: Exception for invalid qubit/topology configurations.
+    - BaseSimulator: Abstract base for ideal circuit simulators.
+    - BaseNoisySimulator: Abstract base for noisy circuit simulators.
+"""
 
 __all__ = ["TopologyError", "BaseSimulator", "BaseNoisySimulator"]
 import random

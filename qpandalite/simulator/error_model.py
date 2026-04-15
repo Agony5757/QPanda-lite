@@ -1,4 +1,24 @@
-# Error model
+"""Quantum error models for noisy simulation.
+
+This module defines various quantum noise models that can be applied to
+circuit simulations, including bit-flip, phase-flip, depolarizing, amplitude
+damping, and Kraus operator errors.
+
+Key exports:
+    - ErrorModel: Base class for all error models.
+    - BitFlip: Bit-flip (X) error model.
+    - PhaseFlip: Phase-flip (Z) error model.
+    - Depolarizing: Single-qubit depolarizing channel.
+    - TwoQubitDepolarizing: Two-qubit depolarizing channel.
+    - AmplitudeDamping: Amplitude damping (T1) error model.
+    - PauliError1Q: Single-qubit Pauli error model.
+    - PauliError2Q: Two-qubit Pauli error model.
+    - Kraus1Q: Single-qubit Kraus operator error model.
+    - ErrorLoader: Base error loader interface.
+    - ErrorLoader_GenericError: Generic error loader.
+    - ErrorLoader_GateTypeError: Gate-type specific error loader.
+    - ErrorLoader_GateSpecificError: Gate-specific error loader.
+"""
 
 from __future__ import annotations
 

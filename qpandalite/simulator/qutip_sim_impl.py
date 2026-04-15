@@ -1,3 +1,13 @@
+"""QuTiP-backed density matrix simulator implementation.
+
+This module provides a density-matrix quantum simulator implementation using
+QuTiP, supporting unitary operations, Kraus channels, and measurement for
+noisy quantum simulation.
+
+Key exports:
+    - DensityOperatorSimulatorQutip: Density-matrix simulator backed by QuTiP.
+"""
+
 from __future__ import annotations
 
 from itertools import product

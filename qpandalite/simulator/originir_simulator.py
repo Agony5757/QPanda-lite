@@ -1,3 +1,13 @@
+"""OriginIR quantum program simulator.
+
+This module provides simulators for OriginIR-format quantum programs,
+supporting both ideal and noisy simulations with topology validation.
+
+Key exports:
+    - OriginIR_Simulator: Ideal simulator for OriginIR programs.
+    - OriginIR_NoisySimulator: Noisy simulator for OriginIR programs with error models.
+"""
+
 __all__ = ["OriginIR_Simulator", "OriginIR_NoisySimulator"]
 import random
 from typing import Dict, List, Tuple, TYPE_CHECKING, Union

@@ -1,3 +1,12 @@
+"""Simulator backend factory for QPanda-lite.
+
+This module provides a factory function to obtain appropriate simulator
+instances based on the quantum program type (OriginIR or QASM).
+
+Key exports:
+    - get_backend: Factory function to create simulator backends.
+"""
+
 __all__ = ["get_backend"]
 from .originir_simulator import OriginIR_Simulator
 from .qasm_simulator import QASM_Simulator

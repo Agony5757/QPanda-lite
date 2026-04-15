@@ -74,4 +74,3 @@ def generate_sub_gateset_qasm(gate_list):
             gate_list, with their qubit and parameter requirements.
     """
     return {k : v for k, v in available_qasm_gates.items() if k in gate_list}
-    

@@ -56,7 +56,7 @@ def build_qasm_gate(gate, qubits, params, qreg_name = 'q'):
     return qasm_gate
 
 def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
-    '''
+    """
     Build a QASM string that measures all qubits in the given qreg to the given creg.
 
     Args:
@@ -66,7 +66,7 @@ def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
 
     Returns:
         List[str]: a list of QASM strings that measure all qubits in the given qreg to the given creg.
-    '''
+    """
     measure_instructions = []
     for i in range(n_qubits):
         measure_instructions.append(f"measure {qreg_name}[{i}] -> {creg_name}[{i}];")
@@ -75,17 +75,17 @@ def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
 
 
 def build_measurements(measure_qbit_cbit_pairs, qreg_name = 'q', creg_name = 'c'):
-    '''
-    Build a QASM string that measures all qubits in the given qreg to the given creg.
+    """
+    Build a QASM string that measures specified qubits to classical bits.
 
     Args:
-        n_qubits (int): number of qubits to measure
-        qreg_name (str): name of the qreg to measure from
-        creg_name (str): name of the creg to measure to
+        measure_qbit_cbit_pairs: Iterable of (qubit_index, cbit_index) tuples.
+        qreg_name (str): name of the quantum register.
+        creg_name (str): name of the classical register.
 
     Returns:
-        List[str]: a list of QASM strings that measure all qubits in the given qreg to the given creg.
-    '''
+        List[str]: a list of QASM measurement instructions.
+    """
     measure_instructions = []
     for qbit, cbit in range(measure_qbit_cbit_pairs):
         measure_instructions.append(f"measure {qreg_name}[{qbit}] -> {creg_name}[{cbit}];")

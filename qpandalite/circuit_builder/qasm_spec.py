@@ -1,5 +1,13 @@
-# This file specifies the QASM language specification,
-# including the grammar and the syntax of the language.
+"""OpenQASM 2.0 language specification for quantum gates.
+
+This module defines the available gates in OpenQASM 2.0 format, including their
+qubit requirements and parameter counts. It provides a utility function for
+generating subsets of gates based on a given list.
+
+Key exports:
+    available_qasm_gates: Dictionary of all available OpenQASM 2.0 gates.
+    generate_sub_gateset_qasm: Function to generate a subset of gates.
+"""
 
 __all__ = [
     'available_qasm_gates',
@@ -56,5 +64,13 @@ available_qasm_gates.update({
 })
 
 def generate_sub_gateset_qasm(gate_list):
+    """Generate a subset of the OpenQASM gateset filtered by gate names.
+
+    Args:
+        gate_list (list[str]): List of gate names to include in the subset.
+
+    Returns:
+        dict[str, dict]: A dictionary containing only the gates specified in
+            gate_list, with their qubit and parameter requirements.
+    """
     return {k : v for k, v in available_qasm_gates.items() if k in gate_list}
-    

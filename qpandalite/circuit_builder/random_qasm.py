@@ -1,4 +1,16 @@
-# random_qasm.py is a python script that generates random QASM code.
+"""Random OpenQASM 2.0 circuit generator.
+
+This module provides functions for generating random quantum circuits in OpenQASM
+2.0 format. It supports random gate selection, measurement generation, and
+circuit construction from opcode lists.
+
+Key exports:
+    build_qasm_gate: Build a single QASM gate string.
+    build_full_measurements: Generate measurement instructions for all qubits.
+    build_measurements: Generate measurement instructions for specified qubits.
+    random_qasm: Generate a complete random QASM program.
+    build_qasm_from_opcodes: Convert a list of opcodes to QASM code.
+"""
 
 import random
 from typing import List
@@ -44,7 +56,7 @@ def build_qasm_gate(gate, qubits, params, qreg_name = 'q'):
     return qasm_gate
 
 def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
-    '''
+    """
     Build a QASM string that measures all qubits in the given qreg to the given creg.
 
     Args:
@@ -54,7 +66,7 @@ def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
 
     Returns:
         List[str]: a list of QASM strings that measure all qubits in the given qreg to the given creg.
-    '''
+    """
     measure_instructions = []
     for i in range(n_qubits):
         measure_instructions.append(f"measure {qreg_name}[{i}] -> {creg_name}[{i}];")
@@ -63,17 +75,17 @@ def build_full_measurements(n_qubits, qreg_name = 'q', creg_name = 'c'):
 
 
 def build_measurements(measure_qbit_cbit_pairs, qreg_name = 'q', creg_name = 'c'):
-    '''
-    Build a QASM string that measures all qubits in the given qreg to the given creg.
+    """
+    Build a QASM string that measures specified qubits to classical bits.
 
     Args:
-        n_qubits (int): number of qubits to measure
-        qreg_name (str): name of the qreg to measure from
-        creg_name (str): name of the creg to measure to
+        measure_qbit_cbit_pairs: Iterable of (qubit_index, cbit_index) tuples.
+        qreg_name (str): name of the quantum register.
+        creg_name (str): name of the classical register.
 
     Returns:
-        List[str]: a list of QASM strings that measure all qubits in the given qreg to the given creg.
-    '''
+        List[str]: a list of QASM measurement instructions.
+    """
     measure_instructions = []
     for qbit, cbit in range(measure_qbit_cbit_pairs):
         measure_instructions.append(f"measure {qreg_name}[{qbit}] -> {creg_name}[{cbit}];")

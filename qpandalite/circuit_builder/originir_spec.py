@@ -1,5 +1,17 @@
-# This file specifies the OriginIR language specification,
-# including the grammar and the syntax of the language.
+"""OriginIR language specification for quantum gates and error channels.
+
+This module defines the available gates and error channels in OriginIR format,
+including their qubit requirements and parameter counts. It also provides
+utility functions for generating subsets of gates and error channels.
+
+Key exports:
+    available_originir_gates: Dictionary of all available OriginIR gates.
+    angular_gates: List of gates that accept angular parameters.
+    available_originir_error_channels: Dictionary of available error channels.
+    available_originir_error_channels_without_kraus: Error channels excluding Kraus operators.
+    generate_sub_gateset_originir: Function to generate a subset of gates.
+    generate_sub_error_channel_originir: Function to generate a subset of error channels.
+"""
 
 __all__ = [
     'available_originir_gates',
@@ -76,6 +88,15 @@ available_originir_gates.update({
 })
 
 def generate_sub_gateset_originir(gate_list):
+    """Generate a subset of the OriginIR gateset filtered by gate names.
+
+    Args:
+        gate_list (list[str]): List of gate names to include in the subset.
+
+    Returns:
+        dict[str, dict]: A dictionary containing only the gates specified in
+            gate_list, with their qubit and parameter requirements.
+    """
     return {k : v for k, v in available_originir_gates.items() if k in gate_list}
 
 
@@ -120,6 +141,15 @@ available_originir_error_channels.update({
 })
 
 def generate_sub_error_channel_originir(channel_list):
+    """Generate a subset of the OriginIR error channels filtered by channel names.
+
+    Args:
+        channel_list (list[str]): List of error channel names to include in the subset.
+
+    Returns:
+        dict[str, dict]: A dictionary containing only the error channels specified
+            in channel_list, with their qubit and parameter requirements.
+    """
     return {k : v for k, v in available_originir_error_channels.items() if k in channel_list}
 
 # TODO: This is a temporary workaround. When Kraus1Q random generation

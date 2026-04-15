@@ -1,3 +1,14 @@
+"""Quantum circuit builder with OriginIR and OpenQASM 2.0 output.
+
+This module provides a Circuit class for building quantum circuits programmatically.
+It supports various quantum gates, controlled operations, dagger (adjoint) blocks,
+and measurement operations. The circuit can be exported to OriginIR or OpenQASM format.
+
+Key exports:
+    Circuit: Main quantum circuit builder class.
+    OpcodeType: Type alias for opcode tuples.
+"""
+
 from __future__ import annotations
 
 from copy import deepcopy

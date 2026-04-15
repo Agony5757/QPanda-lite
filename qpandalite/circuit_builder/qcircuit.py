@@ -161,6 +161,11 @@ class Circuit:
         self.opcode_list.append(opcode)
         self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
 
+    def add_circuit(self, other: "Circuit") -> None:
+        """Add all gates from another circuit into this circuit."""
+        for op in other.opcode_list:
+            self.add_gate(*op)
+
     @property
     def depth(self) -> int:
         """Calculate the depth of the quantum circuit."""

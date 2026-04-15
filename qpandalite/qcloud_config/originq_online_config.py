@@ -1,3 +1,9 @@
+"""OriginQ QPilot online configuration utilities.
+
+This module provides functions to create and save OriginQ QPilot
+online service configuration files for full, simplified, and dummy modes.
+"""
+
 __all__ = ["create_originq_config", "create_originq_online_config", "create_originq_dummy_config"]
 import json
 from pathlib import Path
@@ -9,7 +15,22 @@ def create_originq_config(login_apitoken = None,
                           available_qubits = None,
                           available_topology = None,
                           task_group_size = 200,
-                          savepath = None):    
+                          savepath = None):
+    """Create full OriginQ QPilot configuration file with all settings.
+
+    Args:
+        login_apitoken: API token for QPilot login authentication.
+        login_url: URL endpoint for user login (url 0).
+        submit_url: URL endpoint for submitting quantum tasks (url 1).
+        query_url: URL endpoint for querying task results (url 2).
+        available_qubits: List of available qubit indices on the device.
+        available_topology: List of connected qubit pairs [[q1, q2], ...].
+        task_group_size: Maximum circuits per task (default: 200).
+        savepath: Directory to save config file. Defaults to cwd.
+
+    Raises:
+        RuntimeError: If required parameters missing or types invalid.
+    """    
 
     if not login_apitoken:
         raise RuntimeError('You should input your token.')
@@ -53,8 +74,20 @@ def create_originq_online_config(login_apitoken = None,
                                  submit_url = None, 
                                  query_url = None, 
                                  task_group_size = 200,
-                                 savepath = None):    
+                                 savepath = None):
+    """Create OriginQ QPilot online configuration without topology settings.
 
+    Args:
+        login_apitoken: API token for QPilot login authentication.
+        login_url: URL endpoint for user login.
+        submit_url: URL endpoint for submitting quantum tasks.
+        query_url: URL endpoint for querying task results.
+        task_group_size: Maximum circuits per task (default: 200).
+        savepath: Directory to save config file. Defaults to cwd.
+
+    Raises:
+        RuntimeError: If required parameters missing or types invalid.
+    """
     if not login_apitoken:
         raise RuntimeError('You should input your token.')
 
@@ -90,8 +123,21 @@ def create_originq_dummy_config(
     available_qubits = None,
     available_topology = None,
     task_group_size = 200,
-    savepath = None):    
+    savepath = None):
+    """Create dummy OriginQ configuration for testing.
 
+    Uses placeholder values for API credentials. Useful for local
+    testing and development without real credentials.
+
+    Args:
+        available_qubits: List of available qubit indices.
+        available_topology: List of connected qubit pairs.
+        task_group_size: Maximum circuits per task (default: 200).
+        savepath: Directory to save config file. Defaults to cwd.
+
+    Raises:
+        RuntimeError: If parameters have invalid types.
+    """
     if not isinstance(available_qubits, list):
         raise RuntimeError('Available qubits must be a list.')
 

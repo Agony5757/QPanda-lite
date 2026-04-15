@@ -1,6 +1,6 @@
-'''
+"""
 This file is used to convert the opcode to various quantum code formats.
-'''
+"""
 
 from typing import List, Optional, Tuple, Union
 from .translate_qasm2_oir import OriginIR_QASM2_dict, get_QASM2_from_opcode, decompose_mcx_qasm_text

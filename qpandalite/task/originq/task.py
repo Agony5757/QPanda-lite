@@ -1,9 +1,10 @@
-'''
+"""OriginQ QPilot task submission module.
+
 Commit task to originq QPilot directly.
 
-This module is not available in current version. 
+This module is not available in current version.
 Please use qpandalite.task.originq_cloud instead.
-'''
+"""
 
 raise ImportError('This module is not available in current version. '
                   'Please use qpandalite.task.originq_cloud instead.')
@@ -24,6 +25,19 @@ from ..task_utils import make_savepath, load_all_online_info, write_taskinfo
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def get_token(pilot_api, login_url):
+    """Authenticate with OriginQ server and obtain access token.
+
+    Args:
+        pilot_api (str): The API key for authentication.
+        login_url (str): The URL endpoint for login requests.
+
+    Raises:
+        RuntimeError: If the server returns a non-200 status code
+            or if the response cannot be parsed.
+
+    Returns:
+        str: The authentication token from the server.
+    """
     request_body = dict()
     request_body['apiKey'] = pilot_api
     request_body = json.dumps(request_body)

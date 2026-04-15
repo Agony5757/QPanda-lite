@@ -15,15 +15,22 @@ from qpandalite.algorithmics.measurement import (
 
 
 class TestPauliExpectation:
+    """Tests for Pauli string expectation value calculations."""
     def test_zz_on_computational(self):
-        """⟨ZZ⟩ on |00⟩ should be +1."""
+        """Test ⟨ZZ⟩ expectation on |00⟩ state.
+
+        Verifies that the expectation value of ZZ operator on |00⟩ is +1.
+        """
         c = Circuit()
         c.measure(0, 1)
         val = pauli_expectation(c, "ZZ", shots=None)
         assert np.isclose(val, 1.0)
 
     def test_zz_on_one_minus_one(self):
-        """⟨ZZ⟩ on |01⟩ should be -1."""
+        """Test ⟨ZZ⟩ expectation on |01⟩ state.
+
+        Verifies that the expectation value of ZZ operator on |01⟩ is -1.
+        """
         c = Circuit()
         c.x(0)
         c.measure(0, 1)
@@ -31,7 +38,11 @@ class TestPauliExpectation:
         assert np.isclose(val, -1.0)
 
     def test_xx_on_bell(self):
-        """⟨XX⟩ on Bell (|00⟩+|11⟩)/√2 should be +1."""
+        """Test ⟨XX⟩ expectation on Bell state.
+
+        Verifies that the expectation value of XX operator on Bell state
+        (|00⟩+|11⟩)/√2 is +1.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -40,7 +51,10 @@ class TestPauliExpectation:
         assert np.isclose(val, 1.0)
 
     def test_yy_on_bell(self):
-        """⟨YY⟩ on Bell should be +1."""
+        """Test ⟨YY⟩ expectation on Bell state.
+
+        Verifies that the expectation value of YY operator on Bell state is +1.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -49,7 +63,10 @@ class TestPauliExpectation:
         assert np.isclose(val, 1.0)
 
     def test_ix_on_bell(self):
-        """⟨IX⟩ on Bell = ⟨X⟩ on qubit 1 should be 0 (uniform)."""
+        """Test ⟨IX⟩ expectation on Bell state.
+
+        Verifies that ⟨IX⟩ = ⟨X⟩ on qubit 1 equals 0 for uniform distribution.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -58,7 +75,11 @@ class TestPauliExpectation:
         assert np.isclose(val, 0.0)
 
     def test_shots_variance(self):
-        """shots mode should give a result close to the exact value."""
+        """Test finite shots measurement variance.
+
+        Verifies that shots mode produces results close to the exact value
+        within expected statistical variance.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -68,12 +89,14 @@ class TestPauliExpectation:
         assert abs(sampled - exact) < 0.1
 
     def test_wrong_length_raises(self):
+        """Test that mismatched Pauli length raises ValueError."""
         c = Circuit()
         c.measure(0, 1)
         with pytest.raises(ValueError, match="length"):
             pauli_expectation(c, "Z", shots=None)
 
     def test_invalid_pauli_char_raises(self):
+        """Test that invalid Pauli characters raise ValueError."""
         c = Circuit()
         c.measure(0, 1)
         with pytest.raises(ValueError, match="I/X/Y/Z"):
@@ -81,8 +104,12 @@ class TestPauliExpectation:
 
 
 class TestBasisRotationMeasurement:
+    """Tests for basis rotation measurement functionality."""
     def test_z_basis_on_plus(self):
-        """|+⟩ measured in Z basis: P(0)=0.5, P(1)=0.5."""
+        """Test |+⟩ measurement in Z basis.
+
+        Verifies that |+⟩ state measured in Z basis yields P(0)=0.5, P(1)=0.5.
+        """
         c = Circuit()
         c.h(0)
         c.measure(0)
@@ -91,7 +118,10 @@ class TestBasisRotationMeasurement:
         assert np.isclose(result["1"], 0.5)
 
     def test_x_basis_on_plus(self):
-        """|+⟩ measured in X basis: P(0)=1, P(1)=0."""
+        """Test |+⟩ measurement in X basis.
+
+        Verifies that |+⟩ state measured in X basis yields P(0)=1, P(1)=0.
+        """
         c = Circuit()
         c.h(0)
         c.measure(0)
@@ -99,7 +129,10 @@ class TestBasisRotationMeasurement:
         assert np.isclose(result["0"], 1.0)
 
     def test_x_basis_on_minus(self):
-        """|-⟩ measured in X basis: P(0)=0, P(1)=1."""
+        """Test |-⟩ measurement in X basis.
+
+        Verifies that |-⟩ state measured in X basis yields P(0)=0, P(1)=1.
+        """
         c = Circuit()
         c.x(0)
         c.h(0)
@@ -108,7 +141,10 @@ class TestBasisRotationMeasurement:
         assert np.isclose(result["1"], 1.0)
 
     def test_y_basis_on_iplus(self):
-        """|i⟩ = S|0⟩ measured in Y basis: P(0)=1 (eigenstate |0⟩_Y)."""
+        """Test |i⟩ measurement in Y basis.
+
+        Verifies that |i⟩ = S|0⟩ measured in Y basis is eigenstate |0⟩_Y.
+        """
         c = Circuit()
         c.s(0)
         c.measure(0)
@@ -116,7 +152,10 @@ class TestBasisRotationMeasurement:
         assert np.isclose(result["0"], 1.0)
 
     def test_two_qubit_xy(self):
-        """2-qubit state |+⟩|0⟩ measured in X,Z basis."""
+        """Test two-qubit measurement in mixed bases.
+
+        Verifies that |+⟩|0⟩ state measured in X,Z basis yields correct probabilities.
+        """
         c = Circuit()
         c.h(0)
         c.measure(0, 1)
@@ -125,7 +164,11 @@ class TestBasisRotationMeasurement:
         assert np.isclose(result["10"], 0.5)
 
     def test_shots_mode(self):
-        """shots mode returns integer counts."""
+        """Test shots mode returns integer counts.
+
+        Verifies that finite shots mode returns integer count results
+        with correct total sum.
+        """
         c = Circuit()
         c.h(0)
         c.measure(0)
@@ -136,8 +179,13 @@ class TestBasisRotationMeasurement:
 
 
 class TestStateTomography:
+    """Tests for quantum state tomography reconstruction."""
     def test_pure_state_reconstruction(self):
-        """|ψ⟩ = (|00⟩+|11⟩)/√2 should reconstruct to a rank-1 density matrix."""
+        """Test pure Bell state reconstruction.
+
+        Verifies that |ψ⟩ = (|00⟩+|11⟩)/√2 reconstructs to a rank-1 density matrix
+        with correct Hermiticity, normalization, and purity.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -151,7 +199,10 @@ class TestStateTomography:
         assert abs(purity - 1.0) < 0.05
 
     def test_mixed_state(self):
-        """|0⟩⊗|0⟩ (product state) should have purity 1 after tomography."""
+        """Test product state tomography.
+
+        Verifies that |0⟩⊗|0⟩ product state reconstructs with purity ≈ 1.
+        """
         c = Circuit()
         c.measure(0, 1)
         rho = state_tomography(c, shots=4096)
@@ -159,7 +210,10 @@ class TestStateTomography:
         assert abs(purity - 1.0) < 0.05
 
     def test_tomography_summary_runs(self):
-        """tomography_summary should run without error."""
+        """Test tomography_summary execution.
+
+        Verifies that tomography_summary runs without error on reconstructed state.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -169,6 +223,7 @@ class TestStateTomography:
         tomography_summary(rho)
 
     def test_wrong_shots_raises(self):
+        """Test that negative shots raises ValueError."""
         c = Circuit()
         c.measure(0)
         with pytest.raises(ValueError):
@@ -176,7 +231,9 @@ class TestStateTomography:
 
 
 class TestClassicalShadow:
+    """Tests for classical shadow estimation technique."""
     def test_shadow_generates_correct_count(self):
+        """Test that shadow generates correct number of snapshots."""
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -185,7 +242,11 @@ class TestClassicalShadow:
         assert len(shadows) == 16
 
     def test_auto_n_shadow(self):
-        """Auto n_shadow should scale with qubit count."""
+        """Test auto n_shadow scaling.
+
+        Verifies that automatic n_shadow calculation scales appropriately
+        with qubit count.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -194,7 +255,10 @@ class TestClassicalShadow:
         assert len(shadows) > 0
 
     def test_shadow_expectation_zz_bell(self):
-        """|Φ+⟩ = (|00⟩+|11⟩)/√2: ⟨ZZ⟩ ≈ 1."""
+        """Test ⟨ZZ⟩ estimation on Bell state.
+
+        Verifies that classical shadow estimates ⟨ZZ⟩ ≈ 1 for Bell state |Φ+⟩.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -204,7 +268,10 @@ class TestClassicalShadow:
         assert abs(est - 1.0) < 0.2
 
     def test_shadow_expectation_xx_bell(self):
-        """|Φ+⟩: ⟨XX⟩ ≈ 1."""
+        """Test ⟨XX⟩ estimation on Bell state.
+
+        Verifies that classical shadow estimates ⟨XX⟩ ≈ 1 for Bell state |Φ+⟩.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -214,7 +281,10 @@ class TestClassicalShadow:
         assert abs(est - 1.0) < 0.2
 
     def test_shadow_expectation_identity(self):
-        """|Φ+⟩: ⟨II⟩ = 1 always."""
+        """Test identity operator estimation.
+
+        Verifies that classical shadow always estimates ⟨II⟩ = 1.
+        """
         c = Circuit()
         c.h(0)
         c.cx(0, 1)
@@ -224,6 +294,7 @@ class TestClassicalShadow:
         assert np.isclose(est, 1.0)
 
     def test_shadow_wrong_length_raises(self):
+        """Test that mismatched operator length raises ValueError."""
         c = Circuit()
         c.measure(0, 1)
         shadows = classical_shadow(c, shots=512, n_shadow=8)
@@ -231,6 +302,7 @@ class TestClassicalShadow:
             shadow_expectation(shadows, "Z")   # 1 qubit, shadow has 2
 
     def test_empty_shadows_raises(self):
+        """Test that empty shadow list raises ValueError."""
         c = Circuit()
         c.measure(0)
         with pytest.raises(ValueError, match="empty"):

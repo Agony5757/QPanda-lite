@@ -132,8 +132,10 @@ def save_config(config: dict[str, Any], config_path: str | Path | None = None) -
         ConfigError: If configuration file cannot be written.
     """
     path = Path(config_path) if config_path else CONFIG_FILE
-    _ensure_config_dir()
-
+    
+    # Ensure parent directory exists (for both default and custom paths)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    
     try:
         with open(path, "w", encoding="utf-8") as f:
             yaml.dump(

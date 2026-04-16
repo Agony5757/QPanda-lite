@@ -121,7 +121,7 @@ class OriginQCircuitAdapter(CircuitAdapter[Any]):
 
     def _ensure_imports(self) -> None:
         """Lazily import pyqpanda3 modules."""
-        if self._pyqpanda3 is None:
+        if self._pyqpanda3 is None or self._convert_originir is None:
             try:
                 from pyqpanda3 import core as pyqpanda3_core
                 from pyqpanda3.intermediate_compiler import (

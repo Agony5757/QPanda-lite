@@ -343,16 +343,23 @@ class TestCircuitAdapters:
         """Test OriginQ adapter raises error when pyqpanda3 not installed."""
         from qpandalite.circuit_adapter import OriginQCircuitAdapter
         from qpandalite.circuit_builder import Circuit
+        from unittest.mock import patch
         
+        # Create a fresh adapter instance with cleared imports
         adapter = OriginQCircuitAdapter()
-        adapter._pyqpanda3 = None  # Simulate missing import
+        adapter._pyqpanda3 = None
         adapter._convert_originir = None
         
         circuit = Circuit()
         circuit.h(0)
         
-        with pytest.raises(RuntimeError, match="pyqpanda3"):
-            adapter.adapt(circuit)
+        # Mock the import to raise ImportError
+        def mock_import(*args, **kwargs):
+            raise ImportError("No module named 'pyqpanda3'")
+        
+        with patch('builtins.__import__', side_effect=mock_import):
+            with pytest.raises(RuntimeError, match="pyqpanda3"):
+                adapter.adapt(circuit)
 
     def test_quafu_adapter_without_quafu(self) -> None:
         """Test Quafu adapter raises error when quafu not installed."""

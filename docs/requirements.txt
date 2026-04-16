@@ -6,3 +6,4 @@ sphinx-markdown-tables
 linkify-it-py
 myst_parser
 numpy
+setuptools_scm

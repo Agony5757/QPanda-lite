@@ -1,6 +1,6 @@
 # QPanda-Lite Examples
 
-> 示例代码已迁移至 [文档中心 → 算法讲解](https://qpandadotlite.readthedocs.io/algorithm.html)
+> 示例代码已迁移至 [文档中心 → 算法讲解](https://qpanda-lite.readthedocs.io/zh-cn/latest/source/algorithm.html)
 
 ## 示例代码目录
 

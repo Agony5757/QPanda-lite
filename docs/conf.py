@@ -195,6 +195,10 @@ html_theme_options = {
     "navigation_with_keys": True,
     "show_toc_level": 2,
     "header_links_before_dropdown": 6,
+    # Logo/title configuration - only show project name without version
+    "logo": {
+        "text": "QPanda-lite",
+    },
     # Version switcher configuration for RTD
     "switcher": {
         "json_url": "https://qpanda-lite.readthedocs.io/zh-cn/latest/_static/switcher.json",

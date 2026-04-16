@@ -75,17 +75,15 @@ jobs:
             
     - name: Build
       if: runner.os == 'Linux'
-      # Build your program with the given configuration
       run: |
         pip uninstall qpandalite -y 2>/dev/null || true
-        sudo pip install . --no-cache-dir
+        sudo pip install . --no-cache-dir --no-build-isolation
 
     - name: Build
       if: runner.os == 'Windows'
-      # Build your program with the given configuration
       run: |
         pip uninstall qpandalite -y 2>/dev/null || true
-        pip install . --no-cache-dir
+        pip install . --no-cache-dir --no-build-isolation
       
     - name: Test
       run: |

@@ -55,7 +55,9 @@ pytorch = ["torch>=2.0"]
 
 [tool.setuptools]
 zip-safe = false
-packages = { find = { exclude = ["qpandalite.test", "qpandalite.test.*"] } }
+
+[tool.setuptools.packages.find]
+exclude = ["qpandalite.test*"]
 
 [tool.ruff]
 line-length = 120

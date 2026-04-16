@@ -18,18 +18,21 @@ parent_path = pathlib.Path(__file__).resolve().parent.parent
 # Only the project root is needed; qpandalite/ lives directly under it.
 sys.path.insert(0, os.path.abspath(parent_path))
 
-# Read version from pyproject.toml or use fallback
+# Read version from package metadata or fallback to version.py
 try:
-    import tomllib
-    with open(parent_path / 'pyproject.toml', 'rb') as _f:
-        _toml = tomllib.load(_f)
-    release = _toml['project']['version']
-except Exception:
+    from importlib.metadata import version as get_version, PackageNotFoundError
+    release = get_version('qpandalite')
+except (PackageNotFoundError, Exception):
+    # Fallback: try to read from _version.py (setuptools_scm generated)
     try:
-        exec(open(parent_path / 'qpandalite' / 'version.py').read())
-        release = __version__
+        _version_file = parent_path / 'qpandalite' / '_version.py'
+        if _version_file.exists():
+            exec(_version_file.read_text())
+            release = __version__
+        else:
+            release = '0.0.0+unknown'
     except Exception:
-        release = '0.1.0'
+        release = '0.0.0+unknown'
 
 copyright = '2025, Agony5757'
 author = ', '.join(['Agony5757', 'YunJ1e', 'automatic-code-ztr', 'didaozi'])

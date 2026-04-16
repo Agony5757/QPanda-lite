@@ -74,7 +74,7 @@ def create_originq_online_cloud_config(apitoken=None,
     """Create OriginQ online cloud configuration file without topology.
 
     This configuration is used for online OriginQ service where qubit
-topology is managed by the remote server.
+    topology is managed by the remote server.
 
     Args:
         apitoken: API token for OriginQ cloud service authentication.

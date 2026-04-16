@@ -67,6 +67,48 @@ originir_str = translate_qasm2_to_originir(qasm_str)
 
 并非所有门都能在 OriginIR 和 QASM 之间互转。当前的互转能力覆盖了常见的单比特门、双比特门和三比特门，具体对照见下方参考区。如果互转过程中遇到不支持的门，会抛出异常并提示。
 
+### 多控门导出（≥4 控制位）
+
+QASM 2.0 原生仅支持最多 3 个控制位的门（`cx`, `ccx`, `c3x`）。当控制位数 ≥ 4 时，QPanda-lite 会自动将多控门分解为 `ccx`（Toffoli）门序列。
+
+**工作量子比特要求**：n 个控制位的门需要 n−2 个额外的 |0⟩ 态工作量子比特。如果线路中量子比特总数不足以提供工作量子比特，导出时会抛出 `NotImplementedError`，提示添加工作量子比特或改用 OriginIR 导出。
+
+```python
+from qpandalite.circuit_builder import Circuit
+
+circuit = Circuit()
+circuit.add_gate("Z", 4, control_qubits=[0, 1, 2, 3])
+# 需要添加 2 个工作量子比特（|0⟩ 态）
+circuit.add_gate("I", 5)
+circuit.add_gate("I", 6)
+
+qasm_str = circuit.qasm   # 成功导出，输出 H·MCX·H 分解
+originir_str = circuit.originir  # OriginIR 原生支持任意宽度多控门
+```
+
+**支持的门与分解策略**：
+
+| 门 | 策略 | 分解形式 | MCX 数量 |
+|----|------|---------|---------|
+| X | Toffoli 梯子 | Toffoli ladder (Barenco et al.) | 1 |
+| Z | 共轭 | H · MCX · H | 1 |
+| Y | 共轭 | S† · H · MCX · H · S | 1 |
+| S / Sdg | 共轭 | H · T / T† · MCX · T† / T · H | 1 |
+| RZ(θ) | 共轭 | RZ(θ/2) · H · MCX · H · RZ(θ/2) | 1 |
+| RX(θ) | 共轭 | H · RZ(θ/2) · H · MCX · H · RZ(θ/2) · H | 1 |
+| U1(λ) | 共轭 | RZ(λ/2) · H · MCX · H · RZ(λ/2) | 1 |
+| U3(θ,φ,λ) | ABC 分解 | A · MCX · B · MCX · C | 2 |
+| RY(θ) | ABC 分解 | A · MCX · B · MCX · C | 2 |
+| SX / SXdg | ABC 分解 | A · MCX · B · MCX · C | 2 |
+| H | ABC 分解 | A · MCX · B · MCX · C | 2 |
+
+- **共轭策略（Tier 1）**：利用 G = U · X · U† 等价关系，将多控非 X 门转换为 1 次 MCX 加上前后单量子比特门。
+- **ABC 分解策略（Tier 2）**：基于 Barenco et al. 的通用方法，计算 A、B、C 使得 CBA = I 且 AXBXC = G，需要 2 次 MCX。
+
+> **提示**：OriginIR 格式原生支持任意宽度的多控门，无需分解。如果不需要 QASM 输出，推荐直接使用 `circuit.originir`。
+
+> **注意**：ABC 分解产生的是门的 SU(2) 部分，与完整门可能相差全局相位。这对测量结果无影响，但如果需要精确的酉矩阵等价，请使用 OriginIR 导出。
+
 ## QASM 2.0 与 OriginIR 门对照表
 
 > 以下是 QASM 2.0 与 OriginIR 之间支持的操作对照表（含矩阵形式）。日常使用中通常无需手动查阅，仅在排查格式问题或确认互转范围时参考。
@@ -124,5 +166,6 @@ originir_str = translate_qasm2_to_originir(qasm_str)
 - `test_random_QASM.py`：随机回归 + Qiskit 对比
 - `test_random_QASM_measure.py`：Shots 采样测试
 - `test_QASMBench.py`：QASMBench 兼容性测试
+- `test_circuit_builder_opcode_and_random.py`：多控门 QASM 导出分解测试（`TestMCUQASMSentinel`, `TestMCUQASMDecomposition`, `TestMCUQASMIntegration`）
 
 详见 [测试覆盖说明](testing.md)。

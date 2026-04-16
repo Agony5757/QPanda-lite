@@ -954,3 +954,285 @@ class TestBuildOriginirGateAdditional:
         assert 'RX' in result
         assert 'q[2]' in result
         assert 'controlled_by' in result
+
+
+# =============================================================================
+# Tests for Issue #141: multi-controlled non-X gate QASM export (≥4 controls)
+# =============================================================================
+
+
+class TestMCUQASMSentinel:
+    """Tests that get_QASM2_from_opcode returns _MCU_DECOMP_ sentinel for ≥4 controls."""
+
+    def _make_opcode(self, op, target, params=None, dagger=False, controls=None):
+        return (op, target, None, params, dagger, set(controls))
+
+    def test_x_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('X', 4, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_z_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('Z', 4, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_y_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('Y', 4, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_s_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('S', 4, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_rz_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('RZ', 4, params=1.0, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_rx_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('RX', 4, params=0.5, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_u3_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('U3', 4, params=[0.1, 0.2, 0.3], controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_ry_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('RY', 4, params=1.0, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_sx_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('SX', 4, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_h_4controls_returns_sentinel(self):
+        opcode = self._make_opcode('H', 4, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+
+    def test_s_dagger_4controls_returns_sdg_sentinel(self):
+        """S with dagger should produce 'sdg' in the sentinel payload."""
+        opcode = self._make_opcode('S', 4, dagger=True, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+        payload = result[1]
+        assert payload[2] == 'sdg'  # gate_qasm field
+
+    def test_sx_dagger_4controls_returns_sxdg_sentinel(self):
+        opcode = self._make_opcode('SX', 4, dagger=True, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+        payload = result[1]
+        assert payload[2] == 'sxdg'
+
+    def test_rz_dagger_4controls_negates_param(self):
+        """RZ with dagger should negate the parameter in the sentinel payload."""
+        opcode = self._make_opcode('RZ', 4, params=1.0, dagger=True, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+        payload = result[1]
+        assert payload[3] == -1.0  # params field
+
+    def test_u3_dagger_4controls_adjusts_params(self):
+        """U3 with dagger should adjust parameters to U3(-θ,-λ,-φ)."""
+        opcode = self._make_opcode('U3', 4, params=[1.0, 2.0, 3.0], dagger=True, controls=[0, 1, 2, 3])
+        result = get_QASM2_from_opcode(opcode)
+        assert result[0] == '_MCU_DECOMP_'
+        payload = result[1]
+        assert payload[3] == [-1.0, -3.0, -2.0]  # [-theta, -lam, -phi]
+
+    def test_unsupported_4controls_raises(self):
+        """SWAP with ≥4 controls should still raise NotImplementedError."""
+        opcode = self._make_opcode('SWAP', [4, 5], controls=[0, 1, 2, 3])
+        with pytest.raises(NotImplementedError):
+            get_QASM2_from_opcode(opcode)
+
+
+class TestMCUQASMDecomposition:
+    """Tests for opcode_to_line_qasm output of multi-controlled gate decompositions."""
+
+    QUBIT_NUM = 7  # 4 controls + 1 target + 2 workspace = 7
+
+    def _make_opcode(self, op, target, params=None, dagger=False, controls=None):
+        return (op, target, None, params, dagger, set(controls))
+
+    def test_x_4controls_produces_toffoli_ladder(self):
+        opcode = self._make_opcode('X', 4, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert 'ccx' in result
+        # 4 controls → 2 workspace qubits → 3 forward + 2 uncompute = 5 ccx
+        assert result.count('ccx') == 5
+
+    def test_z_4controls_produces_h_mcx_h(self):
+        opcode = self._make_opcode('Z', 4, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        lines = result.strip().split('\n')
+        assert lines[0].startswith('h q[4]')
+        assert 'ccx' in result
+        assert lines[-1].startswith('h q[4]')
+
+    def test_y_4controls_produces_sdg_h_mcx_h_s(self):
+        opcode = self._make_opcode('Y', 4, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        lines = result.strip().split('\n')
+        assert 'sdg q[4]' in lines[0]
+        assert 'h q[4]' in lines[1]
+        assert 's q[4]' in lines[-1]
+
+    def test_s_4controls_produces_h_t_mcx_tdg_h(self):
+        opcode = self._make_opcode('S', 4, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert 't q[4]' in result
+        assert 'tdg q[4]' in result
+
+    def test_rz_4controls_produces_rz_half_h_mcx_h_rz_half(self):
+        opcode = self._make_opcode('RZ', 4, params=1.0, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert 'rz(0.5) q[4]' in result
+        # Should appear twice (before and after MCX)
+        assert result.count('rz(0.5)') == 2
+
+    def test_rx_4controls_produces_h_rz_half_h_mcx_h_rz_half_h(self):
+        opcode = self._make_opcode('RX', 4, params=1.0, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert 'rz(0.5) q[4]' in result
+        assert 'h q[4]' in result
+
+    def test_u3_4controls_produces_abc_decomposition(self):
+        """U3 with ≥4 controls should use ABC decomposition (2 MCX blocks)."""
+        opcode = self._make_opcode('U3', 4, params=[1.0, 0.5, 0.3], controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        # ABC decomposition has 2 MCX blocks, each with 5 ccx gates
+        assert result.count('ccx') == 10
+        assert 'ry' in result
+        assert 'rz' in result
+
+    def test_ry_4controls_produces_abc_decomposition(self):
+        opcode = self._make_opcode('RY', 4, params=1.5, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert result.count('ccx') == 10  # 2 MCX blocks
+
+    def test_sx_4controls_produces_abc_decomposition(self):
+        opcode = self._make_opcode('SX', 4, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert result.count('ccx') == 10
+
+    def test_h_4controls_produces_abc_decomposition(self):
+        opcode = self._make_opcode('H', 4, controls=[0, 1, 2, 3])
+        result = opcode_to_line_qasm(opcode, qubit_num=self.QUBIT_NUM)
+        assert result.count('ccx') == 10
+
+    def test_no_qubit_num_raises(self):
+        """Without qubit_num, decomposition should raise NotImplementedError."""
+        opcode = self._make_opcode('Z', 4, controls=[0, 1, 2, 3])
+        with pytest.raises(NotImplementedError, match='qubit count'):
+            opcode_to_line_qasm(opcode)
+
+
+class TestMCUQASMIntegration:
+    """Integration tests: build circuits with multi-controlled gates and export to QASM.
+
+    NOTE: Decomposition of ≥4-control gates requires workspace qubits (n-2 ancilla).
+    Circuits must have enough qubits beyond controls+target to provide workspace.
+    """
+
+    def test_circuit_z_4controls_qasm_no_error(self):
+        """4 controls + 1 target + 2 workspace = 7 qubits needed."""
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("Z", 4, control_qubits=[0, 1, 2, 3])
+        # Add workspace qubits (initialized to |0⟩ by convention)
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm  # Should not raise NotImplementedError
+        assert 'h q[4]' in qasm_str
+        assert 'ccx' in qasm_str
+
+    def test_circuit_rz_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("RZ", 4, params=1.0, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'rz(0.5) q[4]' in qasm_str
+
+    def test_circuit_u3_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("U3", 4, params=[1.0, 0.5, 0.3], control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+
+    def test_circuit_ry_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("RY", 4, params=1.5, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+
+    def test_circuit_sx_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("SX", 4, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+
+    def test_circuit_h_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("H", 4, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+
+    def test_circuit_y_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("Y", 4, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+
+    def test_circuit_s_dagger_4controls_qasm_no_error(self):
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("S", 4, dagger=True, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+
+    def test_circuit_x_4controls_qasm_still_works(self):
+        """Existing MCX path should still work."""
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("X", 4, control_qubits=[0, 1, 2, 3])
+        c.add_gate("I", 5)
+        c.add_gate("I", 6)
+        qasm_str = c.qasm
+        assert 'ccx' in qasm_str
+        assert qasm_str.count('ccx') == 5  # Toffoli ladder: 3 forward + 2 uncompute
+
+    def test_circuit_z_4controls_no_workspace_raises(self):
+        """Without workspace qubits, decomposition should raise NotImplementedError."""
+        from qpandalite.circuit_builder import Circuit
+        c = Circuit()
+        c.add_gate("Z", 4, control_qubits=[0, 1, 2, 3])
+        with pytest.raises(NotImplementedError, match='workspace'):
+            c.qasm

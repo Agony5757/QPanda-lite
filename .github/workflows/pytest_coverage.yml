@@ -47,7 +47,12 @@ jobs:
     - name: Install package
       run: |
         pip uninstall qpandalite -y 2>/dev/null || true
-        pip install . --no-cache-dir
+        rm -rf build/ dist/ *.egg-info qpandalite.egg-info
+        echo "=== pyproject.toml packages config ==="
+        grep -A25 "\[tool.setuptools\]" pyproject.toml | head -30
+        echo "=== package-data config ==="
+        grep -A3 "package-data" pyproject.toml
+        pip install . --no-cache-dir --no-build-isolation
         echo "=== Checking installed qpandalite package ==="
         pip show -f qpandalite | grep -E "test|Location"
 

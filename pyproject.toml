@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "QPanda-Lite. A python-native version for pyqpanda. Simple, easy, and transparent."
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.10,<3.15"
 authors = [
     { name = "Agony", email = "chenzhaoyun@iai.ustc.edu.cn" },
 ]
@@ -20,10 +20,11 @@ classifiers = [
     "Programming Language :: C++",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Operating System :: Microsoft :: Windows",
@@ -54,7 +55,7 @@ packages = { find = { exclude = ["qpandalite.test", "qpandalite.test.*"] } }
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]

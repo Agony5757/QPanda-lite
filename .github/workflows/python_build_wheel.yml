@@ -31,7 +31,7 @@ jobs:
       matrix:
         # 定义操作系统和 Python 版本的矩阵
         os: [ubuntu-latest, windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
     # 第一步：检出代码库

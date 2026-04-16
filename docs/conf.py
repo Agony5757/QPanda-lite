@@ -197,7 +197,7 @@ html_theme_options = {
     "header_links_before_dropdown": 6,
     # Version switcher configuration for RTD
     "switcher": {
-        "json_url": "https://qpandalite.readthedocs.io/zh-cn/latest/_static/switcher.json",
+        "json_url": "https://qpanda-lite.readthedocs.io/zh-cn/latest/_static/switcher.json",
         "version_match": version_match,
     },
     # Add version switcher to navbar

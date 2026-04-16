@@ -585,8 +585,10 @@ def query_task(task_id: str, backend: str | None = None) -> TaskInfo:
         TASK_STATUS_SUCCESS: TaskStatus.SUCCESS,
         TASK_STATUS_FAILED: TaskStatus.FAILED,
         TASK_STATUS_RUNNING: TaskStatus.RUNNING,
+        "pending": TaskStatus.PENDING,
+        "cancelled": TaskStatus.CANCELLED,
     }
-    task_status = status_map.get(adapter_status, TaskStatus.RUNNING)
+    task_status = status_map.get(adapter_status, TaskStatus.PENDING)
     
     # Update task info
     task_info = TaskInfo(

@@ -505,16 +505,16 @@ class IBMBackend(QuantumBackend):
                 elif isinstance(proxy, str):
                     self._proxy_config = {"http": proxy, "https": proxy}
 
-        # Environment variables take highest priority
+        # Environment variables take highest priority, but merge with existing config
         env_proxies = detect_system_proxy()
-        if env_proxies.get("http"):
+        if env_proxies.get("http") or env_proxies.get("https"):
             if self._proxy_config is None:
                 self._proxy_config = {}
-            self._proxy_config["http"] = env_proxies["http"]
-        if env_proxies.get("https"):
-            if self._proxy_config is None:
-                self._proxy_config = {}
-            self._proxy_config["https"] = env_proxies["https"]
+            # Merge: file config first, then override with env vars
+            if env_proxies.get("http"):
+                self._proxy_config["http"] = env_proxies["http"]
+            if env_proxies.get("https"):
+                self._proxy_config["https"] = env_proxies["https"]
 
     def _create_adapter(self) -> QiskitAdapter:
         """Create an IBM Qiskit adapter.

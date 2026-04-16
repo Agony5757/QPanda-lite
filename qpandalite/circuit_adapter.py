@@ -201,6 +201,10 @@ class QuafuCircuitAdapter(CircuitAdapter[Any]):
         originir = self._get_originir(circuit)
         lines = originir.splitlines()
         qc: Any = None
+        
+        # Track control structure state
+        control_stack: list[list[int]] = []  # Stack of control qubit lists
+        dagger_count = 0  # Nested DAGGER counter (odd = dagger active)
 
         for line in lines:
             line = line.strip()
@@ -234,8 +238,38 @@ class QuafuCircuitAdapter(CircuitAdapter[Any]):
             if operation == "CREG":
                 continue
 
+            # Handle control structure markers
+            if operation == "CONTROL":
+                # Parse control qubits from the line
+                ctrl_qubits = qubit if isinstance(qubit, list) else [int(qubit)]
+                control_stack.append(ctrl_qubits)
+                continue
+            elif operation == "ENDCONTROL":
+                if control_stack:
+                    control_stack.pop()
+                continue
+            elif operation == "DAGGER":
+                dagger_count += 1
+                continue
+            elif operation == "ENDDAGGER":
+                dagger_count -= 1
+                continue
+
+            # Merge control qubits from stack
+            effective_control_qubits: list[int] = []
+            if control_qubits:
+                effective_control_qubits.extend(control_qubits)
+            for ctrl in control_stack:
+                effective_control_qubits.extend(ctrl)
+            
+            # Apply dagger from DAGGER block
+            effective_dagger = dagger_flag or (dagger_count % 2 == 1)
+
             # Apply gates
-            qc = self._apply_gate(qc, operation, qubit, cbit, parameter, dagger_flag, control_qubits)
+            qc = self._apply_gate(
+                qc, operation, qubit, cbit, parameter, 
+                effective_dagger, effective_control_qubits if effective_control_qubits else None
+            )
 
         if qc is None:
             raise RuntimeError("OriginIR string produced no circuit.")
@@ -269,46 +303,96 @@ class QuafuCircuitAdapter(CircuitAdapter[Any]):
         if operation is None:
             return qc
 
+        # Normalize control qubits
+        has_control = control_qubits is not None and len(control_qubits) > 0
+        ctrl_qubits = control_qubits if has_control else []
+
+        # Helper function to apply controlled gate
+        def apply_controlled(gate_fn, target_qubit, *args):
+            """Apply gate with control qubits if present."""
+            if has_control:
+                # For multi-controlled gates, use Quafu's mcx or controlled methods
+                if len(ctrl_qubits) == 1:
+                    # Single control: use cnot-like control
+                    qc.cnot(int(ctrl_qubits[0]), int(target_qubit))
+                    gate_fn(int(target_qubit), *args)
+                    qc.cnot(int(ctrl_qubits[0]), int(target_qubit))
+                else:
+                    # Multi-control: use mcx if available
+                    if hasattr(qc, 'mcx'):
+                        qc.mcx([int(c) for c in ctrl_qubits], int(target_qubit))
+                        gate_fn(int(target_qubit), *args)
+                        qc.mcx([int(c) for c in ctrl_qubits], int(target_qubit))
+                    else:
+                        raise NotImplementedError(
+                            f"Multi-controlled gates with {len(ctrl_qubits)} controls "
+                            "not supported by this Quafu version"
+                        )
+            else:
+                gate_fn(int(target_qubit), *args)
+
         # Single-qubit gates
         if operation == "H":
-            qc.h(int(qubit))
+            if has_control:
+                qc.ch(int(ctrl_qubits[0]), int(qubit)) if len(ctrl_qubits) == 1 else apply_controlled(qc.h, qubit)
+            else:
+                qc.h(int(qubit))
         elif operation == "X":
-            qc.x(int(qubit))
+            if has_control:
+                if len(ctrl_qubits) == 1:
+                    qc.cnot(int(ctrl_qubits[0]), int(qubit))
+                else:
+                    qc.mcx([int(c) for c in ctrl_qubits], int(qubit))
+            else:
+                qc.x(int(qubit))
         elif operation == "Y":
-            qc.y(int(qubit))
+            apply_controlled(qc.y, qubit)
         elif operation == "Z":
-            qc.z(int(qubit))
+            if has_control:
+                qc.cz(int(ctrl_qubits[0]), int(qubit)) if len(ctrl_qubits) == 1 else apply_controlled(qc.z, qubit)
+            else:
+                qc.z(int(qubit))
         elif operation == "S":
             if dagger_flag:
-                qc.sdg(int(qubit))
+                apply_controlled(qc.sdg, qubit)
             else:
-                qc.s(int(qubit))
+                apply_controlled(qc.s, qubit)
         elif operation == "T":
             if dagger_flag:
-                qc.tdg(int(qubit))
+                apply_controlled(qc.tdg, qubit)
             else:
-                qc.t(int(qubit))
+                apply_controlled(qc.t, qubit)
         elif operation == "SX":
             if dagger_flag:
-                qc.sxdg(int(qubit))
+                apply_controlled(qc.sxdg, qubit)
             else:
-                qc.sx(int(qubit))
+                apply_controlled(qc.sx, qubit)
 
         # Single-qubit rotation gates
         elif operation == "RX":
-            qc.rx(int(qubit), float(parameter))
+            apply_controlled(lambda q: qc.rx(q, float(parameter)), qubit)
         elif operation == "RY":
-            qc.ry(int(qubit), float(parameter))
+            apply_controlled(lambda q: qc.ry(q, float(parameter)), qubit)
         elif operation == "RZ":
-            qc.rz(int(qubit), float(parameter))
+            apply_controlled(lambda q: qc.rz(q, float(parameter)), qubit)
 
         # Two-qubit gates
         elif operation == "CNOT":
             qubits = qubit if isinstance(qubit, list) else [qubit]
-            qc.cnot(int(qubits[0]), int(qubits[1]))
+            if has_control:
+                # Add additional controls to existing CNOT
+                all_controls = list(ctrl_qubits) + [int(qubits[0])]
+                qc.mcx(all_controls, int(qubits[1]))
+            else:
+                qc.cnot(int(qubits[0]), int(qubits[1]))
         elif operation == "CZ":
             qubits = qubit if isinstance(qubit, list) else [qubit]
-            qc.cz(int(qubits[0]), int(qubits[1]))
+            if has_control:
+                qc.mcx([int(ctrl_qubits[0])], int(qubits[0]))
+                qc.cz(int(qubits[0]), int(qubits[1]))
+                qc.mcx([int(ctrl_qubits[0])], int(qubits[0]))
+            else:
+                qc.cz(int(qubits[0]), int(qubits[1]))
         elif operation == "SWAP":
             qubits = qubit if isinstance(qubit, list) else [qubit]
             qc.swap(int(qubits[0]), int(qubits[1]))

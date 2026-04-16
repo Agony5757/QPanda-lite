@@ -1,0 +1,18 @@
+[
+    {
+        "name": "stable",
+        "version": "stable",
+        "url": "https://qpandalite.readthedocs.io/zh-cn/stable/",
+        "preferred": true
+    },
+    {
+        "name": "latest (dev)",
+        "version": "latest",
+        "url": "https://qpandalite.readthedocs.io/zh-cn/latest/"
+    },
+    {
+        "name": "v0.3.0",
+        "version": "0.3.0",
+        "url": "https://qpandalite.readthedocs.io/zh-cn/v0.3.0/"
+    }
+]

@@ -18,26 +18,96 @@ parent_path = pathlib.Path(__file__).resolve().parent.parent
 # Only the project root is needed; qpandalite/ lives directly under it.
 sys.path.insert(0, os.path.abspath(parent_path))
 
-# Read version from setuptools_scm (git tags) or fallback
-try:
-    from setuptools_scm import get_version
-    release = get_version(root=str(parent_path), relative_to=__file__)
-except Exception:
-    # Fallback: try importlib.metadata (works when package is installed)
+# Read version from setuptools_scm or git tags
+# For stable releases: set DOCS_STABLE_VERSION env var to force clean version
+
+import subprocess
+import os
+
+def get_version_from_setuptools_scm(strip_dev=False):
+    """Get version from setuptools_scm.
+
+    Args:
+        strip_dev: If True, strip .devN+g... suffix to get base version.
+                   Used for stable/release builds.
+    """
+    try:
+        from setuptools_scm import get_version
+        version = get_version(root=str(parent_path), relative_to=__file__)
+        if strip_dev:
+            # Extract base version (strip .devN+g... suffix)
+            import re
+            match = re.match(r'^(\d+\.\d+\.\d+)', version)
+            return match.group(1) if match else version
+        return version
+    except Exception:
+        return None
+
+def get_version_from_git_tag():
+    """Get clean version from nearest git tag (e.g., v0.3.0 -> 0.3.0)."""
+    try:
+        result = subprocess.run(
+            ['git', 'describe', '--tags', '--abbrev=0'],
+            capture_output=True, text=True, check=True,
+            cwd=str(parent_path)
+        )
+        tag = result.stdout.strip()
+        return tag[1:] if tag.startswith('v') else tag
+    except Exception:
+        return None
+
+def get_version_from_metadata():
+    """Get version from installed package metadata."""
     try:
         from importlib.metadata import version as get_version, PackageNotFoundError
-        release = get_version('qpandalite')
+        return get_version('qpandalite')
     except (PackageNotFoundError, Exception):
-        # Fallback: try to read from _version.py (setuptools_scm generated)
-        try:
-            _version_file = parent_path / 'qpandalite' / '_version.py'
-            if _version_file.exists():
-                exec(_version_file.read_text())
-                release = __version__
-            else:
-                release = '0.0.0+unknown'
-        except Exception:
-            release = '0.0.0+unknown'
+        return None
+
+def get_version_from_file():
+    """Get version from _version.py file."""
+    try:
+        _version_file = parent_path / 'qpandalite' / '_version.py'
+        if _version_file.exists():
+            exec(_version_file.read_text())
+            return __version__
+    except Exception:
+        pass
+    return None
+
+# If DOCS_STABLE_VERSION=1, use clean version from git tag (for releases)
+# Otherwise, use setuptools_scm which shows dev versions for main branch
+# RTD sets READTHEDOCS_VERSION env var: 'stable', 'latest', or tag name
+
+# Determine if this is a stable/release build
+is_stable = (
+    os.environ.get('DOCS_STABLE_VERSION') == '1' or
+    os.environ.get('READTHEDOCS_VERSION') == 'stable' or
+    (os.environ.get('READTHEDOCS_VERSION', '').startswith('v') and
+     os.environ.get('READTHEDOCS') == 'True')
+)
+
+if is_stable:
+    release = (
+        get_version_from_git_tag() or
+        get_version_from_setuptools_scm(strip_dev=True) or
+        get_version_from_metadata() or
+        get_version_from_file() or
+        '0.0.0+unknown'
+    )
+else:
+    # Default: show actual version (including dev versions for unreleased changes)
+    release = (
+        get_version_from_setuptools_scm(strip_dev=False) or
+        get_version_from_git_tag() or
+        get_version_from_metadata() or
+        get_version_from_file() or
+        '0.0.0+unknown'
+    )
+
+# Get RTD version for version switcher
+rtd_version = os.environ.get('READTHEDOCS_VERSION', 'latest')
+version_match = rtd_version if rtd_version in ('stable', 'latest') else release
 
 copyright = '2025, Agony5757'
 author = ', '.join(['Agony5757', 'YunJ1e', 'automatic-code-ztr', 'didaozi'])
@@ -125,6 +195,13 @@ html_theme_options = {
     "navigation_with_keys": True,
     "show_toc_level": 2,
     "header_links_before_dropdown": 6,
+    # Version switcher configuration for RTD
+    "switcher": {
+        "json_url": "https://qpandalite.readthedocs.io/zh-cn/latest/_static/switcher.json",
+        "version_match": version_match,
+    },
+    # Add version switcher to navbar
+    "navbar_end": ["theme-switcher", "version-switcher"],
 }
 
 suppress_warnings = ["myst.xref_missing"]

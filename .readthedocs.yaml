@@ -2,31 +2,26 @@
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
-# Required
 version: 2
 
-# Set the OS, Python version and other tools you might need
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.11"
-    # You can also specify other tool versions:
-    # nodejs: "19"
-    # rust: "1.64"
-    # golang: "1.19"
+    python: "3.12"
+  jobs:
+    pre_install:
+      # Install without C++ extension (not needed for docs)
+      - python setup.py develop --no-cpp
 
-# Build documentation in the "docs/" directory with Sphinx
 sphinx:
-   configuration: docs/conf.py
+  configuration: docs/conf.py
 
-# Optionally build your docs in additional formats such as PDF and ePub
-# formats:
-#    - pdf
-#    - epub
-
-# Optional but recommended, declare the Python requirements required
-# to build your documentation
-# See https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html
 python:
-   install:
-   - requirements: docs/requirements.txt
+  install:
+    - requirements: docs/requirements.txt
+
+# RTD automatically creates:
+# - "stable" version from the latest tag (shows clean version like 0.3.0)
+# - "latest" version from the default branch (shows dev version like 0.4.0.dev1)
+# - Individual versions for each tag (v0.3.0, v0.2.6, etc.)
+# Users can switch between versions via the version selector in the UI

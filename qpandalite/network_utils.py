@@ -27,6 +27,8 @@ def detect_system_proxy() -> dict[str, str | None]:
     - HTTP_PROXY / http_proxy
     - HTTPS_PROXY / https_proxy
 
+    Uppercase variants take precedence over lowercase ones.
+
     Returns:
         dict with keys 'http' and 'https', values are proxy URLs or None.
 
@@ -35,8 +37,25 @@ def detect_system_proxy() -> dict[str, str | None]:
         >>> print(proxies)
         {'http': 'http://proxy.example.com:8080', 'https': None}
     """
-    http_proxy = os.getenv("HTTP_PROXY") or os.getenv("http_proxy")
-    https_proxy = os.getenv("HTTPS_PROXY") or os.getenv("https_proxy")
+    # Use os.environ keys to check case-sensitive existence
+    # This works correctly on both Unix (case-sensitive) and Windows (case-insensitive)
+    env_keys = set(os.environ.keys())
+
+    # Check for HTTP proxy - uppercase takes precedence
+    if "HTTP_PROXY" in env_keys:
+        http_proxy = os.environ["HTTP_PROXY"]
+    elif "http_proxy" in env_keys:
+        http_proxy = os.environ["http_proxy"]
+    else:
+        http_proxy = None
+
+    # Check for HTTPS proxy - uppercase takes precedence
+    if "HTTPS_PROXY" in env_keys:
+        https_proxy = os.environ["HTTPS_PROXY"]
+    elif "https_proxy" in env_keys:
+        https_proxy = os.environ["https_proxy"]
+    else:
+        https_proxy = None
 
     return {
         "http": http_proxy,

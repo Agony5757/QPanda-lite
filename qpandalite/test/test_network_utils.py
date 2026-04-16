@@ -6,6 +6,7 @@ This module tests the proxy detection and connectivity checking utilities.
 from __future__ import annotations
 
 import os
+import platform
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -31,31 +32,16 @@ class TestDetectSystemProxy(unittest.TestCase):
             self.assertIsNone(result["http"])
             self.assertIsNone(result["https"])
 
-    def test_detect_http_proxy_uppercase(self):
-        """Test detection of HTTP_PROXY (uppercase)."""
+    def test_detect_http_proxy(self):
+        """Test detection of HTTP proxy."""
         with patch.dict(os.environ, {"HTTP_PROXY": "http://proxy.example.com:8080"}, clear=False):
-            # Ensure lowercase is not set
-            os.environ.pop("http_proxy", None)
-
             result = detect_system_proxy()
             self.assertEqual(result["http"], "http://proxy.example.com:8080")
             self.assertIsNone(result["https"])
 
-    def test_detect_http_proxy_lowercase(self):
-        """Test detection of http_proxy (lowercase)."""
-        with patch.dict(os.environ, {"http_proxy": "http://proxy.example.com:8080"}, clear=False):
-            # Ensure uppercase is not set
-            os.environ.pop("HTTP_PROXY", None)
-
-            result = detect_system_proxy()
-            self.assertEqual(result["http"], "http://proxy.example.com:8080")
-
     def test_detect_https_proxy(self):
         """Test detection of HTTPS_PROXY."""
         with patch.dict(os.environ, {"HTTPS_PROXY": "https://proxy.example.com:8080"}, clear=False):
-            # Ensure lowercase is not set
-            os.environ.pop("https_proxy", None)
-
             result = detect_system_proxy()
             self.assertEqual(result["https"], "https://proxy.example.com:8080")
 
@@ -70,8 +56,19 @@ class TestDetectSystemProxy(unittest.TestCase):
             self.assertEqual(result["http"], "http://http-proxy.example.com:8080")
             self.assertEqual(result["https"], "https://https-proxy.example.com:8443")
 
+    @unittest.skipIf(platform.system() == "Windows", "Windows env vars are case-insensitive")
+    def test_detect_http_proxy_lowercase(self):
+        """Test detection of http_proxy (lowercase) - Unix only."""
+        with patch.dict(os.environ, {"http_proxy": "http://proxy.example.com:8080"}, clear=False):
+            # Ensure uppercase is not set
+            os.environ.pop("HTTP_PROXY", None)
+
+            result = detect_system_proxy()
+            self.assertEqual(result["http"], "http://proxy.example.com:8080")
+
+    @unittest.skipIf(platform.system() == "Windows", "Windows env vars are case-insensitive")
     def test_uppercase_takes_precedence(self):
-        """Test that uppercase env vars take precedence over lowercase."""
+        """Test that uppercase env vars take precedence over lowercase - Unix only."""
         env_vars = {
             "HTTP_PROXY": "http://uppercase.example.com:8080",
             "http_proxy": "http://lowercase.example.com:9090"

@@ -20,74 +20,65 @@ from qpandalite.network_utils import (
 class TestDetectSystemProxy(unittest.TestCase):
     """Tests for detect_system_proxy function."""
 
-    def setUp(self):
-        """Save original environment variables."""
-        self.original_env = {
-            "HTTP_PROXY": os.environ.get("HTTP_PROXY"),
-            "http_proxy": os.environ.get("http_proxy"),
-            "HTTPS_PROXY": os.environ.get("HTTPS_PROXY"),
-            "https_proxy": os.environ.get("https_proxy"),
-        }
-
-    def tearDown(self):
-        """Restore original environment variables."""
-        for key, value in self.original_env.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
-
     def test_detect_no_proxy(self):
         """Test detection when no proxy is set."""
-        # Clear all proxy env vars
-        for key in ["HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy"]:
-            os.environ.pop(key, None)
+        # Clear all proxy env vars using mock
+        with patch.dict(os.environ, {}, clear=False):
+            for key in ["HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy"]:
+                os.environ.pop(key, None)
 
-        result = detect_system_proxy()
-        self.assertIsNone(result["http"])
-        self.assertIsNone(result["https"])
+            result = detect_system_proxy()
+            self.assertIsNone(result["http"])
+            self.assertIsNone(result["https"])
 
     def test_detect_http_proxy_uppercase(self):
         """Test detection of HTTP_PROXY (uppercase)."""
-        os.environ["HTTP_PROXY"] = "http://proxy.example.com:8080"
-        os.environ.pop("http_proxy", None)
+        with patch.dict(os.environ, {"HTTP_PROXY": "http://proxy.example.com:8080"}, clear=False):
+            # Ensure lowercase is not set
+            os.environ.pop("http_proxy", None)
 
-        result = detect_system_proxy()
-        self.assertEqual(result["http"], "http://proxy.example.com:8080")
-        self.assertIsNone(result["https"])
+            result = detect_system_proxy()
+            self.assertEqual(result["http"], "http://proxy.example.com:8080")
+            self.assertIsNone(result["https"])
 
     def test_detect_http_proxy_lowercase(self):
         """Test detection of http_proxy (lowercase)."""
-        os.environ["http_proxy"] = "http://proxy.example.com:8080"
-        os.environ.pop("HTTP_PROXY", None)
+        with patch.dict(os.environ, {"http_proxy": "http://proxy.example.com:8080"}, clear=False):
+            # Ensure uppercase is not set
+            os.environ.pop("HTTP_PROXY", None)
 
-        result = detect_system_proxy()
-        self.assertEqual(result["http"], "http://proxy.example.com:8080")
+            result = detect_system_proxy()
+            self.assertEqual(result["http"], "http://proxy.example.com:8080")
 
     def test_detect_https_proxy(self):
         """Test detection of HTTPS_PROXY."""
-        os.environ["HTTPS_PROXY"] = "https://proxy.example.com:8080"
-        os.environ.pop("https_proxy", None)
+        with patch.dict(os.environ, {"HTTPS_PROXY": "https://proxy.example.com:8080"}, clear=False):
+            # Ensure lowercase is not set
+            os.environ.pop("https_proxy", None)
 
-        result = detect_system_proxy()
-        self.assertEqual(result["https"], "https://proxy.example.com:8080")
+            result = detect_system_proxy()
+            self.assertEqual(result["https"], "https://proxy.example.com:8080")
 
     def test_detect_both_proxies(self):
         """Test detection of both HTTP and HTTPS proxies."""
-        os.environ["HTTP_PROXY"] = "http://http-proxy.example.com:8080"
-        os.environ["HTTPS_PROXY"] = "https://https-proxy.example.com:8443"
-
-        result = detect_system_proxy()
-        self.assertEqual(result["http"], "http://http-proxy.example.com:8080")
-        self.assertEqual(result["https"], "https://https-proxy.example.com:8443")
+        env_vars = {
+            "HTTP_PROXY": "http://http-proxy.example.com:8080",
+            "HTTPS_PROXY": "https://https-proxy.example.com:8443"
+        }
+        with patch.dict(os.environ, env_vars, clear=False):
+            result = detect_system_proxy()
+            self.assertEqual(result["http"], "http://http-proxy.example.com:8080")
+            self.assertEqual(result["https"], "https://https-proxy.example.com:8443")
 
     def test_uppercase_takes_precedence(self):
         """Test that uppercase env vars take precedence over lowercase."""
-        os.environ["HTTP_PROXY"] = "http://uppercase.example.com:8080"
-        os.environ["http_proxy"] = "http://lowercase.example.com:9090"
-
-        result = detect_system_proxy()
-        self.assertEqual(result["http"], "http://uppercase.example.com:8080")
+        env_vars = {
+            "HTTP_PROXY": "http://uppercase.example.com:8080",
+            "http_proxy": "http://lowercase.example.com:9090"
+        }
+        with patch.dict(os.environ, env_vars, clear=False):
+            result = detect_system_proxy()
+            self.assertEqual(result["http"], "http://uppercase.example.com:8080")
 
 
 class TestCheckProxyConnectivity(unittest.TestCase):

@@ -25,19 +25,67 @@ if TYPE_CHECKING:
 
 
 class QiskitAdapter(QuantumAdapter):
-    """Adapter for IBM Quantum backends via Qiskit."""
+    """Adapter for IBM Quantum backends via Qiskit.
+
+    Proxy Configuration:
+        Proxies can be passed via the `proxy` parameter:
+        - Dict with 'http' and/or 'https' keys
+        - Or a single proxy URL string for both protocols
+
+    Example:
+        >>> adapter = QiskitAdapter(proxy={
+        ...     "http": "http://proxy.example.com:8080",
+        ...     "https": "https://proxy.example.com:8080"
+        ... })
+    """
 
     name = "ibm"
 
-    def __init__(self) -> None:
+    def __init__(self, proxy: dict[str, str] | str | None = None) -> None:
+        """Initialize the Qiskit adapter.
+
+        Args:
+            proxy: Optional proxy configuration.
+                - Dict with 'http' and/or 'https' keys
+                - Or a single proxy URL string
+        """
         config = load_ibm_config()
         self._api_token: str = config["api_token"]
+        self._proxy: dict[str, str] | str | None = proxy
 
         import qiskit_ibm_provider
+
+        # Set up proxy for qiskit-ibm-provider if proxy is configured
+        if proxy:
+            self._setup_proxy(proxy)
 
         qiskit_ibm_provider.IBMProvider.save_account(self._api_token)
         self._provider = qiskit_ibm_provider.IBMProvider(instance="ibm-q/open/main")
         self._backends = self._provider.backends()
+
+    def _setup_proxy(self, proxy: dict[str, str] | str) -> None:
+        """Configure proxy settings for Qiskit/IBM provider.
+
+        Args:
+            proxy: Proxy configuration dict or URL string.
+        """
+        import os
+
+        # Convert dict proxy to URL format if needed
+        if isinstance(proxy, dict):
+            https_proxy = proxy.get("https")
+            http_proxy = proxy.get("http")
+            # Prefer HTTPS proxy for IBM Quantum
+            proxy_url = https_proxy or http_proxy
+        else:
+            proxy_url = proxy
+
+        if proxy_url:
+            # Set environment variables for qiskit and underlying libraries
+            os.environ["HTTP_PROXY"] = proxy_url
+            os.environ["HTTPS_PROXY"] = proxy_url
+            os.environ["http_proxy"] = proxy_url
+            os.environ["https_proxy"] = proxy_url
 
     def is_available(self) -> bool:
         """Check if the Qiskit adapter is available (IBM provider initialized).

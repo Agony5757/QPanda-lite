@@ -45,7 +45,9 @@ jobs:
         python-version: '3.11'
 
     - name: Install package
-      run: pip install . --no-cache-dir
+      run: |
+        pip uninstall qpandalite -y 2>/dev/null || true
+        pip install . --no-cache-dir
 
     - name: Install test dependencies
       run: pip install pytest pytest-cov

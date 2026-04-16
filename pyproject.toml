@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=64", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 # setup.py is retained for custom CMakeExtension / CMakeBuild logic
 
@@ -70,8 +70,9 @@ dev = [
     "pytest-cov>=7.1.0",
 ]
 
-[tool.setuptools.dynamic]
-version = { attr = "qpandalite.version.__version__" }
+[tool.setuptools_scm]
+write_to = "qpandalite/_version.py"
+fallback_version = "0.0.0"
 
 [tool.setuptools.package-data]
 "qpandalite" = ["test/QASMBench.pkl", "*.pyi"]

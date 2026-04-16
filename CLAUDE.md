@@ -52,7 +52,7 @@ ruff format .         # format
 ruff check . --fix    # auto-fix lint issues
 ```
 
-Ruff config: line length 120, target Python 3.9. Rules: E, F, W, I, N, UP, B, C4, SIM. E501 and physics naming conventions (N801/N803/N806) are intentionally ignored.
+Ruff config: line length 120, target Python 3.10. Rules: E, F, W, I, N, UP, B, C4, SIM. E501 and physics naming conventions (N801/N803/N806) are intentionally ignored.
 
 Pre-commit hooks are configured (ruff lint + format, YAML check, trailing whitespace).
 
@@ -78,6 +78,18 @@ Pre-commit hooks are configured (ruff lint + format, YAML check, trailing whites
 ### C++ Backend
 
 `QPandaLiteCpp/` contains the C++ simulation backend compiled as a pybind11 extension (`qpandalite_cpp`). Dependencies (pybind11 v2.13.6, fmt) are git submodules under `QPandaLiteCpp/Thirdparty/`. The `CMakeExtension` class in `setup.py` handles CMake-based compilation. Building without C++ uses `pip install . --no-cpp`.
+
+## Releasing
+
+The package version is automatically managed by [setuptools_scm](https://setuptools-scm.readthedocs.io/), which extracts the version from git tags. The version is determined at build time from the latest git tag matching `v*`.
+
+To release a new version:
+
+1. Ensure all changes are committed and merged to `main`
+2. Tag the release: `git tag vX.Y.Z` (the tag **must start with `v`**)
+3. Push the tag: `git push origin --tags`
+
+Pushing a `v*` tag triggers `pypi-publish.yml`, which builds wheels (Linux manylinux + Windows, Python 3.10–3.14) with the C++ extension via `cibuildwheel` and publishes them to PyPI using Trusted Publishing (OIDC). No manual version bump is needed — the version is automatically extracted from the git tag.
 
 ## Known Issues
 

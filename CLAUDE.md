@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Workflow
+
+The `main` branch is protected — never push directly to it. Always:
+
+1. Create a feature branch from `main`
+2. Commit changes and push to the remote branch
+3. Open a pull request targeting `main`
+4. Wait for review and approval before merging
+
 ## Project Overview
 
 QPanda-lite is a Python-native quantum programming framework for NISQ devices. It provides circuit construction, simulation (local and cloud), and result analysis. The core is pure Python with an optional C++ simulation backend via pybind11.

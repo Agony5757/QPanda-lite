@@ -73,4 +73,3 @@ Pre-commit hooks are configured (ruff lint + format, YAML check, trailing whites
 ## Known Issues
 
 - `crx`/`crz`/`cy` gates produce incorrect results with the density matrix backend when combined with multiple gates. Avoid these in noisy simulation.
-- `controlled_by` simulation is incorrect with `backend='density_operator'` / `backend='density_operator_qutip'`.

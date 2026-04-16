@@ -197,7 +197,7 @@ html_theme_options = {
     "header_links_before_dropdown": 6,
     # Logo/title configuration - only show project name without version
     "logo": {
-        "text": "QPanda-lite",
+        "text": "QPanda-lite文档",
     },
     # Version switcher configuration for RTD
     "switcher": {

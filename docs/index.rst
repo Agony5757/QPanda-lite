@@ -13,7 +13,7 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
     :target: https://badge.fury.io/py/qpandalite
 
 .. |Docs| image:: https://readthedocs.org/projects/qpanda-lite/badge/?version=latest
-    :target: https://qpanda-lite.readthedocs.io/en/latest/?badge=latest
+    :target: https://qpanda-lite.readthedocs.io/zh-cn/latest/?badge=latest
 
 .. |Build| image:: https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml/badge.svg?branch=main
     :target: https://github.com/Agony5757/QPanda-lite/actions/workflows/build_and_test.yml

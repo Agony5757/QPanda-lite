@@ -5,8 +5,32 @@ name: Build-and-test
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - '**.py'
+      - '**.cpp'
+      - '**.cc'
+      - '**.c'
+      - '**.h'
+      - '**.hpp'
+      - '**.hxx'
+      - '**/CMakeLists.txt'
+      - '**.cmake'
+      - 'setup.py'
+      - '.github/workflows/build_and_test.yml'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '**.py'
+      - '**.cpp'
+      - '**.cc'
+      - '**.c'
+      - '**.h'
+      - '**.hpp'
+      - '**.hxx'
+      - '**/CMakeLists.txt'
+      - '**.cmake'
+      - 'setup.py'
+      - '.github/workflows/build_and_test.yml'
 
 jobs:
   build:

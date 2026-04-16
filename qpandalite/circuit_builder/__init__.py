@@ -38,4 +38,5 @@ from .translate_qasm2_oir import (
     direct_mapping_qasm2_to_oir,
     get_opcode_from_QASM2,
     get_QASM2_from_opcode,
+    decompose_mcu_qasm_text,
 )

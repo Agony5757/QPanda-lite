@@ -3,7 +3,7 @@ This file is used to convert the opcode to various quantum code formats.
 """
 
 from typing import List, Optional, Tuple, Union
-from .translate_qasm2_oir import OriginIR_QASM2_dict, get_QASM2_from_opcode, decompose_mcx_qasm_text
+from .translate_qasm2_oir import OriginIR_QASM2_dict, get_QASM2_from_opcode, decompose_mcu_qasm_text
 
 __all__ = [
     'make_header_originir',
@@ -146,32 +146,33 @@ def opcode_to_line_qasm(opcode: OpcodeType, qubit_num: Optional[int] = None) -> 
     """
     Convert the given opcode to QASM line format.
 
-    For gates with ≥ 4 control qubits on an X gate, a multi-line Toffoli-ladder
-    decomposition is returned.  The *qubit_num* argument must be supplied in that
-    case so workspace qubits can be located; otherwise a NotImplementedError is
-    raised.
+    For gates with ≥ 4 control qubits, a multi-line decomposition is returned
+    (Toffoli-ladder for MCX; conjugation or ABC decomposition for other gates).
+    The *qubit_num* argument must be supplied in that case so workspace qubits
+    can be located; otherwise a NotImplementedError is raised.
 
     Args:
         opcode (OpcodeType): The given opcode to be converted.
         qubit_num (Optional[int]): Total number of qubits in the circuit (needed
-            for MCX decomposition with ≥ 4 controls).
+            for multi-controlled gate decomposition with ≥ 4 controls).
 
     Returns:
-        str: The converted QASM line format (potentially multi-line for MCX
-        decompositions).
+        str: The converted QASM line format (potentially multi-line for
+        multi-controlled gate decompositions).
     """
 
     operation, qubit, cbit, parameter = get_QASM2_from_opcode(opcode)
 
-    # Sentinel returned by get_QASM2_from_opcode for n≥4 control MCX.
-    if operation == '_MCX_DECOMP_':
-        controls_list, target = qubit  # type: ignore[misc]
+    # Sentinel returned by get_QASM2_from_opcode for n≥4 control gates.
+    if operation == '_MCU_DECOMP_':
+        controls_list, target, gate_qasm, params, _ = qubit  # type: ignore[misc]
         if qubit_num is None:
             raise NotImplementedError(
-                "MCX with ≥4 controls cannot be decomposed without knowing the "
-                "circuit's qubit count. Pass qubit_num to opcode_to_line_qasm."
+                f"Multi-controlled {gate_qasm} with ≥4 controls cannot be "
+                "decomposed without knowing the circuit's qubit count. "
+                "Pass qubit_num to opcode_to_line_qasm."
             )
-        return decompose_mcx_qasm_text(controls_list, target, qubit_num)
+        return decompose_mcu_qasm_text(controls_list, target, qubit_num, gate_qasm, params)
 
     # operation qubits (,parameter?) (,cbits?) (dagger?) (control?)
     if not operation:

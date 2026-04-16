@@ -11,9 +11,11 @@ Key exports:
     get_opcode_from_QASM2: Convert QASM2 operation to OriginIR opcode.
     get_QASM2_from_opcode: Convert OriginIR opcode to QASM2 operation.
     decompose_mcx_qasm_text: Decompose multi-controlled X gates for QASM2.
+    decompose_mcu_qasm_text: Decompose multi-controlled single-qubit gates for QASM2.
 """
 
-from typing import List, Tuple, Union
+import math
+from typing import List, Optional, Tuple, Union
 from .qasm_spec import available_qasm_gates
 
 __all__ = [
@@ -23,6 +25,7 @@ __all__ = [
     'get_opcode_from_QASM2',
     'get_QASM2_from_opcode',
     'decompose_mcx_qasm_text',
+    'decompose_mcu_qasm_text',
 ]
 
 qasm2_oir_mapping = {
@@ -239,6 +242,13 @@ def get_QASM2_from_opcode(opcode) -> Tuple[str, Union[int, List[int]], Union[int
             pass
         elif operation_qasm2 in ['rx', 'ry', 'rz', 'u1', 'rxx', 'ryy', 'rzz']:
             parameters = -parameters
+        elif operation_qasm2 == 'u3':
+            # U3(θ,φ,λ)† = U3(-θ,-λ,-φ)
+            if isinstance(parameters, list):
+                theta, phi, lam = parameters[0], parameters[1], parameters[2]
+            else:
+                theta, phi, lam = parameters
+            parameters = [-theta, -lam, -phi]
         else:
             raise NotImplementedError(f"The operation {operation} with dagger flag is not supported in QPanda-lite.")
 
@@ -277,13 +287,212 @@ def get_QASM2_from_opcode(opcode) -> Tuple[str, Union[int, List[int]], Union[int
         return operation_qasm2, qubits_out, cbits, parameters
 
     # n >= 4 controls: signal to opcode_to_line_qasm that decomposition is needed.
-    # Only X is handled; other gates raise NotImplementedError (see 已知问题.md).
-    if operation_qasm2 != 'x':
+    # Supported single-qubit gates are decomposed via conjugation or ABC method.
+    _mcu_supported_gates = {
+        'x', 'z', 'y', 's', 'sdg', 'rz', 'rx', 'u1',
+        'u3', 'ry', 'sx', 'sxdg', 'h',
+    }
+    if operation_qasm2 not in _mcu_supported_gates:
         raise NotImplementedError(
             f"QASM 2.0 export does not support the gate '{operation}' with "
             f"{len(ctrl_list)} control qubits. Use OriginIR export instead."
         )
     # Return a sentinel that opcode_to_line_qasm will intercept.
+    # dagger_flag has already been applied to operation_qasm2/parameters above,
+    # so we pass False here to avoid double-applying.
     target_qubit = qubits if not isinstance(qubits, list) else qubits[0]
-    return '_MCX_DECOMP_', (ctrl_list, target_qubit), None, None
+    return '_MCU_DECOMP_', (ctrl_list, target_qubit, operation_qasm2, parameters, False), None, None
+
+
+def _qasm_gate(name: str, qubit: int, param: Optional[float] = None) -> str:
+    """Format a single QASM 2.0 gate line."""
+    if param is not None:
+        return f"{name}({param}) q[{qubit}];"
+    return f"{name} q[{qubit}];"
+
+
+def _scalar(params: Union[float, List[float]]) -> float:
+    """Extract a scalar from a parameter that may be a float or a single-element list."""
+    if isinstance(params, list):
+        return float(params[0])
+    return float(params)
+
+
+def _abc_decompose(
+    phi: float, theta: float, lam: float,
+    controls: List[int], target: int, qubit_num: int,
+) -> str:
+    """Decompose a multi-controlled gate via the ABC method (Barenco et al.).
+
+    Given a gate with SU(2) ZYZ decomposition V = RZ(phi)·RY(theta)·RZ(lam),
+    compute A, B, C such that CBA = I and AXBXC = V, then emit:
+        A → MCX → B → MCX → C  (on the target qubit).
+    """
+    mcx_lines = decompose_mcx_qasm_text(controls, target, qubit_num)
+
+    # A = RZ(phi - lam)
+    # B = RZ(pi - lam) · RY(theta/2) · RZ((lam - phi)/2 - pi)
+    # C = RZ((lam - phi)/2) · RY(theta/2) · RZ(lam)
+
+    a_phi_lam = phi - lam
+    b_rz1 = math.pi - lam
+    b_ry = theta / 2
+    b_rz2 = (lam - phi) / 2 - math.pi
+    c_rz1 = (lam - phi) / 2
+    c_ry = theta / 2
+    c_rz2 = lam
+
+    lines: List[str] = []
+
+    # A
+    if abs(a_phi_lam) > 1e-15:
+        lines.append(_qasm_gate('rz', target, a_phi_lam))
+
+    # MCX
+    lines.append(mcx_lines)
+
+    # B
+    if abs(b_rz1) > 1e-15:
+        lines.append(_qasm_gate('rz', target, b_rz1))
+    if abs(b_ry) > 1e-15:
+        lines.append(_qasm_gate('ry', target, b_ry))
+    if abs(b_rz2) > 1e-15:
+        lines.append(_qasm_gate('rz', target, b_rz2))
+
+    # MCX
+    lines.append(mcx_lines)
+
+    # C
+    if abs(c_rz1) > 1e-15:
+        lines.append(_qasm_gate('rz', target, c_rz1))
+    if abs(c_ry) > 1e-15:
+        lines.append(_qasm_gate('ry', target, c_ry))
+    if abs(c_rz2) > 1e-15:
+        lines.append(_qasm_gate('rz', target, c_rz2))
+
+    return "\n".join(lines)
+
+
+def decompose_mcu_qasm_text(
+    controls: List[int],
+    target: int,
+    qubit_num: int,
+    gate_qasm: str,
+    params: Optional[Union[float, List[float]]],
+) -> str:
+    """Decompose an n-control single-qubit gate into QASM 2.0 statements.
+
+    Uses two strategies:
+    - **Tier 1 (conjugation, 1 MCX)**: For gates where G = U·X·U†.
+      Supported: X, Z, Y, S, Sdg, RZ, RX, U1.
+    - **Tier 2 (ABC method, 2 MCX)**: For gates requiring the general
+      Barenco decomposition A·MCX·B·MCX·C.
+      Supported: U3, RY, SX, H.
+
+    Args:
+        controls: Ordered list of n ≥ 4 control qubit indices.
+        target: Target qubit index.
+        qubit_num: Total number of qubits declared in the circuit.
+        gate_qasm: QASM 2.0 gate name (already dagger-adjusted).
+        params: Gate parameter(s), already dagger-adjusted if applicable.
+
+    Returns:
+        Multi-line QASM 2.0 string.
+
+    Raises:
+        NotImplementedError: Gate is not supported for decomposition.
+    """
+    n = len(controls)
+    assert n >= 4, f"decompose_mcu_qasm_text requires n>=4, got {n}"
+
+    mcx_lines = decompose_mcx_qasm_text(controls, target, qubit_num)
+
+    # --- Tier 1: simple conjugation G = U · X · U† (1 MCX) ---
+
+    if gate_qasm == 'x':
+        return mcx_lines
+
+    if gate_qasm == 'z':
+        return f"h q[{target}];\n{mcx_lines}\nh q[{target}];"
+
+    if gate_qasm == 'y':
+        return (
+            f"sdg q[{target}];\nh q[{target}];\n"
+            f"{mcx_lines}\n"
+            f"h q[{target}];\ns q[{target}];"
+        )
+
+    if gate_qasm == 's':
+        return (
+            f"h q[{target}];\nt q[{target}];\n"
+            f"{mcx_lines}\n"
+            f"tdg q[{target}];\nh q[{target}];"
+        )
+
+    if gate_qasm == 'sdg':
+        return (
+            f"h q[{target}];\ntdg q[{target}];\n"
+            f"{mcx_lines}\n"
+            f"t q[{target}];\nh q[{target}];"
+        )
+
+    if gate_qasm == 'rz':
+        half = _scalar(params) / 2
+        return (
+            f"rz({half}) q[{target}];\nh q[{target}];\n"
+            f"{mcx_lines}\n"
+            f"h q[{target}];\nrz({half}) q[{target}];"
+        )
+
+    if gate_qasm == 'rx':
+        half = _scalar(params) / 2
+        return (
+            f"h q[{target}];\nrz({half}) q[{target}];\nh q[{target}];\n"
+            f"{mcx_lines}\n"
+            f"h q[{target}];\nrz({half}) q[{target}];\nh q[{target}];"
+        )
+
+    if gate_qasm == 'u1':
+        half = _scalar(params) / 2
+        return (
+            f"rz({half}) q[{target}];\nh q[{target}];\n"
+            f"{mcx_lines}\n"
+            f"h q[{target}];\nrz({half}) q[{target}];"
+        )
+
+    # --- Tier 2: ABC decomposition (2 MCX) ---
+
+    if gate_qasm == 'u3':
+        p = params if isinstance(params, list) else [params]
+        theta, phi, lam = p[0], p[1], p[2]
+        # U3(theta, phi, lam) — ZYZ decomposition: phi, theta, lam
+        return _abc_decompose(phi, theta, lam, controls, target, qubit_num)
+
+    if gate_qasm == 'ry':
+        theta = _scalar(params)
+        # RY(theta) — ZYZ: phi=0, theta=theta, lam=0
+        return _abc_decompose(0.0, theta, 0.0, controls, target, qubit_num)
+
+    if gate_qasm == 'sx':
+        # SX — SU(2) part ZYZ: phi=-pi/2, theta=pi/2, lam=pi/2
+        return _abc_decompose(
+            -math.pi / 2, math.pi / 2, math.pi / 2,
+            controls, target, qubit_num,
+        )
+
+    if gate_qasm == 'sxdg':
+        # SXdg — SU(2) part ZYZ: phi=-pi/2, theta=-pi/2, lam=pi/2
+        return _abc_decompose(
+            -math.pi / 2, -math.pi / 2, math.pi / 2,
+            controls, target, qubit_num,
+        )
+
+    if gate_qasm == 'h':
+        # H — SU(2) part ZYZ: phi=0, theta=pi, lam=0
+        return _abc_decompose(0.0, math.pi, 0.0, controls, target, qubit_num)
+
+    raise NotImplementedError(
+        f"QASM 2.0 export does not support decomposing '{gate_qasm}' with "
+        f"{n} control qubits. Use OriginIR export instead."
+    )
 

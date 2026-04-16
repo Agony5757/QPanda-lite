@@ -55,9 +55,30 @@ pytorch = ["torch>=2.0"]
 
 [tool.setuptools]
 zip-safe = false
-
-[tool.setuptools.packages.find]
-exclude = ["qpandalite.test*"]
+packages = [
+    "qpandalite",
+    "qpandalite.algorithmics",
+    "qpandalite.algorithmics.ansatz",
+    "qpandalite.algorithmics.circuits",
+    "qpandalite.algorithmics.measurement",
+    "qpandalite.algorithmics.state_preparation",
+    "qpandalite.analyzer",
+    "qpandalite.circuit_builder",
+    "qpandalite.originir",
+    "qpandalite.pytorch",
+    "qpandalite.qasm",
+    "qpandalite.qcloud_config",
+    "qpandalite.simulator",
+    "qpandalite.task",
+    "qpandalite.task.adapters",
+    "qpandalite.task.ibm",
+    "qpandalite.task.origin_qcloud",
+    "qpandalite.task.originq",
+    "qpandalite.task.originq_dummy",
+    "qpandalite.task.platform_template",
+    "qpandalite.task.quafu",
+    "qpandalite.transpiler",
+]
 
 [tool.ruff]
 line-length = 120

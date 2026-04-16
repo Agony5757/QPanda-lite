@@ -1,4 +1,7 @@
 from .qcircuit import Circuit
+from .qubit import Qubit, QReg, QRegSlice
+from .parameter import Parameter, Parameters
+from .named_circuit import circuit_def, NamedCircuit
 from .opcode import (
     make_header_originir,
     make_header_qasm,

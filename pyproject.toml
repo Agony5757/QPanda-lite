@@ -44,10 +44,14 @@ dependencies = [
     "qutip-qip",
     "pyqpanda3",
     "pyyaml>=6.0",
+    "sympy>=1.12",
 ]
 
 [project.urls]
 "Source Code" = "https://github.com/Agony5757/QPanda-Lite.git"
+
+[project.optional-dependencies]
+pytorch = ["torch>=2.0"]
 
 [tool.setuptools]
 zip-safe = false

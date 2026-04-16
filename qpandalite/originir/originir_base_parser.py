@@ -16,6 +16,7 @@ from qpandalite.circuit_builder.qcircuit import Circuit
 
 from .originir_line_parser import OriginIR_LineParser
 
+
 class OriginIR_BaseParser:
     """Parser for OriginIR quantum circuit representation.
 
@@ -29,33 +30,33 @@ class OriginIR_BaseParser:
 
     def __init__(self):
         self.n_qubit = None
-        self.n_cbit = None        
+        self.n_cbit = None
         self.program_body = list()
         self.raw_originir = None
-        self.measure_qubits : List[Tuple[int, int]]= list()
+        self.measure_qubits: List[Tuple[int, int]] = list()
 
     def _extract_qinit_statement(self, lines):
         for i, line in enumerate(lines):
             operation, q, c, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(line.strip())
             if operation is None:
                 continue
-            if operation != 'QINIT':
-                raise ValueError('OriginIR input does not have correct QINIT statement.')
-            
+            if operation != "QINIT":
+                raise ValueError("OriginIR input does not have correct QINIT statement.")
+
             self.n_qubit = q
 
             # skip this line
             return i + 1
-    
+
     def _extract_creg_statement(self, lines, start_lineno):
         for i in range(start_lineno, len(lines)):
             operation, q, c, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(lines[i].strip())
-            
+
             if operation is None:
                 continue
-            if operation != 'CREG':
-                raise ValueError('OriginIR input does not have correct CREG statement.')
-            
+            if operation != "CREG":
+                raise ValueError("OriginIR input does not have correct CREG statement.")
+
             self.n_cbit = c
 
             # skip this line
@@ -70,51 +71,56 @@ class OriginIR_BaseParser:
         Returns:
             Circuit: A qpandalite Circuit object.
         """
-        
+
         self.raw_originir = originir_str
 
-        # Split into lines, and use strip() to skip the blank lines   
+        # Split into lines, and use strip() to skip the blank lines
         lines = originir_str.strip().splitlines()
 
         if not lines:
-            raise ValueError('Parse error. Input is empty.')
-        
+            raise ValueError("Parse error. Input is empty.")
+
         # Extract the QINIT statement and CBIT statement
         # Note: always return current line number (current_lineno)
         # Will raise ValueError when the statement does not follow the grammar.
         # The remaining part will not have QINIT and CBIT statements
         current_lineno = self._extract_qinit_statement(lines)
         current_lineno = self._extract_creg_statement(lines, current_lineno)
-        
+
         control_qubits_set = set()
         dagger_count = 0
         dagger_stack = list()
 
-        for lineno in range(current_lineno, len(lines)): 
+        for lineno in range(current_lineno, len(lines)):
             # handle the line
             line = lines[lineno]
-            operation, qubits, cbit, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(line.strip())
+            operation, qubits, cbit, parameter, dagger_flag, control_qubits = OriginIR_LineParser.parse_line(
+                line.strip()
+            )
             if operation is None:
                 continue
-            
+
             # check if the operational qubit and cbit are within range
             if isinstance(qubits, list):
                 for qubit in qubits:
                     if qubit >= self.n_qubit:
-                        raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                        f'Qubit exceeds the maximum (QINIT {self.n_qubit}).')                    
+                        raise ValueError(
+                            f"Parse error at line {lineno}: {line}\nQubit exceeds the maximum (QINIT {self.n_qubit})."
+                        )
             elif qubits:
                 if qubits >= self.n_qubit:
-                    raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                    f'Qubit exceeds the maximum (QINIT {self.n_qubit}).')
+                    raise ValueError(
+                        f"Parse error at line {lineno}: {line}\nQubit exceeds the maximum (QINIT {self.n_qubit})."
+                    )
             else:
                 # Dagger statement does not contain qubit parameter
                 pass
 
             if cbit and cbit >= self.n_cbit:
-                raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                 f'Cbit exceeds the maximum (CBIT {self.n_cbit}).')
-            
+                raise ValueError(
+                    f"Parse error at line {lineno}: {line}\nCbit exceeds the maximum (CBIT {self.n_cbit})."
+                )
+
             # Handle the control statement
             if operation == "CONTROL":
                 # Add all control qubits to the set
@@ -143,86 +149,83 @@ class OriginIR_BaseParser:
                     else:
                         dagger_stack[-1].extend(reversed_ops[::-1])
                 else:
-                    raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                      'Encounter ENDDAGGER operation before any DAGGER.')
+                    raise ValueError(
+                        f"Parse error at line {lineno}: {line}\nEncounter ENDDAGGER operation before any DAGGER."
+                    )
                 dagger_count -= 1
             # Handle the common statements
             else:
                 # Handle the measure statement
-                if operation == 'MEASURE':
+                if operation == "MEASURE":
                     if control_qubits_set:
-                        raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                         'MEASURE operation is inside a CONTROL block.')
-                    
+                        raise ValueError(
+                            f"Parse error at line {lineno}: {line}\nMEASURE operation is inside a CONTROL block."
+                        )
+
                     if dagger_stack:
-                        raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                         'MEASURE operation is inside a DAGGER block.')
-                    
+                        raise ValueError(
+                            f"Parse error at line {lineno}: {line}\nMEASURE operation is inside a DAGGER block."
+                        )
+
                     # Add the measurement to the list of measurements
-                    self.measure_qubits.append((qubits, cbit))                
+                    self.measure_qubits.append((qubits, cbit))
                 else:
-                    # For common statements (gates)                    
+                    # For common statements (gates)
                     if dagger_count % 2:
                         dagger_flag = dagger_flag ^ True
                     else:
                         dagger_flag = dagger_flag ^ False
-                    
+
                     ctrl_qubits = deepcopy(control_qubits_set)
                     # Add the control qubits to the set of control qubits
                     for qubit in control_qubits:
                         if qubit in ctrl_qubits:
-                            raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                             f'Qubit {qubit} is duplicated in the CONTROL statement.')
+                            raise ValueError(
+                                f"Parse error at line {lineno}: {line}\n"
+                                f"Qubit {qubit} is duplicated in the CONTROL statement."
+                            )
                         ctrl_qubits.add(qubit)
-                    
+
                     # check whether qubits and ctrl_qubit have duplicates
                     qubits_used = deepcopy(ctrl_qubits)
                     if isinstance(qubits, int):
                         if qubits in ctrl_qubits:
-                            raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                             f'Qubit {qubits} is duplicated in the CONTROL statement.')
+                            raise ValueError(
+                                f"Parse error at line {lineno}: {line}\n"
+                                f"Qubit {qubits} is duplicated in the CONTROL statement."
+                            )
                     else:
                         for qubit in qubits:
                             if qubit in ctrl_qubits:
-                                raise ValueError(f'Parse error at line {lineno}: {line}\n'
-                                                 f'Qubit {qubit} is duplicated in the CONTROL statement.')
+                                raise ValueError(
+                                    f"Parse error at line {lineno}: {line}\n"
+                                    f"Qubit {qubit} is duplicated in the CONTROL statement."
+                                )
                             qubits_used.add(qubit)
 
                     if dagger_stack:
                         # insert to the top of the dagger stack
-                        dagger_stack[-1].append((operation, 
-                                                qubits, 
-                                                cbit, 
-                                                parameter, 
-                                                dagger_flag, 
-                                                ctrl_qubits))
+                        dagger_stack[-1].append((operation, qubits, cbit, parameter, dagger_flag, ctrl_qubits))
                     else:
-                        self.program_body.append((operation, 
-                                                qubits, 
-                                                cbit, 
-                                                parameter, 
-                                                dagger_flag, 
-                                                ctrl_qubits))
-                    
+                        self.program_body.append((operation, qubits, cbit, parameter, dagger_flag, ctrl_qubits))
+
         # Finally, check if all dagger and control operations are closed
         if control_qubits_set:
-            raise ValueError('Parse error at end.\n'
-                             'The CONTROL operation is not closed at the end of the OriginIR.')
+            raise ValueError("Parse error at end.\nThe CONTROL operation is not closed at the end of the OriginIR.")
         if dagger_stack:
-            raise ValueError('Parse error at end.\n'
-                             'The DAGGER operation is not closed at the end of the OriginIR.')
-        
+            raise ValueError("Parse error at end.\nThe DAGGER operation is not closed at the end of the OriginIR.")
+
     def to_extended_originir(self):
         """Convert parsed data back to extended OriginIR string.
 
         Returns:
             str: Extended OriginIR string representation.
         """
-        ret = f'QINIT {self.n_qubit}\n'
-        ret += f'CREG {self.n_cbit}\n'
-        ret += '\n'.join([opcode_to_line_originir(opcode) for opcode in self.program_body])
+        ret = f"QINIT {self.n_qubit}\n"
+        ret += f"CREG {self.n_cbit}\n"
+        ret += "\n".join([opcode_to_line_originir(opcode) for opcode in self.program_body])
         return ret
-    
+
     @property
     def originir(self):
         """OriginIR string representation (alias for to_extended_originir).
@@ -234,7 +237,7 @@ class OriginIR_BaseParser:
 
     def __str__(self):
         return self.to_extended_originir()
-    
+
     def to_circuit(self) -> Circuit:
         """
         The function coverts OriginIR string into qpandalite.Circuit object.
@@ -249,7 +252,7 @@ class OriginIR_BaseParser:
             circuit.add_gate(operation, qubits, cbit, parameter, dagger_flag, control_qubits)
 
         return circuit
-    
+
     def to_qasm(self):
         """
         The function coverts OriginIR string into OpenQASM string.
@@ -259,5 +262,3 @@ class OriginIR_BaseParser:
         """
         circuit = self.to_circuit()
         return circuit.qasm
-        
-

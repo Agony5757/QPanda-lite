@@ -132,5 +132,4 @@ for opcode in opcodes:
 
 ## 已知限制
 
-- **密度矩阵后端**：受控门 `crx`、`crz`、`cy` 在多门线路中结果可能不正确（已知 bug，正在修复中）
 - **statevector 后端**：所有门均已通过测试

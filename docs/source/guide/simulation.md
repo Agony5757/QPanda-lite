@@ -142,8 +142,6 @@ prob = sim.simulate_pmeasure(circuit.originir)
 
 ## 已知限制 {#guide-simulation-known-limitations}
 
-- `crx`/`crz`/`cy` 受控旋转门在 density matrix 后端存在 bug（多门组合时出错），详见 [已知问题](./installation.md#known-issues)。
-- `controlled_by` 在 density matrix 路径下的模拟结果不正确。
 - `statevector` 后端无法模拟噪声。
 - 多比特门（> 2）在 density matrix 后端支持有限。
 

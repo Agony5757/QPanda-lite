@@ -111,10 +111,6 @@ pip install qiskit-ibmq-provider
 
 如需本地构建文档，可进入 `docs/` 目录后安装文档依赖并执行 `make html`。这一步仅在维护文档时需要，普通安装可跳过。
 
-## 已知问题 {#known-issues}
-
-- **`crx`/`crz`/`cy` 受控旋转门在 density matrix 后端存在 bug**：多门组合使用时计算结果错误，单门测试正常。测试带噪声模拟或 density matrix 后端时，应避免使用这三个门，或使用 `cry` 代替 `cy`。
-
 ## 下一步
 
 - [快速上手](quickstart.md) —— 运行安装后的第一个最小示例

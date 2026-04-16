@@ -44,5 +44,3 @@
 
 .. toctree::
    :maxdepth: 1
-
-   guide/known_issues

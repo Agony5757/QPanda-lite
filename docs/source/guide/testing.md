@@ -137,13 +137,11 @@ QASMBench 基准测试兼容性：
 - **触发**：push/PR 到 main
 - **环境**：Ubuntu + Python 3.11
 - **内容**：`pytest qpandalite/test/ --cov=qpandalite -v`
-- **已知 deselect**：`test_random_qasm_compare_density_operator`（density matrix 后端 crx/crz/cy 已知 bug）
 - **产出**：`coverage.xml` artifact
 
 ## 已知限制
 
-1. **density matrix 后端 bug**：`crx`、`crz`、`cy` 门在多门组合时结果不正确，相关测试（`test_random_qasm_compare_density_operator`）在 CI 中被 deselect
-2. **外部依赖**：随机回归测试需要 `qiskit`、`qiskit-aer`、`qutip`、`scipy`，不在默认安装范围内
+1. **外部依赖**：随机回归测试需要 `qiskit`、`qiskit-aer`、`qutip`、`scipy`，不在默认安装范围内
 3. **test_result_adapter / test_general**：当前测试内容较简单，主要验证导入和基本功能，未覆盖全部 API
 4. **transpiler 测试**：仅覆盖 `plot_time_line`，未覆盖 `qiskit_transpile` 等转译功能
 5. **task 模块**：`test_task_adapters.py` 在 `qpandalite/test/` 中，但需要 mock HTTP，CI 环境可能不完整覆盖

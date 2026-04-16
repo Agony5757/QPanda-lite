@@ -72,4 +72,4 @@ Pre-commit hooks are configured (ruff lint + format, YAML check, trailing whites
 
 ## Known Issues
 
-- `crx`/`crz`/`cy` gates produce incorrect results with the density matrix backend when combined with multiple gates. Avoid these in noisy simulation.
+None.

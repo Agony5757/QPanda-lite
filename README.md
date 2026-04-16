@@ -227,7 +227,3 @@ result = quafu.query_by_taskid_sync(taskid)
 
 🚧 Actively developing. API may change.
 
-### Known Issues
-
-- **`crx`/`crz`/`cy` bug**：密度矩阵后端的受控旋转门在多门组合时计算结果错误，单门测试正常。带噪声模拟时请规避这三个门。
-- `controlled_by` simulation for density matrix is incorrect (`backend='density_operator'` / `backend='density_operator_qutip'`).

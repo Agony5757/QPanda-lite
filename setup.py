@@ -137,6 +137,7 @@ else:
     cmdclass = {}
 
 setup(
+    packages=find_packages(exclude=["qpandalite.test*"]),
     ext_modules=ext_modules,
     cmdclass=cmdclass,
 )

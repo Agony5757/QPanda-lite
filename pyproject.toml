@@ -103,5 +103,5 @@ write_to = "qpandalite/_version.py"
 fallback_version = "0.0.0"
 
 [tool.setuptools.package-data]
-"qpandalite" = ["test/QASMBench.pkl", "*.pyi"]
+"qpandalite" = ["*.pyi"]
 "qpandalite.simulator" = ["qpandalite_cpp.pyi"]

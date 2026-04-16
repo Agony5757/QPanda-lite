@@ -48,6 +48,8 @@ jobs:
       run: |
         pip uninstall qpandalite -y 2>/dev/null || true
         pip install . --no-cache-dir
+        echo "=== Checking installed qpandalite package ==="
+        pip show -f qpandalite | grep -E "test|Location"
 
     - name: Install test dependencies
       run: pip install pytest pytest-cov

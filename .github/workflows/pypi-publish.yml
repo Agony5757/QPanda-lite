@@ -37,7 +37,7 @@ jobs:
           CIBW_SKIP: "*-musllinux_* *-win32"
           CIBW_ARCHS_WINDOWS: "AMD64"
           CIBW_BEFORE_BUILD: pip install ninja
-          CIBW_BEFORE_BUILD_LINUX: yum install -y python3-devel || apt-get update && apt-get install -y python3-dev
+          CIBW_BEFORE_BUILD_LINUX: "if command -v yum >/dev/null 2>&1; then yum install -y python3-devel; elif command -v apt-get >/dev/null 2>&1; then apt-get update && apt-get install -y python3-dev; fi"
 
       - uses: actions/upload-artifact@v4
         with:

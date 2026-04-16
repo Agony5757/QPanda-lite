@@ -7,6 +7,8 @@ on:
       - 'docs/**'
       - 'qpandalite/**'
       - '.github/workflows/docs.yml'
+    tags:
+      - 'v*'
   pull_request:
     branches: [main]
     paths:
@@ -17,12 +19,15 @@ on:
 
 jobs:
   build-docs:
-    name: Build Documentation
+    name: Build Documentation (${{ github.ref_type == 'tag' && 'stable' || 'latest' }})
     runs-on: ubuntu-latest
+    env:
+      DOCS_STABLE_VERSION: ${{ github.ref_type == 'tag' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v5
         with:
           submodules: true
+          fetch-depth: 0  # Need full history for setuptools_scm
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -37,7 +42,6 @@ jobs:
 
       - name: Install package (no C++ extension)
         run: |
-          # --no-cpp flag is handled by setup.py
           python setup.py develop --no-cpp
 
       - name: Build docs
@@ -48,5 +52,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: docs-html
+          name: docs-${{ github.ref_type == 'tag' && 'stable' || 'latest' }}
           path: docs/_build/html

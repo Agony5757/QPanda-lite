@@ -45,7 +45,7 @@ jobs:
         python-version: '3.11'
 
     - name: Install package
-      run: pip install .
+      run: pip install . --no-cache-dir
 
     - name: Install test dependencies
       run: pip install pytest pytest-cov

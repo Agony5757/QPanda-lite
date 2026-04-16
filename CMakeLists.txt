@@ -19,8 +19,7 @@ if (UNIX)
     add_definitions("-fPIC")
 endif()
 
-find_package(Python COMPONENTS Interpreter Development REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-message("Python include dirs: ${PYTHON_INCLUDE_DIRS}")
+# Python detection is handled by pybind11 in Thirdparty/pybind11
+# pybind11_add_module will automatically find the correct Python version
 
 add_subdirectory(QPandaLiteCpp)

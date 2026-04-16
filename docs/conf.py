@@ -18,21 +18,26 @@ parent_path = pathlib.Path(__file__).resolve().parent.parent
 # Only the project root is needed; qpandalite/ lives directly under it.
 sys.path.insert(0, os.path.abspath(parent_path))
 
-# Read version from package metadata or fallback to version.py
+# Read version from setuptools_scm (git tags) or fallback
 try:
-    from importlib.metadata import version as get_version, PackageNotFoundError
-    release = get_version('qpandalite')
-except (PackageNotFoundError, Exception):
-    # Fallback: try to read from _version.py (setuptools_scm generated)
+    from setuptools_scm import get_version
+    release = get_version(root=str(parent_path), relative_to=__file__)
+except Exception:
+    # Fallback: try importlib.metadata (works when package is installed)
     try:
-        _version_file = parent_path / 'qpandalite' / '_version.py'
-        if _version_file.exists():
-            exec(_version_file.read_text())
-            release = __version__
-        else:
+        from importlib.metadata import version as get_version, PackageNotFoundError
+        release = get_version('qpandalite')
+    except (PackageNotFoundError, Exception):
+        # Fallback: try to read from _version.py (setuptools_scm generated)
+        try:
+            _version_file = parent_path / 'qpandalite' / '_version.py'
+            if _version_file.exists():
+                exec(_version_file.read_text())
+                release = __version__
+            else:
+                release = '0.0.0+unknown'
+        except Exception:
             release = '0.0.0+unknown'
-    except Exception:
-        release = '0.0.0+unknown'
 
 copyright = '2025, Agony5757'
 author = ', '.join(['Agony5757', 'YunJ1e', 'automatic-code-ztr', 'didaozi'])

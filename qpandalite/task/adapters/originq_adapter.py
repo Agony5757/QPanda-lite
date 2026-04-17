@@ -4,6 +4,9 @@ Submits OriginIR circuits to the OriginQ Cloud service and retrieves
 results via the Python-native API (``pyqpanda3`` when available, or the
 HTTP REST API as a fallback).  All HTTP communication is encapsulated
 in this adapter — no raw ``requests`` calls leak outside.
+
+Installation:
+    pip install qpandalite[originq]
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from qpandalite.task.adapters.base import (
     QuantumAdapter,
 )
 from qpandalite.task.config import load_originq_config
+from qpandalite.task.optional_deps import check_pyqpanda3
 
 # ---------------------------------------------------------------------------
 # HTTP client (encapsulated here, not in platform task modules)
@@ -202,9 +206,13 @@ class OriginQAdapter(QuantumAdapter):
 
     Communication is routed through ``_OriginQHttpClient`` — no raw
     ``requests`` calls in the platform task modules.
+
+    Note:
+        pyqpanda3 is optional for this adapter. The HTTP REST API is used
+        for communication, which only requires the `requests` package.
     """
 
-    name = "origin_qcloud"
+    name = "originq"
 
     def __init__(self) -> None:
         config = load_originq_config()

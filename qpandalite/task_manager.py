@@ -3,6 +3,11 @@
 This module provides a unified interface for submitting quantum tasks,
 managing task lifecycle, and caching results locally.
 
+Environment Variables:
+    QPANDALITE_DUMMY: Set to 'true', '1', or 'yes' to enable dummy mode.
+        When enabled, all task submissions use local simulation instead
+        of real quantum backends. Useful for development and testing.
+
 Usage:
     from qpandalite.task_manager import submit_task, query_task, wait_for_result
     from qpandalite.circuit_builder import Circuit
@@ -14,7 +19,7 @@ Usage:
     circuit.cnot(0, 1)
     circuit.measure(0, 1)
 
-    # Submit task
+    # Submit task (use QPANDALITE_DUMMY=true for local simulation)
     task_id = submit_task(circuit, backend='quafu', shots=1000)
 
     # Wait for result
@@ -23,6 +28,9 @@ Usage:
     # Query task status
     info = query_task(task_id, backend='quafu')
     print(info['status'])  # 'running', 'success', or 'failed'
+
+    # Explicitly use dummy mode for a single submission
+    task_id = submit_task(circuit, backend='quafu', dummy=True)
 """
 
 from __future__ import annotations
@@ -43,9 +51,13 @@ __all__ = [
     # Classes
     "TaskInfo",
     "TaskManager",
+    # Dummy mode
+    "QPANDALITE_DUMMY",
+    "is_dummy_mode",
 ]
 
 import json
+import os
 import time
 import warnings
 from dataclasses import dataclass, field, asdict
@@ -87,6 +99,18 @@ from qpandalite.task.adapters.base import (
 
 DEFAULT_CACHE_DIR = Path.home() / ".qpandalite" / "cache"
 TASKS_CACHE_FILE = "tasks.json"
+
+# Environment variable for global dummy mode
+QPANDALITE_DUMMY = os.environ.get("QPANDALITE_DUMMY", "").lower() in ("true", "1", "yes")
+
+
+def is_dummy_mode() -> bool:
+    """Check if dummy mode is enabled via environment variable.
+
+    Returns:
+        True if QPANDALITE_DUMMY is set to 'true', '1', or 'yes'.
+    """
+    return QPANDALITE_DUMMY
 
 
 class TaskStatus(str, Enum):
@@ -370,25 +394,28 @@ def submit_task(
     backend: str,
     shots: int = 1000,
     metadata: dict | None = None,
+    dummy: bool | None = None,
     **kwargs: Any,
 ) -> str:
     """Submit a single circuit to a quantum backend.
-    
+
     This function converts the circuit to the backend's native format,
     submits it, and caches the task information locally.
-    
+
     Args:
         circuit: The QPanda-lite Circuit to submit.
         backend: The backend name (e.g., 'originq', 'quafu', 'ibm').
         shots: Number of measurement shots.
         metadata: Optional metadata to store with the task.
+        dummy: Override dummy mode. If None, uses QPANDALITE_DUMMY env var.
+            When True, uses local simulation instead of real backend.
         **kwargs: Additional backend-specific parameters.
             - For Quafu: chip_id, auto_mapping
             - For OriginQ: chip_id, circuit_optimize, measurement_amend
-            
+
     Returns:
         The task ID assigned by the backend.
-        
+
     Raises:
         BackendNotFoundError: If the backend is not recognized.
         BackendNotAvailableError: If the backend is not available.
@@ -396,40 +423,49 @@ def submit_task(
         InsufficientCreditsError: If account has insufficient credits.
         QuotaExceededError: If usage quota is exceeded.
         NetworkError: If a network error occurs.
-        
+
     Example:
         >>> circuit = Circuit()
         >>> circuit.h(0)
         >>> circuit.measure(0)
         >>> task_id = submit_task(circuit, backend='quafu', shots=1000, chip_id='ScQ-P10')
+        >>> # Use dummy mode for local simulation
+        >>> task_id = submit_task(circuit, backend='quafu', dummy=True)
     """
+    # Determine if dummy mode should be used
+    use_dummy = dummy if dummy is not None else QPANDALITE_DUMMY
+
+    if use_dummy:
+        # Use dummy adapter for local simulation
+        return _submit_dummy(circuit, backend, shots, metadata, **kwargs)
+
     # Get backend instance
     try:
         backend_instance = backend.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
-    
+
     # Check backend availability
     if not backend_instance.is_available():
         raise BackendNotAvailableError(
             f"Backend '{backend}' is not available. "
             "Please check your configuration and credentials."
         )
-    
+
     # Convert circuit using adapter
     try:
         adapter = _get_adapter(backend)
         native_circuit = adapter.adapt(circuit)
     except Exception as e:
         raise _map_adapter_error(e, backend) from e
-    
+
     # Submit to backend
     try:
         task_id = backend_instance.submit(native_circuit, shots=shots, **kwargs)
     except Exception as e:
         mapped_error = _map_adapter_error(e, backend)
         raise mapped_error from e
-    
+
     # Create and save task info
     task_info = TaskInfo(
         task_id=task_id,
@@ -439,7 +475,58 @@ def submit_task(
         metadata=metadata or {},
     )
     save_task(task_info)
-    
+
+    return task_id
+
+
+def _submit_dummy(
+    circuit: Circuit,
+    backend: str,
+    shots: int = 1000,
+    metadata: dict | None = None,
+    **kwargs: Any,
+) -> str:
+    """Submit a circuit using the dummy adapter for local simulation.
+
+    Args:
+        circuit: The QPanda-lite Circuit to simulate.
+        backend: The backend name (used for logging/metadata only).
+        shots: Number of measurement shots.
+        metadata: Optional metadata.
+        **kwargs: Additional parameters (passed to dummy adapter).
+
+    Returns:
+        Task ID from the dummy adapter.
+    """
+    from qpandalite.task.adapters.dummy_adapter import DummyAdapter
+
+    # Create dummy adapter
+    dummy_adapter = DummyAdapter(
+        noise_model=kwargs.get("noise_model"),
+        available_qubits=kwargs.get("available_qubits"),
+        available_topology=kwargs.get("available_topology"),
+    )
+
+    # Submit to dummy adapter
+    originir = circuit.originir
+    task_id = dummy_adapter.submit(originir, shots=shots)
+
+    # Create and save task info
+    task_info = TaskInfo(
+        task_id=task_id,
+        backend=f"dummy:{backend}",
+        status=TaskStatus.SUCCESS,  # Dummy results are immediate
+        shots=shots,
+        metadata=metadata or {},
+    )
+
+    # Get result from dummy adapter and store it
+    result = dummy_adapter.query(task_id)
+    if result.get("status") == TASK_STATUS_SUCCESS:
+        task_info.result = result.get("result")
+
+    save_task(task_info)
+
     return task_id
 
 
@@ -447,21 +534,23 @@ def submit_batch(
     circuits: list[Circuit],
     backend: str,
     shots: int = 1000,
+    dummy: bool | None = None,
     **kwargs: Any,
 ) -> list[str]:
     """Submit multiple circuits as a batch to a quantum backend.
-    
+
     Args:
         circuits: List of QPanda-lite Circuits to submit.
         backend: The backend name.
         shots: Number of measurement shots per circuit.
+        dummy: Override dummy mode. If None, uses QPANDALITE_DUMMY env var.
         **kwargs: Additional backend-specific parameters.
             - For Quafu: chip_id, auto_mapping, group_name
             - For OriginQ: chip_id, circuit_optimize
-            
+
     Returns:
         List of task IDs assigned by the backend.
-        
+
     Raises:
         BackendNotFoundError: If the backend is not recognized.
         BackendNotAvailableError: If the backend is not available.
@@ -469,31 +558,38 @@ def submit_batch(
         InsufficientCreditsError: If account has insufficient credits.
         QuotaExceededError: If usage quota is exceeded.
         NetworkError: If a network error occurs.
-        
+
     Example:
         >>> circuits = [circuit1, circuit2, circuit3]
         >>> task_ids = submit_batch(circuits, backend='quafu', shots=1000, chip_id='ScQ-P10')
     """
+    # Determine if dummy mode should be used
+    use_dummy = dummy if dummy is not None else QPANDALITE_DUMMY
+
+    if use_dummy:
+        # Use dummy adapter for local simulation
+        return _submit_batch_dummy(circuits, backend, shots, **kwargs)
+
     # Get backend instance
     try:
         backend_instance = backend.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
-    
+
     # Check backend availability
     if not backend_instance.is_available():
         raise BackendNotAvailableError(
             f"Backend '{backend}' is not available. "
             "Please check your configuration and credentials."
         )
-    
+
     # Convert circuits using adapter
     try:
         adapter = _get_adapter(backend)
         native_circuits = adapter.adapt_batch(circuits)
     except Exception as e:
         raise _map_adapter_error(e, backend) from e
-    
+
     # Submit batch to backend
     try:
         result = backend_instance.submit_batch(native_circuits, shots=shots, **kwargs)
@@ -505,7 +601,7 @@ def submit_batch(
     except Exception as e:
         mapped_error = _map_adapter_error(e, backend)
         raise mapped_error from e
-    
+
     # Create and save task info for each task
     for task_id in task_ids:
         task_info = TaskInfo(
@@ -516,7 +612,54 @@ def submit_batch(
             metadata={"batch": True, "batch_size": len(circuits)},
         )
         save_task(task_info)
-    
+
+    return task_ids
+
+
+def _submit_batch_dummy(
+    circuits: list[Circuit],
+    backend: str,
+    shots: int = 1000,
+    **kwargs: Any,
+) -> list[str]:
+    """Submit multiple circuits using the dummy adapter.
+
+    Args:
+        circuits: List of QPanda-lite Circuits to simulate.
+        backend: The backend name (used for logging/metadata only).
+        shots: Number of measurement shots per circuit.
+        **kwargs: Additional parameters.
+
+    Returns:
+        List of task IDs from the dummy adapter.
+    """
+    from qpandalite.task.adapters.dummy_adapter import DummyAdapter
+
+    # Create dummy adapter
+    dummy_adapter = DummyAdapter(
+        noise_model=kwargs.get("noise_model"),
+        available_qubits=kwargs.get("available_qubits"),
+        available_topology=kwargs.get("available_topology"),
+    )
+
+    # Submit all circuits
+    originir_circuits = [c.originir for c in circuits]
+    task_ids = dummy_adapter.submit_batch(originir_circuits, shots=shots)
+
+    # Create and save task info for each
+    for task_id in task_ids:
+        task_info = TaskInfo(
+            task_id=task_id,
+            backend=f"dummy:{backend}",
+            status=TaskStatus.SUCCESS,
+            shots=shots,
+            metadata={"batch": True, "batch_size": len(circuits)},
+        )
+        result = dummy_adapter.query(task_id)
+        if result.get("status") == TASK_STATUS_SUCCESS:
+            task_info.result = result.get("result")
+        save_task(task_info)
+
     return task_ids
 
 

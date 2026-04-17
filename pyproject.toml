@@ -36,10 +36,15 @@ dependencies = [
     "pyyaml>=6.0",
     "sympy>=1.12",
     "typing-extensions>=4.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
 ]
 
 [project.urls]
 "Source Code" = "https://github.com/Agony5757/QPanda-Lite.git"
+
+[project.scripts]
+qpandalite = "qpandalite.cli.main:app"
 
 [project.optional-dependencies]
 quafu = ["pyquafu>=0.4.0"]
@@ -55,6 +60,7 @@ all = ["qpandalite[quafu,qiskit,originq,simulation,visualization,analysis,pytorc
 zip-safe = false
 packages = [
     "qpandalite",
+    "qpandalite.cli",
     "qpandalite.algorithmics",
     "qpandalite.algorithmics.ansatz",
     "qpandalite.algorithmics.circuits",

@@ -10,22 +10,17 @@ from unittest.mock import MagicMock
 from qpandalite.task.optional_deps import SIMULATION_AVAILABLE
 
 
-# Check if we can actually run simulations (not just check deps)
-def _can_run_simulation():
-    """Check if simulation can actually run (not just deps installed)."""
+# Check if qpandalite_cpp is available for actual simulation
+def _has_cpp_backend():
+    """Check if qpandalite_cpp C++ backend is available."""
     try:
-        from qpandalite.simulator import OriginIR_Simulator
-        # Try to actually create and use a simulator to verify it works
-        sim = OriginIR_Simulator()
-        # Check if it has the required C++ backend
-        if hasattr(sim, '_simulator') and sim._simulator is None:
-            return False
+        import qpandalite_cpp
         return True
-    except (ImportError, AttributeError, RuntimeError):
+    except ImportError:
         return False
 
 
-CAN_RUN_SIMULATION = _can_run_simulation()
+HAS_CPP_BACKEND = _has_cpp_backend()
 
 
 @pytest.mark.skipif(
@@ -56,7 +51,7 @@ class TestDummyAdapter:
         assert result == circuit
 
     @pytest.mark.skipif(
-        not CAN_RUN_SIMULATION,
+        not HAS_CPP_BACKEND,
         reason="Cannot run simulation (qpandalite_cpp not available)"
     )
     def test_query_returns_result(self, adapter):
@@ -78,7 +73,7 @@ class TestDummyAdapter:
         assert "error" in result
 
     @pytest.mark.skipif(
-        not CAN_RUN_SIMULATION,
+        not HAS_CPP_BACKEND,
         reason="Cannot run simulation (qpandalite_cpp not available)"
     )
     def test_deterministic_task_id(self, adapter):
@@ -91,7 +86,7 @@ class TestDummyAdapter:
         assert task_id1 == task_id2
 
     @pytest.mark.skipif(
-        not CAN_RUN_SIMULATION,
+        not HAS_CPP_BACKEND,
         reason="Cannot run simulation (qpandalite_cpp not available)"
     )
     def test_different_circuits_different_ids(self, adapter):
@@ -117,7 +112,7 @@ class TestDummyAdapter:
         assert all(isinstance(tid, str) for tid in task_ids)
 
     @pytest.mark.skipif(
-        not CAN_RUN_SIMULATION,
+        not HAS_CPP_BACKEND,
         reason="Cannot run simulation (qpandalite_cpp not available)"
     )
     def test_query_batch(self, adapter):

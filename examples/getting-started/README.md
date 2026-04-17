@@ -9,6 +9,7 @@ Step-by-step tutorials for the core QPanda-Lite workflows.
 | [1_circuit_remap.py](1_circuit_remap.py) | Build a circuit and remap qubits for real hardware |
 | [2_dummy_server.py](2_dummy_server.py) | Submit tasks to the local dummy simulator |
 | [3_result_postprocess.py](3_result_postprocess.py) | Convert and analyze results with result adapters |
+| [config_example.py](config_example.py) | Configuration management for cloud platforms |
 
 ## Quick Start
 
@@ -21,6 +22,9 @@ python examples/getting-started/2_dummy_server.py
 
 # 3. Post-process results
 python examples/getting-started/3_result_postprocess.py
+
+# 4. Configure cloud access
+python examples/getting-started/config_example.py
 ```
 
 ## Topics Covered

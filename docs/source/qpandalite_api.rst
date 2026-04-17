@@ -28,6 +28,8 @@ QPanda-lite 公开 API 的完整参考文档。
    qpandalite.task.origin_qcloud
    qpandalite.task.platform_template
    qpandalite.algorithmics.ansatz
+   qpandalite.algorithmics.circuits
+   qpandalite.algorithmics.measurement
    qpandalite.algorithmics.state_preparation
    qpandalite.config
    qpandalite.backend

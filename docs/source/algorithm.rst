@@ -5,20 +5,46 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: 搜索算法
 
-   algorithm/grover
-   algorithm/qpe
-   algorithm/qaoa
-   algorithm/vqe
-   algorithm/hadamard_superposition
-   algorithm/rotation_prepare
-   algorithm/shadow_tomography
-   algorithm/state_tomography
-   algorithm/qft
-   algorithm/deutsch-jozsa
-   algorithm/thermal_state
-   algorithm/dicke_state
-   algorithm/grover_oracle
-   algorithm/vqd
-   algorithm/amplitude_estimation
-   algorithm/entangled_states
+   algorithm/search/grover
+   algorithm/search/grover_oracle
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 变分算法
+
+   algorithm/variational/vqe
+   algorithm/variational/vqd
+   algorithm/variational/qaoa
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 相位估计
+
+   algorithm/phase/qpe
+   algorithm/phase/qft
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 态制备
+
+   algorithm/state/entangled_states
+   algorithm/state/dicke_state
+   algorithm/state/thermal_state
+   algorithm/state/hadamard_superposition
+   algorithm/state/rotation_prepare
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 测量技术
+
+   algorithm/measurement/shadow_tomography
+   algorithm/measurement/state_tomography
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 预言机算法
+
+   algorithm/oracle/deutsch-jozsa
+   algorithm/oracle/amplitude_estimation

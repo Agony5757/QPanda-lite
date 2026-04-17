@@ -19,7 +19,7 @@ else:
     from ._utils import CompilationFailedException
 
 from typing import List, Tuple, Union, Optional
-from converter import convert_qasm_to_oir, convert_oir_to_qasm
+from .converter import convert_qasm_to_oir, convert_oir_to_qasm
 
 def transpile_qasm(
     qasm_strings: List[str],

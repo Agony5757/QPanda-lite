@@ -205,9 +205,11 @@ class OriginIR_BaseParser:
 
                     if dagger_stack:
                         # insert to the top of the dagger stack
-                        dagger_stack[-1].append((operation, qubits, cbit, parameter, dagger_flag, ctrl_qubits))
+                        ctrl_list = sorted(ctrl_qubits) if ctrl_qubits else None
+                        dagger_stack[-1].append((operation, qubits, cbit, parameter, dagger_flag, ctrl_list))
                     else:
-                        self.program_body.append((operation, qubits, cbit, parameter, dagger_flag, ctrl_qubits))
+                        ctrl_list = sorted(ctrl_qubits) if ctrl_qubits else None
+                        self.program_body.append((operation, qubits, cbit, parameter, dagger_flag, ctrl_list))
 
         # Finally, check if all dagger and control operations are closed
         if control_qubits_set:

@@ -101,6 +101,7 @@ class Parameter:
             return values[self._name]
         raise ValueError(f"Parameter '{self._name}' is not bound and no value provided")
 
+    @property
     def is_bound(self) -> bool:
         """Check if the parameter has a bound value."""
         return self._bound_value is not None

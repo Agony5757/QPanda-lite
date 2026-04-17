@@ -21,6 +21,7 @@
    guide/circuit
    guide/simulation
    guide/submit_task
+   guide/pytorch
 
 格式互转与语言接口
 ------------------

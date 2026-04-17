@@ -232,6 +232,72 @@ MEASURE q[1], c[1]
 
 该示例演示了完整流程：先通过 `QINIT` / `CREG` 声明比特和寄存器，然后依次添加单比特门（H、RX）、双比特门（CNOT、CZ）、三比特门（TOFFOLI）和控制结构（CONTROL / DAGGER），最后通过 `MEASURE` 测量目标比特。
 
+## DEF 块（子程序定义） {#guide-originir-def}
+
+OriginIR 支持通过 DEF 块定义可复用的量子子程序，类似于函数定义。这在构建复杂电路时可以避免重复代码。
+
+### DEF 块语法
+
+```
+DEF <name>(<qubit_list>) [(<param_list>)]
+  <gate_operations>
+ENDDEF
+```
+
+- `<name>`：子程序名称
+- `<qubit_list>`：量子比特参数，格式为 `q[0], q[1], ...`
+- `<param_list>`：可选的数值参数列表
+- `<gate_operations>`：量子门操作序列
+
+### 定义子程序
+
+```
+// 定义 Bell 对制备子程序
+DEF bell_pair(q[0], q[1])
+  H q[0]
+  CNOT q[0] q[1]
+ENDDEF
+
+// 带参数的旋转子程序
+DEF rotation(q[0]) (theta)
+  RX q[0] theta
+ENDDEF
+```
+
+### 调用子程序
+
+```
+QINIT 4
+CREG 2
+
+// 调用子程序
+bell_pair(q[0], q[1])
+rotation(q[2]) (0.5)
+```
+
+### 与 Python API 对应
+
+DEF 块与 Python 中的 `@circuit_def` 装饰器对应：
+
+```python
+from qpandalite.circuit_builder import circuit_def
+
+@circuit_def(name="bell_pair", qregs={"q": 2})
+def bell_pair(circ, q):
+    circ.h(q[0])
+    circ.cnot(q[0], q[1])
+    return circ
+
+# 导出为 DEF 块
+print(bell_pair.to_originir_def())
+# DEF bell_pair(q[0], q[1])
+#   H q[0]
+#   CNOT q[0] q[1]
+# ENDDEF
+```
+
+详见 [Named Circuit](circuit.md#guide-circuit-named-circuit)。
+
 ## 下一步
 
 - 如果你还不知道如何构建线路，先阅读 [构建量子线路](circuit.md)

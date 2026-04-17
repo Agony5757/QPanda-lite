@@ -47,7 +47,10 @@ jobs:
         python-version: '3.11'
 
     - name: Install build dependencies
-      run: pip install setuptools wheel setuptools_scm cmake
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake ninja-build
+        pip install setuptools wheel setuptools_scm
 
     - name: Install package (with all optional dependencies and C++ extension)
       run: |

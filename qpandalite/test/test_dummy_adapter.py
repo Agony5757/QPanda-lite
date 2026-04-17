@@ -15,9 +15,13 @@ def _can_run_simulation():
     """Check if simulation can actually run (not just deps installed)."""
     try:
         from qpandalite.simulator import OriginIR_Simulator
-        # Try to create a simple simulator to verify it works
+        # Try to actually create and use a simulator to verify it works
+        sim = OriginIR_Simulator()
+        # Check if it has the required C++ backend
+        if hasattr(sim, '_simulator') and sim._simulator is None:
+            return False
         return True
-    except ImportError:
+    except (ImportError, AttributeError, RuntimeError):
         return False
 
 

@@ -133,6 +133,159 @@ draw(circuit.originir)
 
 > 可视化功能详见 [线路分析](../advanced/circuit_analysis.md)。
 
+## 命名量子寄存器 {#guide-circuit-named-qreg}
+
+除了使用整数索引，还可以通过命名寄存器来组织量子比特。这在构建复杂电路时尤其有用。
+
+### 创建带命名寄存器的电路
+
+```python
+from qpandalite.circuit_builder import Circuit
+
+# 创建带有两个命名寄存器的电路
+c = Circuit(qregs={"data": 4, "ancilla": 2})
+```
+
+这会创建一个 6 量子比特的电路，其中 `data` 寄存器包含 4 个比特，`ancilla` 寄存器包含 2 个比特。
+
+### 使用命名寄存器
+
+```python
+# 获取寄存器引用
+data = c.get_qreg("data")
+ancilla = c.get_qreg("ancilla")
+
+# 使用寄存器索引
+c.h(data[0])           # 对 data[0] 应用 H 门
+c.cnot(data[0], data[1])  # 对 data[0], data[1] 应用 CNOT
+
+# 支持切片
+c.x(data[1:3])         # 对 data[1], data[2] 应用 X 门
+```
+
+### QReg 类型
+
+- **QReg**：命名量子寄存器，支持索引和切片
+- **Qubit**：单个量子比特的命名引用
+- **QRegSlice**：寄存器切片视图，用于多量子比特操作
+
+## 参数化电路 {#guide-circuit-parametric}
+
+QPanda-lite 支持符号化参数，可以在运行时绑定具体值。这对于变分算法（如 VQE、QAOA）非常有用。
+
+### 创建参数
+
+```python
+from qpandalite.circuit_builder import Parameter
+
+# 创建命名参数
+theta = Parameter("theta")
+phi = Parameter("phi")
+```
+
+### 参数运算
+
+参数支持算术运算，会自动创建符号表达式（基于 sympy）：
+
+```python
+expr = theta * 2 + phi / 3
+```
+
+### 绑定和求值
+
+```python
+# 绑定具体值
+theta.bind(1.0)
+phi.bind(0.5)
+
+# 求值
+value = theta.evaluate()  # 返回 1.0
+
+# 或通过字典传入值
+result = theta.evaluate({"theta": 2.0})  # 返回 2.0
+```
+
+### 在电路中使用参数
+
+```python
+c = Circuit()
+c.rx(0, theta)  # 参数化 RX 门
+c.ry(1, phi)
+c.measure(0, 1)
+
+# 绑定参数后执行
+theta.bind(0.5)
+phi.bind(0.3)
+```
+
+### 参数数组
+
+使用 `Parameters` 创建参数数组：
+
+```python
+from qpandalite.circuit_builder import Parameters
+
+# 创建 4 个参数：alpha_0, alpha_1, alpha_2, alpha_3
+alphas = Parameters("alpha", size=4)
+
+# 批量绑定
+alphas.bind([0.1, 0.2, 0.3, 0.4])
+
+# 索引访问
+c.rx(0, alphas[0])
+```
+
+## Named Circuit（可复用子程序） {#guide-circuit-named-circuit}
+
+`@circuit_def` 装饰器用于定义可复用的量子子程序，类似 QASM3 的 gate 定义。
+
+### 定义子程序
+
+```python
+from qpandalite.circuit_builder import circuit_def, Circuit
+
+@circuit_def(name="bell_pair", qregs={"q": 2})
+def bell_pair(circ, q):
+    circ.h(q[0])
+    circ.cnot(q[0], q[1])
+    return circ
+```
+
+### 应用子程序
+
+```python
+# 创建父电路
+c = Circuit(qregs={"data": 4})
+data = c.get_qreg("data")
+
+# 应用子程序，映射量子比特
+bell_pair(c, qreg_mapping={"q": [data[0], data[1]]})
+```
+
+### 带参数的子程序
+
+```python
+@circuit_def(name="rot_x", qregs={"q": 1}, params=["theta"])
+def rot_x(circ, q, theta):
+    circ.rx(q[0], theta)
+    return circ
+
+# 应用并传入参数
+rot_x(c, qreg_mapping={"q": [data[2]]}, param_values={"theta": 0.5})
+```
+
+### 导出为 OriginIR DEF 块
+
+```python
+# 导出子程序定义
+def_block = bell_pair.to_originir_def()
+print(def_block)
+# DEF bell_pair(q[0], q[1])
+#   H q[0]
+#   CNOT q[0] q[1]
+# ENDDEF
+```
+
 ## 本页不重点解决的问题
 
 本页聚焦于“如何把线路写出来”，以下问题不在本页展开：

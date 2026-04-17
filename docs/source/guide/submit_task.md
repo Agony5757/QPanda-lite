@@ -51,6 +51,83 @@
 
 如果你仍在反复修改线路结构、量子门或输出解释，说明你还处在本地验证阶段，建议先回到 [本地模拟](simulation.md#guide-simulation-entry-overview)。
 
+## 统一云平台接口（推荐方式） {#guide-submit-task-unified-api}
+
+PR#178 引入了统一的云平台接入层，提供了一致的接口来操作 OriginQ、Quafu 和 IBM 三大平台。这是推荐的使用方式。
+
+### 配置文件
+
+统一接口使用 YAML 配置文件，位于 `~/.qpandalite/qpandalite.yml`：
+
+```yaml
+default:
+  originq:
+    token: "your-originq-token"
+    submit_url: "https://..."
+    query_url: "https://..."
+  quafu:
+    token: "your-quafu-token"
+  ibm:
+    token: "your-ibm-token"
+    proxy:
+      http: "http://proxy:8080"
+      https: "https://proxy:8080"
+```
+
+### 基本用法
+
+```python
+import qpandalite
+from qpandalite import Circuit
+
+# 1. 获取 Backend
+backend = qpandalite.get_backend('originq')  # 或 'quafu', 'ibm'
+available = qpandalite.list_backends()
+
+# 2. 创建电路
+circuit = Circuit()
+circuit.h(0)
+circuit.cnot(0, 1)
+circuit.measure(0, 1)
+
+# 3. 提交任务
+task_id = qpandalite.submit_task(circuit, backend='originq', shots=1000)
+
+# 4. 等待结果
+result = qpandalite.wait_for_result(task_id, backend='originq', timeout=300)
+
+# 5. 查询任务状态
+info = qpandalite.query_task(task_id, backend='originq')
+print(info['status'])  # 'running', 'success', 'failed'
+```
+
+### 任务管理
+
+```python
+# 查看所有缓存的任务
+tasks = qpandalite.list_tasks()
+
+# 获取特定任务信息
+task_info = qpandalite.get_task(task_id)
+
+# 清理已完成的任务
+qpandalite.clear_completed_tasks()
+
+# 清空所有缓存
+qpandalite.clear_cache()
+```
+
+### 统一接口 vs 平台特定接口
+
+| 特性 | 统一接口（推荐） | 平台特定接口 |
+|------|-----------------|-------------|
+| 配置方式 | YAML 配置文件 | JSON 配置文件 |
+| 平台切换 | 只需更改 backend 参数 | 需要导入不同模块 |
+| 任务管理 | 内置本地缓存 | 无统一缓存 |
+| 适用场景 | 生产环境、多平台开发 | 单平台开发 |
+
+如果你只需要使用单一平台，或者需要使用平台特有的功能，可以继续使用下文介绍的平台特定接口。
+
 ## 平台选择说明 {#guide-submit-task-platform-selection}
 
 在阅读具体平台小节前，建议先按“定位 / 适用场景 / 当前状态”理解几条路径的区别：

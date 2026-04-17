@@ -8,6 +8,9 @@ QPanda-lite 公开 API 的完整参考文档。
 
    qpandalite
    qpandalite.circuit_builder
+   qpandalite.circuit_builder.qubit
+   qpandalite.circuit_builder.parameter
+   qpandalite.circuit_builder.named_circuit
    qpandalite.simulator
    qpandalite.originir
    qpandalite.qasm
@@ -26,3 +29,10 @@ QPanda-lite 公开 API 的完整参考文档。
    qpandalite.task.platform_template
    qpandalite.algorithmics.ansatz
    qpandalite.algorithmics.state_preparation
+   qpandalite.config
+   qpandalite.backend
+   qpandalite.circuit_adapter
+   qpandalite.task_manager
+   qpandalite.exceptions
+   qpandalite.network_utils
+   qpandalite.pytorch

@@ -120,7 +120,29 @@ class QuafuAdapter(QuantumAdapter):
         cbit: int | None,
         parameter: float | list[float] | None,
     ) -> "QuantumCircuit":
-        """Append a single gate to a Quafu QuantumCircuit."""
+        """Append a single gate to a Quafu QuantumCircuit based on parsed OriginIR.
+
+        This method is called internally by translate_circuit() for each
+        line of OriginIR after QINIT. It maps OriginIR gate names to
+        Quafu QuantumCircuit method calls.
+
+        Args:
+            qc: The Quafu QuantumCircuit to modify (modified in-place).
+            operation: The gate operation name (e.g., 'RX', 'H', 'CNOT').
+            qubit: Target qubit index or list of indices for multi-qubit gates.
+            cbit: Classical bit index for MEASURE operations.
+            parameter: Rotation angle for parametric gates (e.g., RX, RY, RZ).
+
+        Returns:
+            The modified QuantumCircuit (same object as input).
+
+        Raises:
+            RuntimeError: If the operation is not supported by this adapter.
+
+        Note:
+            Supported gates: RX, RY, RZ, H, X, CZ, CNOT, MEASURE.
+            CREG and None operations are silently ignored.
+        """
         if operation == "RX":
             qc.rx(int(qubit), parameter)  # type: ignore[arg-type]
         elif operation == "RY":
@@ -240,7 +262,25 @@ class QuafuAdapter(QuantumAdapter):
         return self._result_to_dict(result)
 
     def _result_to_dict(self, result) -> dict[str, Any]:
-        """Convert a quafu ExecResult to the adapter's standard result dict."""
+        """Convert a Quafu ExecResult to the adapter's standard result dict.
+
+        This method normalizes Quafu's task status strings and extracts
+        measurement results when the task has completed successfully.
+
+        Args:
+            result: A quafu.ExecResult object from Task.retrieve().
+
+        Returns:
+            dict with keys:
+                - ``status``: ``'success'`` | ``'failed'`` | ``'running'``
+                - ``result``: dict with ``counts`` and ``probabilities`` (when success)
+
+        Note:
+            The Quafu status strings are mapped as follows:
+            - 'Completed' -> 'success'
+            - 'Running', 'In Queue' -> 'running'
+            - 'Failed', 'Canceled' -> 'failed'
+        """
         status_map = {
             "Completed": TASK_STATUS_SUCCESS,
             "Running": TASK_STATUS_RUNNING,

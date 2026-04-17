@@ -82,11 +82,20 @@ def _wait_for_result(task_id: str, platform: str | None, timeout: float) -> dict
 
 def _print_result_table(task_id: str, result_data: dict) -> None:
     """Print result as a table."""
-    print_table(
-        f"Result for {task_id}",
-        ["State", "Count", "Probability"],
-        [
-            [state, str(count), format_prob(count / sum(result_data.values()))]
-            for state, count in sorted(result_data.items(), key=lambda x: x[1], reverse=True)
-        ],
-    )
+    total = sum(result_data.values())
+    if total == 0:
+        # Handle empty result case to avoid division by zero
+        print_table(
+            f"Result for {task_id}",
+            ["State", "Count", "Probability"],
+            [[state, str(count), "0.0%"] for state, count in sorted(result_data.items())],
+        )
+    else:
+        print_table(
+            f"Result for {task_id}",
+            ["State", "Count", "Probability"],
+            [
+                [state, str(count), format_prob(count / total)]
+                for state, count in sorted(result_data.items(), key=lambda x: x[1], reverse=True)
+            ],
+        )

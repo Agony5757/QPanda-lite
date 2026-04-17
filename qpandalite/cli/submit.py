@@ -91,6 +91,12 @@ def _submit_single(circuit: str, platform: str, chip_id: str | None, shots: int,
 
 def _submit_batch(circuits: list[str], platform: str, chip_id: str | None, shots: int, name: str | None) -> list[str]:
     """Submit multiple circuits."""
+    # Note: name parameter is reserved for future use in batch submission
+    # Currently, most platforms don't support task names for batch submissions
+    if name:
+        from .output import print_warning
+        print_warning("Task name is not supported for batch submissions yet. Ignoring --name option.")
+
     if platform == "dummy":
         from qpandalite.task.originq_dummy import task as dummy_task
 
@@ -98,12 +104,18 @@ def _submit_batch(circuits: list[str], platform: str, chip_id: str | None, shots
     elif platform == "originq":
         from qpandalite.task.origin_qcloud import task as oq_task
 
-        result = oq_task.submit_task(circuits, shots=shots, **({"chip_id": int(chip_id)} if chip_id else {}))
+        kwargs = {"shots": shots}
+        if chip_id:
+            kwargs["chip_id"] = int(chip_id)
+        result = oq_task.submit_task(circuits, **kwargs)
         return result if isinstance(result, list) else [result]
     elif platform == "quafu":
         from qpandalite.task.quafu import task as quafu_task
 
-        result = quafu_task.submit_task(circuits, shots=shots, **({"chip_id": chip_id} if chip_id else {}))
+        kwargs = {"shots": shots}
+        if chip_id:
+            kwargs["chip_id"] = chip_id
+        result = quafu_task.submit_task(circuits, **kwargs)
         return result if isinstance(result, list) else [result]
     raise ValueError(f"Batch submission not supported for platform: {platform}")
 

@@ -213,6 +213,59 @@ for epoch in range(50):
     print(f"Epoch {epoch}: Energy = {energy.item():.4f}")
 ```
 
+## 批量执行
+
+当需要并行执行多个电路时，可以使用 `batch_execute` 工具：
+
+```python
+from qpandalite.pytorch import batch_execute, batch_execute_with_params
+from qpandalite.simulator import OriginIR_Simulator
+
+# 定义执行函数
+def simulate(circuit):
+    sim = OriginIR_Simulator()
+    return sim.simulate(circuit.originir, shots=1000)
+
+# 批量执行多个电路
+results = batch_execute(
+    circuits=[c1, c2, c3],
+    executor=simulate,
+    n_workers=4
+)
+
+# 对同一模板绑定不同参数后批量执行
+param_sets = [{'theta': 0.1}, {'theta': 0.2}, {'theta': 0.3}]
+results = batch_execute_with_params(
+    circuit_template=parametric_circuit,
+    param_values=param_sets,
+    executor=simulate,
+    n_workers=4
+)
+```
+
+批量执行使用 `ThreadPoolExecutor` 实现并行，适用于：
+- 梯度计算（每个参数需要 2 次电路执行）
+- 超参数搜索
+- 集成电路评估
+
+## 性能优化建议
+
+1. **减少 shots 数量**：调试时使用较少的 shots，最终训练时再增加。
+
+2. **批量执行**：使用 `batch_execute` 并行化电路评估，充分利用多核 CPU。
+
+3. **缓存中间结果**：对于不变的哈密顿量项，可以预计算并缓存结果。
+
+4. **参数 shift 值**：
+   - 默认 $\pi/2$ 适用于大多数旋转门
+   - 对于特定门（如 RX、RY），可以根据门特性调整
+   - 值过小会放大采样噪声，过大会降低梯度精度
+
+5. **GPU 注意事项**：
+   - `QuantumLayer` 的参数存储在 GPU 上（如果可用）
+   - 量子电路模拟在 CPU 上执行
+   - 数据传输开销可能影响性能，建议批量处理
+
 ## 注意事项
 
 1. **期望值函数**：`expectation_fn` 必须返回一个标量值，用于计算梯度。
@@ -228,6 +281,9 @@ for epoch in range(50):
 - {mod}`qpandalite.pytorch` — PyTorch 集成模块
 - {class}`qpandalite.pytorch.QuantumLayer` — 量子层封装
 - {func}`qpandalite.pytorch.parameter_shift_gradient` — Parameter-shift 梯度计算
+- {func}`qpandalite.pytorch.batch_execute` — 并行电路执行
+- {func}`qpandalite.pytorch.batch_execute_with_params` — 参数化批量执行
+- {func}`qpandalite.pytorch.compute_all_gradients` — 计算所有参数梯度
 
 ## 下一步
 

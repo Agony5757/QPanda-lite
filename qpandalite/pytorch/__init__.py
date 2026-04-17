@@ -7,7 +7,7 @@ This module provides tools for integrating quantum circuits with PyTorch:
 - Batch execution utilities
 """
 
-from .batch_executor import batch_execute
+from .batch_executor import batch_execute, batch_execute_with_params
 from .gradient import compute_all_gradients, parameter_shift_gradient
 from .quantum_layer import QuantumLayer
 
@@ -16,4 +16,5 @@ __all__ = [
     "compute_all_gradients",
     "QuantumLayer",
     "batch_execute",
+    "batch_execute_with_params",
 ]

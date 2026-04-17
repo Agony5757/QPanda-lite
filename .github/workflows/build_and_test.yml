@@ -82,7 +82,7 @@ jobs:
     - name: Build
       if: runner.os == 'Windows'
       run: |
-        pip uninstall qpandalite -y 2>/dev/null || true
+        pip uninstall qpandalite -y || true
         pip install . --no-cache-dir --no-build-isolation
       
     - name: Test

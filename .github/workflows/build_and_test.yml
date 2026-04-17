@@ -78,20 +78,20 @@ jobs:
     - name: Install build dependencies
       run: pip install setuptools wheel setuptools_scm
 
-    - name: Build
+    - name: Build (with all optional dependencies)
       if: runner.os == 'Linux'
       run: |
         pip uninstall qpandalite -y 2>/dev/null || true
-        sudo pip install . --no-cache-dir --no-build-isolation
+        sudo pip install ".[all]" --no-cache-dir --no-build-isolation
 
-    - name: Build
+    - name: Build (with all optional dependencies)
       if: runner.os == 'Windows'
       run: |
-        pip install . --no-cache-dir --no-build-isolation
+        pip install ".[all]" --no-cache-dir --no-build-isolation
 
-    - name: Install test dependencies
+    - name: Install dev dependencies
       run: |
-        pip install pytest pytest-cov --quiet
+        pip install pytest pytest-cov ruff --quiet
 
     - name: Run tests with deprecation monitoring
       env:

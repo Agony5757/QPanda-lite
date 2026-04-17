@@ -44,7 +44,7 @@ dependencies = [
 [project.optional-dependencies]
 quafu = ["pyquafu>=0.4.0"]
 qiskit = ["qiskit>=1.0", "qiskit-ibm-provider>=0.10", "qiskit-aer"]
-originq = ["pyqpanda3>=3.0"]
+originq = ["pyqpanda3>=0.3.0"]
 simulation = ["qutip>=5.0", "qutip-qip>=0.4"]
 visualization = ["matplotlib", "seaborn", "pandas"]
 analysis = ["scipy", "rb_generator"]

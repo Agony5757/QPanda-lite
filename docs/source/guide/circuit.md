@@ -286,6 +286,57 @@ print(def_block)
 # ENDDEF
 ```
 
+### 嵌套子程序
+
+子程序可以调用其他子程序，构建层次化的电路结构：
+
+```python
+@circuit_def(name="h_gate", qregs={"q": 1})
+def h_gate(circ, q):
+    circ.h(q[0])
+    return circ
+
+@circuit_def(name="h_all", qregs={"q": 4})
+def h_all(circ, q):
+    # 调用其他子程序
+    for i in range(4):
+        h_gate(circ, qreg_mapping={"q": [q[i]]})
+    return circ
+
+# 应用嵌套子程序
+c = Circuit(4)
+h_all(c, qreg_mapping={"q": [0, 1, 2, 3]})
+```
+
+### 独立构建电路
+
+使用 `build_standalone()` 方法可以创建一个独立的电路实例：
+
+```python
+# 直接构建独立电路
+standalone = bell_pair.build_standalone()
+print(standalone.originir)
+# QINIT 2
+# CREG 0
+# H q[0]
+# CNOT q[0], q[1]
+
+# 带参数绑定构建
+circuit = rot_x.build_standalone(param_values={"theta": 0.5})
+```
+
+### 子程序属性
+
+NamedCircuit 对象提供以下属性：
+
+```python
+print(bell_pair.name)           # "bell_pair"
+print(bell_pair.qregs)          # {"q": 2}
+print(bell_pair.params)         # []
+print(bell_pair.num_qubits)     # 2
+print(bell_pair.num_parameters) # 0
+```
+
 ## 本页不重点解决的问题
 
 本页聚焦于“如何把线路写出来”，以下问题不在本页展开：

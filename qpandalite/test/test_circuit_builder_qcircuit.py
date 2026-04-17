@@ -372,13 +372,12 @@ class TestParametricTwoQubitGates:
     def test_u3_originir_contains_three_params(self):
         """U3 originir contains theta, phi, lam."""
         c = Circuit()
-        c.u3(0.1, 0.2, 0.3, 0.4)
+        c.u3(0, 0.1, 0.2, 0.3)
         originir = c.originir
         assert "U3" in originir
         assert "0.1" in originir
         assert "0.2" in originir
         assert "0.3" in originir
-        assert "0.4" in originir
 
 
 # =============================================================================

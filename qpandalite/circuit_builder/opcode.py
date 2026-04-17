@@ -6,16 +6,16 @@ from typing import List, Optional, Tuple, Union
 from .translate_qasm2_oir import OriginIR_QASM2_dict, get_QASM2_from_opcode, decompose_mcu_qasm_text
 
 __all__ = [
-    'make_header_originir',
-    'make_header_qasm',
-    'make_measure_originir',
-    'make_measure_qasm',
-    'opcode_to_line_originir',
-    'opcode_to_line_qasm',
-    'OpcodeType',
-    'QubitType',
-    'CbitType',
-    'ParameterType',
+    "make_header_originir",
+    "make_header_qasm",
+    "make_measure_originir",
+    "make_measure_qasm",
+    "opcode_to_line_originir",
+    "opcode_to_line_qasm",
+    "OpcodeType",
+    "QubitType",
+    "CbitType",
+    "ParameterType",
 ]
 
 QubitType = Union[List[int], int]
@@ -35,12 +35,12 @@ def make_header_originir(qubit_num: int, cbit_num: int) -> str:
     Returns:
         str: The header of OriginIR code.
     """
-    ret = 'QINIT {}\n'.format(qubit_num)
-    ret += 'CREG {}\n'.format(cbit_num)
+    ret = "QINIT {}\n".format(qubit_num)
+    ret += "CREG {}\n".format(cbit_num)
     return ret
 
 
-def opcode_to_line_originir(opcode : OpcodeType) -> str:
+def opcode_to_line_originir(opcode: OpcodeType) -> str:
     """
     Convert the given opcode to OriginIR line format.
 
@@ -55,8 +55,8 @@ def opcode_to_line_originir(opcode : OpcodeType) -> str:
 
     QubitType = Union[List[int], int]
     CbitType = Union[List[int], int]
-    ParameterType = Optional[Union[List[float], float]] 
-    
+    ParameterType = Optional[Union[List[float], float]]
+
     and
 
     OpcodeType = Tuple[str, QubitType, CbitType, ParameterType, set, bool]
@@ -68,46 +68,46 @@ def opcode_to_line_originir(opcode : OpcodeType) -> str:
         str: The converted OriginIR line format.
     """
     (operation, qubit, cbit, parameter, dagger_flag, control_qubits_set) = opcode
-    
+
     # operation qubits (,parameter?) (,cbits?) (dagger?) (control?)
     if not operation:
-        raise RuntimeError('Unexpected error. Operation is empty.')
-    ret = ''
-    
-    ret += operation
-    
-    if isinstance(qubit, list):
-        ret += ' '
-        ret += ', '.join([f'q[{q}]' for q in qubit])
-    else:
-        ret += f' q[{qubit}]'
+        raise RuntimeError("Unexpected error. Operation is empty.")
+    ret = ""
 
-    if parameter is not None and (not hasattr(parameter, '__len__') or len(parameter) > 0):
-        ret += ', ('
-        if hasattr(parameter, '__iter__') and not isinstance(parameter, str):
-            ret += ', '.join([str(p) for p in parameter])
+    ret += operation
+
+    if isinstance(qubit, list):
+        ret += " "
+        ret += ", ".join([f"q[{q}]" for q in qubit])
+    else:
+        ret += f" q[{qubit}]"
+
+    if parameter is not None and (not hasattr(parameter, "__len__") or len(parameter) > 0):
+        ret += ", ("
+        if hasattr(parameter, "__iter__") and not isinstance(parameter, str):
+            ret += ", ".join([str(p) for p in parameter])
         else:
             ret += str(parameter)
-        ret += ')'
-        
-    if cbit: 
-        ret += ', '
-        ret += (f'c[{cbit}]' if cbit else '')
-        
+        ret += ")"
+
+    if cbit:
+        ret += ", "
+        ret += f"c[{cbit}]" if cbit else ""
+
     if dagger_flag:
-        ret += ' dagger'
-    
-    if control_qubits_set:        
-        ret += ' controlled_by ('
-        ret += ', '.join([f'q[{q}]' for q in control_qubits_set])
-        ret += ')'
+        ret += " dagger"
+
+    if control_qubits_set:
+        ret += " controlled_by ("
+        ret += ", ".join([f"q[{q}]" for q in control_qubits_set])
+        ret += ")"
 
     # print(ret)
 
     return ret
 
 
-def make_measure_originir(measure_list : List[int]):
+def make_measure_originir(measure_list: List[int]):
     """
     Generate the measure statement of OriginIR code for the given measure list.
 
@@ -118,9 +118,9 @@ def make_measure_originir(measure_list : List[int]):
         str: The measure statement of OriginIR code.
     """
 
-    ret = ''
+    ret = ""
     for i, meas_qubit in enumerate(measure_list):
-        ret += 'MEASURE q[{}], c[{}]\n'.format(meas_qubit, i)
+        ret += "MEASURE q[{}], c[{}]\n".format(meas_qubit, i)
     return ret
 
 
@@ -135,10 +135,10 @@ def make_header_qasm(qubit_num: int, cbit_num: int) -> str:
     Returns:
         str: The header of QASM code.
     """
-    
-    ret = "OPENQASM 2.0;\ninclude \"qelib1.inc\";\n"
-    ret += 'qreg q[{}];\n'.format(qubit_num)
-    ret += 'creg c[{}];\n'.format(cbit_num)
+
+    ret = 'OPENQASM 2.0;\ninclude "qelib1.inc";\n'
+    ret += "qreg q[{}];\n".format(qubit_num)
+    ret += "creg c[{}];\n".format(cbit_num)
     return ret
 
 
@@ -164,7 +164,7 @@ def opcode_to_line_qasm(opcode: OpcodeType, qubit_num: Optional[int] = None) -> 
     operation, qubit, cbit, parameter = get_QASM2_from_opcode(opcode)
 
     # Sentinel returned by get_QASM2_from_opcode for n≥4 control gates.
-    if operation == '_MCU_DECOMP_':
+    if operation == "_MCU_DECOMP_":
         controls_list, target, gate_qasm, params, _ = qubit  # type: ignore[misc]
         if qubit_num is None:
             raise NotImplementedError(
@@ -176,34 +176,34 @@ def opcode_to_line_qasm(opcode: OpcodeType, qubit_num: Optional[int] = None) -> 
 
     # operation qubits (,parameter?) (,cbits?) (dagger?) (control?)
     if not operation:
-        raise RuntimeError('Unexpected error. Operation is empty.')
-    ret = ''
+        raise RuntimeError("Unexpected error. Operation is empty.")
+    ret = ""
 
     ret += operation
 
     if parameter is not None:
         if isinstance(parameter, list):
-            parameter_str = ', '.join([str(p) for p in parameter])
+            parameter_str = ", ".join([str(p) for p in parameter])
         else:
             parameter_str = str(parameter)
 
-        ret += f'({parameter_str})'
+        ret += f"({parameter_str})"
 
     if isinstance(qubit, list):
-        ret += ' '
-        ret += ', '.join([f'q[{q}]' for q in qubit])
+        ret += " "
+        ret += ", ".join([f"q[{q}]" for q in qubit])
     else:
-        ret += f' q[{qubit}]'
+        ret += f" q[{qubit}]"
 
     if cbit:
-        raise NotImplementedError('qpandalite does not support cbit in QASM code.')
+        raise NotImplementedError("qpandalite does not support cbit in QASM code.")
 
-    ret += ';'
+    ret += ";"
 
     return ret
 
 
-def make_measure_qasm(measure_list : List[int]) -> str:
+def make_measure_qasm(measure_list: List[int]) -> str:
     """
     Generate the measure statement of QASM code for the given measure list.
 
@@ -213,8 +213,8 @@ def make_measure_qasm(measure_list : List[int]) -> str:
     Returns:
         str: The measure statement of QASM code.
     """
-    
-    ret = ''
+
+    ret = ""
     for i, meas_qubit in enumerate(measure_list):
-        ret += 'measure q[{}] -> c[{}];\n'.format(meas_qubit, i)
+        ret += "measure q[{}] -> c[{}];\n".format(meas_qubit, i)
     return ret

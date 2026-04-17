@@ -12,6 +12,7 @@ Key exports:
 from __future__ import annotations
 
 from copy import deepcopy
+from typing import TYPE_CHECKING, Optional, Union
 
 from .opcode import (
     make_header_originir,
@@ -22,11 +23,17 @@ from .opcode import (
     opcode_to_line_qasm,
 )
 
+if TYPE_CHECKING:
+    from .qubit import Qubit, QReg, QRegSlice
+
 # Opcode: (op_name, qubits, cbits, params, dagger, control_qubits)
 QubitSpec = int | list[int]
 CbitSpec = int | list[int] | None
 ParamSpec = float | list[float] | tuple[float, ...] | None
 OpCode = tuple[str, QubitSpec, CbitSpec, ParamSpec, bool, QubitSpec]
+
+# Extended types for Qubit/QRegSlice support
+QubitInput = Union[int, "Qubit", "QRegSlice", list]
 
 __all__ = ["Circuit", "OpcodeType"]
 
@@ -102,6 +109,8 @@ class Circuit:
         Qubits scheduled for measurement.
     opcode_list : list[OpCode]
         Internal list of gate opcodes.
+    _qregs : dict[str, QReg]
+        Named quantum registers (if created with qregs parameter).
     """
 
     used_qubit_list: list[int]
@@ -111,8 +120,38 @@ class Circuit:
     cbit_num: int
     measure_list: list[int]
     opcode_list: list[OpCode]
+    _qregs: dict[str, "QReg"]
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        qregs: Optional[dict[str, int] | list["QReg"] | int] = None,
+    ) -> None:
+        """Initialize a quantum circuit.
+
+        Args:
+            qregs: Optional qubit register specification. Can be:
+                - dict[str, int]: Mapping of register names to sizes, e.g., {"a": 4, "b": 2}
+                - list[QReg]: List of QReg objects
+                - int: Total number of qubits (backward compatible)
+                - None: No predefined registers (backward compatible)
+
+        Examples:
+            >>> # Backward compatible - no registers
+            >>> c = Circuit()
+
+            >>> # Backward compatible - fixed qubit count
+            >>> c = Circuit(4)
+
+            >>> # Named registers
+            >>> c = Circuit(qregs={"data": 4, "ancilla": 2})
+
+            >>> # Using QReg objects
+            >>> from qpandalite.circuit_builder import QReg
+            >>> qr_a = QReg(name="a", size=4)
+            >>> c = Circuit(qregs=[qr_a])
+        """
+        from .qubit import QReg as QRegClass
+
         self.used_qubit_list = []
         self.max_qubit = 0
         self.qubit_num = 0
@@ -120,12 +159,100 @@ class Circuit:
         self.measure_list = []
         self.opcode_list = []
         self.circuit_str = ""
+        # Named register storage
+        self._qregs = {}
         # Active-context state: accumulated control qubits and dagger flag for
         # gates added inside with-control / with-dagger blocks.
         self._active_controls: list[int] = []
         self._active_dagger: bool = False
         # Stack used by set_control / unset_control to remember each push size.
         self._control_stack: list[tuple[int, ...]] = []
+
+        # Handle qregs parameter
+        if qregs is not None:
+            if isinstance(qregs, int):
+                # Backward compatible: Circuit(4) sets qubit_num directly
+                self.qubit_num = qregs
+                self.max_qubit = max(0, qregs - 1)
+            elif isinstance(qregs, dict):
+                # Create QReg objects from dict
+                base_index = 0
+                for name, size in qregs.items():
+                    qreg = QRegClass(name=name, size=size, base_index=base_index)
+                    self._qregs[name] = qreg
+                    base_index += size
+                self.qubit_num = base_index
+                self.max_qubit = max(0, base_index - 1)
+            elif isinstance(qregs, list):
+                # Use provided QReg objects, updating base_index
+                base_index = 0
+                for qreg in qregs:
+                    qreg.base_index = base_index
+                    self._qregs[qreg.name] = qreg
+                    base_index += qreg.size
+                self.qubit_num = base_index
+                self.max_qubit = max(0, base_index - 1)
+
+    @property
+    def qregs(self) -> dict[str, "QReg"]:
+        """Return the named quantum registers."""
+        return self._qregs
+
+    def get_qreg(self, name: str) -> "QReg":
+        """Get a named quantum register by name.
+
+        Args:
+            name: Register name
+
+        Returns:
+            QReg object
+
+        Raises:
+            KeyError: If register name not found
+        """
+        if name not in self._qregs:
+            raise KeyError(f"QReg '{name}' not found. Available: {list(self._qregs.keys())}")
+        return self._qregs[name]
+
+    def _resolve_qubit(self, qubit: QubitInput) -> int | list[int]:
+        """Resolve a qubit reference to integer index(es).
+
+        Args:
+            qubit: Qubit reference - can be int, Qubit, QReg, QRegSlice, or list
+
+        Returns:
+            Integer qubit index or list of indices
+        """
+        from .qubit import Qubit as QubitClass
+        from .qubit import QReg as QRegClass
+        from .qubit import QRegSlice as QRegSliceClass
+
+        if isinstance(qubit, int):
+            return qubit
+        elif isinstance(qubit, QubitClass):
+            return int(qubit)
+        elif isinstance(qubit, QRegClass):
+            # QReg - return all qubit indices
+            return [int(q) for q in qubit.qubits]
+        elif isinstance(qubit, QRegSliceClass):
+            return [int(q) for q in qubit]
+        elif isinstance(qubit, list):
+            # Recursively resolve list elements
+            resolved = []
+            for q in qubit:
+                if isinstance(q, int):
+                    resolved.append(q)
+                elif isinstance(q, QubitClass):
+                    resolved.append(int(q))
+                elif isinstance(q, QRegClass):
+                    resolved.extend(int(qi) for qi in q.qubits)
+                elif isinstance(q, QRegSliceClass):
+                    resolved.extend(int(qi) for qi in q)
+                else:
+                    raise TypeError(f"Unsupported qubit type in list: {type(q)}")
+            return resolved
+        else:
+            raise TypeError(f"Unsupported qubit type: {type(qubit)}")
 
     def copy(self) -> "Circuit":
         """Return a deep copy of this circuit."""
@@ -180,20 +307,33 @@ class Circuit:
     def add_gate(
         self,
         operation: str,
-        qubits: QubitSpec,
+        qubits: QubitInput,
         cbits: CbitSpec = None,
         params: ParamSpec = None,
         dagger: bool = False,
-        control_qubits: QubitSpec = None,
+        control_qubits: QubitInput = None,
     ) -> None:
-        """Add a gate to the circuit."""
+        """Add a gate to the circuit.
+
+        Args:
+            operation: Gate name (e.g., "H", "CNOT", "RX")
+            qubits: Target qubit(s) - can be int, Qubit, QRegSlice, or list
+            cbits: Classical bit(s) for measurement
+            params: Gate parameters
+            dagger: Whether to apply dagger (adjoint)
+            control_qubits: Control qubit(s)
+        """
+        # Resolve qubit references to integers
+        resolved_qubits = self._resolve_qubit(qubits)
+        resolved_controls = self._resolve_qubit(control_qubits) if control_qubits is not None else None
+
         if operation in {"BARRIER", "I"}:
             # These gates have no controlled / dagger semantics; store as-is.
-            merged_controls: QubitSpec = control_qubits
+            merged_controls: QubitSpec = resolved_controls
             merged_dagger = dagger
         else:
             # Merge explicit control_qubits with any active context controls.
-            base: list[int] = list(control_qubits) if control_qubits is not None else []
+            base: list[int] = list(resolved_controls) if resolved_controls is not None else []
             if self._active_controls:
                 overlap = set(base) & set(self._active_controls)
                 if overlap:
@@ -205,9 +345,9 @@ class Circuit:
             merged_controls = base if base else None  # type: ignore[assignment]
             # XOR active-dagger with the explicit dagger flag.
             merged_dagger = dagger ^ self._active_dagger
-        opcode: OpCode = (operation, qubits, cbits, params, merged_dagger, merged_controls)  # type: ignore[assignment]
+        opcode: OpCode = (operation, resolved_qubits, cbits, params, merged_dagger, merged_controls)  # type: ignore[assignment]
         self.opcode_list.append(opcode)
-        self.record_qubit(qubits if isinstance(qubits, list) else [qubits])
+        self.record_qubit(resolved_qubits if isinstance(resolved_qubits, list) else [resolved_qubits])
 
     def add_circuit(self, other: "Circuit") -> None:
         """Add all gates from another circuit into this circuit."""
@@ -243,84 +383,128 @@ class Circuit:
 
     # ─────────────────── Single-qubit gates (no parameters) ───────────────────
 
-    def identity(self, qn: int) -> None:
-        """Apply the identity (no-op) gate to qubit."""
+    def identity(self, qn: QubitInput) -> None:
+        """Apply the identity (no-op) gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("I", qn)
 
-    def h(self, qn: int) -> None:
-        """Apply single-qubit Hadamard gate to qubit."""
+    def h(self, qn: QubitInput) -> None:
+        """Apply single-qubit Hadamard gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("H", qn)
 
-    def x(self, qn: int) -> None:
-        """Apply Pauli-X (NOT) gate to qubit."""
+    def x(self, qn: QubitInput) -> None:
+        """Apply Pauli-X (NOT) gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("X", qn)
 
-    def y(self, qn: int) -> None:
-        """Apply Pauli-Y gate to qubit."""
+    def y(self, qn: QubitInput) -> None:
+        """Apply Pauli-Y gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("Y", qn)
 
-    def z(self, qn: int) -> None:
-        """Apply Pauli-Z gate to qubit."""
+    def z(self, qn: QubitInput) -> None:
+        """Apply Pauli-Z gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("Z", qn)
 
-    def sx(self, qn: int) -> None:
-        """Apply square-root-of-X (SX) gate to qubit."""
+    def sx(self, qn: QubitInput) -> None:
+        """Apply square-root-of-X (SX) gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("SX", qn)
 
-    def sxdg(self, qn: int) -> None:
-        """Apply conjugate-transpose of SX gate to qubit."""
+    def sxdg(self, qn: QubitInput) -> None:
+        """Apply conjugate-transpose of SX gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("SX", qn, dagger=True)
 
-    def s(self, qn: int) -> None:
-        """Apply S (phase) gate to qubit."""
+    def s(self, qn: QubitInput) -> None:
+        """Apply S (phase) gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("S", qn)
 
-    def sdg(self, qn: int) -> None:
-        """Apply S-dagger (inverse phase) gate to qubit."""
+    def sdg(self, qn: QubitInput) -> None:
+        """Apply S-dagger (inverse phase) gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("S", qn, dagger=True)
 
-    def t(self, qn: int) -> None:
-        """Apply T gate to qubit."""
+    def t(self, qn: QubitInput) -> None:
+        """Apply T gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("T", qn)
 
-    def tdg(self, qn: int) -> None:
-        """Apply T-dagger (inverse T) gate to qubit."""
+    def tdg(self, qn: QubitInput) -> None:
+        """Apply T-dagger (inverse T) gate to qubit.
+
+        Args:
+            qn: Target qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("T", qn, dagger=True)
 
     # ─────────────────── Single-qubit parametric gates ───────────────────
 
-    def rx(self, qn: int, theta: float) -> None:
+    def rx(self, qn: QubitInput, theta: float) -> None:
         """Apply RX rotation gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             theta: Rotation angle in radians.
         """
         self.add_gate("RX", qn, params=theta)
 
-    def ry(self, qn: int, theta: float) -> None:
+    def ry(self, qn: QubitInput, theta: float) -> None:
         """Apply RY rotation gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             theta: Rotation angle in radians.
         """
         self.add_gate("RY", qn, params=theta)
 
-    def rz(self, qn: int, theta: float) -> None:
+    def rz(self, qn: QubitInput, theta: float) -> None:
         """Apply RZ rotation gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             theta: Rotation angle in radians.
         """
         self.add_gate("RZ", qn, params=theta)
 
-    def rphi(self, qn: int, theta: float, phi: float) -> None:
+    def rphi(self, qn: QubitInput, theta: float, phi: float) -> None:
         """Apply RPhi rotation gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             theta: Polar rotation angle in radians.
             phi: Azimuthal angle in radians.
         """
@@ -328,141 +512,168 @@ class Circuit:
 
     # ─────────────────── Two-qubit gates ───────────────────
 
-    def cnot(self, controller: int, target: int) -> None:
+    def cnot(self, controller: QubitInput, target: QubitInput) -> None:
         """Apply CNOT (controlled-X) gate.
 
         Args:
-            controller: Control qubit index.
-            target: Target qubit index.
+            controller: Control qubit - can be int, Qubit, or QRegSlice
+            target: Target qubit - can be int, Qubit, or QRegSlice
         """
         self.add_gate("CNOT", [controller, target])
 
-    def cx(self, controller: int, target: int) -> None:
+    def cx(self, controller: QubitInput, target: QubitInput) -> None:
         """Apply CX gate (alias for CNOT).
 
         Args:
-            controller: Control qubit index.
-            target: Target qubit index.
+            controller: Control qubit - can be int, Qubit, or QRegSlice
+            target: Target qubit - can be int, Qubit, or QRegSlice
         """
         self.cnot(controller, target)
 
-    def cz(self, q1: int, q2: int) -> None:
-        """Apply controlled-Z gate to two qubits."""
+    def cz(self, q1: QubitInput, q2: QubitInput) -> None:
+        """Apply controlled-Z gate to two qubits.
+
+        Args:
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("CZ", [q1, q2])
 
-    def iswap(self, q1: int, q2: int) -> None:
-        """Apply iSWAP gate to two qubits."""
+    def iswap(self, q1: QubitInput, q2: QubitInput) -> None:
+        """Apply iSWAP gate to two qubits.
+
+        Args:
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("ISWAP", [q1, q2])
 
-    def swap(self, q1: int, q2: int) -> None:
-        """Apply SWAP gate to two qubits."""
+    def swap(self, q1: QubitInput, q2: QubitInput) -> None:
+        """Apply SWAP gate to two qubits.
+
+        Args:
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
+        """
         self.add_gate("SWAP", [q1, q2])
 
     # ─────────────────── Three-qubit gates ───────────────────
 
-    def cswap(self, q1: int, q2: int, q3: int) -> None:
-        """Apply CSWAP (Fredkin) gate to three qubits."""
+    def cswap(self, q1: QubitInput, q2: QubitInput, q3: QubitInput) -> None:
+        """Apply CSWAP (Fredkin) gate to three qubits.
+
+        Args:
+            q1: Control qubit - can be int, Qubit, or QRegSlice
+            q2: First target qubit
+            q3: Second target qubit
+        """
         self.add_gate("CSWAP", [q1, q2, q3])
 
-    def toffoli(self, q1: int, q2: int, q3: int) -> None:
-        """Apply Toffoli (CCNOT) gate to three qubits."""
+    def toffoli(self, q1: QubitInput, q2: QubitInput, q3: QubitInput) -> None:
+        """Apply Toffoli (CCNOT) gate to three qubits.
+
+        Args:
+            q1: First control qubit
+            q2: Second control qubit
+            q3: Target qubit
+        """
         self.add_gate("TOFFOLI", [q1, q2, q3])
 
     # ─────────────────── Parametric gates ───────────────────
 
-    def u1(self, qn: int, lam: float) -> None:
+    def u1(self, qn: QubitInput, lam: float) -> None:
         """Apply U1 single-parameter unitary gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             lam: Phase angle lambda in radians.
         """
         self.add_gate("U1", qn, params=lam)
 
-    def u2(self, qn: int, phi: float, lam: float) -> None:
+    def u2(self, qn: QubitInput, phi: float, lam: float) -> None:
         """Apply U2 two-parameter unitary gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             phi: Phi angle in radians.
             lam: Lambda angle in radians.
         """
         self.add_gate("U2", qn, params=[phi, lam])
 
-    def u3(self, qn: int, theta: float, phi: float, lam: float) -> None:
+    def u3(self, qn: QubitInput, theta: float, phi: float, lam: float) -> None:
         """Apply U3 three-parameter unitary gate.
 
         Args:
-            qn: Target qubit index.
+            qn: Target qubit - can be int, Qubit, or QRegSlice
             theta: Theta angle in radians.
             phi: Phi angle in radians.
             lam: Lambda angle in radians.
         """
         self.add_gate("U3", qn, params=[theta, phi, lam])
 
-    def xx(self, q1: int, q2: int, theta: float) -> None:
+    def xx(self, q1: QubitInput, q2: QubitInput, theta: float) -> None:
         """Apply XX Ising interaction gate.
 
         Args:
-            q1: First qubit index.
-            q2: Second qubit index.
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
             theta: Interaction angle in radians.
         """
         self.add_gate("XX", [q1, q2], params=theta)
 
-    def yy(self, q1: int, q2: int, theta: float) -> None:
+    def yy(self, q1: QubitInput, q2: QubitInput, theta: float) -> None:
         """Apply YY Ising interaction gate.
 
         Args:
-            q1: First qubit index.
-            q2: Second qubit index.
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
             theta: Interaction angle in radians.
         """
         self.add_gate("YY", [q1, q2], params=theta)
 
-    def zz(self, q1: int, q2: int, theta: float) -> None:
+    def zz(self, q1: QubitInput, q2: QubitInput, theta: float) -> None:
         """Apply ZZ Ising interaction gate.
 
         Args:
-            q1: First qubit index.
-            q2: Second qubit index.
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
             theta: Interaction angle in radians.
         """
         self.add_gate("ZZ", [q1, q2], params=theta)
 
-    def phase2q(self, q1: int, q2: int, theta1: float, theta2: float, thetazz: float) -> None:
+    def phase2q(self, q1: QubitInput, q2: QubitInput, theta1: float, theta2: float, thetazz: float) -> None:
         """Apply two-qubit phase gate with local and ZZ terms.
 
         Args:
-            q1: First qubit index.
-            q2: Second qubit index.
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
             theta1: Local phase angle for q1 in radians.
             theta2: Local phase angle for q2 in radians.
             thetazz: ZZ interaction angle in radians.
         """
         self.add_gate("PHASE2Q", [q1, q2], params=[theta1, theta2, thetazz])
 
-    def uu15(self, q1: int, q2: int, params: list[float]) -> None:
+    def uu15(self, q1: QubitInput, q2: QubitInput, params: list[float]) -> None:
         """Apply general two-qubit UU15 gate with 15 parameters.
 
         Args:
-            q1: First qubit index.
-            q2: Second qubit index.
+            q1: First qubit - can be int, Qubit, or QRegSlice
+            q2: Second qubit - can be int, Qubit, or QRegSlice
             params: List of 15 rotation parameters in radians.
         """
         self.add_gate("UU15", [q1, q2], params=params)
 
-    def barrier(self, *qubits: int) -> None:
+    def barrier(self, *qubits: QubitInput) -> None:
         """Insert a barrier across the specified qubits.
 
         Args:
-            *qubits: Qubit indices to include in the barrier.
+            *qubits: Qubits to include in the barrier.
         """
         self.add_gate("BARRIER", list(qubits))
 
     # ─────────────────── Measurement ───────────────────
 
-    def measure(self, *qubits: int) -> None:
+    def measure(self, *qubits: QubitInput) -> None:
         """Schedule qubits for measurement.
 
         Appends the given qubits to the measurement list.  Multiple calls
@@ -470,7 +681,7 @@ class Circuit:
         order qubits are added.
 
         Args:
-            *qubits: One or more qubit indices to measure.
+            *qubits: One or more qubits to measure - can be int, Qubit, or QRegSlice
 
         Raises:
             ValueError: Called inside an active CONTROL or DAGGER context block.
@@ -479,22 +690,30 @@ class Circuit:
             raise ValueError("measure() cannot be called inside a control() context block.")
         if self._active_dagger:
             raise ValueError("measure() cannot be called inside a dagger() context block.")
-        self.record_qubit(list(qubits))
+        # Resolve all qubits to integers
+        resolved_qubits = []
+        for q in qubits:
+            resolved = self._resolve_qubit(q)
+            if isinstance(resolved, list):
+                resolved_qubits.extend(resolved)
+            else:
+                resolved_qubits.append(resolved)
+        self.record_qubit(resolved_qubits)
         if self.measure_list is None:
             self.measure_list = []
-        self.measure_list.extend(list(qubits))
+        self.measure_list.extend(resolved_qubits)
         self.cbit_num = len(self.measure_list)
 
     # ─────────────────── Control / Dagger context managers ───────────────────
 
-    def control(self, *args: int) -> CircuitControlContext:
+    def control(self, *args: QubitInput) -> CircuitControlContext:
         """Return a context manager that wraps gates in a CONTROL block.
 
         All gates added inside the ``with`` block will be executed only
         when all specified control qubits are in state ``|1>``.
 
         Args:
-            *args: One or more control qubit indices.
+            *args: One or more control qubits - can be int, Qubit, or QRegSlice
 
         Returns:
             A :class:`CircuitControlContext` context manager.
@@ -502,25 +721,41 @@ class Circuit:
         Raises:
             ValueError: No control qubits were supplied.
         """
-        self.record_qubit(list(args))
-        if len(args) == 0:
+        # Resolve qubits to integers
+        resolved = []
+        for q in args:
+            r = self._resolve_qubit(q)
+            if isinstance(r, list):
+                resolved.extend(r)
+            else:
+                resolved.append(r)
+        self.record_qubit(resolved)
+        if len(resolved) == 0:
             raise ValueError("Controller qubit must not be empty.")
-        return CircuitControlContext(self, args)
+        return CircuitControlContext(self, tuple(resolved))
 
-    def set_control(self, *args: int) -> None:
+    def set_control(self, *args: QubitInput) -> None:
         """Manually open a CONTROL block (low-level API; prefer :meth:`control`).
 
         Args:
-            *args: Control qubit indices.
+            *args: Control qubits - can be int, Qubit, or QRegSlice
         """
-        self.record_qubit(list(args))
-        ret = "CONTROL "
+        # Resolve qubits to integers
+        resolved = []
         for q in args:
+            r = self._resolve_qubit(q)
+            if isinstance(r, list):
+                resolved.extend(r)
+            else:
+                resolved.append(r)
+        self.record_qubit(resolved)
+        ret = "CONTROL "
+        for q in resolved:
             ret += f"q[{q}], "
         self.circuit_str += ret[:-2] + "\n"
         # Update active-context state so add_gate picks up these controls.
-        self._control_stack.append(tuple(args))
-        self._active_controls = self._active_controls + list(args)
+        self._control_stack.append(tuple(resolved))
+        self._active_controls = self._active_controls + resolved
 
     def unset_control(self) -> None:
         """Manually close a CONTROL block (low-level API; prefer :meth:`control`)."""

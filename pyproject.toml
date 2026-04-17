@@ -44,14 +44,41 @@ dependencies = [
     "qutip-qip",
     "pyqpanda3",
     "pyyaml>=6.0",
+    "sympy>=1.12",
 ]
 
 [project.urls]
 "Source Code" = "https://github.com/Agony5757/QPanda-Lite.git"
 
+[project.optional-dependencies]
+pytorch = ["torch>=2.0"]
+
 [tool.setuptools]
 zip-safe = false
-packages = { find = { exclude = ["qpandalite.test", "qpandalite.test.*"] } }
+packages = [
+    "qpandalite",
+    "qpandalite.algorithmics",
+    "qpandalite.algorithmics.ansatz",
+    "qpandalite.algorithmics.circuits",
+    "qpandalite.algorithmics.measurement",
+    "qpandalite.algorithmics.state_preparation",
+    "qpandalite.analyzer",
+    "qpandalite.circuit_builder",
+    "qpandalite.originir",
+    "qpandalite.pytorch",
+    "qpandalite.qasm",
+    "qpandalite.qcloud_config",
+    "qpandalite.simulator",
+    "qpandalite.task",
+    "qpandalite.task.adapters",
+    "qpandalite.task.ibm",
+    "qpandalite.task.origin_qcloud",
+    "qpandalite.task.originq",
+    "qpandalite.task.originq_dummy",
+    "qpandalite.task.platform_template",
+    "qpandalite.task.quafu",
+    "qpandalite.transpiler",
+]
 
 [tool.ruff]
 line-length = 120
@@ -76,5 +103,5 @@ write_to = "qpandalite/_version.py"
 fallback_version = "0.0.0"
 
 [tool.setuptools.package-data]
-"qpandalite" = ["test/QASMBench.pkl", "*.pyi"]
+"qpandalite" = ["*.pyi"]
 "qpandalite.simulator" = ["qpandalite_cpp.pyi"]

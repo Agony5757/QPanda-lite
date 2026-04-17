@@ -45,7 +45,10 @@ jobs:
         python-version: '3.11'
 
     - name: Install package
-      run: pip install .
+      run: |
+        pip uninstall qpandalite -y 2>/dev/null || true
+        rm -rf build/ dist/ *.egg-info qpandalite.egg-info
+        pip install . --no-cache-dir --no-build-isolation
 
     - name: Install test dependencies
       run: pip install pytest pytest-cov

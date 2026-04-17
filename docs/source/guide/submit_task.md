@@ -53,7 +53,7 @@
 
 ## 统一云平台接口（推荐方式） {#guide-submit-task-unified-api}
 
-PR#178 引入了统一的云平台接入层，提供了一致的接口来操作 OriginQ、Quafu 和 IBM 三大平台。这是推荐的使用方式。
+PR#182 引入了统一的云平台接入层，提供了一致的接口来操作 OriginQ、Quafu 和 IBM 三大平台。这是推荐的使用方式。
 
 ### 配置文件
 
@@ -183,7 +183,42 @@ print(result)
 - 本地测试任务提交流程
 - 在暂时不具备真实平台访问条件时先完成联调
 
-#### 提交任务
+#### 使用 DummyAdapter
+
+推荐使用新的 `DummyAdapter`，它提供了与其他云平台适配器一致的接口：
+
+```python
+from qpandalite.task.adapters.dummy_adapter import DummyAdapter
+
+# 创建适配器（需要安装 qutip: pip install qpandalite[simulation]）
+adapter = DummyAdapter()
+
+# 提交任务
+circuit = '''QINIT 2
+CREG 2
+H q[0]
+CNOT q[0] q[1]
+MEASURE q[0], c[0]
+MEASURE q[1], c[1]'''
+task_id = adapter.submit(circuit, shots=1000)
+
+# 查询结果
+result = adapter.query(task_id)
+print(result['status'])  # 'success'
+print(result['result']['counts'])
+```
+
+#### 全局 Dummy 模式
+
+设置环境变量 `QPANDALITE_DUMMY=true` 可以启用全局 dummy 模式：
+
+```bash
+export QPANDALITE_DUMMY=true
+```
+
+在此模式下，所有任务提交都会自动使用本地模拟，无需真实云平台连接。
+
+#### 旧版接口
 
 ```python
 from qpandalite.task.originq_dummy import submit_task

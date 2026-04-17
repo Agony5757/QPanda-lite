@@ -181,7 +181,33 @@ class QiskitAdapter(QuantumAdapter):
         circuit_optimize: bool,
         task_name: str | None,
     ) -> str:
-        """Internal implementation shared by submit / submit_batch."""
+        """Internal implementation shared by submit() and submit_batch().
+
+        Handles the common logic for submitting circuits to IBM Quantum:
+        1. Validates the backend exists
+        2. Checks shot count against backend limits
+        3. Applies circuit optimization
+        4. Handles qubit mapping/auto-mapping
+        5. Executes and returns job ID
+
+        Args:
+            circuits: List of Qiskit QuantumCircuit objects to submit.
+            chip_id: Backend name (e.g., 'ibmq_qasm_simulator').
+            shots: Number of measurement shots.
+            auto_mapping: Qubit mapping strategy:
+                - True: Use SABRE layout method for automatic qubit mapping
+                - list: Use as initial_layout for manual qubit mapping
+                - False/None: Default transpilation without special mapping
+            circuit_optimize: Whether to apply optimization level 3.
+            task_name: Unused but kept for API compatibility with other adapters.
+
+        Returns:
+            str: The IBM Quantum job ID for result retrieval.
+
+        Raises:
+            ValueError: If chip_id is not in available backends,
+                or if shots exceeds backend max_shots limit.
+        """
         import qiskit
 
         backends_name = [b.name for b in self._backends]

@@ -9,3 +9,4 @@
    advanced/circuit_analysis
    advanced/opcode
    advanced/noise_simulation
+   advanced/adapter_architecture

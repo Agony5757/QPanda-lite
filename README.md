@@ -185,13 +185,13 @@ print(sim.state)
 ### 3. Submit to Cloud Hardware
 
 ```python
-import qpandalite.task.quafu as quafu
+from qpandalite import submit_task, wait_for_result
 
-# Configure first: see qcloud_config_template/quafu_template.py
-# quafu.create_quafu_online_config(...)
+# Configure via environment variables:
+# export QUAFU_API_TOKEN="your-token"
 
-taskid = quafu.submit_task(circuit.originir, chip_id='ScQ-P10')
-result = quafu.query_by_taskid_sync(taskid)
+task_id = submit_task(circuit, backend='quafu', shots=1000, chip_id='ScQ-P10')
+result = wait_for_result(task_id, backend='quafu')
 ```
 
 ---

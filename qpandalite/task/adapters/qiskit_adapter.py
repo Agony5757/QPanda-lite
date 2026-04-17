@@ -2,6 +2,9 @@
 
 Translates OriginIR circuits to Qiskit QuantumCircuit objects and submits
 via the ``qiskit`` / ``qiskit_ibm_provider`` packages.  No raw REST calls.
+
+Installation:
+    pip install qpandalite[qiskit]
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ from qpandalite.task.adapters.base import (
     QuantumAdapter,
 )
 from qpandalite.task.config import load_ibm_config
+from qpandalite.task.optional_deps import MissingDependencyError, check_qiskit
 
 if TYPE_CHECKING:
     import qiskit
@@ -31,6 +35,9 @@ class QiskitAdapter(QuantumAdapter):
         Proxies can be passed via the `proxy` parameter:
         - Dict with 'http' and/or 'https' keys
         - Or a single proxy URL string for both protocols
+
+    Raises:
+        MissingDependencyError: If qiskit or qiskit_ibm_provider is not installed.
 
     Example:
         >>> adapter = QiskitAdapter(proxy={
@@ -48,7 +55,14 @@ class QiskitAdapter(QuantumAdapter):
             proxy: Optional proxy configuration.
                 - Dict with 'http' and/or 'https' keys
                 - Or a single proxy URL string
+
+        Raises:
+            MissingDependencyError: If qiskit is not installed.
         """
+        # Check if qiskit is available
+        if not check_qiskit():
+            raise MissingDependencyError("qiskit", "qiskit")
+
         config = load_ibm_config()
         self._api_token: str = config["api_token"]
         self._proxy: dict[str, str] | str | None = proxy
@@ -93,7 +107,7 @@ class QiskitAdapter(QuantumAdapter):
         Returns:
             bool: True if the IBM provider was successfully initialized.
         """
-        return self._provider is not None
+        return check_qiskit() and hasattr(self, '_provider') and self._provider is not None
 
     # -------------------------------------------------------------------------
     # Circuit translation

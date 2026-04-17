@@ -33,25 +33,22 @@ classifiers = [
 dependencies = [
     "numpy",
     "requests",
-    "pandas",
-    "seaborn",
-    "matplotlib",
-    "rb_generator",
-    "pybind11-stubgen",
-    "qiskit",
-    "qiskit-aer",
-    "qutip",
-    "qutip-qip",
-    "pyqpanda3",
     "pyyaml>=6.0",
-    "sympy>=1.12",
+    "typing-extensions>=4.0",
 ]
 
 [project.urls]
 "Source Code" = "https://github.com/Agony5757/QPanda-Lite.git"
 
 [project.optional-dependencies]
+quafu = ["pyquafu>=0.4.0"]
+qiskit = ["qiskit>=1.0", "qiskit-ibm-provider>=0.10", "qiskit-aer"]
+originq = ["pyqpanda3>=3.0"]
+simulation = ["qutip>=5.0", "qutip-qip>=0.4"]
+visualization = ["matplotlib", "seaborn", "pandas"]
+analysis = ["scipy", "sympy>=1.12", "rb_generator"]
 pytorch = ["torch>=2.0"]
+all = ["qpandalite[quafu,qiskit,originq,simulation,visualization,analysis,pytorch]"]
 
 [tool.setuptools]
 zip-safe = false

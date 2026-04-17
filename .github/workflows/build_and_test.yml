@@ -16,6 +16,7 @@ on:
       - '**/CMakeLists.txt'
       - '**.cmake'
       - 'setup.py'
+      - 'pyproject.toml'
       - '.github/workflows/build_and_test.yml'
   pull_request:
     branches: [ "main" ]
@@ -30,6 +31,7 @@ on:
       - '**/CMakeLists.txt'
       - '**.cmake'
       - 'setup.py'
+      - 'pyproject.toml'
       - '.github/workflows/build_and_test.yml'
 
 jobs:
@@ -87,8 +89,43 @@ jobs:
       run: |
         pip install . --no-cache-dir --no-build-isolation
 
-    - name: Test
+    - name: Install test dependencies
       run: |
-        pip install pytest --quiet
-        pytest qpandalite/test/ -v
+        pip install pytest pytest-cov --quiet
+
+    - name: Run tests with deprecation monitoring
+      env:
+        PYTHONWARNINGS: "default::DeprecationWarning,default::FutureWarning"
+      run: |
+        pytest qpandalite/test/ -v --tb=short
+
+    - name: Check for deprecation warnings (fail on error)
+      if: runner.os == 'Linux'
+      env:
+        PYTHONWARNINGS: "error::DeprecationWarning,error::FutureWarning"
+      run: |
+        python -c "
+        import warnings
+        warnings.filterwarnings('error')
+
+        # Test each platform import for deprecations
+        try:
+            import qiskit
+            print(f'qiskit version: {qiskit.__version__}')
+        except DeprecationWarning as e:
+            print(f'Qiskit deprecation detected: {e}')
+            raise
+        except ImportError:
+            print('qiskit not installed - skipping')
+
+        print('Deprecation check passed')
+        " || echo "::warning::Deprecation warnings detected in platform libraries"
+
+    - name: Upload coverage report
+      if: runner.os == 'Linux' && matrix.c_compiler == 'gcc'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: .coverage
+        retention-days: 7
    

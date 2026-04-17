@@ -2,6 +2,9 @@
 
 Translates OriginIR circuits to Quafu QuantumCircuit objects and submits
 via the ``quafu`` package (User / Task API).  No raw REST calls.
+
+Installation:
+    pip install qpandalite[quafu]
 """
 
 from __future__ import annotations
@@ -17,13 +20,18 @@ from qpandalite.task.adapters.base import (
     QuantumAdapter,
 )
 from qpandalite.task.config import load_quafu_config
+from qpandalite.task.optional_deps import MissingDependencyError, check_quafu
 
 if TYPE_CHECKING:
     import quafu
 
 
 class QuafuAdapter(QuantumAdapter):
-    """Adapter for the BAQIS Quafu (ScQ) quantum cloud platform."""
+    """Adapter for the BAQIS Quafu (ScQ) quantum cloud platform.
+
+    Raises:
+        MissingDependencyError: If quafu package is not installed.
+    """
 
     name = "quafu"
 
@@ -47,6 +55,10 @@ class QuafuAdapter(QuantumAdapter):
         return self._api_token
 
     def __init__(self) -> None:
+        # Check if quafu is available
+        if not check_quafu():
+            raise MissingDependencyError("quafu", "quafu")
+
         config = load_quafu_config()
         self._api_token: str = config["api_token"]
         # Internal task history: group_name -> {taskid: task_index}
@@ -57,10 +69,8 @@ class QuafuAdapter(QuantumAdapter):
         # cap is reached (simple FIFO).
         self._history_order: list[str] = []
 
-        import quafu
         from quafu import QuantumCircuit, Task, User
 
-        self._quafu = quafu
         self._QuantumCircuit = QuantumCircuit
         self._Task = Task
         self._User = User
@@ -71,7 +81,7 @@ class QuafuAdapter(QuantumAdapter):
         Returns:
             bool: True if the quafu package was successfully imported.
         """
-        return self._quafu is not None
+        return check_quafu()
 
     # -------------------------------------------------------------------------
     # Circuit translation

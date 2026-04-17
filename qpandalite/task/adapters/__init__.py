@@ -12,6 +12,7 @@ __all__ = [
     "OriginQAdapter",
     "QuafuAdapter",
     "QiskitAdapter",
+    "DummyAdapter",
     # Constants (re-exported from base for convenience)
     "TASK_STATUS_FAILED",
     "TASK_STATUS_SUCCESS",
@@ -27,3 +28,10 @@ from qpandalite.task.adapters.base import (
 from qpandalite.task.adapters.originq_adapter import OriginQAdapter
 from qpandalite.task.adapters.quafu_adapter import QuafuAdapter
 from qpandalite.task.adapters.qiskit_adapter import QiskitAdapter
+
+# DummyAdapter requires simulation dependencies
+# Import lazily to avoid errors when simulation deps not installed
+try:
+    from qpandalite.task.adapters.dummy_adapter import DummyAdapter
+except ImportError:
+    DummyAdapter = None  # type: ignore[misc,assignment]

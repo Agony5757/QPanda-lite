@@ -46,11 +46,14 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install package (with all optional dependencies)
+    - name: Install build dependencies
+      run: pip install setuptools wheel setuptools_scm cmake
+
+    - name: Install package (with all optional dependencies and C++ extension)
       run: |
         pip uninstall qpandalite -y 2>/dev/null || true
         rm -rf build/ dist/ *.egg-info qpandalite.egg-info
-        pip install ".[all]" --no-cache-dir --no-build-isolation
+        pip install ".[all]" --no-cache-dir
 
     - name: Install test dependencies
       run: pip install pytest pytest-cov

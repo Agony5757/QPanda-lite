@@ -69,7 +69,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from qpandalite.circuit_builder.qcircuit import Circuit
 
-from qpandalite import backend
+from qpandalite import backend as backend_module
 from qpandalite.circuit_adapter import (
     CircuitAdapter,
     OriginQCircuitAdapter,
@@ -441,7 +441,7 @@ def submit_task(
 
     # Get backend instance
     try:
-        backend_instance = backend.get_backend(backend)
+        backend_instance = backend_module.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
 
@@ -572,7 +572,7 @@ def submit_batch(
 
     # Get backend instance
     try:
-        backend_instance = backend.get_backend(backend)
+        backend_instance = backend_module.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
 
@@ -702,7 +702,7 @@ def query_task(task_id: str, backend: str | None = None) -> TaskInfo:
     
     # Get backend instance
     try:
-        backend_instance = backend.get_backend(backend)
+        backend_instance = backend_module.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
     

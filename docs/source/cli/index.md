@@ -399,6 +399,6 @@ qpandalite submit bell.ir --platform dummy --wait
 
 ## 下一步
 
-- [构建量子线路](circuit.md) —— 学习如何使用 Python API 构建复杂电路
-- [本地模拟](simulation.md) —— 了解更多模拟后端和参数
-- [提交任务](submit_task.md) —— 云端任务提交的详细说明
+- [构建量子线路](../guide/circuit.md) —— 学习如何使用 Python API 构建复杂电路
+- [本地模拟](../guide/simulation.md) —— 了解更多模拟后端和参数
+- [提交任务](../guide/submit_task.md) —— 云端任务提交的详细说明

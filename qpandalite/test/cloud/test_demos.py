@@ -71,13 +71,14 @@ def demo_3():
         print(f"Probabilities: {probs}")
 
         # Calculate expectation values using probabilities
+        # Note: circuit uses 4 qubits (0-3), so Hamiltonians must be 4-qubit strings
         if probs:
             exps = [
                 calculate_expectation(probs, h)
-                for h in ['ZII', 'IIZ']
+                for h in ['ZIII', 'IIIZ']
             ]
-            print(f"<ZII> = {exps[0]}")
-            print(f"<IIZ> = {exps[1]}")
+            print(f"<ZIII> = {exps[0]}")
+            print(f"<IIIZ> = {exps[1]}")
 
 
 @qpandalite_test('Test Demos')

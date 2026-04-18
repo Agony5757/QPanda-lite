@@ -35,9 +35,9 @@ python -c "import qpandalite; print(qpandalite.__version__)"
 #### 平台要求
 
 - **操作系统**：跨平台，支持 Windows、Linux、macOS
-- **Python**：>= 3.8, <= 3.13
+- **Python**：>= 3.10, < 3.14
 - **C++ 编译器**：支持 C++17（MSVC / gcc / clang）
-- **CMake**：>= 3.1
+- **CMake**：>= 3.26
 
 #### 获取源码
 
@@ -87,24 +87,60 @@ pip install -e .
 
 ## 可选依赖
 
+核心依赖（numpy、scipy、sympy 等）在默认安装中已包含。以下为可选功能的额外依赖：
+
 ### OriginQ 平台
 
 ```bash
-pip install quafu
+pip install pyqpanda3
+# 或使用 extras
+pip install qpandalite[originq]
 ```
 
 ### Quafu 平台
 
 ```bash
 pip install pyquafu
+# 或使用 extras
+pip install qpandalite[quafu]
 ```
 
 ### IBM 平台
 
 ```bash
-pip install qiskit
-pip install qiskit-ibm-provider
-pip install qiskit-ibmq-provider
+pip install qiskit qiskit-ibm-provider qiskit-aer
+# 或使用 extras
+pip install qpandalite[qiskit]
+```
+
+### 高级模拟 (QuTiP)
+
+```bash
+pip install qutip qutip-qip
+# 或使用 extras
+pip install qpandalite[simulation]
+```
+
+### 可视化
+
+```bash
+pip install matplotlib seaborn pandas
+# 或使用 extras
+pip install qpandalite[visualization]
+```
+
+### PyTorch 集成
+
+```bash
+pip install torch
+# 或使用 extras
+pip install qpandalite[pytorch]
+```
+
+### 安装所有可选依赖
+
+```bash
+pip install qpandalite[all]
 ```
 
 ## 开发者补充

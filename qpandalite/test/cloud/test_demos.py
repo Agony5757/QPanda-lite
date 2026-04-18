@@ -2,10 +2,24 @@
 
 import math
 
+import pytest
+
 import qpandalite
 from qpandalite import Circuit, submit_task, wait_for_result, calculate_expectation
 
 from qpandalite.test._utils import qpandalite_test
+
+
+def _check_simulation_available():
+    """Check if simulation dependencies are available."""
+    try:
+        from qpandalite.task.optional_deps import SIMULATION_AVAILABLE
+        return SIMULATION_AVAILABLE
+    except ImportError:
+        return False
+
+
+SIMULATION_AVAILABLE = _check_simulation_available()
 
 
 def _build_circuit():
@@ -22,6 +36,10 @@ def _build_circuit():
 
 def demo_2():
     """Demo 2: Submit task using dummy mode."""
+    if not SIMULATION_AVAILABLE:
+        pytest.skip("Simulation dependencies (qutip) not available")
+        return
+
     circuit = _build_circuit()
 
     # Submit with dummy=True for local simulation
@@ -38,6 +56,10 @@ def demo_2():
 
 def demo_3():
     """Demo 3: Result post-processing with expectation values."""
+    if not SIMULATION_AVAILABLE:
+        pytest.skip("Simulation dependencies (qutip) not available")
+        return
+
     circuit = _build_circuit()
 
     # Submit with dummy mode

@@ -2,7 +2,7 @@
 
 This module provides:
 1. Configuration loading tests
-2. Backend factory tests  
+2. Backend factory tests
 3. Circuit adapter tests
 4. Mock tests (no real platform dependencies)
 5. Integration tests (skipped unless real credentials exist)
@@ -10,12 +10,10 @@ This module provides:
 
 Usage:
     pytest qpandalite/test/test_cloud_platforms.py -v
-    
+
 Environment variables for integration tests:
     - QPANDA_API_KEY: OriginQ API key
-    - QPANDA_SUBMIT_URL: OriginQ submit URL
-    - QPANDA_QUERY_URL: OriginQ query URL
-    - QUAFU_API_TOKEN: Quafu API token
+    - QUAFA_API_TOKEN: Quafu API token
     - IBM_TOKEN: IBM Quantum token
 """
 
@@ -109,7 +107,7 @@ class TestConfigLoading:
         config_file = tmp_path / "test_config.yml"
         test_config = {
             "default": {
-                "originq": {"token": "test_token_123", "submit_url": "http://submit.test", "query_url": "http://query.test"},
+                "originq": {"token": "test_token_123"},
                 "quafu": {"token": "quafu_token_456"},
                 "ibm": {"token": "ibm_token_789", "proxy": {"http": "", "https": ""}},
             }
@@ -132,8 +130,6 @@ class TestConfigLoading:
             "default": {
                 "originq": {
                     "token": "originq_test_token",
-                    "submit_url": "https://originq.example.com/submit",
-                    "query_url": "https://originq.example.com/query",
                     "available_qubits": [0, 1, 2, 3, 4, 5],
                     "available_topology": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]],
                     "task_group_size": 200,
@@ -162,13 +158,13 @@ class TestConfigLoading:
         config_file = tmp_path / "qpandalite.yml"
         test_config = {
             "default": {
-                "originq": {"token": "default_token", "submit_url": "http://default", "query_url": "http://default"},
+                "originq": {"token": "default_token"},
             },
             "prod": {
-                "originq": {"token": "prod_token", "submit_url": "http://prod", "query_url": "http://prod"},
+                "originq": {"token": "prod_token"},
             },
             "dev": {
-                "originq": {"token": "dev_token", "submit_url": "http://dev", "query_url": "http://dev"},
+                "originq": {"token": "dev_token"},
             },
         }
         save_config(test_config, config_file)
@@ -185,10 +181,10 @@ class TestConfigLoading:
     def test_validate_config_valid(self) -> None:
         """Test validating a valid configuration."""
         from qpandalite.config import validate_config
-        
+
         valid_config = {
             "default": {
-                "originq": {"token": "t", "submit_url": "s", "query_url": "q"},
+                "originq": {"token": "t"},
                 "quafu": {"token": "t"},
                 "ibm": {"token": "t", "proxy": {"http": "", "https": ""}},
             }
@@ -199,16 +195,15 @@ class TestConfigLoading:
     def test_validate_config_missing_required_fields(self) -> None:
         """Test validating configuration with missing required fields."""
         from qpandalite.config import validate_config
-        
+
         invalid_config = {
             "default": {
-                "originq": {"token": "t"},  # Missing submit_url and query_url
+                "originq": {},  # Missing required token
             }
         }
         errors = validate_config(invalid_config)
-        assert len(errors) >= 2
-        assert any("submit_url" in e for e in errors)
-        assert any("query_url" in e for e in errors)
+        assert len(errors) >= 1
+        assert any("token" in e for e in errors)
 
 
 # ---------------------------------------------------------------------------
@@ -416,45 +411,66 @@ class TestMockSubmitTask:
     """Mock tests for submit_task workflows."""
 
     def test_originq_submit_task_mock(self) -> None:
-        """Test OriginQ submit task with mocked HTTP client."""
+        """Test OriginQ submit task with mocked pyqpanda3."""
         from qpandalite.task.adapters import OriginQAdapter
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "test_key",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            with patch.object(adapter._client, "submit", return_value="task_abc123") as mock_submit:
-                task_id = adapter.submit(ORIGINIR_BELL, shots=1000)
-                
-                mock_submit.assert_called_once()
-                assert task_id == "task_abc123"
+
+            # Mock pyqpanda3 components
+            mock_service = MagicMock()
+            mock_backend = MagicMock()
+            mock_job = MagicMock()
+            mock_job.job_id.return_value = "task_abc123"
+            mock_backend.run.return_value = mock_job
+            mock_service.backend.return_value = mock_backend
+
+            adapter._service = mock_service
+            adapter._convert_originir = MagicMock(return_value=MagicMock())
+            adapter._QCloudOptions = MagicMock
+
+            task_id = adapter.submit(ORIGINIR_BELL, shots=1000)
+
+            assert task_id == "task_abc123"
 
     def test_originq_submit_batch_mock(self) -> None:
-        """Test OriginQ submit batch with mocked HTTP client."""
+        """Test OriginQ submit batch with mocked pyqpanda3."""
         from qpandalite.task.adapters import OriginQAdapter
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "test_key",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 2,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            with patch.object(adapter._client, "submit", return_value="task_xyz") as mock_submit:
-                circuits = [ORIGINIR_BELL] * 3
-                task_ids = adapter.submit_batch(circuits, shots=1000)
-                
-                # With group_size=2 and 3 circuits, should call submit twice
-                assert mock_submit.call_count == 2
+
+            # Mock pyqpanda3 components
+            mock_service = MagicMock()
+            mock_backend = MagicMock()
+
+            def mock_run(*args, **kwargs):
+                mock_job = MagicMock()
+                mock_job.job_id.return_value = "task_xyz"
+                return mock_job
+
+            mock_backend.run.side_effect = mock_run
+            mock_service.backend.return_value = mock_backend
+
+            adapter._service = mock_service
+            adapter._convert_originir = MagicMock(return_value=MagicMock())
+            adapter._QCloudOptions = MagicMock
+
+            circuits = [ORIGINIR_BELL] * 3
+            task_ids = adapter.submit_batch(circuits, shots=1000)
+
+            # With group_size=2 and 3 circuits, should call submit twice
+            assert mock_backend.run.call_count == 2
 
     def test_quafu_submit_task_mock(self) -> None:
         """Test Quafu submit task with mocked SDK."""
@@ -490,77 +506,104 @@ class TestMockQueryTask:
     """Mock tests for query_task workflows."""
 
     def test_originq_query_task_success_mock(self) -> None:
-        """Test OriginQ query task success with mocked HTTP client."""
+        """Test OriginQ query task success with mocked pyqpanda3."""
         from qpandalite.task.adapters import OriginQAdapter, TASK_STATUS_SUCCESS
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "test_key",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            mock_result = {
-                "taskid": "task_abc",
-                "status": TASK_STATUS_SUCCESS,
-                "result": [{"key": ["00", "11"], "value": [0.5, 0.5]}],
-            }
-            
-            with patch.object(adapter._client, "query_single", return_value=mock_result) as mock_query:
-                result = adapter.query("task_abc")
-                
-                mock_query.assert_called_once_with("task_abc")
-                assert result["status"] == TASK_STATUS_SUCCESS
+
+            # Create sentinel objects for status comparison
+            FINISHED = object()
+
+            # Mock pyqpanda3 components
+            mock_job_cls = MagicMock()
+            mock_job = MagicMock()
+            mock_job.status.return_value = FINISHED
+            mock_result = MagicMock()
+            mock_result.get_counts.return_value = {"00": 512, "11": 512}
+            mock_job.result.return_value = mock_result
+            mock_job_cls.return_value = mock_job
+
+            adapter._QCloudJob = mock_job_cls
+            adapter._JobStatus = MagicMock(FINISHED=FINISHED)
+            adapter._service = MagicMock()
+
+            result = adapter.query("task_abc")
+
+            assert result["status"] == TASK_STATUS_SUCCESS
 
     def test_originq_query_task_running_mock(self) -> None:
-        """Test OriginQ query task running status with mocked HTTP client."""
+        """Test OriginQ query task running status with mocked pyqpanda3."""
         from qpandalite.task.adapters import OriginQAdapter, TASK_STATUS_RUNNING
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "test_key",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            mock_result = {
-                "taskid": "task_abc",
-                "status": TASK_STATUS_RUNNING,
-            }
-            
-            with patch.object(adapter._client, "query_single", return_value=mock_result):
-                result = adapter.query("task_abc")
-                assert result["status"] == TASK_STATUS_RUNNING
+
+            # Create sentinel objects for status comparison
+            FINISHED = object()
+            RUNNING = object()
+
+            # Mock pyqpanda3 components
+            mock_job_cls = MagicMock()
+            mock_job = MagicMock()
+            mock_job.status.return_value = RUNNING
+            mock_job_cls.return_value = mock_job
+
+            adapter._QCloudJob = mock_job_cls
+            adapter._JobStatus = MagicMock(FINISHED=FINISHED, RUNNING=RUNNING)
+            adapter._service = MagicMock()
+
+            result = adapter.query("task_abc")
+            assert result["status"] == TASK_STATUS_RUNNING
 
     def test_originq_query_batch_mock(self) -> None:
-        """Test OriginQ query batch with mocked HTTP client."""
+        """Test OriginQ query batch with mocked pyqpanda3."""
         from qpandalite.task.adapters import OriginQAdapter, TASK_STATUS_SUCCESS
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "test_key",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            mock_results = [
-                {"taskid": "task_1", "status": TASK_STATUS_SUCCESS, "result": [{"key": ["00"], "value": [1.0]}]},
-                {"taskid": "task_2", "status": TASK_STATUS_SUCCESS, "result": [{"key": ["11"], "value": [1.0]}]},
-            ]
-            
-            with patch.object(adapter._client, "query_single", side_effect=mock_results):
-                result = adapter.query_batch(["task_1", "task_2"])
-                assert result["status"] == TASK_STATUS_SUCCESS
-                assert len(result["result"]) == 2
+
+            # Create sentinel objects for status comparison
+            FINISHED = object()
+
+            # Mock pyqpanda3 components
+            mock_job_cls = MagicMock()
+
+            def create_job(taskid):
+                mock_job = MagicMock()
+                mock_job.status.return_value = FINISHED
+                mock_result = MagicMock()
+                if taskid == "task_1":
+                    mock_result.get_counts.return_value = {"00": 1024}
+                else:
+                    mock_result.get_counts.return_value = {"11": 1024}
+                mock_job.result.return_value = mock_result
+                return mock_job
+
+            mock_job_cls.side_effect = create_job
+
+            adapter._QCloudJob = mock_job_cls
+            adapter._JobStatus = MagicMock(FINISHED=FINISHED)
+            adapter._service = MagicMock()
+
+            result = adapter.query_batch(["task_1", "task_2"])
+            assert result["status"] == TASK_STATUS_SUCCESS
+            assert len(result["result"]) == 2
 
 
 class TestMockErrorScenarios:
@@ -569,71 +612,73 @@ class TestMockErrorScenarios:
     def test_originq_authentication_error(self) -> None:
         """Test OriginQ authentication error (invalid token)."""
         from qpandalite.task.adapters import OriginQAdapter
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "invalid_token",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            # Simulate authentication error response
-            with patch.object(
-                adapter._client, 
-                "submit", 
-                side_effect=RuntimeError("Authentication failed: Invalid API key")
-            ):
-                with pytest.raises(RuntimeError, match="Authentication"):
-                    adapter.submit(ORIGINIR_BELL)
+
+            # Mock pyqpanda3 components that raise authentication error
+            mock_service = MagicMock()
+            mock_service.backend.side_effect = RuntimeError("Authentication failed: Invalid API key")
+
+            adapter._service = mock_service
+            adapter._convert_originir = MagicMock(return_value=MagicMock())
+            adapter._QCloudOptions = MagicMock
+
+            with pytest.raises(RuntimeError, match="Authentication"):
+                adapter.submit(ORIGINIR_BELL)
 
     def test_originq_insufficient_credits_error(self) -> None:
         """Test OriginQ insufficient credits error."""
         from qpandalite.task.adapters import OriginQAdapter
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "valid_token",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            # Simulate insufficient credits error
-            with patch.object(
-                adapter._client, 
-                "submit", 
-                side_effect=RuntimeError("Insufficient credits")
-            ):
-                with pytest.raises(RuntimeError, match="Insufficient credits"):
-                    adapter.submit(ORIGINIR_BELL)
+
+            # Mock pyqpanda3 components that raise credits error
+            mock_service = MagicMock()
+            mock_backend = MagicMock()
+            mock_backend.run.side_effect = RuntimeError("Insufficient credits")
+            mock_service.backend.return_value = mock_backend
+
+            adapter._service = mock_service
+            adapter._convert_originir = MagicMock(return_value=MagicMock())
+            adapter._QCloudOptions = MagicMock
+
+            with pytest.raises(RuntimeError, match="Insufficient credits"):
+                adapter.submit(ORIGINIR_BELL)
 
     def test_originq_network_error(self) -> None:
         """Test OriginQ network error."""
         from qpandalite.task.adapters import OriginQAdapter
-        
+
         with patch("qpandalite.task.adapters.originq_adapter.load_originq_config") as mock_config:
             mock_config.return_value = {
                 "api_key": "valid_token",
-                "submit_url": "https://test.com/submit",
-                "query_url": "https://test.com/query",
                 "task_group_size": 200,
             }
-            
+
             adapter = OriginQAdapter()
-            
-            # Simulate network error
-            with patch.object(
-                adapter._client, 
-                "submit", 
-                side_effect=RuntimeError("Network error: Connection timeout")
-            ):
-                with pytest.raises(RuntimeError, match="Network error"):
-                    adapter.submit(ORIGINIR_BELL)
+
+            # Mock pyqpanda3 components that raise network error
+            mock_service = MagicMock()
+            mock_service.backend.side_effect = RuntimeError("Network error: Connection timeout")
+
+            adapter._service = mock_service
+            adapter._convert_originir = MagicMock(return_value=MagicMock())
+            adapter._QCloudOptions = MagicMock
+
+            with pytest.raises(RuntimeError, match="Network error"):
+                adapter.submit(ORIGINIR_BELL)
 
     def test_quafu_authentication_error(self) -> None:
         """Test Quafu authentication error."""
@@ -685,13 +730,13 @@ class TestOriginQIntegration:
     def test_originq_submit_and_query(self) -> None:
         """Test real OriginQ submit and query workflow."""
         from qpandalite.backend import get_backend
-        
+
         backend = get_backend("originq", use_cache=False)
-        
+
         # Submit a simple circuit
-        task_id = backend.submit(ORIGINIR_SINGLE, shots=1000, chip_id=72)
+        task_id = backend.submit(ORIGINIR_SINGLE, shots=1000)
         assert task_id
-        
+
         # Query the task
         result = backend.query(task_id)
         assert "status" in result

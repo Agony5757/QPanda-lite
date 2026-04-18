@@ -6,8 +6,6 @@ Environment variables
 ---------------------
 OriginQ Cloud:
     QPANDA_API_KEY       : API authentication token (required)
-    QPANDA_SUBMIT_URL    : Task submission endpoint URL (required)
-    QPANDA_QUERY_URL     : Task query endpoint URL (required)
     QPANDA_TASK_GROUP_SIZE: Max circuits per submission (default: 200)
 
 Quafu:
@@ -41,30 +39,36 @@ def load_originq_config() -> dict[str, Any]:
     """Load OriginQ Cloud configuration from environment variables.
 
     Returns:
-        dict with keys: api_key, submit_url, query_url, task_group_size,
-                        available_qubits
+        dict with keys: api_key, task_group_size, available_qubits
 
     Raises:
-        ImportError: If required environment variables are not set.
+        ImportError: If required environment variable is not set.
     """
     api_key = os.getenv("QPANDA_API_KEY")
-    submit_url = os.getenv("QPANDA_SUBMIT_URL")
-    query_url = os.getenv("QPANDA_QUERY_URL")
     task_group_size_str = os.getenv("QPANDA_TASK_GROUP_SIZE")
 
-    if api_key and submit_url and query_url:
+    # Deprecation warning for old URL environment variables
+    submit_url = os.getenv("QPANDA_SUBMIT_URL")
+    query_url = os.getenv("QPANDA_QUERY_URL")
+    if submit_url or query_url:
+        warnings.warn(
+            "QPANDA_SUBMIT_URL and QPANDA_QUERY_URL are no longer required. "
+            "pyqpanda3 uses default URLs. These environment variables will be "
+            "ignored in a future version.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    if api_key:
         return {
             "api_key": api_key,
-            "submit_url": submit_url,
-            "query_url": query_url,
             "task_group_size": int(task_group_size_str) if task_group_size_str else 200,
             "available_qubits": [],
         }
 
     raise ImportError(
         "OriginQ Cloud config not found. "
-        "Set QPANDA_API_KEY, QPANDA_SUBMIT_URL, QPANDA_QUERY_URL "
-        "environment variables."
+        "Set QPANDA_API_KEY environment variable."
     )
 
 

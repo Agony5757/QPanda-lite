@@ -88,7 +88,7 @@ class TestSaveConfig:
         config_file = tmp_path / "config.yml"
         test_config = {
             "default": {
-                "originq": {"token": "originq_token", "submit_url": "http://submit"},
+                "originq": {"token": "originq_token"},
                 "quafu": {"token": "quafu_token"},
                 "ibm": {"token": "ibm_token", "proxy": {"http": "http://proxy"}},
             },
@@ -111,15 +111,12 @@ class TestGetPlatformConfig:
             "default": {
                 "originq": {
                     "token": "originq_token",
-                    "submit_url": "http://submit",
-                    "query_url": "http://query",
                 },
             }
         }
         save_config(test_config, config_file)
         result = get_platform_config("originq", config_path=config_file)
         assert result["token"] == "originq_token"
-        assert result["submit_url"] == "http://submit"
 
     def test_get_quafu_config(self, tmp_path: Path) -> None:
         """Test getting Quafu configuration."""
@@ -186,7 +183,7 @@ class TestValidateConfig:
         """Test validating a valid configuration."""
         valid_config = {
             "default": {
-                "originq": {"token": "t", "submit_url": "s", "query_url": "q"},
+                "originq": {"token": "t"},
                 "quafu": {"token": "t"},
                 "ibm": {"token": "t"},
             }
@@ -210,13 +207,12 @@ class TestValidateConfig:
         """Test validating configuration with missing required fields."""
         invalid_config = {
             "default": {
-                "originq": {"token": "t"},  # Missing submit_url and query_url
+                "originq": {},  # Missing required token
             }
         }
         errors = validate_config(invalid_config)
-        assert len(errors) == 2
-        assert any("submit_url" in e for e in errors)
-        assert any("query_url" in e for e in errors)
+        assert len(errors) == 1
+        assert any("token" in e for e in errors)
 
     def test_validate_invalid_proxy_config(self) -> None:
         """Test validating IBM configuration with invalid proxy."""
@@ -266,12 +262,11 @@ class TestUpdatePlatformConfig:
         config_file = tmp_path / "config.yml"
         create_default_config(config_file)
 
-        new_config = {"token": "new_token", "submit_url": "http://new"}
+        new_config = {"token": "new_token"}
         update_platform_config("originq", new_config, config_path=config_file)
 
         result = get_platform_config("originq", config_path=config_file)
         assert result["token"] == "new_token"
-        assert result["submit_url"] == "http://new"
 
     def test_update_create_new_profile(self, tmp_path: Path) -> None:
         """Test update creates new profile if it doesn't exist."""
@@ -392,8 +387,6 @@ class TestDefaultConfig:
         """Test OriginQ default configuration fields."""
         originq = DEFAULT_CONFIG["default"]["originq"]
         assert "token" in originq
-        assert "submit_url" in originq
-        assert "query_url" in originq
         assert "available_qubits" in originq
         assert "available_topology" in originq
         assert "task_group_size" in originq

@@ -35,25 +35,23 @@ def example_2_load_and_modify():
     print("=" * 60)
     print("Example 2: Load, modify and save configuration")
     print("=" * 60)
-    
+
     # Load current configuration
     config = load_config()
     print("Current config:")
     print(f"  Profiles: {list(config.keys())}")
-    
+
     # Modify configuration
     config["default"]["originq"]["token"] = "your_originq_token_here"
-    config["default"]["originq"]["submit_url"] = "https://api.originq.com/submit"
-    config["default"]["originq"]["query_url"] = "https://api.originq.com/query"
-    
+
     config["default"]["quafu"]["token"] = "your_quafu_token_here"
-    
+
     config["default"]["ibm"]["token"] = "your_ibm_token_here"
     config["default"]["ibm"]["proxy"] = {
         "http": "http://proxy.example.com:8080",
         "https": "https://proxy.example.com:8080",
     }
-    
+
     # Save configuration
     save_config(config)
     print("✓ Configuration updated and saved")
@@ -104,22 +102,20 @@ def example_5_multiple_profiles():
     print("=" * 60)
     print("Example 5: Multiple profiles")
     print("=" * 60)
-    
+
     # Add a 'prod' profile
     update_platform_config("originq", {
         "token": "prod_originq_token",
-        "submit_url": "https://prod.originq.com/submit",
-        "query_url": "https://prod.originq.com/query",
     }, profile="prod")
-    
+
     update_platform_config("quafu", {
         "token": "prod_quafu_token",
     }, profile="prod")
-    
+
     # Get configuration from different profiles
     default_originq = get_platform_config("originq", profile="default")
     prod_originq = get_platform_config("originq", profile="prod")
-    
+
     print(f"Default OriginQ token: {default_originq['token']}")
     print(f"Prod OriginQ token: {prod_originq['token']}")
     print()

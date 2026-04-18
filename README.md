@@ -72,7 +72,7 @@ QPanda-lite 围绕以下目标设计：
 
 ### Requirements
 
-- Python 3.9 – 3.12
+- Python 3.10 – 3.13
 
 ### pip（推荐）
 
@@ -106,10 +106,17 @@ pip install .
 
 ### Optional Dependencies
 
+核心依赖（包括 `scipy`）在默认安装中已包含。以下为可选功能依赖：
+
 | 功能 | 安装命令 |
 |------|---------|
-| Quafu 执行后端 | `pip install pyquafu` |
-| Qiskit 执行后端 | `pip install qiskit qiskit-aer` |
+| OriginQ 云平台 | `pip install pyqpanda3` 或 `pip install qpandalite[originq]` |
+| Quafu 执行后端 | `pip install pyquafu` 或 `pip install qpandalite[quafu]` |
+| Qiskit 执行后端 | `pip install qiskit qiskit-aer` 或 `pip install qpandalite[qiskit]` |
+| 高级模拟 (QuTiP) | `pip install qutip qutip-qip` 或 `pip install qpandalite[simulation]` |
+| 可视化 | `pip install matplotlib seaborn pandas` 或 `pip install qpandalite[visualization]` |
+| PyTorch 集成 | `pip install torch` 或 `pip install qpandalite[pytorch]` |
+| 安装所有可选依赖 | `pip install qpandalite[all]` |
 
 ---
 

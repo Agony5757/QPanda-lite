@@ -174,7 +174,7 @@ def profile(
             print_error(f"Profile '{name}' already exists")
             raise typer.Exit(1)
         config[name] = {
-            "originq": {"token": "", "submit_url": "", "query_url": ""},
+            "originq": {"token": ""},
             "quafu": {"token": ""},
             "ibm": {"token": "", "proxy": {"http": "", "https": ""}},
         }

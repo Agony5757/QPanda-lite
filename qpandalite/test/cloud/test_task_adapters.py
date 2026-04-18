@@ -56,10 +56,8 @@ class RunTestConfigEnvVars:
     """Config loading from environment variables (preferred)."""
 
     def run_test_originq_config_from_env(self, monkeypatch, tmp_path):
-        """OriginQ config is read from QPANDA_* env vars."""
+        """OriginQ config is read from QPANDA_API_KEY env var."""
         monkeypatch.setenv("QPANDA_API_KEY", "test_key_123")
-        monkeypatch.setenv("QPANDA_SUBMIT_URL", "https://example.com/submit")
-        monkeypatch.setenv("QPANDA_QUERY_URL", "https://example.com/query")
         monkeypatch.setenv("QPANDA_TASK_GROUP_SIZE", "100")
 
         # Ensure no config file exists
@@ -69,8 +67,6 @@ class RunTestConfigEnvVars:
 
         config = load_originq_config()
         assert config["api_key"] == "test_key_123"
-        assert config["submit_url"] == "https://example.com/submit"
-        assert config["query_url"] == "https://example.com/query"
         assert config["task_group_size"] == 100
 
     def run_test_quafu_config_from_env(self, monkeypatch, tmp_path):
@@ -115,8 +111,6 @@ class RunTestConfigEnvVars:
     def run_test_originq_config_deprecated_file_fallback(self, monkeypatch, tmp_path):
         """File fallback is no longer supported - ImportError raised when env vars absent."""
         monkeypatch.delenv("QPANDA_API_KEY", raising=False)
-        monkeypatch.delenv("QPANDA_SUBMIT_URL", raising=False)
-        monkeypatch.delenv("QPANDA_QUERY_URL", raising=False)
 
         # Create a config file (should NOT be used anymore)
         config_file = tmp_path / "originq_cloud_config.json"
@@ -124,8 +118,6 @@ class RunTestConfigEnvVars:
             json.dumps(
                 {
                     "apitoken": "file_key",
-                    "submit_url": "https://file.com/submit",
-                    "query_url": "https://file.com/query",
                     "task_group_size": 50,
                 }
             )
@@ -143,10 +135,8 @@ class RunTestConfigEnvVars:
             load_originq_config()
 
     def run_test_originq_config_import_error_without_config(self, monkeypatch, tmp_path):
-        """ImportError raised when neither env vars nor config file exist."""
+        """ImportError raised when env vars are absent."""
         monkeypatch.delenv("QPANDA_API_KEY", raising=False)
-        monkeypatch.delenv("QPANDA_SUBMIT_URL", raising=False)
-        monkeypatch.delenv("QPANDA_QUERY_URL", raising=False)
         monkeypatch.chdir(tmp_path)
 
         # Force re-import by clearing module cache
@@ -164,95 +154,139 @@ class RunTestConfigEnvVars:
 # ---------------------------------------------------------------------------
 
 class RunTestOriginQAdapterCircuitTranslation:
-    """OriginQAdapter.translate_circuit passes OriginIR through unchanged."""
+    """OriginQAdapter uses pyqpanda3 for circuit translation and task submission."""
 
-    def run_test_translate_circuit_returns_string(self):
+    def run_test_translate_circuit_returns_qprog(self):
+        """Test that translate_circuit converts OriginIR to QProg via pyqpanda3."""
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
                 "api_key": "k",
-                "submit_url": "https://x.com/s",
-                "query_url": "https://x.com/q",
                 "task_group_size": 200,
             },
         ):
             from qpandalite.task.adapters import OriginQAdapter
 
             adapter = OriginQAdapter()
-            result = adapter.translate_circuit(ORIGINIR_BELL)
-            assert result == ORIGINIR_BELL
 
-    def run_test_submit_calls_http_client(self):
+            # Mock pyqpanda3 components
+            mock_qprog = MagicMock()
+            mock_convert = MagicMock(return_value=mock_qprog)
+
+            with patch.dict(sys.modules, {"pyqpanda3": MagicMock()}):
+                adapter._convert_originir = mock_convert
+                adapter._service = MagicMock()  # Mark as initialized
+
+                result = adapter.translate_circuit(ORIGINIR_BELL)
+                mock_convert.assert_called_once_with(ORIGINIR_BELL)
+                assert result == mock_qprog
+
+    def run_test_submit_uses_pyqpanda3_service(self):
+        """Test that submit uses pyqpanda3 QCloudService."""
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
                 "api_key": "k",
-                "submit_url": "https://x.com/s",
-                "query_url": "https://x.com/q",
                 "task_group_size": 200,
             },
         ):
             from qpandalite.task.adapters import OriginQAdapter
 
             adapter = OriginQAdapter()
-            with patch.object(
-                adapter._client, "submit", return_value="task_abc123"
-            ) as mock_submit:
-                task_id = adapter.submit(
-                    ORIGINIR_BELL, shots=1000, chip_id=72
-                )
-                mock_submit.assert_called_once()
-                args, kwargs = mock_submit.call_args
-                assert kwargs["circuits"] == [ORIGINIR_BELL]
-                assert task_id == "task_abc123"
+
+            # Mock pyqpanda3 components
+            mock_service = MagicMock()
+            mock_backend = MagicMock()
+            mock_job = MagicMock()
+            mock_job.job_id.return_value = "task_abc123"
+            mock_backend.run.return_value = mock_job
+            mock_service.backend.return_value = mock_backend
+
+            mock_qprog = MagicMock()
+            mock_convert = MagicMock(return_value=mock_qprog)
+
+            adapter._service = mock_service
+            adapter._convert_originir = mock_convert
+            adapter._QCloudOptions = MagicMock
+
+            task_id = adapter.submit(ORIGINIR_BELL, shots=1000, backend_name="test_backend")
+
+            mock_service.backend.assert_called_once_with("test_backend")
+            mock_backend.run.assert_called_once()
+            assert task_id == "task_abc123"
 
     def run_test_submit_batch_splits_large_groups(self):
+        """Test that submit_batch splits circuits into groups."""
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
                 "api_key": "k",
-                "submit_url": "https://x.com/s",
-                "query_url": "https://x.com/q",
                 "task_group_size": 2,
             },
         ):
             from qpandalite.task.adapters import OriginQAdapter
 
             adapter = OriginQAdapter()
-            with patch.object(
-                adapter._client, "submit", return_value="subtask_xyz"
-            ) as mock_submit:
-                circuits = [ORIGINIR_BELL] * 3
-                taskids = adapter.submit_batch(circuits, shots=1000)
-                # 3 circuits with group_size=2 should produce 2 subgroups
-                assert mock_submit.call_count == 2
-                assert len(taskids) == 2
+
+            # Mock pyqpanda3 components
+            mock_service = MagicMock()
+            mock_backend = MagicMock()
+
+            def mock_run(*args, **kwargs):
+                mock_job = MagicMock()
+                mock_job.job_id.return_value = "subtask_xyz"
+                return mock_job
+
+            mock_backend.run.side_effect = mock_run
+            mock_service.backend.return_value = mock_backend
+
+            mock_qprog = MagicMock()
+            mock_convert = MagicMock(return_value=mock_qprog)
+
+            adapter._service = mock_service
+            adapter._convert_originir = mock_convert
+            adapter._QCloudOptions = MagicMock
+
+            circuits = [ORIGINIR_BELL] * 3
+            taskids = adapter.submit_batch(circuits, shots=1000)
+            # 3 circuits with group_size=2 should produce 2 subgroups
+            assert mock_backend.run.call_count == 2
+            assert len(taskids) == 2
 
     def run_test_query_single_success(self):
+        """Test that query returns success status for completed job."""
         with patch(
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
                 "api_key": "k",
-                "submit_url": "https://x.com/s",
-                "query_url": "https://x.com/q",
                 "task_group_size": 200,
             },
         ):
             from qpandalite.task.adapters import OriginQAdapter
 
             adapter = OriginQAdapter()
-            with patch.object(
-                adapter._client,
-                "query_single",
-                return_value={
-                    "taskid": "task_abc",
-                    "status": "success",
-                    "result": [{"key": ["00", "11"], "value": [0.5, 0.5]}],
-                },
-            ) as mock_query:
-                result = adapter.query("task_abc")
-                mock_query.assert_called_once_with("task_abc")
-                assert result["status"] == "success"
+
+            # Create sentinel objects for status comparison
+            FINISHED = object()
+            FAILED = object()
+
+            # Mock pyqpanda3 components
+            mock_job_cls = MagicMock()
+            mock_job = MagicMock()
+            mock_job.status.return_value = FINISHED
+            mock_result = MagicMock()
+            mock_result.get_counts.return_value = {"00": 512, "11": 512}
+            mock_job.result.return_value = mock_result
+            mock_job_cls.return_value = mock_job
+
+            adapter._QCloudJob = mock_job_cls
+            adapter._JobStatus = MagicMock(FINISHED=FINISHED, FAILED=FAILED)
+            adapter._service = MagicMock()  # Mark as initialized
+
+            result = adapter.query("task_abc")
+
+            mock_job_cls.assert_called_once_with("task_abc")
+            assert result["status"] == "success"
 
 
 # ---------------------------------------------------------------------------
@@ -381,8 +415,6 @@ class RunTestAdapterAvailability:
             "qpandalite.task.adapters.originq_adapter.load_originq_config",
             return_value={
                 "api_key": "k",
-                "submit_url": "https://x.com/s",
-                "query_url": "https://x.com/q",
                 "task_group_size": 200,
             },
         ):

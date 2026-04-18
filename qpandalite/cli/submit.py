@@ -16,7 +16,7 @@ app = typer.Typer(help="Submit circuits to quantum cloud platforms")
 def submit(
     input_files: list[Path] = typer.Argument(..., help="Circuit file(s) to submit", exists=True),
     platform: str = typer.Option(..., "--platform", "-p", help="Platform: originq/quafu/ibm/dummy"),
-    chip_id: Optional[str] = typer.Option(None, "--chip-id", help="Chip ID for the target platform"),
+    backend: Optional[str] = typer.Option(None, "--backend", "-b", help="Backend name (e.g., 'origin:wuyuan:d5' for OriginQ)"),
     shots: int = typer.Option(1000, "--shots", "-s", help="Number of measurement shots"),
     name: Optional[str] = typer.Option(None, "--name", help="Task name"),
     wait: bool = typer.Option(False, "--wait", "-w", help="Wait for result after submission"),
@@ -34,13 +34,13 @@ def submit(
 
     try:
         if len(circuits) == 1:
-            task_id = _submit_single(circuits[0], platform, chip_id, shots, name)
+            task_id = _submit_single(circuits[0], platform, backend, shots, name)
             if format == "json":
                 print_json({"task_id": task_id, "platform": platform, "shots": shots})
             else:
                 print_success(f"Task submitted: {task_id}")
         else:
-            task_ids = _submit_batch(circuits, platform, chip_id, shots, name)
+            task_ids = _submit_batch(circuits, platform, backend, shots, name)
             if format == "json":
                 print_json({"task_ids": task_ids, "platform": platform, "shots": shots})
             else:
@@ -57,7 +57,7 @@ def submit(
         _wait_and_show(task_id, platform, timeout, format)
 
 
-def _submit_single(circuit: str, platform: str, chip_id: str | None, shots: int, name: str | None) -> str:
+def _submit_single(circuit: str, platform: str, backend_name: str | None, shots: int, name: str | None) -> str:
     """Submit a single circuit using the unified task_manager API."""
     from qpandalite.task_manager import submit_task
     from qpandalite.circuit_builder import Circuit
@@ -76,19 +76,19 @@ def _submit_single(circuit: str, platform: str, chip_id: str | None, shots: int,
 
     # Build kwargs for backend-specific options
     kwargs: dict = {"shots": shots}
-    if chip_id:
-        kwargs["chip_id"] = chip_id
+    if backend_name:
+        kwargs["backend_name"] = backend_name
     if name:
         kwargs["metadata"] = {"task_name": name}
 
     # Use dummy mode if platform is 'dummy'
     dummy = platform == "dummy"
-    backend_name = "originq" if dummy else platform
+    backend = "originq" if dummy else platform
 
-    return submit_task(parsed_circuit, backend=backend_name, dummy=dummy, **kwargs)
+    return submit_task(parsed_circuit, backend=backend, dummy=dummy, **kwargs)
 
 
-def _submit_batch(circuits: list[str], platform: str, chip_id: str | None, shots: int, name: str | None) -> list[str]:
+def _submit_batch(circuits: list[str], platform: str, backend_name: str | None, shots: int, name: str | None) -> list[str]:
     """Submit multiple circuits using the unified task_manager API."""
     from qpandalite.task_manager import submit_batch
     from qpandalite.circuit_builder import Circuit
@@ -111,14 +111,14 @@ def _submit_batch(circuits: list[str], platform: str, chip_id: str | None, shots
 
     # Build kwargs for backend-specific options
     kwargs: dict = {"shots": shots}
-    if chip_id:
-        kwargs["chip_id"] = chip_id
+    if backend_name:
+        kwargs["backend_name"] = backend_name
 
     # Use dummy mode if platform is 'dummy'
     dummy = platform == "dummy"
-    backend_name = "originq" if dummy else platform
+    backend = "originq" if dummy else platform
 
-    return submit_batch(parsed_circuits, backend=backend_name, dummy=dummy, **kwargs)
+    return submit_batch(parsed_circuits, backend=backend, dummy=dummy, **kwargs)
 
 
 def _wait_and_show(task_id: str, platform: str, timeout: float, format: str) -> None:

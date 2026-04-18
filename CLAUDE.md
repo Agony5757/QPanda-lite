@@ -21,13 +21,30 @@ QPanda-lite is a Python-native quantum programming framework for NISQ devices. I
 # Pure Python install (no C++ dependencies)
 pip install . --no-cpp
 
-# Full install with C++ simulator (requires git submodules and CMake >= 3.26)
+# Full install with C++ simulator
+# Requirements: git submodules, CMake >= 3.26, C++ compiler with C++17 support
 git clone --recurse-submodules https://github.com/Agony5757/QPanda-lite.git
-pip install .
 
-# Editable install
-pip install -e .
+# If system CMake is < 3.26, install newer version via pip first:
+pip install cmake --upgrade
+
+# For development: editable install with C++ extension
+# Use --no-build-isolation to ensure pip cmake (not system cmake) is used
+pip install -e . --no-build-isolation
+
+# For production install (uses build isolation, requires CMake >= 3.26 in PATH)
+pip install .
 ```
+
+### CMake Requirement
+
+The C++ backend requires CMake >= 3.26. Most Linux distributions ship older versions (e.g., Ubuntu 22.04 has cmake 3.22). For local development, install a newer cmake via pip:
+
+```bash
+pip install cmake --upgrade
+```
+
+This installs cmake to `~/.local/bin/` or the Python bin directory, which must be in PATH before the system cmake for editable installs with `--no-build-isolation`.
 
 ## Testing
 
@@ -69,7 +86,7 @@ Pre-commit hooks are configured (ruff lint + format, YAML check, trailing whites
 
 3. **Parsers** (`qpandalite/originir/`, `qpandalite/qasm/`): Parse OriginIR and OpenQASM 2.0 assembly strings into structured representations.
 
-4. **Cloud Task Submission** (`qpandalite/task/`): Adapter pattern for submitting circuits to quantum cloud platforms. Each provider (OriginQ, Quafu, IBM) has its own adapter and configuration module under `task/adapters/`, `task/ibm/`, `task/quafu/`, `task/origin_qcloud/`.
+4. **Cloud Task Submission** (`qpandalite/task/`): Adapter pattern for submitting circuits to quantum cloud platforms. Each provider (OriginQ, Quafu, IBM) has an adapter under `task/adapters/`. Configuration is via environment variables. The `task_manager` module provides a unified API (`submit_task`, `query_task`, `wait_for_result`).
 
 5. **Transpiler** (`qpandalite/transpiler/`): Converts between Qiskit circuits and OriginIR format.
 
@@ -93,4 +110,4 @@ Pushing a `v*` tag triggers `pypi-publish.yml`, which builds wheels (Linux manyl
 
 ## Known Issues
 
-None.
+- System cmake on Ubuntu 22.04 (cmake 3.22) is too old for building the C++ extension. Install via `pip install cmake --upgrade` and use `pip install -e . --no-build-isolation` for development.

@@ -1,3 +1,8 @@
+> ⚠️ **Deprecation Notice**
+>
+> This project has been superseded by [UnifiedQuantum](https://github.com/IAI-USTC-Quantum/UnifiedQuantum).
+> Future development and maintenance will continue there. QPanda-lite is no longer actively maintained.
+
 # QPanda-lite
 
 [![GitHub version](https://badge.fury.io/gh/Agony5757%2FQPanda-lite.svg?icon=si%3Agithub)](https://badge.fury.io/gh/Agony5757%2FQPanda-lite)

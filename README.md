@@ -8,39 +8,56 @@
 
 **QPanda**: **Q**uantum **P**rogramming **A**rchitecture for **N**ISQ **D**evice **A**pplication
 
-QPanda-lite is a simple, easy-to-use, and transparent Python-native version of QPanda.
+QPanda-lite is a simple, easy-to-use, and transparent Python-native quantum computing framework.
 
 ---
 
-## Table of Contents
+## 核心工作流
 
-- [Quick Example](#quick-example)
-- [Features](#features)
-- [Installation](#installation)
-- [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
+QPanda-lite 围绕一个简洁的工作流设计：**任意方式构建线路 → CLI 统一执行**。
 
----
+### 1. 安装
 
-## Quick Example
+```bash
+pip install qpandalite
+```
+
+### 2. 构建线路（支持 QPanda-lite 原生或任意第三方工具）
 
 ```python
 from qpandalite.circuit_builder import Circuit
-from qpandalite.simulator import OriginIR_Simulator
 
-# Build a Bell state circuit
-circuit = Circuit()
-circuit.h(0)           # Hadamard on qubit 0
-circuit.cnot(0, 1)     # CNOT from qubit 0 to qubit 1
-circuit.measure(0, 1)   # Measure both qubits
+c = Circuit()
+c.h(0)
+c.cnot(0, 1)
+c.measure(0, 1)
 
-# Simulate with 1000 shots
-sim = OriginIR_Simulator()
-result = sim.simulate_shots(circuit.originir, shots=1000)
-print(result)
-# Possible output: {0: 497, 3: 503}
+# 输出 OriginIR 格式，可供 CLI 使用
+open('circuit.ir', 'w').write(c.originir)
 ```
+
+> 你也可以使用 Qiskit、Cirq 等工具构建线路，只需最终输出 OriginIR 或 OpenQASM 2.0 格式。
+
+### 3. CLI 统一执行
+
+```bash
+# 本地模拟
+qpandalite simulate circuit.ir --shots 1000
+
+# 提交到云端
+qpandalite submit circuit.ir --platform originq --shots 1000
+
+# 查询任务结果
+qpandalite result <task_id>
+```
+
+---
+
+## 设计理念
+
+| 线路构建 | 原生 API 或任意工具，输出 OriginIR / QASM2 |
+| CLI 执行 | 统一接口：模拟、云端、任务管理 |
+| 结果分析 | 原生 Python 结构，易于集成 |
 
 ---
 
@@ -120,85 +137,27 @@ pip install .
 
 ---
 
-## Project Structure
+## CLI Quick Reference
 
-```
-QPanda-lite/
-├── qpandalite/
-│   ├── circuit_builder/          # Circuit class and gate definitions
-│   ├── simulator/                # Local simulators (OriginIR, QASM, etc.)
-│   ├── originir/                 # OriginIR parser
-│   ├── qasm/                    # OpenQASM 2.0 parser
-│   ├── task/                    # Cloud task submission (OriginQ / Quafu / IBM)
-│   ├── transpiler/              # Circuit conversion (Qiskit ↔ OriginIR)
-│   └── analyzer/                # Result analysis (expectation values, etc.)
-├── QPandaLiteCpp/               # C++ backend (pybind11)
-├── docs/                        # Sphinx documentation
-└── test/                       # Unit tests
-```
+```bash
+# 查看帮助
+qpandalite --help
 
----
+# 本地模拟
+qpandalite simulate circuit.ir --shots 1000
 
-## Quick Start
+# 提交到云端（支持 originq / quafu / ibm / dummy）
+qpandalite submit circuit.ir --platform originq --shots 1000
 
-### 1. Build a Circuit
+# 查询任务结果
+qpandalite result <task_id>
 
-```python
-from qpandalite.circuit_builder import Circuit
+# 配置云平台 Token
+qpandalite config init
+qpandalite config set originq.token YOUR_TOKEN
 
-c = Circuit()
-c.rx(1, 0.1)         # RX rotation on qubit 1
-c.cnot(1, 0)         # CNOT with control=1, target=0
-c.measure(0, 1)      # Measure qubits 0 and 1
-
-
-print(c.circuit)
-# QINIT 2
-# CREG 2
-# RX q[1], (0.1)
-# CNOT q[1], q[0]
-# MEASURE q[0], c[0]
-# MEASURE q[1], c[1]
-```
-
-> 注意：`measure` 只记录被测量的 qubit，电路中实际使用的 qubit 由门操作决定。
-
-### 2. Circuit Simulation
-
-```python
-import qpandalite.simulator as qsim
-
-sim = qsim.OriginIR_Simulator(reverse_key=False)
-
-originir = '''
-QINIT 72
-CREG 3
-RY q[45],(0.9424777960769379)
-RY q[46],(0.9424777960769379)
-CZ q[45],q[46]
-RY q[45],(-0.25521154)
-RY q[46],(0.26327053)
-X q[46]
-MEASURE q[45],c[0]
-MEASURE q[46],c[2]
-MEASURE q[52],c[1]
-'''
-
-res = sim.simulate_statevector(originir)
-print(res)
-print(sim.state)
-```
-
-### 3. Submit to Cloud Hardware
-
-```python
-from qpandalite import submit_task, wait_for_result
-
-# Configure via environment variables:
-# export QUAFU_API_TOKEN="your-token"
-
-task_id = submit_task(circuit, backend='quafu', shots=1000, chip_id='ScQ-P10')
-result = wait_for_result(task_id, backend='quafu')
+# 也可以用 python -m 调用
+python -m qpandalite simulate circuit.ir
 ```
 
 ---

@@ -51,26 +51,13 @@ def show_result(
 
 
 def _query_result(task_id: str, platform: str | None) -> dict | None:
-    """Query task result."""
-    if platform == "originq":
-        from qpandalite.task.origin_qcloud import task as oq_task
+    """Query task result using the unified task_manager API."""
+    from qpandalite.task_manager import query_task
 
-        return oq_task.query_by_taskid(task_id)
-    elif platform == "quafu":
-        from qpandalite.task.quafu import task as quafu_task
-
-        return quafu_task.query_by_taskid(task_id)
-    elif platform == "ibm":
-        from qpandalite.task.ibm import task as ibm_task
-
-        return ibm_task.query_by_taskid(task_id)
-    else:
-        from qpandalite.task_manager import query_task
-
-        task_info = query_task(task_id, backend=platform)
-        if task_info and task_info.result:
-            return task_info.result
-        return None
+    task_info = query_task(task_id, backend=platform)
+    if task_info and task_info.result:
+        return task_info.result
+    return None
 
 
 def _wait_for_result(task_id: str, platform: str | None, timeout: float) -> dict | None:

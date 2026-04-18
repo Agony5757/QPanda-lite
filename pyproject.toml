@@ -71,16 +71,9 @@ packages = [
     "qpandalite.originir",
     "qpandalite.pytorch",
     "qpandalite.qasm",
-    "qpandalite.qcloud_config",
     "qpandalite.simulator",
     "qpandalite.task",
     "qpandalite.task.adapters",
-    "qpandalite.task.ibm",
-    "qpandalite.task.origin_qcloud",
-    "qpandalite.task.originq",
-    "qpandalite.task.originq_dummy",
-    "qpandalite.task.platform_template",
-    "qpandalite.task.quafu",
     "qpandalite.transpiler",
 ]
 

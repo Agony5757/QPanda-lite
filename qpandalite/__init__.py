@@ -14,21 +14,27 @@ try:
 except ImportError:
     import warnings
     warnings.warn('qpandalite is not installed with QPandaLiteCpp.')
-from .analyzer import convert_originq_result, convert_quafu_result, calculate_expectation, shots2prob, kv2list
-from .qcloud_config.originq_online_config import (create_originq_online_config,
-                                                  create_originq_dummy_config,
-                                                  create_originq_config)
-from .qcloud_config.quafu_online_config import create_quafu_online_config
-from .qcloud_config.ibm_online_config import create_ibm_online_config
-from .qcloud_config.originq_cloud_config import create_originq_cloud_config
+
+# Analyzer exports
+from .analyzer import (
+    calculate_expectation,
+    calculate_exp_X,
+    calculate_exp_Y,
+    calculate_multi_basis_expectation,
+    shots2prob,
+    kv2list,
+    list2kv,
+)
+
+# Unified result types and normalizers
+from .task.normalizers import normalize_originq, normalize_quafu, normalize_ibm, normalize_dummy
+from .task.result_types import UnifiedResult
 
 # Optional import - requires visualization dependencies (pandas, matplotlib)
 try:
     from .transpiler import plot_time_line
 except ImportError:
     pass
-
-from .task.task_utils import (get_last_taskid, load_circuit, load_circuit_group, load_all_online_info)
 
 from .circuit_adapter import (
     CircuitAdapter,

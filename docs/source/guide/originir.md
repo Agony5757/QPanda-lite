@@ -54,13 +54,14 @@ prob = sim.simulate_pmeasure(originir_str)
 
 ### 作为 OriginQ 平台提交格式
 
-提交到 OriginQ 平台时，直接使用 `circuit.originir` 作为线路参数：
+提交到 OriginQ 平台时，直接使用 `Circuit` 对象：
 
 ```python
-from qpandalite.task.origin_qcloud import submit_task
+from qpandalite import submit_task
 
 task_id = submit_task(
-    circuit=circuit.originir,
+    circuit=circuit,
+    backend='originq',
     shots=1000
 )
 ```

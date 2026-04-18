@@ -58,66 +58,67 @@ def submit(
 
 
 def _submit_single(circuit: str, platform: str, chip_id: str | None, shots: int, name: str | None) -> str:
-    """Submit a single circuit."""
-    if platform == "dummy":
-        from qpandalite.task.originq_dummy import task as dummy_task
+    """Submit a single circuit using the unified task_manager API."""
+    from qpandalite.task_manager import submit_task
+    from qpandalite.circuit_builder import Circuit
+    from qpandalite.originir import OriginIR_BaseParser
 
-        return dummy_task.submit_task(circuit, shots=shots)
-    elif platform == "originq":
-        from qpandalite.task.origin_qcloud import task as oq_task
+    # Parse the circuit string to a Circuit object
+    # Support both OriginIR and OpenQASM formats
+    parser = OriginIR_BaseParser()
+    try:
+        parsed_circuit = parser.parse(circuit)
+    except Exception:
+        # If OriginIR parsing fails, try QASM
+        from qpandalite.qasm import OpenQASM2_BaseParser
+        qasm_parser = OpenQASM2_BaseParser()
+        parsed_circuit = qasm_parser.parse(circuit)
 
-        kwargs = {"shots": shots}
-        if chip_id:
-            kwargs["chip_id"] = int(chip_id)
-        if name:
-            kwargs["task_name"] = name
-        return oq_task.submit_task(circuit, **kwargs)
-    elif platform == "quafu":
-        from qpandalite.task.quafu import task as quafu_task
+    # Build kwargs for backend-specific options
+    kwargs: dict = {"shots": shots}
+    if chip_id:
+        kwargs["chip_id"] = chip_id
+    if name:
+        kwargs["metadata"] = {"task_name": name}
 
-        kwargs = {"shots": shots}
-        if chip_id:
-            kwargs["chip_id"] = chip_id
-        return quafu_task.submit_task(circuit, **kwargs)
-    elif platform == "ibm":
-        from qpandalite.task.ibm import task as ibm_task
+    # Use dummy mode if platform is 'dummy'
+    dummy = platform == "dummy"
+    backend_name = "originq" if dummy else platform
 
-        kwargs = {"shots": shots}
-        if chip_id:
-            kwargs["chip_id"] = chip_id
-        return ibm_task.submit_task(circuit, **kwargs)
-    raise ValueError(f"Unsupported platform: {platform}")
+    return submit_task(parsed_circuit, backend=backend_name, dummy=dummy, **kwargs)
 
 
 def _submit_batch(circuits: list[str], platform: str, chip_id: str | None, shots: int, name: str | None) -> list[str]:
-    """Submit multiple circuits."""
-    # Note: name parameter is reserved for future use in batch submission
-    # Currently, most platforms don't support task names for batch submissions
+    """Submit multiple circuits using the unified task_manager API."""
+    from qpandalite.task_manager import submit_batch
+    from qpandalite.circuit_builder import Circuit
+    from qpandalite.originir import OriginIR_BaseParser
+    from .output import print_warning
+
     if name:
-        from .output import print_warning
         print_warning("Task name is not supported for batch submissions yet. Ignoring --name option.")
 
-    if platform == "dummy":
-        from qpandalite.task.originq_dummy import task as dummy_task
+    # Parse all circuits
+    parser = OriginIR_BaseParser()
+    parsed_circuits = []
+    for circuit in circuits:
+        try:
+            parsed_circuits.append(parser.parse(circuit))
+        except Exception:
+            from qpandalite.qasm import OpenQASM2_BaseParser
+            qasm_parser = OpenQASM2_BaseParser()
+            parsed_circuits.append(qasm_parser.parse(circuit))
 
-        return [dummy_task.submit_task(c, shots=shots) for c in circuits]
-    elif platform == "originq":
-        from qpandalite.task.origin_qcloud import task as oq_task
+    # Build kwargs for backend-specific options
+    kwargs: dict = {"shots": shots}
+    if chip_id:
+        kwargs["chip_id"] = chip_id
 
-        kwargs = {"shots": shots}
-        if chip_id:
-            kwargs["chip_id"] = int(chip_id)
-        result = oq_task.submit_task(circuits, **kwargs)
-        return result if isinstance(result, list) else [result]
-    elif platform == "quafu":
-        from qpandalite.task.quafu import task as quafu_task
+    # Use dummy mode if platform is 'dummy'
+    dummy = platform == "dummy"
+    backend_name = "originq" if dummy else platform
 
-        kwargs = {"shots": shots}
-        if chip_id:
-            kwargs["chip_id"] = chip_id
-        result = quafu_task.submit_task(circuits, **kwargs)
-        return result if isinstance(result, list) else [result]
-    raise ValueError(f"Batch submission not supported for platform: {platform}")
+    return submit_batch(parsed_circuits, backend=backend_name, dummy=dummy, **kwargs)
 
 
 def _wait_and_show(task_id: str, platform: str, timeout: float, format: str) -> None:

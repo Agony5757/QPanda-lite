@@ -69,7 +69,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from qpandalite.circuit_builder.qcircuit import Circuit
 
-from qpandalite import backend
+from qpandalite import backend as backend_module
 from qpandalite.circuit_adapter import (
     CircuitAdapter,
     OriginQCircuitAdapter,
@@ -441,7 +441,7 @@ def submit_task(
 
     # Get backend instance
     try:
-        backend_instance = backend.get_backend(backend)
+        backend_instance = backend_module.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
 
@@ -511,18 +511,31 @@ def _submit_dummy(
     originir = circuit.originir
     task_id = dummy_adapter.submit(originir, shots=shots)
 
+    # Get result from dummy adapter
+    result = dummy_adapter.query(task_id)
+    adapter_status = result.get("status", TASK_STATUS_RUNNING)
+
+    # Map adapter status to TaskStatus
+    status_map = {
+        TASK_STATUS_SUCCESS: TaskStatus.SUCCESS,
+        TASK_STATUS_FAILED: TaskStatus.FAILED,
+        TASK_STATUS_RUNNING: TaskStatus.RUNNING,
+        "pending": TaskStatus.PENDING,
+        "cancelled": TaskStatus.CANCELLED,
+    }
+    task_status = status_map.get(adapter_status, TaskStatus.FAILED)
+
     # Create and save task info
     task_info = TaskInfo(
         task_id=task_id,
         backend=f"dummy:{backend}",
-        status=TaskStatus.SUCCESS,  # Dummy results are immediate
+        status=task_status,
         shots=shots,
         metadata=metadata or {},
     )
 
-    # Get result from dummy adapter and store it
-    result = dummy_adapter.query(task_id)
-    if result.get("status") == TASK_STATUS_SUCCESS:
+    # Store result if successful
+    if adapter_status == TASK_STATUS_SUCCESS:
         task_info.result = result.get("result")
 
     save_task(task_info)
@@ -572,7 +585,7 @@ def submit_batch(
 
     # Get backend instance
     try:
-        backend_instance = backend.get_backend(backend)
+        backend_instance = backend_module.get_backend(backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
 
@@ -648,15 +661,25 @@ def _submit_batch_dummy(
 
     # Create and save task info for each
     for task_id in task_ids:
+        result = dummy_adapter.query(task_id)
+        adapter_status = result.get("status", TASK_STATUS_RUNNING)
+
+        # Map adapter status to TaskStatus
+        status_map = {
+            TASK_STATUS_SUCCESS: TaskStatus.SUCCESS,
+            TASK_STATUS_FAILED: TaskStatus.FAILED,
+            TASK_STATUS_RUNNING: TaskStatus.RUNNING,
+        }
+        task_status = status_map.get(adapter_status, TaskStatus.FAILED)
+
         task_info = TaskInfo(
             task_id=task_id,
             backend=f"dummy:{backend}",
-            status=TaskStatus.SUCCESS,
+            status=task_status,
             shots=shots,
             metadata={"batch": True, "batch_size": len(circuits)},
         )
-        result = dummy_adapter.query(task_id)
-        if result.get("status") == TASK_STATUS_SUCCESS:
+        if adapter_status == TASK_STATUS_SUCCESS:
             task_info.result = result.get("result")
         save_task(task_info)
 
@@ -669,40 +692,47 @@ def _submit_batch_dummy(
 
 def query_task(task_id: str, backend: str | None = None) -> TaskInfo:
     """Query the status of a task.
-    
+
     This function queries the backend for the current status of a task
     and updates the local cache.
-    
+
     Args:
         task_id: The task identifier.
         backend: The backend name. If None, attempts to look up from cache.
-        
+            Prefer using None to let the system auto-detect the correct backend.
+
     Returns:
         TaskInfo with current status and result if available.
-        
+
     Raises:
         TaskNotFoundError: If the task is not found locally or remotely.
         BackendNotFoundError: If the backend is not recognized.
         NetworkError: If a network error occurs.
-        
+
     Example:
         >>> info = query_task('task-123', backend='quafu')
         >>> print(info.status)
         'success'
     """
-    # Try to get backend from cache if not provided
-    if backend is None:
-        cached_task = get_task(task_id)
-        if cached_task is None:
-            raise TaskNotFoundError(
-                f"Task '{task_id}' not found in local cache. "
-                "Please provide the backend parameter."
-            )
+    # Always prefer cached backend info to handle dummy mode correctly
+    cached_task = get_task(task_id)
+    if cached_task is not None:
+        # Use cached backend (e.g., 'dummy:originq' for dummy mode)
         backend = cached_task.backend
-    
-    # Get backend instance
+        # For dummy tasks, results are already stored - return cached info directly
+        if backend.startswith("dummy:"):
+            return cached_task
+
+    if backend is None:
+        raise TaskNotFoundError(
+            f"Task '{task_id}' not found in local cache. "
+            "Please provide the backend parameter."
+        )
+
+    # Get backend instance (strip 'dummy:' prefix if present)
+    actual_backend = backend.split(":", 1)[-1] if backend.startswith("dummy:") else backend
     try:
-        backend_instance = backend.get_backend(backend)
+        backend_instance = backend_module.get_backend(actual_backend)
     except ValueError as e:
         raise BackendNotFoundError(str(e)) from e
     

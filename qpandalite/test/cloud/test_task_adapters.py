@@ -113,11 +113,12 @@ class RunTestConfigEnvVars:
         assert config["task_group_size"] == 50
 
     def run_test_originq_config_deprecated_file_fallback(self, monkeypatch, tmp_path):
-        """When env vars absent, originq_cloud_config.json is used (deprecated)."""
+        """File fallback is no longer supported - ImportError raised when env vars absent."""
         monkeypatch.delenv("QPANDA_API_KEY", raising=False)
         monkeypatch.delenv("QPANDA_SUBMIT_URL", raising=False)
         monkeypatch.delenv("QPANDA_QUERY_URL", raising=False)
 
+        # Create a config file (should NOT be used anymore)
         config_file = tmp_path / "originq_cloud_config.json"
         config_file.write_text(
             json.dumps(
@@ -131,11 +132,15 @@ class RunTestConfigEnvVars:
         )
         monkeypatch.chdir(tmp_path)
 
-        with pytest.warns(DeprecationWarning, match="deprecated"):
-            from qpandalite.task.config import load_originq_config
+        # Clear module cache to force re-import
+        if "qpandalite.task.config" in sys.modules:
+            del sys.modules["qpandalite.task.config"]
 
-            config = load_originq_config()
-        assert config["api_key"] == "file_key"
+        from qpandalite.task.config import load_originq_config
+
+        # Should raise ImportError - file fallback is no longer supported
+        with pytest.raises(ImportError, match="QPANDA_API_KEY"):
+            load_originq_config()
 
     def run_test_originq_config_import_error_without_config(self, monkeypatch, tmp_path):
         """ImportError raised when neither env vars nor config file exist."""

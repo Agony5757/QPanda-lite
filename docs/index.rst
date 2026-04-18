@@ -36,7 +36,17 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
 
 **算法示例**
 
-:doc:`Grover 搜索 <source/algorithm/search/grover>` | :doc:`VQE <source/algorithm/variational/vqe>` | :doc:`QAOA <source/algorithm/variational/qaoa>` | :doc:`QPE <source/algorithm/phase/qpe>` | :doc:`影子层析 <source/algorithm/measurement/shadow_tomography>`
+**变分算法** :doc:`VQE <source/algorithm/variational/vqe>` | :doc:`QAOA <source/algorithm/variational/qaoa>` | :doc:`VQD <source/algorithm/variational/vqd>`
+
+**搜索算法** :doc:`Grover 搜索 <source/algorithm/search/grover>` | :doc:`Grover Oracle <source/algorithm/search/grover_oracle>`
+
+**相位估计** :doc:`QPE <source/algorithm/phase/qpe>` | :doc:`QFT <source/algorithm/phase/qft>`
+
+**Oracle 算法** :doc:`振幅估计 <source/algorithm/oracle/amplitude_estimation>` | :doc:`Deutsch-Jozsa <source/algorithm/oracle/deutsch-jozsa>`
+
+**态制备** :doc:`纠缠态 <source/algorithm/state/entangled_states>` | :doc:`Dicke 态 <source/algorithm/state/dicke_state>` | :doc:`热态 <source/algorithm/state/thermal_state>`
+
+**测量** :doc:`影子层析 <source/algorithm/measurement/shadow_tomography>` | :doc:`态层析 <source/algorithm/measurement/state_tomography>`
 
 .. toctree::
    :maxdepth: 2

@@ -47,6 +47,11 @@ def print_info(message: str) -> None:
     console.print(f"[blue]ℹ[/blue] {message}")
 
 
+def print_warning(message: str) -> None:
+    """Print warning message."""
+    console.print(f"[yellow]⚠[/yellow] {message}")
+
+
 def format_prob(value: float) -> str:
     """Format probability as percentage string."""
     return f"{value * 100:.1f}%"

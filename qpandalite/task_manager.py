@@ -411,7 +411,7 @@ def submit_task(
             When True, uses local simulation instead of real backend.
         **kwargs: Additional backend-specific parameters.
             - For Quafu: chip_id, auto_mapping
-            - For OriginQ: chip_id, circuit_optimize, measurement_amend
+            - For OriginQ: backend_name (e.g., 'origin:wuyuan:d5'), circuit_optimize, measurement_amend
 
     Returns:
         The task ID assigned by the backend.
@@ -428,7 +428,7 @@ def submit_task(
         >>> circuit = Circuit()
         >>> circuit.h(0)
         >>> circuit.measure(0)
-        >>> task_id = submit_task(circuit, backend='quafu', shots=1000, chip_id='ScQ-P10')
+        >>> task_id = submit_task(circuit, backend='originq', shots=1000, backend_name='origin:wuyuan:d5')
         >>> # Use dummy mode for local simulation
         >>> task_id = submit_task(circuit, backend='quafu', dummy=True)
     """
@@ -559,7 +559,7 @@ def submit_batch(
         dummy: Override dummy mode. If None, uses QPANDALITE_DUMMY env var.
         **kwargs: Additional backend-specific parameters.
             - For Quafu: chip_id, auto_mapping, group_name
-            - For OriginQ: chip_id, circuit_optimize
+            - For OriginQ: backend_name (e.g., 'origin:wuyuan:d5'), circuit_optimize
 
     Returns:
         List of task IDs assigned by the backend.

@@ -9,8 +9,6 @@ Example configuration structure:
     default:
       originq:
         token: xxx
-        submit_url: xxx
-        query_url: xxx
       quafu:
         token: xxx
       ibm:
@@ -37,8 +35,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "default": {
         "originq": {
             "token": "",
-            "submit_url": "",
-            "query_url": "",
             "available_qubits": [],
             "available_topology": [],
             "task_group_size": 200,
@@ -61,7 +57,7 @@ SUPPORTED_PLATFORMS = ["originq", "quafu", "ibm"]
 
 # Platform-specific required fields
 PLATFORM_REQUIRED_FIELDS = {
-    "originq": ["token", "submit_url", "query_url"],
+    "originq": ["token"],
     "quafu": ["token"],
     "ibm": ["token"],
 }

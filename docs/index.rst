@@ -74,12 +74,6 @@ QPanda-lite 是一个 Python 原生、轻量且强调透明性的量子计算框
 
 .. toctree::
    :maxdepth: 2
-   :caption: 命令行工具 (CLI)
-
-   source/cli
-
-.. toctree::
-   :maxdepth: 2
    :caption: API 参考
 
    source/qpandalite_api

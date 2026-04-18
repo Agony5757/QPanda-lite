@@ -54,3 +54,4 @@ print("测量概率分布:", prob)
 - 如果你已经完成安装、最小示例和本地验证，准备提交到云平台或真机，请阅读 [提交任务](submit_task.md)。
 - 如果你想了解 OriginIR 格式的详细说明，请阅读 [OriginIR](originir.md)。
 - 如果你想了解 QASM 格式与格式互转，请阅读 [QASM](qasm.md)。
+- 如果你想从命令行直接操作，请阅读 [命令行工具](cli.md)。

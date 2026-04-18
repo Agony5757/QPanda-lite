@@ -22,6 +22,7 @@
    guide/simulation
    guide/submit_task
    guide/task_manager
+   guide/cli
    guide/pytorch
 
 格式互转与语言接口
